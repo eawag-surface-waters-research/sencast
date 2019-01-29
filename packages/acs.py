@@ -199,7 +199,7 @@ def background_processing(myproduct, params, dir_dict, save_out):
     if params['sensor'].upper() == 'MSI':
         oriproduct.resample(res=RES)
     # First subset the original product
-    regions = oriproduct.get_regions() 
+    regions = oriproduct.get_regions()
     polyproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
     # myproduct = []
     #------------------ Subset ------------------#

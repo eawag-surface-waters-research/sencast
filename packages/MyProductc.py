@@ -221,12 +221,10 @@ class MyProduct(object):
     def get_regions(self):
         regions = []
         for product in self.products:
-            UL, UR, LR, LL = get_UL_LR_pixels_ROI(product, self.params)
-            ul = [int(np.floor((UL[0]+UR[0])/2)), int(np.floor((UL[1]+LL[1])/2))]
-            lr = [int(np.ceil((LL[0]+LR[0])/2)), int(np.ceil((LR[1]+UR[1])/2))]
-            w = lr[1] - ul[1]
-            h = lr[0] - ul[0]
-            regions.append(str(ul[1])+','+str(ul[0])+','+str(w)+','+str(h))
+            UL, LR = get_UL_LR_pixels_ROI(product, self.params)
+            w = LR[1] - UL[1]
+            h = LR[0] - UL[0]
+            regions.append(str(UL[1])+','+str(UL[0])+','+str(w)+','+str(h))
         return regions
     
     
@@ -363,13 +361,9 @@ class MyProduct(object):
             temppath = [os.path.join(temppath[0], p) for p in os.listdir(temppath[0]) if \
                         product.getName().split('.')[0] in p]
             ppath = temppath[0]
-            UL, UR, LR, LL = get_UL_LR_pixels_ROI(product, self.params)
-#             ul = [int(max(UL[0], UR[0])), int(max(UL[1], LL[1]))]
-#             lr = [int(max(LL[0], LR[0])), int(max(LR[1], UR[1]))]
-            ul = [int(np.floor((UL[0]+UR[0])/2)), int(np.floor((UL[1]+LL[1])/2))]
-            lr = [int(np.ceil((LL[0]+LR[0])/2)), int(np.ceil((LR[1]+UR[1])/2))]
-            w = lr[1] - ul[1]
-            h = lr[0] - ul[0]
+            UL, LR = get_UL_LR_pixels_ROI(product, self.params)
+            w = lr[1] - UL[1]
+            h = lr[0] - UL[0]
             savdir = polymer_savedir
             if not os.path.isdir(savdir):
                 os.mkdir(savdir)
@@ -385,19 +379,19 @@ class MyProduct(object):
                             if 'L1C' in tp]
                 assert len(temppath) == 1
                 ppath = temppath[0]
-                run_atm_corr(Level1_MSI(ppath, sline=ul[0], scol=ul[1],
-                                        eline=ul[0]+h,ecol=ul[1]+w, landmask=GSW(), 
+                run_atm_corr(Level1_MSI(ppath, sline=UL[0], scol=UL[1],
+                                        eline=UL[0]+h,ecol=UL[1]+w, landmask=GSW(), 
                                         resolution=RES),
                              Level2(filename=pfname, fmt='netcdf4', overwrite=True))
             else:
                 if not os.path.isdir('data_landmask_gsw'):
                     os.mkdir('data_landmask_gsw')
-                run_atm_corr(Level1(ppath, sline=ul[0], scol=ul[1],
-                                    eline=ul[0]+h,ecol=ul[1]+w, landmask=GSW(agg=8)),
+                run_atm_corr(Level1(ppath, sline=UL[0], scol=UL[1],
+                                    eline=UL[0]+h,ecol=UL[1]+w, landmask=GSW(agg=8)),
                 Level2(filename=pfname, fmt='netcdf4', overwrite=True))
             print('Polymer applied')
-            ULs.append(ul)
-            LRs.append(lr)
+            ULs.append(UL)
+            LRs.append(UL)
             resultpoly = ProductIO.readProduct(pfname)
             pname = product.getName().split('.')[0]
             if myproductmask is not None:

@@ -1,5 +1,5 @@
-start='2018-07-26T00:00:00.000Z'
-end='2018-07-27T00:00:00.000Z'
+start='2019-01-28T00:00:00.000Z'
+end='2019-01-29T00:00:00.000Z'
 
 # Input data type
 # For example 'olci' or 'msi'
@@ -12,7 +12,7 @@ tile='EU-042_012'
 
 # Specify the geometry for the subset
 # Name of wkt file ('gva.wkt') available in perimeter folder, or string in format POLYGON(...)
-wkt='gva.wkt'
+wkt='tya.wkt'
 
 # Specify the names of quicklook rgb/false color bands from L1 products
 rgb_bands='Oa08_radiance, Oa06_radiance, Oa04_radiance'

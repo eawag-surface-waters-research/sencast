@@ -2,62 +2,75 @@
 # coding: utf8
 
 import numpy as np
-from snappy import GeoPos
+from snappy import GeoPos, jpy
+from snappy import WKTReader
 import re
+
+FileReader = jpy.get_type('java.io.FileReader')
 
 
 def get_UL_LR_pixels_ROI(product, params):
         # Read the wkt parameter from params
-        wkt = params['wkt']
-        corners = re.findall("[-]?\d+\.\d+", wkt)
-        corners = np.array([float(c) for c in corners], dtype=np.float32)
-#         lat = np.array([corners[1], corners[5]])
-#         lon = np.array([corners[0], corners[4]])
-        # Get pixel coordinates of UL and LR corners for the selected ROI in the product
-        h = product.getSceneRasterHeight()
-        w = product.getSceneRasterWidth()
-#         ul_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(lat.max(), lon.min()), None)
-#         lr_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(lat.min(), lon.max()), None)
-        ul_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(corners[1], 
-                                                                corners[0]), None)
-        ur_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(corners[3], 
-                                                                corners[2]), None)
-        lr_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(corners[5], 
-                                                                corners[4]), None)
-        ll_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(corners[7], 
-                                                                corners[6]), None)
+        wkt_file = params['wkt file']
+        perimeter = WKTReader().read(FileReader(wkt_file))
+        lats = []
+        lons = []
+        for coordinate in perimeter.getCoordinates():
+            lats.append(coordinate.y)
+            lons.append(coordinate.x)
+            
+        ul = [min(lons), max(lats)]
+        ur = [max(lons), max(lats)]
+        lr = [max(lons), min(lats)]
+        ll = [min(lons), min(lats)]
         
+        
+        ul_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(ul[1], 
+                                                                ul[0]), None)
+        ur_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(ur[1], 
+                                                                ur[0]), None)
+        lr_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(lr[1], 
+                                                                lr[0]), None)
+        ll_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(ll[1], 
+                                                                ll[0]), None)
+        
+        ul_bool = ul_pos.isValid()
+        ur_bool = ur_pos.isValid()
+        lr_bool = lr_pos.isValid()
+        ll_bool = ll_pos.isValid()
         
         UL = np.array([np.floor(ul_pos.getY()).astype(int), 
-                       np.floor(ul_pos.getX()).astype(int)])
+                           np.floor(ul_pos.getX()).astype(int)])
         UR = np.array([np.floor(ur_pos.getY()).astype(int), 
-                       np.floor(ur_pos.getX()).astype(int)])
+                           np.floor(ur_pos.getX()).astype(int)])
         LR = np.array([np.ceil(lr_pos.getY()).astype(int), 
                        np.ceil(lr_pos.getX()).astype(int)])
         LL = np.array([np.ceil(ll_pos.getY()).astype(int), 
                        np.ceil(ll_pos.getX()).astype(int)])
         
-        # If lat min < 0 
-        if UL[0] < 0:
-            UL[0] = 0
-        if UR[0] < 0:
-            UR[0] = 0
-        # if lon min < 0
-        if UL[1] < 0:
-            UL[1] = 0
-        if LL[1] < 0:
-            LL[1] = 0
-        # if lat max > h
-        if LR[0] > h:
-            LR[0] = h
-        if LL[0] > h:
-            LL[0] = h
-        # if lon max > w
-        if LR[1] > w:
-            LR[1] = w
-        if UR[1] > w:
-            UR[1] = w
-        return UL, UR, LR, LL
+        h = product.getSceneRasterHeight()
+        w = product.getSceneRasterWidth()
+        
+        # I see 8 configurations which can give errors
+        if not ul_bool and not ur_bool and lr_bool and not ll_bool:
+            UL = [0, 0]
+        if not ul_bool and ur_bool and lr_bool and not ll_bool:
+            UL = [UR[0], 0]
+        if not ul_bool and ur_bool and not lr_bool and not ll_bool:
+            UL = [UR[0],0]
+            LR = [h, UR[1]]
+        if ul_bool and ur_bool and not lr_bool and not ll_bool:
+            LR = [h, UR[1]]
+        if ul_bool and not ur_bool and not lr_bool and not ll_bool:
+            LR = [h, w]
+        if ul_bool and not ur_bool and not lr_bool and ll_bool:
+            LR = [LL[0], w]
+        if not ul_bool and not ur_bool and not lr_bool and ll_bool:
+            UL = [0, LL[1]]
+            LR = [LL[0], w]
+        if not ul_bool and not ur_bool and lr_bool and ll_bool:
+            UL = [0, LL[1]]
+        return UL, LR
 
 
 def get_UL_LR_geo_ROI(product, params):
