@@ -1,0 +1,6 @@
+# Import libs
+from packages.main import eawag_hindcast
+# Options
+params_filename = '190122_coresim-spring-s3.txt'
+
+eawag_hindcast(params_filename)
