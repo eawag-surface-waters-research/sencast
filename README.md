@@ -5,8 +5,8 @@ This project is used to download and process Sentinel MSI and OLCI data and appl
 inland water studies.
 
 # How to use
--Read the header of the sentinel_hindcast.ipynb file.
--Copy a template file and edit it. 
+- Read the header of the sentinel_hindcast.ipynb file.
+- Copy a template file and edit it. 
 
 # Flaws to fix:
 - The code only works on linux. Edits are requested on the paths in the different packages/*py files to make it work on any OS
