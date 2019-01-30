@@ -289,7 +289,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         #  Add shading if requested
         if basemap == 'srtm_hillshade':
             print('   preparing SRTM hillshade basemap')
-            srtm_raster = PostprocessedRasterSource(source(max_nx=6, max_ny=6), shade)
+            srtm_raster = PostprocessedRasterSource(source(max_nx=8, max_ny=8), shade)
             color_vals = [[0.8, 0.8, 0.8, 1], [1.0, 1.0, 1.0, 1]]
             shade_grey = colors.LinearSegmentedColormap.from_list("ShadeGrey", color_vals)
             base_cols = shade_grey
