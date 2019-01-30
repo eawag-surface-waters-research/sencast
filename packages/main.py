@@ -15,10 +15,6 @@ def eawag_hindcast(params_filename):
     os.chdir(os.path.join('/home/', user))
     cwd = os.getcwd()
     wkt_dir = os.path.join(cwd, 'wkt')
-    DHUSGET = os.path.join(cwd, 'dhusget', 'dhusget.sh')
-    if not os.path.isdir(os.path.join(cwd, 'dhusget')):
-        print('"dhushet" directory not found.')
-        return
     params_path = os.path.join(cwd, 'jupyter', 'sentinel_hindcast', 'parameters',params_filename)
     if not os.path.isfile(params_path):
         print('Parameter file {} not found.'.format(params_path))
@@ -57,11 +53,12 @@ def eawag_hindcast(params_filename):
         print('HDA query completed.')
     elif params['API'] == 'COAH':
         print('COAH query...')
-        xmlfs = query_dl_coah(DHUSGET, params, L1_dir_sensor)
+        xmlfs = query_dl_coah(params, L1_dir_sensor)
         print('COAH query completed.')
     else:
         print('API unknown (possible options are ''HDA'' or ''COAH''), exiting.')
         sys.exit()
+        
     if xmlfs:
         # Create required folders
         dir_dict = {}

@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# coding: utf8
+#-*- coding: utf-8 -*-
 
 import os
 from snappy import ProductIO
@@ -8,41 +8,57 @@ import re
 from packages.auxil import list_xml_scene_dir
 from zipfile import ZipFile
 import getpass
+import xml.etree.ElementTree as ET
+import numpy as np
+# from snappy import WKTReader, jpy
+# FileReader = jpy.get_type('java.io.FileReader')
 
 
-def write_url_list(filename, urls):
-    with open(filename, 'w') as f:
-        for url in urls:
-            f.write(url+'\n')
+def prepend_ns(s):
+    return '{http://www.w3.org/2005/Atom}' + s
 
 
-def read_products_urls(fname):
-    temp = []
-    with open(fname, 'r') as f:
-        for l in f:
-            temp.append(l)
-    purls = []
-    for pn in temp:
-        purls.append(re.findall('(?<=,).*$', pn)[0])
-    return purls 
+def prepend_os(s):
+    return '{http://a9.com/-/spec/opensearch/1.1/}' + s
 
 
-def read_products_list(fname):
-    temp = []
-    with open(fname, 'r') as f:
-        for l in f:
-            temp.append(l)
+def parse_coah_xml(filename):
+    coah_xml = {}
     pnames = []
-    for pn in temp:
-        pnames.append(re.match('^(.*)(,http)', pn).group(1))
-    return pnames 
+    uuids = []
+    tree = ET.parse(filename)
+    root = tree.getroot()
+    
+    for titl in root.iter(prepend_ns('title')):
+        if 'instrumentshortname' not in titl.text:
+            pnames.append(titl.text)
+    for tr in root.iter(prepend_os('totalResults')):
+        total_results = int(tr.text)
+    elems = [el for el in root.iter(prepend_ns('str'))]
+    c = 0
+    for el in elems:
+        if el.get('name') == 'uuid':
+            uuids.append(el.text)
+            c += 1
+    coah_xml['pnames'] = pnames
+    coah_xml['uuids'] = uuids
+    coah_xml['total_results'] = total_results
+    coah_xml['nb_results'] = c
+    return coah_xml
+
+
+def coah_xmlparsed_to_txt(uuids, out_fname):
+    basestr = '"https://scihub.copernicus.eu/dhus/odata/v1/Products(\'{}\')/$value"\n'    
+    with open(out_fname, 'w+') as of:
+        for uuid in uuids:
+            of.write(basestr.format(uuid))
 
     
 def wc(filename):
     return int(check_output(["wc", "-l", filename]).split()[0])
 
     
-def query_dl_coah(dhusget_fullname, params, outdir):
+def query_dl_coah(params, outdir):
     xmlf = []
     wd = os.getcwd()
     if params['sensor'].upper() == 'OLCI':
@@ -52,37 +68,56 @@ def query_dl_coah(dhusget_fullname, params, outdir):
     print('\nQuery...')
     # Get geometry
     wkt = params['wkt']
-    corners = re.findall("[-]?\d+\.\d+", wkt)
-    geometry = corners[0] + ',' + corners[1] + ':' + corners[4] + ',' + corners[5]
-#     output = check_output('bash ' + dhusget_fullname + ' -u ' + params['username'] + \
-#                           ' -p ' + params['password'] + ' -i ' + params['sensor'].lower() + ' -S ' + \
-#                           params['start'] + ' -E ' + params['end'] + ' -c ' + geometry + \
-#                           ' -T ' + datatype + ' -l 50 -W 1 -w 5 -o product -O ' + outdir, shell=True)
-    output = check_output('bash ' + dhusget_fullname + ' -u ' + params['username'] + \
-                          ' -p ' + params['password'] + ' -i ' + params['sensor'].lower() + ' -S ' + \
-                          params['start'] + ' -E ' + params['end'] + ' -c ' + geometry + \
-                          ' -T ' + datatype + ' -l 100 -W 1 -w 5', shell=True)
-    print(output)
-    nb_product = wc(os.path.join(wd, 'products-list.csv'))
-    print('\nQuery completed: {} product(s) found.'.format(nb_product))
+    cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:'+params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+' TO '+params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start=0\''
+    os.system(cmd)
+    # Read the XML file
+    try:
+        coah_xml = parse_coah_xml('products-list.xml')
+        os.remove('products-list.xml')
+    except TypeError:
+        print('No products found for this date. Exiting...')
+        os.remove('products-list.xml')
+        return
     
-    purls = read_products_urls(os.path.join(wd, 'products-list.csv'))
-    all_pnames = read_products_list(os.path.join(wd, 'products-list.csv'))
+    total_results = coah_xml['total_results']
+    print('{} products found:'.format(total_results))
     
-    urls, pnames = [], []
-    c = 0
-    for pn in all_pnames:
-        if pn.split('.')[0] not in os.listdir(outdir):
-            urls.append('"'+purls[c]+'/$value"')
+    for pname in coah_xml['pnames']:
+        print(pname)
+
+    all_pnames = coah_xml['pnames']
+    all_uuids = coah_xml['uuids']
+    nit = np.floor(total_results/100)
+    if nit > 0:
+        c = 100
+        for i in range(nit):
+            cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:'+params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+' TO '+params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start='+str(c)+'\''
+            os.system(cmd)
+            for pname in coah_xml['pnames']:
+                print(pname)
+                all_pnames.append(pname)
+            coah_xml = parse_coah_xml('products-list.xml')
+            os.remove('products-list.xml')
+            for uuid in coah_xml['uuids']:
+                all_uuids.append(uuid)
+            c += 100
+            
+    # Remove uuids already downloaded
+    uuids, pnames = [], []
+    for uuid, pn in zip(all_uuids, all_pnames):
+        if pn.split not in os.listdir(outdir):
+            uuids.append(uuid)
             pnames.append(pn)
-        c += 1
-        
-    if urls:
+    # Download
+    if uuids:
         user = getpass.getuser()
-        url_list  = os.path.join(outdir,'urls_list_'+user+'.txt')
-        write_url_list(url_list, urls)
-        max_threads = min(2, len(urls))
-        print('\nDownloading {} product(s)...'.format(len(urls)))
+        # Create CSV file for wget
+        url_list = os.path.join(outdir,'urls_list_'+user+'.txt')
+        if os.path.isfile(url_list):
+            os.remove(url_list)
+        coah_xmlparsed_to_txt(uuids, url_list)
+        max_threads = min(2, len(uuids))
+        print('\nDownloading {} product(s)...'.format(len(uuids)))
         # Go to saving directory (the --content-disposition option save the file with the proper filename
         # but in the current directory)
         os.chdir(outdir)
@@ -104,7 +139,7 @@ def query_dl_coah(dhusget_fullname, params, outdir):
             os.remove(url_list)
             return
         else:
-            print('\nDownload complete.')
+            print('Download complete.')
             
         os.remove(url_list)
         for pn in pnames:
@@ -116,11 +151,9 @@ def query_dl_coah(dhusget_fullname, params, outdir):
             os.remove(os.path.join(outdir, zf[0]))
     else:
         print('\nAll products already downloaded, skipping...')
+        
     
-    os.system('rm -f ' + os.path.join(wd, 'OSquery-result.xml') + ' ' + \
-              os.path.join(wd, 'product_list') +  ' ' + os.path.join(wd, 'failed_MD5_check_list.txt') + \
-              ' ' + os.path.join(wd, 'products-list.csv'))
-    if nb_product > 0:
+    if total_results > 0:
        # Read products
         xmlf = list_xml_scene_dir(outdir, sensor=params['sensor'], file_list=all_pnames)
     return xmlf
