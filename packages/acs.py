@@ -300,37 +300,37 @@ def background_processing(myproduct, params, dir_dict, save_out):
         mphproduct.close()
     #------------------ Polymer ------------------#
     if '2' in params['pcombo']:
-        #try:
-        print('\nPolymer...')
-        polyproduct.polymer(myproductmask=oriproduct)
-        print('Done.')
-        # Create bands image of polymer
-        for product in polyproduct.products:
-            pname = product.getName()
-#             ingestday = get_ingestion_date(pname)
-#             ingestday = datetime.strptime(ingestday, '%Y%m%d').strftime('%Y-%m-%d')
-            print('\nCreating quicklooks for bands: {}\n'.format(params['polymer bands']))
-            # Check if parameter range is provided
-            params_range = params['polymer max']
-            c = 0
-            for bn in params['polymer bands']:
-                if params_range[c] == 0:
-                    param_range = False
-                else:
-                    param_range = [0, params_range[c]]
-                c += 1
-                bname = os.path.join(dir_dict[bn], pname.split('.')[0] + '_' + bn + '.png')
-                plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True, 
-                         perimeter_file=params['wkt file'], param_range=param_range)
-                print('Plot for band {} finished.\n'.format(bn))
-#             product.closeIO()
-        # Write product
-        if save_out:
-            print('\nWriting L2POLY product to disk...')
-            polyproduct.write(dir_dict['polymer dir'])
-            print('Writing completed.')
-        polyproduct.close()
-        #except OSError:
-          #  print('\nPolymer processing failed because of "mv" command!\n')
+        try:
+            print('\nPolymer...')
+            polyproduct.polymer(myproductmask=oriproduct)
+            print('Done.')
+            # Create bands image of polymer
+            for product in polyproduct.products:
+                pname = product.getName()
+        #             ingestday = get_ingestion_date(pname)
+        #             ingestday = datetime.strptime(ingestday, '%Y%m%d').strftime('%Y-%m-%d')
+                print('\nCreating quicklooks for bands: {}\n'.format(params['polymer bands']))
+                # Check if parameter range is provided
+                params_range = params['polymer max']
+                c = 0
+                for bn in params['polymer bands']:
+                    if params_range[c] == 0:
+                        param_range = False
+                    else:
+                        param_range = [0, params_range[c]]
+                    c += 1
+                    bname = os.path.join(dir_dict[bn], pname.split('.')[0] + '_' + bn + '.png')
+                    plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True, 
+                             perimeter_file=params['wkt file'], param_range=param_range)
+                    print('Plot for band {} finished.\n'.format(bn))
+        #             product.closeIO()
+            # Write product
+            if save_out:
+                print('\nWriting L2POLY product to disk...')
+                polyproduct.write(dir_dict['polymer dir'])
+                print('Writing completed.')
+            polyproduct.close()
+        except OSError:
+            print('\nPolymer processing failed because of "mv" command!\n')
     oriproduct.close()
     
