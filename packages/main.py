@@ -62,9 +62,6 @@ def eawag_hindcast(params_filename):
     if xmlfs:
         # Create required folders
         dir_dict = {}
-        dir_dict['polymer temp'] = os.path.join(cwd, 'jupyter', 
-                                                'sentinel_hindcast', 
-                                                'ANCILLARY', 'temp')
         # Check qmode    
         if params['qmode'] == '2':
             print('\nqmode = {}, quicklooks will be saved in the project directory\n'.format(params['qmode']))

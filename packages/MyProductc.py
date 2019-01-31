@@ -261,7 +261,7 @@ class MyProduct(object):
                 # GET ANCILLARY
                 # cd to jupyter/sentinel_hindcast directory
                 cwd = os.getcwd()
-                os.chdir('jupyter/sentinel_hindcast')
+                os.chdir(POLYMER_INSTALL_DIR)
                 ancillary = Ancillary_NASA()
                 os.chdir(cwd)
                 lat, lon = get_UL_LR_geo_ROI(product, self.params)
@@ -333,7 +333,7 @@ class MyProduct(object):
             self.update()
     
     
-    def polymer(self, myproductmask=None, polymer_savedir=POLYMER_INSTALL_DIR):
+    def polymer(self, myproductmask=None):
         """ Apply POLYMER atmospheric correction."""
         results = []
         # To use POLYMER, we need to work from its home directory
@@ -362,9 +362,9 @@ class MyProduct(object):
                         product.getName().split('.')[0] in p]
             ppath = temppath[0]
             UL, LR = get_UL_LR_pixels_ROI(product, self.params)
-            w = lr[1] - UL[1]
-            h = lr[0] - UL[0]
-            savdir = polymer_savedir
+            w = LR[1] - UL[1]
+            h = LR[0] - UL[0]
+            savdir = POLYMER_INSTALL_DIR
             if not os.path.isdir(savdir):
                 os.mkdir(savdir)
             pfname = os.path.join(savdir, 'temp.nc')

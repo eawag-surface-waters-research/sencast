@@ -19,7 +19,7 @@ import getpass
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 CONST_HTTP_SUCCESS_CODE = 200
-
+MAX_THREADS = 8
 
 def write_url_list(filename, urls):
     with open(filename, 'w') as f:
@@ -47,7 +47,7 @@ def query_dl_hda(params, outdir, max_threads=2):
             user = getpass.getuser()
             url_list  = os.path.join(outdir,'urls_list_'+user+'.txt')
             write_url_list(url_list, query['urls'])
-            max_threads = min(2, len(query['urls']))
+            max_threads = min(MAX_THREADS, len(query['urls']))
             print('\nDownloading {} product(s)...'.format(len(query['urls'])))
             os.system('cat ' + url_list +' | xargs -n 1 -P ' + str(max_threads) + \
                       ' wget --content-disposition -q -P ' + outdir)
