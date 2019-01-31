@@ -105,7 +105,7 @@ def query_dl_coah(params, outdir):
     # Remove uuids already downloaded
     uuids, pnames = [], []
     for uuid, pn in zip(all_uuids, all_pnames):
-        if pn.split not in os.listdir(outdir):
+        if pn.split('.')[0] not in os.listdir(outdir):
             uuids.append(uuid)
             pnames.append(pn)
     # Download
@@ -131,7 +131,7 @@ def query_dl_coah(params, outdir):
         lsdir = [lsd.split('.')[0] for lsd in os.listdir(outdir)]
         c = 0
         for pn in pnames:
-            if pn in lsdir:
+            if pn.split('.')[0] in lsdir:
                 c += 1
         if c != len(pnames):
             print('Download(s) failed, another user might be using COAH services with the same credentials.' +\
