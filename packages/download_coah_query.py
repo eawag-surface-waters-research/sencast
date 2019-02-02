@@ -48,7 +48,7 @@ def parse_coah_xml(filename):
 
 
 def coah_xmlparsed_to_txt(uuids, out_fname):
-    basestr = '"https://scihub.copernicus.eu/dhus/odata/v1/Products(\'{}\')/$value"\n'    
+    basestr = '"https://scihub.copernicus.eu/dhus/odata/v1/Products(\'{}\')/$value"\n'
     with open(out_fname, 'w+') as of:
         for uuid in uuids:
             of.write(basestr.format(uuid))
@@ -87,7 +87,7 @@ def query_dl_coah(params, outdir):
 
     all_pnames = coah_xml['pnames']
     all_uuids = coah_xml['uuids']
-    nit = np.floor(total_results/100)
+    nit = np.floor(total_results/100).astype(int)
     if nit > 0:
         c = 100
         for i in range(nit):
