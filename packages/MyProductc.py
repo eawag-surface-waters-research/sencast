@@ -9,8 +9,16 @@ import re
 import numpy as np
 import os
 from packages.ancillary import Ancillary_NASA
-import packages.settings
+import getpass
 
+
+user = getpass.getuser()
+POLYMER_INSTALL_DIR = '/home/'+user+'/software/polymer-v4.9'
+sys.path.append(POLYMER_INSTALL_DIR)
+from polymer.main import run_atm_corr
+from polymer.main import Level1, Level2
+from polymer.level1_msi import Level1_MSI
+from polymer.gsw import GSW
 
 RES = 60 # Resolution for MSI resampling - Use only a lower resolution for small ROI
 
@@ -325,14 +333,6 @@ class MyProduct(object):
             self.products = results
             self.state.append('MPH')
             self.update()
-    
-    
-    def load_polymer(self):
-        sys.path.append(settings.POLYMER_INSTALL_DIR)
-        from polymer.main import run_atm_corr
-        from polymer.main import Level1, Level2
-        from polymer.level1_msi import Level1_MSI
-        from polymer.gsw import GSW
     
     
     def polymer(self, myproductmask=None):

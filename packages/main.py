@@ -13,7 +13,7 @@ import os, time
 import getpass
 
             
-def eawag_hindcast(params_filename, polymer_install_dir):
+def eawag_hindcast(params_filename):
     user = getpass.getuser()
     os.chdir(os.path.join('/home/', user))
     cwd = os.getcwd()
@@ -169,7 +169,7 @@ def eawag_hindcast(params_filename, polymer_install_dir):
                 myproduct = MyProduct(products, params, L1_dir_sensor)
                 print('\n\033[1mProcessing product ({}/{}): {}...\033[0m\n'.format(c, nbtot, products[0].getName()))
                 startt = time.time()
-                background_processing(myproduct, params, dir_dict, save_out, polymer_install_dir)
+                background_processing(myproduct, params, dir_dict, save_out)
                 myproduct.close()
                 print('\nProduct processed in {0:.1f} seconds.\n'.format(time.time() - startt))
                 c += 1

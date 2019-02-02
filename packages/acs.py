@@ -11,7 +11,6 @@ import re
 from datetime import datetime
 import os
 from packages.eawag_mapping import plot_pic, plot_map
-import packages.settings
 
 
 RES = 60 # Resample resolution for MSI
@@ -305,8 +304,6 @@ def background_processing(myproduct, params, dir_dict, save_out, polymer_install
     if '2' in params['pcombo']:
         try:
             print('\nPolymer...')
-            settings.init(polymer_install_dir)
-            polyproduct.load_polymer()
             polyproduct.polymer(myproductmask=oriproduct)
             print('Done.')
             # Create bands image of polymer
