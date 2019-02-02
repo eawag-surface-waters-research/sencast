@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# coding: utf8
+# -*- coding: utf-8 -*-
 
 import numpy as np
 from snappy import GeoPos, jpy

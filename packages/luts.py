@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# encoding: utf-8
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 '''
 Several tools for look-up tables management and interpolation

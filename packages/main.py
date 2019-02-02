@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import sys
 sys.path.append('/home/odermatt/.snap/snap-python')
 from packages.MyProductc import MyProduct
@@ -10,7 +13,7 @@ import os, time
 import getpass
 
             
-def eawag_hindcast(params_filename):
+def eawag_hindcast(params_filename, polymer_install_dir):
     user = getpass.getuser()
     os.chdir(os.path.join('/home/', user))
     cwd = os.getcwd()
@@ -166,7 +169,7 @@ def eawag_hindcast(params_filename):
                 myproduct = MyProduct(products, params, L1_dir_sensor)
                 print('\n\033[1mProcessing product ({}/{}): {}...\033[0m\n'.format(c, nbtot, products[0].getName()))
                 startt = time.time()
-                background_processing(myproduct, params, dir_dict, save_out)
+                background_processing(myproduct, params, dir_dict, save_out, polymer_install_dir)
                 myproduct.close()
                 print('\nProduct processed in {0:.1f} seconds.\n'.format(time.time() - startt))
                 c += 1
