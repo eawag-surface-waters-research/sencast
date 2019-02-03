@@ -41,7 +41,6 @@ def eawag_hindcast(params_filename):
         return
     #*********************************************************
     # Initialisation
-    print('Initializing...')
     L1_dir_sensor = os.path.join(L1_dir, params['sensor'].upper() + '_L1')
     L2_dir_sensor = os.path.join(L2_dir, params['sensor'].upper() + '_L1')
     if not os.path.isdir(L1_dir_sensor):
@@ -52,7 +51,7 @@ def eawag_hindcast(params_filename):
     print('wkt file: {}'.format(params['wkt file']))
     project_dir = os.path.join(L2_dir_sensor, params['name']+'_'+wktfn+'_'+params['start'][:10]+'_'+params['end'][:10])
 #     project_dir = os.path.join(temp_dir, params['name'])
-    print('Project directory: {}\n'.format(project_dir))
+    print('output folder: {}\n'.format(project_dir))
     if not os.path.isdir(project_dir):
         os.mkdir(project_dir)
         

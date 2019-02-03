@@ -75,6 +75,7 @@ def get_S3_products_list(rootdir):
 def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     if verbose:
         print('Reading file: ' + filename)
+        print()
     params_list = []
     with open(filename, 'r') as f:
         for line in f:
@@ -85,12 +86,12 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     sensor = [re.findall("'([^']*)'", x) for x in params_list if 'sensor' in x.lower()][0][0]
     if 'MSI' in sensor.upper():
         if verbose:
-            print('\nData request for MSI sensor\n')
+            print('Sensor: MSI')
         satnumber = 2
         sensorname = '' # Used to call the Idepix operator
     elif 'OLCI' in sensor.upper():
         if verbose:
-            print('\nData request for OLCI sensor\n')
+            print('Sensor: OLCI')
         satnumber = 3
         sensorname = '.Olci'  # Used to call the Idepix operator
     else:
@@ -130,7 +131,7 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     mph_max = [re.findall("'([^']*)'", x) for x in params_list if 'mph_maxbands=' in x.lower()]
     mph_max = [float(e.strip()) for e in mph_max[0][0].split(',')]
     if verbose:
-        print('Project name: ' + name)
+        print('job name: ' + name)
         print('sensor: ' + sensor.upper())
         print('start: '+ start)
         print('end: '+ end)

@@ -18,14 +18,14 @@ print()
 print('Script running on ' + hostname)
 print()
 if hostname == 'daniels-macbook-pro.home':
-    POLYMER_INSTALL_DIR = '/Users/' + user + '/miniconda3/lib/python3.6/polymer-v4.9'
+    POLYMER_INSTALL_DIR = '/miniconda3/lib/python3.6/site-packages/polymer-v4.9'
 elif hostname == 'odermada':
         POLYMER_INSTALL_DIR = '/Users/' + user + '/miniconda3/lib/python3.6/polymer-v4.9'
 else:
     POLYMER_INSTALL_DIR = '/home/'+user+'/software/polymer-v4.9'
 
 sys.path.append(POLYMER_INSTALL_DIR)
-import polymer
+
 from polymer.main import run_atm_corr
 from polymer.main import Level1, Level2
 from polymer.level1_msi import Level1_MSI
@@ -347,7 +347,6 @@ class MyProduct(object):
     
     
     def polymer(self, myproductmask=None):
-        self.load_polymer()
         """ Apply POLYMER atmospheric correction."""
         results = []
         # To use POLYMER, we need to work from its home directory

@@ -63,11 +63,11 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     if layer_str not in product.getBandNames():
         print('\nBand {} not in the product, skipping.\n')
         return
-    print('Processing image ' + product.getName())
+    #print('Processing image ' + product.getName())
     # Create a new product With the band to plot only
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
-    print('   image dimensions are ' + str(width) + ' by ' + str(height) + ' pixels')
+    #print('   image dimensions are ' + str(width) + ' by ' + str(height) + ' pixels')
     param_band = product.getBand(layer_str)
     param_dt = param_band.getDataType()
     if param_dt <= 12:
@@ -301,7 +301,6 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
             base_cols = elev_grey
 
         # Plot the background
-        print('   adding background')
         map.add_raster(srtm_raster, cmap=base_cols)
 
     ##################################
@@ -325,7 +324,6 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
             #crs = maps.QuadtreeTiles().crs
 
     # Add background
-            print('   adding background')
             map.add_image(background, 10)
 
     ##############################
@@ -361,7 +359,6 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
 
     # Add gridlines
     if grid:
-        print('   adding gridlines')
         gridlines = map.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
                                   linestyle=':', zorder=23)#, n_steps=3)
         if orientation == 'square':
@@ -395,9 +392,8 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
 #     cax.text(3.5, 0.5, legend_str, rotation = -90, ha = 'center', va = 'center')
     # Save plot
     plt.title(legend_str, y=1.05, fontsize=8)
-    print('   saving to {}'.format(os.path.basename(output_file)))
+    print('Writing {}'.format(os.path.basename(output_file)))
     plt.savefig(output_file, bbox_inches='tight', dpi=300)
-    print('saved.')
     plt.close()
     sub_product.closeIO()
 
@@ -534,7 +530,6 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
 #     map.set_extent([lowlef.lon - lon_ext, upprig.lon + lon_ext, lowlef.lat  - lat_ext, upprig.lat + lat_ext])
 
     # adjust image brightness scaling (empirical...)
-    print('   adding RGB image')
     red_min = 0   #np.percentile(red_arr, 10)
     red_max = max_val #np.percentile(red_arr, 95)
     red_inc = np.where(red_arr < red_min)
@@ -573,7 +568,6 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
 
     # Add gridlines
     if grid:
-        print('   adding gridlines')
         gridlines = map.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
                                   linestyle=':', zorder=2)#, n_steps=3)
         if orientation == 'square':
@@ -596,8 +590,7 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     
     # Save plot
     print('   saving to {}'.format(os.path.basename(output_file)))
-    plt.savefig(output_file, bbox_inches='tight', dpi=300) 
-    print('saved.')
+    plt.savefig(output_file, bbox_inches='tight', dpi=300)
     plt.close()
     sub_product.closeIO()
 
