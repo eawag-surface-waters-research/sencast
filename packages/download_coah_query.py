@@ -81,7 +81,7 @@ def query_dl_coah(params, outdir):
     
     total_results = coah_xml['total_results']
     print('{} products found:'.format(total_results))
-    
+
     for pname in coah_xml['pnames']:
         print(pname)
 
@@ -94,7 +94,6 @@ def query_dl_coah(params, outdir):
             cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:'+params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+' TO '+params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start='+str(c)+'\''
             os.system(cmd)
             for pname in coah_xml['pnames']:
-                print(pname)
                 all_pnames.append(pname)
             coah_xml = parse_coah_xml('products-list.xml')
             os.remove('products-list.xml')

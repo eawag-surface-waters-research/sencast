@@ -143,7 +143,7 @@ def widget_display_myproduct_3bands_3flags(myproduct):
     display(ui, uii, uiii, out)
     
     
-def background_processing(myproduct, params, dir_dict, save_out, polymer_install_dir): 
+def background_processing(myproduct, params, dir_dict, save_out):
     HashMap = jpy.get_type('java.util.HashMap')
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
 

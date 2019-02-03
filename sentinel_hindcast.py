@@ -6,6 +6,6 @@ from packages.main import eawag_hindcast
 
 
 # Options
-params_filename = 'test-S3.txt'
+params_filename = '190201_geneva-test.txt'
 
 eawag_hindcast(params_filename)

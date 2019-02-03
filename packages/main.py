@@ -11,14 +11,22 @@ from packages.download_hda_query import query_dl_hda
 from packages.download_coah_query import query_dl_coah
 import os, time
 import getpass
+import socket
 
             
 def eawag_hindcast(params_filename):
     user = getpass.getuser()
-    os.chdir(os.path.join('/home/', user))
-    cwd = os.getcwd()
-    wkt_dir = os.path.join(cwd, 'wkt')
-    params_path = os.path.join(cwd, 'jupyter', 'sentinel_hindcast', 'parameters',params_filename)
+    hostname = socket.gethostname()
+    if hostname == 'daniels-macbook-pro.home':
+        os.chdir(os.path.join('/Users', user, 'Dropbox', 'Eawag', 'DIAS'))
+        cwd = os.getcwd()
+        wkt_dir = os.path.join(cwd, 'wkt')
+        params_path = os.path.join('/Users', user, 'PycharmProjects', 'sentinel_hindcast', 'parameters', params_filename)
+    else:
+        os.chdir(os.path.join('/home/', user))
+        cwd = os.getcwd()
+        wkt_dir = os.path.join(cwd, 'wkt')
+        params_path = os.path.join(cwd, 'jupyter', 'sentinel_hindcast', 'parameters', params_filename)
     if not os.path.isfile(params_path):
         print('Parameter file {} not found.'.format(params_path))
         return
@@ -34,8 +42,8 @@ def eawag_hindcast(params_filename):
     #*********************************************************
     # Initialisation
     print('Initializing...')
-    L1_dir_sensor = os.path.join(L1_dir, params['sensor'].upper() + '-data')
-    L2_dir_sensor = os.path.join(L2_dir, params['sensor'].upper() + '-data')
+    L1_dir_sensor = os.path.join(L1_dir, params['sensor'].upper() + '_L1')
+    L2_dir_sensor = os.path.join(L2_dir, params['sensor'].upper() + '_L1')
     if not os.path.isdir(L1_dir_sensor):
         os.mkdir(L1_dir_sensor)
     if not os.path.isdir(L2_dir_sensor):
@@ -165,6 +173,7 @@ def eawag_hindcast(params_filename):
             c = 1
             for xmlf in xmlfs:
                 products = []
+                #print(os.system('java -version 2>&1 | awk -F[\\\"_] \'NR==1{print $2}\''))
                 products.append(ProductIO.readProduct(xmlf))
                 myproduct = MyProduct(products, params, L1_dir_sensor)
                 print('\n\033[1mProcessing product ({}/{}): {}...\033[0m\n'.format(c, nbtot, products[0].getName()))
