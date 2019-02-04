@@ -88,8 +88,8 @@ def query_dl_coah(params, outdir):
     total_results = coah_xml['total_results']
     print('{} products found:'.format(total_results))
 
-    for pname in coah_xml['pnames']:
-        print(pname)
+    #for pname in coah_xml['pnames']:
+    #    print(pname)
 
     all_pnames = coah_xml['pnames']
     all_uuids = coah_xml['uuids']
