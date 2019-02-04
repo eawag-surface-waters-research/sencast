@@ -2,16 +2,16 @@
 #-*- coding: utf-8 -*-
 
 import os
-from snappy import ProductIO
+import getpass
+import concurrent.futures
+
 from subprocess import check_output
-import re
 from packages.auxil import list_xml_scene_dir
 from zipfile import ZipFile
-import getpass
+from threading import Lock
+
 import xml.etree.ElementTree as ET
 import numpy as np
-# from snappy import WKTReader, jpy
-# FileReader = jpy.get_type('java.io.FileReader')
 
 
 def prepend_ns(s):
@@ -48,7 +48,7 @@ def parse_coah_xml(filename):
 
 
 def coah_xmlparsed_to_txt(uuids, out_fname):
-    basestr = '"https://scihub.copernicus.eu/dhus/odata/v1/Products(\'{}\')/$value"\n'
+    basestr = '"https://scihub.copernicus.eu/dhus/odata/v1/Products(\'{}\')/\$value"\n'
     with open(out_fname, 'w+') as of:
         for uuid in uuids:
             of.write(basestr.format(uuid))
@@ -57,6 +57,12 @@ def coah_xmlparsed_to_txt(uuids, out_fname):
 def wc(filename):
     return int(check_output(["wc", "-l", filename]).split()[0])
 
+def download(url, usr, pwd):
+    lock = Lock()
+    cmd = 'wget --quiet --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url
+    with lock:
+        print()
+    os.system(cmd)
     
 def query_dl_coah(params, outdir):
     xmlf = []
@@ -116,13 +122,20 @@ def query_dl_coah(params, outdir):
             os.remove(url_list)
         coah_xmlparsed_to_txt(uuids, url_list)
         max_threads = min(2, len(uuids))
-        print('\nDownloading {} product(s)...'.format(len(uuids)))
+        #print('\nDownloading {} product(s)...'.format(len(uuids)))
         # Go to saving directory (the --content-disposition option save the file with the proper filename
         # but in the current directory)
+
         os.chdir(outdir)
-        os.system('cat ' + url_list +' | xargs -n 1 -P ' + str(max_threads) + \
-                  ' wget --content-disposition --continue --user='+params['username']+\
-                  ' --password='+params['password'])
+        print()
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
+            with open(url_list) as f:
+                for i_line, line in enumerate(f):
+                    line = line.rstrip('\n')
+                    print('downloading data pair no. ' + str(i_line + 1))
+                    ex.submit(download(line, usr = params['username'], pwd = params['password']))
+
         # Go back to working directory
         os.chdir(wd)
         
