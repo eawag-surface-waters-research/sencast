@@ -19,8 +19,8 @@ print('Script running on ' + hostname)
 print()
 if hostname == 'daniels-macbook-pro.home':
     POLYMER_INSTALL_DIR = '/miniconda3/lib/python3.6/site-packages/polymer-v4.9'
-elif hostname == 'odermada':
-        POLYMER_INSTALL_DIR = '/Users/' + user + '/miniconda3/lib/python3.6/polymer-v4.9'
+elif hostname == 'SUR-ODERMADA-MC.local':
+        POLYMER_INSTALL_DIR = '/Users/' + user + '/anaconda3/envs/sentinel-hindcast/lib/python3.6/site-packages/polymer-v4.10'
 else:
     POLYMER_INSTALL_DIR = '/home/'+user+'/software/polymer-v4.9'
 

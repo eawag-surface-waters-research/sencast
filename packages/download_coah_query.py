@@ -8,7 +8,6 @@ import concurrent.futures
 from subprocess import check_output
 from packages.auxil import list_xml_scene_dir
 from zipfile import ZipFile
-from threading import Lock
 
 import xml.etree.ElementTree as ET
 import numpy as np
@@ -46,22 +45,18 @@ def parse_coah_xml(filename):
     coah_xml['nb_results'] = c
     return coah_xml
 
-
 def coah_xmlparsed_to_txt(uuids, out_fname):
     basestr = '"https://scihub.copernicus.eu/dhus/odata/v1/Products(\'{}\')/\$value"\n'
     with open(out_fname, 'w+') as of:
         for uuid in uuids:
             of.write(basestr.format(uuid))
 
-    
 def wc(filename):
     return int(check_output(["wc", "-l", filename]).split()[0])
 
-def download(url, usr, pwd):
-    lock = Lock()
+def download(url, usr, pwd, count):
+    print('downloading product no. ' + count)
     cmd = 'wget --quiet --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url
-    with lock:
-        print()
     os.system(cmd)
     
 def query_dl_coah(params, outdir):
@@ -76,6 +71,7 @@ def query_dl_coah(params, outdir):
     wkt = params['wkt']
     cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:'+params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+' TO '+params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start=0\''
     os.system(cmd)
+
     # Read the XML file
     try:
         coah_xml = parse_coah_xml('products-list.xml')
@@ -91,10 +87,13 @@ def query_dl_coah(params, outdir):
     #for pname in coah_xml['pnames']:
     #    print(pname)
 
-    all_pnames = coah_xml['pnames']
-    all_uuids = coah_xml['uuids']
-    nit = np.floor(total_results/100).astype(int)
-    if nit > 0:
+    nit = np.ceil(total_results/100).astype(int)
+    if nit == 0:
+        all_pnames = coah_xml['pnames']
+        all_uuids = coah_xml['uuids']
+    else:
+        all_pnames = []
+        all_uuids = []
         c = 100
         for i in range(nit):
             cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:'+params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+' TO '+params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start='+str(c)+'\''
@@ -121,7 +120,7 @@ def query_dl_coah(params, outdir):
         if os.path.isfile(url_list):
             os.remove(url_list)
         coah_xmlparsed_to_txt(uuids, url_list)
-        max_threads = min(2, len(uuids))
+        #max_threads = min(2, len(uuids))
         #print('\nDownloading {} product(s)...'.format(len(uuids)))
         # Go to saving directory (the --content-disposition option save the file with the proper filename
         # but in the current directory)
@@ -129,12 +128,12 @@ def query_dl_coah(params, outdir):
         os.chdir(outdir)
         print()
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
-            with open(url_list) as f:
+        with open(url_list) as f:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
                 for i_line, line in enumerate(f):
                     line = line.rstrip('\n')
-                    print('downloading data pair no. ' + str(i_line + 1))
-                    ex.submit(download(line, usr = params['username'], pwd = params['password']))
+                    ex.submit(download, line, params['username'], params['password'], str(i_line + 1))
+                    #print('downloading product no. ' + str(i_line + 1))
 
         # Go back to working directory
         os.chdir(wd)
