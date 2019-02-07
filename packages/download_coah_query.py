@@ -2,6 +2,7 @@
 #-*- coding: utf-8 -*-
 
 import os
+import sys
 import getpass
 import concurrent.futures
 
@@ -55,7 +56,8 @@ def wc(filename):
     return int(check_output(["wc", "-l", filename]).split()[0])
 
 def download(url, usr, pwd, count):
-    print('downloading product no. ' + count)
+    sys.stdout.write("\033[K")
+    print("\r \r{0}".format('downloading product no. ' + count), end='')
     cmd = 'wget --quiet --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url
     os.system(cmd)
     
@@ -67,9 +69,10 @@ def query_dl_coah(params, outdir):
     elif params['sensor'].upper() == 'MSI':
         datatype = 'S2MSI1C'
     print('\nQuery...')
-    # Get geometry
-    wkt = params['wkt']
-    cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:'+params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+' TO '+params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start=0\''
+    cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+\
+          ' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:' + \
+          params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+' TO ' + \
+          params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start=0\' >/dev/null 2>&1'
     os.system(cmd)
 
     # Read the XML file
@@ -82,10 +85,7 @@ def query_dl_coah(params, outdir):
         return
     
     total_results = coah_xml['total_results']
-    print('{} products found:'.format(total_results))
-
-    #for pname in coah_xml['pnames']:
-    #    print(pname)
+    print('{} products found'.format(total_results))
 
     nit = np.ceil(total_results/100).astype(int)
     if nit == 0:
@@ -96,7 +96,10 @@ def query_dl_coah(params, outdir):
         all_uuids = []
         c = 100
         for i in range(nit):
-            cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:'+params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+' TO '+params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start='+str(c)+'\''
+            cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+\
+                  ' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:' \
+                  ''+params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+\
+                  ' TO '+params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start='+str(c)+'\' >/dev/null 2>&1'
             os.system(cmd)
             for pname in coah_xml['pnames']:
                 all_pnames.append(pname)
@@ -120,20 +123,15 @@ def query_dl_coah(params, outdir):
         if os.path.isfile(url_list):
             os.remove(url_list)
         coah_xmlparsed_to_txt(uuids, url_list)
-        #max_threads = min(2, len(uuids))
-        #print('\nDownloading {} product(s)...'.format(len(uuids)))
-        # Go to saving directory (the --content-disposition option save the file with the proper filename
-        # but in the current directory)
-
         os.chdir(outdir)
-        print()
+        num_lines = sum(1 for x in open(url_list))
+        print(str(num_lines + ' missing in input_data folder'))
 
         with open(url_list) as f:
             with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
                 for i_line, line in enumerate(f):
                     line = line.rstrip('\n')
                     ex.submit(download, line, params['username'], params['password'], str(i_line + 1))
-                    #print('downloading product no. ' + str(i_line + 1))
 
         # Go back to working directory
         os.chdir(wd)
