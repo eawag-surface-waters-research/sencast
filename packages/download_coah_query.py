@@ -57,10 +57,10 @@ def wc(filename):
 
 def download(url, usr, pwd, count):
     sys.stdout.write("\033[K")
-    print("\r \r{0}".format('downloading product no. ' + count), end='')
     cmd = 'wget --quiet --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url
     os.system(cmd)
-    
+    print("\r \r{0}".format(count + ' product(s) downloaded'), end='')
+
 def query_dl_coah(params, outdir):
     xmlf = []
     wd = os.getcwd()
@@ -88,7 +88,7 @@ def query_dl_coah(params, outdir):
     print('{} products found'.format(total_results))
 
     nit = np.ceil(total_results/100).astype(int)
-    if nit == 0:
+    if nit == 1:
         all_pnames = coah_xml['pnames']
         all_uuids = coah_xml['uuids']
     else:
@@ -125,7 +125,7 @@ def query_dl_coah(params, outdir):
         coah_xmlparsed_to_txt(uuids, url_list)
         os.chdir(outdir)
         num_lines = sum(1 for x in open(url_list))
-        print(str(num_lines + ' missing in input_data folder'))
+        print(str(num_lines) + ' missing in input_data folder, starting download')
 
         with open(url_list) as f:
             with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
