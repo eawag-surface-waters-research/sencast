@@ -68,7 +68,6 @@ def query_dl_coah(params, outdir):
         datatype = 'OL_1_EFR___'
     elif params['sensor'].upper() == 'MSI':
         datatype = 'S2MSI1C'
-    print('\nQuery...')
     cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+\
           ' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:' + \
           params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+' TO ' + \
