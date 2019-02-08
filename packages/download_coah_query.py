@@ -57,7 +57,7 @@ def wc(filename):
 
 def download(url, usr, pwd, count):
     sys.stdout.write("\033[K")
-    cmd = 'wget --quiet --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url
+    cmd = 'wget --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url #--quiet 
     os.system(cmd)
     print("\r \r{0}".format(count + ' product(s) downloaded'), end='')
 
@@ -129,7 +129,6 @@ def query_dl_coah(params, outdir):
         with open(url_list) as f:
             with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
                 for i_line, line in enumerate(f):
-                    print(line)
                     line = line.rstrip('\n')
                     ex.submit(download, line, params['username'], params['password'], str(i_line + 1))
 
