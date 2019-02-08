@@ -112,7 +112,6 @@ def query_dl_coah(params, outdir):
     uuids, pnames = [], []
     for uuid, pn in zip(all_uuids, all_pnames):
         if pn.split('.')[0] not in os.listdir(outdir):
-            print(pn.split('.')[0] + ' not in ' + outdir + '?')
             uuids.append(uuid)
             pnames.append(pn)
     # Download
@@ -130,6 +129,7 @@ def query_dl_coah(params, outdir):
         with open(url_list) as f:
             with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
                 for i_line, line in enumerate(f):
+                    print(line)
                     line = line.rstrip('\n')
                     ex.submit(download, line, params['username'], params['password'], str(i_line + 1))
 
