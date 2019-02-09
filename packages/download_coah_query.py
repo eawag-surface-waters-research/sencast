@@ -70,11 +70,12 @@ def query_dl_coah(params, outdir):
         datatype = 'S2MSI1C'
     cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+\
           ' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:' + \
-          params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+' TO ' + \
+          params['sensor'].lower()+' AND producttype:' + datatype + ' AND beginPosition:['+params['start']+' TO ' + \
           params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start=0\' >/dev/null 2>&1'
     os.system(cmd)
 
-    # Read the XML file
+    # Read the XML file with max. 100 human-readable pnames and machine-readable uuids, and the number 'total_results'
+    # obtained from the COAH server
     try:
         coah_xml = parse_coah_xml('products-list.xml')
         os.remove('products-list.xml')
@@ -93,7 +94,7 @@ def query_dl_coah(params, outdir):
     else:
         all_pnames = []
         all_uuids = []
-        c = 100
+        c = 0
         for i in range(nit):
             cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+\
                   ' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:' \
@@ -112,8 +113,10 @@ def query_dl_coah(params, outdir):
     uuids, pnames = [], []
     for uuid, pn in zip(all_uuids, all_pnames):
         if pn.split('.')[0] not in os.listdir(outdir):
-            uuids.append(uuid)
-            pnames.append(pn)
+            if pn.split('.')[0] not in pnames:
+                print(pn.split('.')[0])
+                uuids.append(uuid)
+                pnames.append(pn)
     # Download
     if uuids:
         user = getpass.getuser()
