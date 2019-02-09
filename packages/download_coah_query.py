@@ -114,7 +114,6 @@ def query_dl_coah(params, outdir):
     for uuid, pn in zip(all_uuids, all_pnames):
         if pn.split('.')[0] not in os.listdir(outdir):
             if pn.split('.')[0] not in pnames:
-                print(pn.split('.')[0])
                 uuids.append(uuid)
                 pnames.append(pn)
     # Download
