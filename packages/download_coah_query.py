@@ -101,9 +101,9 @@ def query_dl_coah(params, outdir):
                   ''+params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+\
                   ' TO '+params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start='+str(c)+'\' >/dev/null 2>&1'
             os.system(cmd)
+            coah_xml = parse_coah_xml('products-list.xml')
             for pname in coah_xml['pnames']:
                 all_pnames.append(pname)
-            coah_xml = parse_coah_xml('products-list.xml')
             os.remove('products-list.xml')
             for uuid in coah_xml['uuids']:
                 all_uuids.append(uuid)
