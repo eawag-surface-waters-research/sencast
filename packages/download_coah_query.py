@@ -149,7 +149,7 @@ def query_dl_coah(params, outdir):
             os.remove(url_list)
             return
         else:
-            print('Download complete.')
+            print('\ndownload complete')
             
         os.remove(url_list)
         for pn in pnames:

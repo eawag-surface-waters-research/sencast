@@ -42,7 +42,7 @@ def eawag_hindcast(params_filename):
     #*********************************************************
     # Initialisation
     L1_dir_sensor = os.path.join(L1_dir, params['sensor'].upper() + '_L1')
-    L2_dir_sensor = os.path.join(L2_dir, params['sensor'].upper() + '_L1')
+    L2_dir_sensor = os.path.join(L2_dir, params['sensor'].upper() + '_L2')
     if not os.path.isdir(L1_dir_sensor):
         os.mkdir(L1_dir_sensor)
     if not os.path.isdir(L2_dir_sensor):
