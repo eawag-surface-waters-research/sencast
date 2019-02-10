@@ -332,6 +332,8 @@ def background_processing(myproduct, params, dir_dict, save_out):
                 polyproduct.write(dir_dict['polymer dir'])
                 print('Writing completed.')
             polyproduct.close()
+        except ValueError:
+            print('\nPolymer processing failed because of ValueError!\n')
         except OSError:
             print('\nPolymer processing failed because of "mv" command!\n')
     oriproduct.close()
