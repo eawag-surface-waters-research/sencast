@@ -29,6 +29,21 @@ def  list_xml_scene_dir(scenesdir, sensor='OLCI', file_list=[]):
             temp = [os.path.join(d, cd) for cd in os.listdir(d) if 'S3' in cd]
             sd.append(temp[0])
         xmlfs = []
+
+        print(file_list)
+        print()
+        print()
+        print()
+        print(temp)
+        print()
+        print()
+        print()
+        print(nd)
+        print()
+        print()
+        print()
+        print(sd)
+
         for s in sd:
             temp = [os.path.join(s, cd) for cd in os.listdir(s) if 'xml' in cd]
             xmlfs.append(temp[0])

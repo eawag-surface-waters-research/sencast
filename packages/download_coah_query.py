@@ -57,7 +57,7 @@ def wc(filename):
 
 def download(url, usr, pwd, count):
     sys.stdout.write("\033[K")
-    cmd = 'wget --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url #--quiet 
+    cmd = 'wget --quiet --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url
     os.system(cmd)
     print("\r \r{0}".format(count + ' product(s) downloaded'), end='')
 
