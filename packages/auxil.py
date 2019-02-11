@@ -30,9 +30,8 @@ def  list_xml_scene_dir(scenesdir, sensor='OLCI', file_list=[]):
             sd.append(temp[0])
         xmlfs = []
         for s in sd:
-            temp = ''
             temp = [os.path.join(s, cd) for cd in os.listdir(s) if 'xml' in cd]
-            if temp == '':
+            if temp == []:
                 print('no xml found in ' + s)
             else:
                 print(s)
