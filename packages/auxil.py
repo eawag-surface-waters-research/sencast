@@ -35,6 +35,7 @@ def  list_xml_scene_dir(scenesdir, sensor='OLCI', file_list=[]):
             if temp == '':
                 print('no xml found in ' + s)
             else:
+                print(temp)
                 xmlfs.append(temp[0])
     elif sensor.upper() == 'MSI':
         if not file_list:
