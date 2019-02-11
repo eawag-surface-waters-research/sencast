@@ -21,39 +21,28 @@ def open_wkt(wkt):
 def  list_xml_scene_dir(scenesdir, sensor='OLCI', file_list=[]):
     if sensor.upper() == 'OLCI':
         if not file_list:
-            nd = [os.path.join(scenesdir, nd) for nd in os.listdir(scenesdir) if 'S3' in nd]
+            prod_paths = [os.path.join(scenesdir, prod_name) for prod_name in os.listdir(scenesdir) if 'S3' in prod_name]
         else:
-            nd = [os.path.join(scenesdir, nd) for nd in os.listdir(scenesdir) if nd in file_list]
+            prod_paths = [os.path.join(scenesdir, prod_name) for prod_name in os.listdir(scenesdir) if prod_name in file_list]
         sd = []
-        for d in nd:
+        for d in prod_paths:
             temp = [os.path.join(d, cd) for cd in os.listdir(d) if 'S3' in cd]
             sd.append(temp[0])
         xmlfs = []
-
-        print(file_list)
-        print()
-        print()
-        print()
-        print(temp)
-        print()
-        print()
-        print()
-        print(nd)
-        print()
-        print()
-        print()
-        print(sd)
-
         for s in sd:
             temp = [os.path.join(s, cd) for cd in os.listdir(s) if 'xml' in cd]
+            print(s)
+            print(cd)
+            print(temp)
+            print()
             xmlfs.append(temp[0])
     elif sensor.upper() == 'MSI':
         if not file_list:
-            nd = [os.path.join(scenesdir, nd) for nd in os.listdir(scenesdir) if 'S2' in nd]
+            prod_paths = [os.path.join(scenesdir, nd) for nd in os.listdir(scenesdir) if 'S2' in nd]
         else:
-            nd = [os.path.join(scenesdir, nd) for nd in os.listdir(scenesdir) if nd in file_list]
+            prod_paths = [os.path.join(scenesdir, nd) for nd in os.listdir(scenesdir) if nd in file_list]
         sd = []
-        for d in nd:
+        for d in prod_paths:
             temp = [os.path.join(d, cd) for cd in os.listdir(d) if 'SAFE' in cd]
             sd.append(temp[0])
         xmlfs = []
