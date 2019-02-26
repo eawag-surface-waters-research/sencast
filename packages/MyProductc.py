@@ -31,8 +31,6 @@ from polymer.main import Level1, Level2
 from polymer.level1_msi import Level1_MSI
 from polymer.gsw import GSW
 
-RES = 60 # Resolution for MSI resampling - Use only a lower resolution for small ROI
-
 
 class MyProduct(object):
     """This class is used to process a snappy Product. It contains a list of snappy Product which should all be of the same 
@@ -156,7 +154,7 @@ class MyProduct(object):
             try:
                 result = GPF.createProduct('Subset', parameters, product)
             except RuntimeError:
-                print('failed. ROI probably outside the frame, or bad wkt.')
+                print('Failed. ROI probably outside the frame, or bad wkt.')
                 result = product
             else:
                 # Append subset if not empty
@@ -294,6 +292,8 @@ class MyProduct(object):
                     surfpress = 1000.
                 parameters.put('ozone', ozone)
                 parameters.put('press', surfpress)
+                parameters.put('salinity', 0.5)
+                print('default salinity is 0.5 PSU for freshwater')
             else:
                 parameters.put('useEcmwfAuxData', True)
             c += 1
@@ -346,7 +346,7 @@ class MyProduct(object):
             self.update()
     
     
-    def polymer(self, myproductmask=None):
+    def polymer(self, myproductmask=None, params=None):
         """ Apply POLYMER atmospheric correction."""
         results = []
         # To use POLYMER, we need to work from its home directory
@@ -358,9 +358,10 @@ class MyProduct(object):
         # If MSI we need to find the coordinates on a resampled product
         # Note that the new product needs the original file names
         nametemp = [p.getName() for p in self.products]
+        res = int(params['resolution'])  # Resolution for MSI resampling
         if self.params['sensor'].upper() == 'MSI':
             tempmyproduct = MyProduct(self.products, self.params, self.path)
-            tempmyproduct.resample(res=RES)
+            tempmyproduct.resample(res=res)
             products = []
             for p in tempmyproduct.products:
                 p.setName(p.getName()[:-14])
@@ -377,6 +378,21 @@ class MyProduct(object):
             UL, LR = get_UL_LR_pixels_ROI(product, self.params)
             w = LR[1] - UL[1]
             h = LR[0] - UL[0]
+
+
+
+            # make sure S-2 subsets comprise of an integer number of pixels at low res for upsampling
+            if self.params['sensor'].upper() == 'MSI' and res != 60:
+                while not  (w / (60 / res)).is_integer():
+                    LR[1] += 1
+                    w = LR[1] - UL[1]
+                while not (h / (60 / res)).is_integer():
+                    LR[0] += 1
+                    h = LR[0] - UL[0]
+
+
+
+
             savdir = POLYMER_INSTALL_DIR
             if not os.path.isdir(savdir):
                 os.mkdir(savdir)
@@ -392,10 +408,9 @@ class MyProduct(object):
                             if 'L1C' in tp]
                 assert len(temppath) == 1
                 ppath = temppath[0]
-                run_atm_corr(Level1_MSI(ppath, sline=UL[0], scol=UL[1],
-                                        eline=UL[0]+h,ecol=UL[1]+w, landmask=GSW(), 
-                                        resolution=RES),
-                             Level2(filename=pfname, fmt='netcdf4', overwrite=True))
+                res = int(params['resolution'])  # Resolution for MSI resampling
+                run_atm_corr(Level1_MSI(ppath, sline=UL[0], scol=UL[1], eline=UL[0]+h,ecol=UL[1]+w, landmask=GSW(),
+                                        resolution=res), Level2(filename=pfname, fmt='netcdf4', overwrite=True))
             else:
                 if not os.path.isdir('data_landmask_gsw'):
                     os.mkdir('data_landmask_gsw')

@@ -106,6 +106,7 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     tile = [e.strip() for e in tile[0][0].split(',')]
     start = [re.findall("'([^']*)'", x) for x in params_list if 'start=' in x][0][0]
     end = [re.findall("'([^']*)'", x) for x in params_list if 'end=' in x][0][0]
+    resolution = [re.findall("'([^']*)'", x) for x in params_list if 'resolution=' in x][0][0]
     rgb = [re.findall("'([^']*)'", x) for x in params_list if 'rgb_bands=' in x]
     rgb = [e.strip() for e in rgb[0][0].split(',')]
     falsecolor = [re.findall("'([^']*)'", x) for x in params_list if 'false_color_bands=' in x]
@@ -140,7 +141,7 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
         print('end: '+ end)
     
     params = {'name': name, 'sensor': sensor.upper(), 'region': region.upper(), 'tile':
-              tile, 'start': start, 'end': end, 'satnumber': satnumber, 
+              tile, 'start': start, 'end': end, 'satnumber': satnumber, 'resolution': resolution,
               'sensorname': sensorname, 'wkt': wkt, 'validexpression': validexpression,
               'True color': rgb, 'False color': falsecolor, 'qmode': qmode, 
               'pmode': pmode, 'API': API, 'username': username, 'password': password,

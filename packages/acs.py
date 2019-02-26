@@ -6,14 +6,12 @@ import ipywidgets as widgets
 from IPython.display import display
 from packages.MyProductc import MyProduct
 from packages.display_fun import display_band_with_flag, display_rgb_with_flag
+from packages.product_fun import get_UL_LR_pixels_ROI, get_UL_LR_geo_ROI
 from snappy import ProductUtils, jpy, GPF
 import re
 from datetime import datetime
 import os
 from packages.eawag_mapping import plot_pic, plot_map
-
-
-RES = 60 # Resample resolution for MSI
 
 
 def get_ingestion_date(productname):
@@ -25,11 +23,12 @@ def interactive_processing(myproduct, params, dir_dict):
     b1 = widgets.Button(description='Polymer')
     b2 = widgets.Button(description='C2RCC')
     uibutton = widgets.HBox([b1, b2])
+    res = int(params['resolution'])
     
     oriproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
     # First Resample product if sensor is MSI
     if params['sensor'].upper() == 'MSI':
-        oriproduct.resample(res=RES)
+        oriproduct.resample(res=res)
     
     # First subset the original product
     regions = oriproduct.get_regions()
@@ -58,7 +57,7 @@ def interactive_processing(myproduct, params, dir_dict):
         print(products)
         polyproduct = MyProduct(products, myproduct.params, myproduct.path)
         # Apply Polymer and get the ROI
-        polyproduct.polymer(myproductmask=oriproduct)
+        polyproduct.polymer(myproductmask=oriproduct, params=params)
         if params['pmode'] == '2':
             print('Writing L2POLY product to disk...')
             polyproduct.write(dir_dict['polymer dir'])
@@ -197,15 +196,25 @@ def background_processing(myproduct, params, dir_dict, save_out):
         qlproduct.close()
         print('Done, resuming processing\n')
     #------------------ Start processing ------------------#        
+    regions = oriproduct.get_regions()
+
     # First Resample product if sensor is MSI
     if params['sensor'].upper() == 'MSI':
-        oriproduct.resample(res=RES)
-    # First subset the original product
-    regions = oriproduct.get_regions()
-    polyproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
-    # myproduct = []
+        res = int(params['resolution'])
+        oriproduct.resample(res=res)
+        if res != 60:
+            UL = [0, 0]
+            UL[1] = regions[0].split(',')[0]
+            UL[0] = regions[0].split(',')[1]
+            w = int(regions[0].split(',')[2])
+            h = int(regions[0].split(',')[3])
+            while not (w / (60 / res)).is_integer():
+                w += 1
+            while not (h / (60 / res)).is_integer():
+                h += 1
+            regions = [UL[1] + ',' + UL[0] + ',' + str(w) + ',' + str(h)]
     #------------------ Subset ------------------#
-    print('starting subsets...')
+    print('starting subsetting for region x,y,w,h=' + regions[0])
     oriproduct.subset(regions=regions)
     if not oriproduct.products:
         return
@@ -243,7 +252,7 @@ def background_processing(myproduct, params, dir_dict, save_out):
         print('Done.')
     #------------------ C2RCC ------------------------#
     if '1' in params['pcombo']:
-        print('\nC2RCC...')
+        print('\nProcessing with the C2RCC algorithm...')
         c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
         c2rccproduct.c2rcc()
         for product in c2rccproduct.products:
@@ -304,7 +313,8 @@ def background_processing(myproduct, params, dir_dict, save_out):
     if '2' in params['pcombo']:
         try:
             print('\nPolymer...')
-            polyproduct.polymer(myproductmask=oriproduct)
+            polyproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
+            polyproduct.polymer(myproductmask=oriproduct, params=params)
             print('Done.')
             # Create bands image of polymer
             for product in polyproduct.products:
