@@ -358,7 +358,8 @@ class MyProduct(object):
         # If MSI we need to find the coordinates on a resampled product
         # Note that the new product needs the original file names
         nametemp = [p.getName() for p in self.products]
-        res = int(params['resolution'])  # Resolution for MSI resampling
+        res = int(params['resolution'])
+
         if self.params['sensor'].upper() == 'MSI':
             tempmyproduct = MyProduct(self.products, self.params, self.path)
             tempmyproduct.resample(res=res)
@@ -379,19 +380,16 @@ class MyProduct(object):
             w = LR[1] - UL[1]
             h = LR[0] - UL[0]
 
-
+            print(UL, LR, w, h)
 
             # make sure S-2 subsets comprise of an integer number of pixels at low res for upsampling
-            if self.params['sensor'].upper() == 'MSI' and res != 60:
+            if self.params['sensor'].upper() == 'MSI':
                 while not  (w / (60 / res)).is_integer():
                     LR[1] += 1
                     w = LR[1] - UL[1]
                 while not (h / (60 / res)).is_integer():
                     LR[0] += 1
                     h = LR[0] - UL[0]
-
-
-
 
             savdir = POLYMER_INSTALL_DIR
             if not os.path.isdir(savdir):
@@ -408,7 +406,6 @@ class MyProduct(object):
                             if 'L1C' in tp]
                 assert len(temppath) == 1
                 ppath = temppath[0]
-                res = int(params['resolution'])  # Resolution for MSI resampling
                 run_atm_corr(Level1_MSI(ppath, sline=UL[0], scol=UL[1], eline=UL[0]+h,ecol=UL[1]+w, landmask=GSW(),
                                         resolution=res), Level2(filename=pfname, fmt='netcdf4', overwrite=True))
             else:
@@ -419,7 +416,7 @@ class MyProduct(object):
                 Level2(filename=pfname, fmt='netcdf4', overwrite=True))
             print('Polymer applied')
             ULs.append(UL)
-            LRs.append(UL)
+            LRs.append(LR)
             resultpoly = ProductIO.readProduct(pfname)
             pname = product.getName().split('.')[0]
             if myproductmask is not None:

@@ -34,10 +34,10 @@ def get_UL_LR_pixels_ROI(product, params):
         ll_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(ll[1], 
                                                                 ll[0]), None)
         
-        ul_bool = ul_pos.isValid()
-        ur_bool = ur_pos.isValid()
-        lr_bool = lr_pos.isValid()
-        ll_bool = ll_pos.isValid()
+        ul_bool = ul_pos.x > 0 and ul_pos.y > 0
+        ur_bool = ur_pos.x > 0 and ur_pos.y > 0
+        lr_bool = lr_pos.x > 0 and lr_pos.y > 0
+        ll_bool = ll_pos.x > 0 and ll_pos.y > 0
         
         UL = np.array([np.floor(ul_pos.getY()).astype(int), 
                            np.floor(ul_pos.getX()).astype(int)])

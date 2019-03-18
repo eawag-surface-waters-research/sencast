@@ -18,8 +18,7 @@ def eawag_hindcast(params_filename):
     user = getpass.getuser()
     hostname = socket.gethostname()
     if hostname in ['daniels-macbook-pro.home', 'SUR-ODERMADA-MC.local']:
-        #os.chdir(os.path.join('/Users', user, 'Dropbox', 'Wrk Eawag', 'DIAS'))
-        os.chdir(os.path.join('/Users', user, 'Desktop', 'untitled folder', 'Wrk Eawag', 'DIAS'))
+        os.chdir(os.path.join('/Users', user, 'Dropbox', 'Wrk Eawag', 'DIAS'))
         cwd = os.getcwd()
         wkt_dir = os.path.join(cwd, 'wkt')
         params_path = os.path.join('/Users', user, 'PycharmProjects', 'sentinel_hindcast', 'parameters', params_filename)

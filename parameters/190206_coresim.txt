@@ -14,6 +14,9 @@ tile='EU-042_012'
 # Name of wkt file ('gva.wkt') available in perimeter folder, or string in format POLYGON(...)
 wkt='gva.wkt'
 
+# Specify the desired spatial resolution in m (MSI only)
+resolution='0'
+
 # Specify the names of quicklook rgb/false color bands from L1 products
 rgb_bands='Oa08_radiance, Oa06_radiance, Oa04_radiance'
 false_color_bands='Oa17_radiance, Oa06_radiance, Oa03_radiance'

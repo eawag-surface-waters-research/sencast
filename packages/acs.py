@@ -145,8 +145,8 @@ def widget_display_myproduct_3bands_3flags(myproduct):
 def background_processing(myproduct, params, dir_dict, save_out):
     HashMap = jpy.get_type('java.util.HashMap')
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+    oriproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
 
-    oriproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path) 
     #------------------ S3 Quicklooks ------------------#
     # If the sensor is OLCI, the RGB and false color quicklooks must be done on the original, reprojected products
     if params['sensor'].upper() == 'OLCI':
@@ -185,8 +185,6 @@ def background_processing(myproduct, params, dir_dict, save_out):
         # Display
         for product in qlproduct.products:
             pname = product.getName()
-#             ingestday = get_ingestion_date(pname)
-#             ingestday = datetime.strptime(ingestday, '%Y%m%d').strftime('%Y-%m-%d')
             tcname = os.path.join(dir_dict['qlrgb dir'], pname.split('.')[0] + '_rgb.png')
             fcname = os.path.join(dir_dict['qlfc dir'],pname.split('.')[0] + '_falsecolor.png')
             plot_pic(product, tcname, rgb_layers=rgb_bands, grid=True, max_val=0.25, 
@@ -195,6 +193,7 @@ def background_processing(myproduct, params, dir_dict, save_out):
                      perimeter_file=params['wkt file'])
         qlproduct.close()
         print('Done, resuming processing\n')
+
     #------------------ Start processing ------------------#        
     regions = oriproduct.get_regions()
 
@@ -202,38 +201,41 @@ def background_processing(myproduct, params, dir_dict, save_out):
     if params['sensor'].upper() == 'MSI':
         res = int(params['resolution'])
         oriproduct.resample(res=res)
-        if res != 60:
-            UL = [0, 0]
-            UL[1] = regions[0].split(',')[0]
-            UL[0] = regions[0].split(',')[1]
-            w = int(regions[0].split(',')[2])
-            h = int(regions[0].split(',')[3])
-            while not (w / (60 / res)).is_integer():
-                w += 1
-            while not (h / (60 / res)).is_integer():
-                h += 1
-            regions = [UL[1] + ',' + UL[0] + ',' + str(w) + ',' + str(h)]
+        UL = [0, 0]
+        UL[1] = regions[0].split(',')[0]
+        UL[0] = regions[0].split(',')[1]
+        w = int(regions[0].split(',')[2])
+        h = int(regions[0].split(',')[3])
+        while not (w / (60 / res)).is_integer():
+            w += 1
+        while not (h / (60 / res)).is_integer():
+            h += 1
+        regions = [UL[1] + ',' + UL[0] + ',' + str(w) + ',' + str(h)]
     #------------------ Subset ------------------#
     print('starting subsetting for region x,y,w,h=' + regions[0])
     oriproduct.subset(regions=regions)
     if not oriproduct.products:
         return
     #------------------ IdePix -----------------------#
-    print('\nstarting Idepix...')
-    oriproduct.idepix()
-    print('Done. ')
-    #---------------- Save Idepix --------------------#
-    if save_out:
-        wktfn = os.path.basename(params['wkt file']).split('.')[0]
-        print('\nWriting L1P_{} product to disk...'.format(wktfn))
-        oriproduct.write(dir_dict['L1P dir'])
-        print('Writing completed.')
+    if not os.path.isfile(os.path.join(dir_dict['L1P dir'], 'L1P_' + oriproduct.products[0].getName() + '.nc')):
+        print('\nstarting Idepix...')
+        oriproduct.idepix()
+        #---------------- Save Idepix --------------------#
+        if save_out:
+            wktfn = os.path.basename(params['wkt file']).split('.')[0]
+            print('\nWriting L1P_{} product to disk...'.format(wktfn))
+            oriproduct.write(dir_dict['L1P dir'])
+            print('Writing completed.')
+    else:
+        print('Skipping Idepix: L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+
     #-------------------------------------------------#
 #     print('Getting flags.')
 #     flags = oriproduct.get_flags(match='pixel_classif_flags.IDEPIX_CLOUD')
 #     print('Done. ')
     
 #     c = 0
+
     #------------------ S2 Quicklooks ------------------#
     if params['sensor'].upper() == 'MSI':
         print('Quicklooks for S2 MSI\n')
@@ -252,99 +254,106 @@ def background_processing(myproduct, params, dir_dict, save_out):
         print('Done.')
     #------------------ C2RCC ------------------------#
     if '1' in params['pcombo']:
-        print('\nProcessing with the C2RCC algorithm...')
-        c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
-        c2rccproduct.c2rcc()
-        for product in c2rccproduct.products:
-            pname = product.getName()
-#             ingestday = get_ingestion_date(pname)
-#             ingestday = datetime.strptime(ingestday, '%Y%m%d').strftime('%Y-%m-%d')
-            print('\nCreating quicklooks for bands: {}\n'.format(params['c2rcc bands']))
-            # Check if parameter range is provided
-            params_range = params['c2rcc max']
-            c = 0
-            for bn in params['c2rcc bands']:
-                if params_range[c] == 0:
-                    param_range = False
-                else:
-                    param_range = [0, params_range[c]]
-                c += 1
-                # plot
-                bname = os.path.join(dir_dict[bn], pname.split('.')[0] + '_' + bn + '.png')
-                plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True, 
-                         perimeter_file=params['wkt file'], param_range=param_range)
-                print('Plot for band {} finished.\n'.format(bn))
-#             product.closeIO()
-        if save_out:
-            print('\nWriting L2C2R product to disk...')
-            c2rccproduct.write(dir_dict['c2rcc dir'])
-            print('Writing completed.')
-        c2rccproduct.close()
+        if not os.path.isfile(os.path.loin(dir_dict['c2rcc dir'], 'L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc')):
+            print('\nProcessing with the C2RCC algorithm...')
+            c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
+            c2rccproduct.c2rcc()
+            for product in c2rccproduct.products:
+                pname = product.getName()
+    #             ingestday = get_ingestion_date(pname)
+    #             ingestday = datetime.strptime(ingestday, '%Y%m%d').strftime('%Y-%m-%d')
+                print('\nCreating quicklooks for bands: {}\n'.format(params['c2rcc bands']))
+                # Check if parameter range is provided
+                params_range = params['c2rcc max']
+                c = 0
+                for bn in params['c2rcc bands']:
+                    if params_range[c] == 0:
+                        param_range = False
+                    else:
+                        param_range = [0, params_range[c]]
+                    c += 1
+                    # plot
+                    bname = os.path.join(dir_dict[bn], pname.split('.')[0] + '_' + bn + '.png')
+                    plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True,
+                             perimeter_file=params['wkt file'], param_range=param_range)
+                    print('Plot for band {} finished.\n'.format(bn))
+    #             product.closeIO()
+            if save_out:
+                print('\nWriting L2C2R product to disk...')
+                c2rccproduct.write(dir_dict['c2rcc dir'])
+                print('Writing completed.')
+            c2rccproduct.close()
+        else:
+            print('Skipping C2RCC: L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
     #------------------ MPH ------------------------#
     if '3' in params['pcombo'] and params['sensor'].upper() == 'OLCI':
-        print('\nMPH...')
-        mphproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
-        mphproduct.mph()
-        for product in mphproduct.products:
-            pname = product.getName()
-#             ingestday = get_ingestion_date(pname)
-#             ingestday = datetime.strptime(ingestday, '%Y%m%d').strftime('%Y-%m-%d')
-            print('\nCreating quicklooks for bands: {}\n'.format(params['mph bands']))
-            # Check if parameter range is provided
-            params_range = params['mph max']
-            c = 0
-            for bn in params['mph bands']:
-                if params_range[c] == 0:
-                    param_range = False
-                else:
-                    param_range = [0, params_range[c]]
-                c += 1
-                bname = os.path.join(dir_dict[bn], pname.split('.')[0] + '_' + bn + '.png')
-                plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True, 
-                         perimeter_file=params['wkt file'], param_range=param_range)
-                print('Plot for band {} finished.\n'.format(bn))
-#             product.closeIO()
-        if save_out:
-            print('\nWriting L2MPH product to disk...')
-            mphproduct.write(dir_dict['mph dir'])
-            print('Writing completed.')
-        mphproduct.close()
-    #------------------ Polymer ------------------#
-    if '2' in params['pcombo']:
-        try:
-            print('\nPolymer...')
-            polyproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
-            polyproduct.polymer(myproductmask=oriproduct, params=params)
-            print('Done.')
-            # Create bands image of polymer
-            for product in polyproduct.products:
+        if not os.path.isfile(os.path.loin(dir_dict['mph dir'], 'L2MPH_L1P_' + oriproduct.products[0].getName() + '.nc')):
+            print('\nMPH...')
+            mphproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
+            mphproduct.mph()
+            for product in mphproduct.products:
                 pname = product.getName()
-        #             ingestday = get_ingestion_date(pname)
-        #             ingestday = datetime.strptime(ingestday, '%Y%m%d').strftime('%Y-%m-%d')
-                print('\nCreating quicklooks for bands: {}\n'.format(params['polymer bands']))
+                print('\nCreating quicklooks for bands: {}\n'.format(params['mph bands']))
                 # Check if parameter range is provided
-                params_range = params['polymer max']
+                params_range = params['mph max']
                 c = 0
-                for bn in params['polymer bands']:
+                for bn in params['mph bands']:
                     if params_range[c] == 0:
                         param_range = False
                     else:
                         param_range = [0, params_range[c]]
                     c += 1
                     bname = os.path.join(dir_dict[bn], pname.split('.')[0] + '_' + bn + '.png')
-                    plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True, 
+                    plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True,
                              perimeter_file=params['wkt file'], param_range=param_range)
                     print('Plot for band {} finished.\n'.format(bn))
-        #             product.closeIO()
-            # Write product
             if save_out:
-                print('\nWriting L2POLY product to disk...')
-                polyproduct.write(dir_dict['polymer dir'])
+                print('\nWriting L2MPH product to disk...')
+                mphproduct.write(dir_dict['mph dir'])
                 print('Writing completed.')
-            polyproduct.close()
-        except ValueError:
-            print('\nPolymer processing failed because of ValueError!\n')
-        except OSError:
-            print('\nPolymer processing failed because of "mv" command!\n')
+            mphproduct.close()
+        else:
+            print('Skipping MPH: L2MPH_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+
+    #------------------ Polymer ------------------#
+    if '2' in params['pcombo']:
+        if not os.path.isfile(os.path.join(dir_dict['polymer dir'], 'L2POLY_L1P_' + myproduct.products[0].getName() + '.nc')):
+            try:
+                print('\nPolymer...')
+                polyproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
+                polyproduct.polymer(myproductmask=oriproduct, params=params)
+                print('Done.')
+                # Create bands image of polymer
+                for product in polyproduct.products:
+                    pname = product.getName()
+                    print('\nCreating quicklooks for bands: {}\n'.format(params['polymer bands']))
+
+                    # Check if parameter range is provided
+                    params_range = params['polymer max']
+                    c = 0
+                    for bn in params['polymer bands']:
+                        if params_range[c] == 0:
+                            param_range = False
+                        else:
+                            param_range = [0, params_range[c]]
+                        c += 1
+                        bname = os.path.join(dir_dict[bn], pname.split('.')[0] + '_' + bn + '.png')
+                        plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True,
+                                 perimeter_file=params['wkt file'], param_range=param_range)
+                        print('Plot for band {} finished.\n'.format(bn))
+
+                # Write product
+                if save_out:
+                    print('\nWriting L2POLY product to disk...')
+                    polyproduct.write(dir_dict['polymer dir'])
+                    print('Writing completed.')
+                polyproduct.close()
+            except ValueError:
+                print('\nPolymer processing failed because of ValueError!\n')
+            except OSError:
+                print('\nPolymer processing failed because of "mv" command!\n')
+        else:
+            print('Skipping Polymer: L2POLY_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+
     oriproduct.close()
     

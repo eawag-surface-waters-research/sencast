@@ -3,40 +3,35 @@
 
 __author__ = 'Daniel&Vincent'
 
-import os, sys
-import numpy as np
+import os
+import sys
 import math
 import snappy
-from snappy import ProductIO, GPF, HashMap, ProductUtils
 import jpy
+import re
+
+import numpy as np
+import packages.colour_scales as colscales
 import cartopy.crs as ccrs
 import cartopy.io.srtm as srtm
 import cartopy.io.img_tiles as maps
 import matplotlib as mpl
-import matplotlib.pyplot as plt
-plt.switch_backend('agg')
+import matplotlib.cm as cm
 import matplotlib.colors as colors
-import re
+import matplotlib.pyplot as plt
 
 from cartopy.io import PostprocessedRasterSource, LocatedImage
-from snappy import WKTReader
-from snappy import Mask
+from snappy import GPF, HashMap, ProductUtils, WKTReader, Mask
 from PIL import Image
-
 from haversine import haversine
-
-import packages.colour_scales as colscales
 from packages.authenticate import authenticate
-import matplotlib.cm as cm
 
-from http.cookiejar import CookieJar
-from urllib.parse import urlencode
-import urllib.request
+
+plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')
 
 SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
 FileReader = snappy.jpy.get_type('java.io.FileReader')
-
 
 authenticate(username='nouchi', password='EOdatap4s')
 
@@ -63,11 +58,10 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     if layer_str not in product.getBandNames():
         print('\nBand {} not in the product, skipping.\n')
         return
-    #print('Processing image ' + product.getName())
+
     # Create a new product With the band to plot only
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
-    #print('   image dimensions are ' + str(width) + ' by ' + str(height) + ' pixels')
     param_band = product.getBand(layer_str)
     param_dt = param_band.getDataType()
     if param_dt <= 12:
@@ -95,20 +89,12 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     parameters.put('targetBands', targetBands)
     sub_product = GPF.createProduct('BandMaths', parameters, product)
     ProductUtils.copyGeoCoding(product, sub_product)
-    
-#     if (width == 0) or (height == 0):
-#         print('   perimeter not intersected')
-#         return
     print('Reading Band {}'.format(layer_str))
-#     param_band = Band(layer_str, 30, width, height)
     param_band = sub_product.getBand(layer_str+'_ql')
+
     # read constituent band
     param_arr = np.zeros(width * height,  dtype=data_type)
     param_band.readPixels(0, 0, width, height, param_arr)
-
-    # TEMPORÄRE MASSNAHME FÜR PLOTTEN VON ON-THE-FLY-NECHAD...
-    #if layer_str in ['rhow_B5', 'band_5']:
-    #    param_arr = 2974.89*(np.array(param_arr)/(1-(np.array(param_arr)/21.15)))
     param_arr = param_arr.reshape(height, width)
 
     # Pixel zählen
@@ -175,21 +161,44 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         land_arr[land_ind] = 100
         masked_param_arr = np.ma.masked_where(land_arr != 0, masked_param_arr)
 
-    # read lat and lon information
     geocoding = sub_product.getSceneGeoCoding()
     lowlef = geocoding.getGeoPos(snappy.PixelPos(0, height - 1), None)
     upprig = geocoding.getGeoPos(snappy.PixelPos(width - 1, 0), None)
+    prod_max_lat = upprig.lat
+    prod_min_lat = lowlef.lat
+    prod_max_lon = upprig.lon
+    prod_min_lon = lowlef.lon
+
+    # read lat and lon information
+    if perimeter_file:
+        global canvas_area
+        perimeter = WKTReader().read(FileReader(perimeter_file))
+        lats = []
+        lons = []
+        for coordinate in perimeter.getCoordinates():
+            lats.append(coordinate.y)
+            lons.append(coordinate.x)
+        max_lat = max(lats)
+        min_lat = min(lats)
+        max_lon = max(lons)
+        min_lon = min(lons)
+        canvas_area = [[min_lon, min_lat], [max_lon, max_lat]]
+    else:
+        max_lat = prod_max_lat
+        min_lat = prod_min_lat
+        max_lon = prod_max_lon
+        min_lon = prod_min_lon
 
     # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
     if crop_ext:
-        lat_ext = (upprig.lat - lowlef.lat) / 8
-        lon_ext = (upprig.lon - lowlef.lon) / 8
+        lat_ext = (max_lat - min_lat) / 8
+        lon_ext = (max_lon - min_lon) / 8
     else:
         lat_ext = 0
         lon_ext = 0
 
-    x_dist = haversine((lowlef.lat, lowlef.lon - lon_ext), (lowlef.lat, upprig.lon + lon_ext))
-    y_dist = haversine((lowlef.lat - lat_ext, lowlef.lon), (upprig.lat + lat_ext, lowlef.lon))
+    x_dist = haversine((min_lat, min_lon - lon_ext), (min_lat, max_lon + lon_ext))
+    y_dist = haversine((min_lat - lat_ext, min_lon), (max_lat + lat_ext, min_lon))
 
     aspect_ratio = x_dist / y_dist
     if (0.7 < aspect_ratio) and (1.5 > aspect_ratio):
@@ -203,21 +212,20 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     if aspect_balance:
         if aspect_ratio < 2/3:
             if lon_ext == 0:
-                lon_ext = (upprig.lon - lowlef.lon) / 20
+                lon_ext = (max_lon - min_lon) / 20
             while aspect_ratio < 2/3:
                 lon_ext = lon_ext * 1.1
-                x_dist = haversine((lowlef.lat, lowlef.lon - lon_ext), (lowlef.lat, upprig.lon + lon_ext))
+                x_dist = haversine((min_lat, min_lon - lon_ext), (min_lat, max_lon + lon_ext))
                 aspect_ratio = x_dist / y_dist
         if aspect_ratio > 3 / 2:
             if lat_ext == 0:
-                lat_ext = (upprig.lat - lowlef.lat) / 20
+                lat_ext = (max_lat - min_lat) / 20
             while aspect_ratio > 3 / 2:
                 lat_ext = lat_ext * 1.1
-                y_dist = haversine((lowlef.lat - lat_ext, lowlef.lon), (upprig.lat + lat_ext, lowlef.lon))
+                y_dist = haversine((min_lat - lat_ext, min_lon), (max_lat + lat_ext, min_lon))
                 aspect_ratio = x_dist / y_dist
 
-    global canvas_area
-    canvas_area = [[lowlef.lon - lon_ext, lowlef.lat - lat_ext], [upprig.lon + lon_ext, upprig.lat + lat_ext]]
+    canvas_area = [[min_lon - lon_ext, min_lat - lat_ext], [max_lon + lon_ext, max_lat + lat_ext]]
 
     # Define colour scale
     title_str, legend_str, log = get_legend_str(layer_str)
@@ -259,13 +267,6 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     map = fig.add_subplot(111, projection=ccrs.PlateCarree())# ccrs.PlateCarree()) ccrs.Mercator())
 
     if perimeter_file:
-        perimeter = WKTReader().read(FileReader(perimeter_file))
-        lats = []
-        lons = []
-        for coordinate in perimeter.getCoordinates():
-            lats.append(coordinate.y)
-            lons.append(coordinate.x)
-        canvas_area = [[min(lons), min(lats)], [max(lons), max(lats)]]
         map.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
 
     ##############################
@@ -331,7 +332,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     ##############################
 
     # Plot parameter
-    parameter = map.imshow(masked_param_arr, extent=[lowlef.lon, upprig.lon, lowlef.lat, upprig.lat],
+    parameter = map.imshow(masked_param_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
                            transform=ccrs.PlateCarree(), origin='upper', cmap=color_type, interpolation='none',
                            vmin=param_range[0], vmax=param_range[1], zorder=10)
 
@@ -339,21 +340,21 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     if cloud_layer != False:
         cloud_colmap = colscales.cloud_color()
         cloud_colmap.set_bad('w', 0)
-        cloud = plt.imshow(masked_cloud_arr, extent=[lowlef.lon, upprig.lon, lowlef.lat, upprig.lat],
+        cloud = plt.imshow(masked_cloud_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
                            transform=ccrs.PlateCarree(), origin='upper', cmap=cloud_colmap, interpolation='none',
                            zorder=20)
 
     if shadow_layer != False:
         shadow_colmap = colscales.shadow_color()
         shadow_colmap.set_bad('w', 0)
-        shadow = plt.imshow(masked_shadow_arr, extent=[lowlef.lon, upprig.lon, lowlef.lat, upprig.lat],
+        shadow = plt.imshow(masked_shadow_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
                            transform=ccrs.PlateCarree(), origin='upper', cmap=shadow_colmap, interpolation='none',
                            zorder=20)
 
     if suspect_layer != False:
         suspect_colmap = colscales.suspect_color()
         suspect_colmap.set_bad('w', 0)
-        suspect = plt.imshow(masked_suspect_arr, extent=[lowlef.lon, upprig.lon, lowlef.lat, upprig.lat],
+        suspect = plt.imshow(masked_suspect_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
                            transform=ccrs.PlateCarree(), origin='upper', cmap=suspect_colmap, interpolation='none',
                            zorder=20)
 
@@ -389,7 +390,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     cax = fig.add_axes([(aspect_ratio * 3) / ((aspect_ratio * 3) + (0.8 * legend_extension)), 0.15, 0.03, 0.7])
     cbar = fig.colorbar(parameter, cax=cax, ticks = ticks, format = tick_format, orientation=bar_orientation)
     cbar.ax.tick_params(labelsize=8)
-#     cax.text(3.5, 0.5, legend_str, rotation = -90, ha = 'center', va = 'center')
+
     # Save plot
     plt.title(legend_str, y=1.05, fontsize=8)
     print('Writing {}'.format(os.path.basename(output_file)))
@@ -410,12 +411,20 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     for rgbls in rgb_layers:
         if rgbls not in all_bns:
             print('{} not in product bands. Edit the parameter file.\nExiting.'.format(rgbls))
-            sys.exit() 
+            sys.exit()
+
+    # subset perimeter
+    perimeter = WKTReader().read(FileReader(perimeter_file))
+    op = SubsetOp()
+    op.setSourceProduct(product)
+    op.setGeoRegion(perimeter)
+    perim_product = op.getTargetProduct()
+
     # Create a new product With RGB bands only
-    width = product.getSceneRasterWidth()
-    height = product.getSceneRasterHeight()
+    width = perim_product.getSceneRasterWidth()
+    height = perim_product.getSceneRasterHeight()
     
-    red_band = product.getBand(rgb_layers[0])
+    red_band = perim_product.getBand(rgb_layers[0])
     red_dt = red_band.getDataType()
     if red_dt <= 12:
         data_type = np.int32
@@ -431,8 +440,7 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
         d_type = 'float64'
     else:
         raise ValueError('cannot handle band of data_sh type \'' + str(red_dt) + '\'')
-    
-    
+
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
     BandDescriptor = jpy.get_type('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
     
@@ -456,19 +464,9 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     parameters = HashMap()
     parameters.put('targetBands', targetBands)
 
-    sub_product = GPF.createProduct('BandMaths', parameters, product)
+    sub_product = GPF.createProduct('BandMaths', parameters, perim_product)
     ProductUtils.copyGeoCoding(product, sub_product)
-    # subset perimeter
-#     product = snappy.ProductIO.readProduct(input_file)
-#     perimeter = WKTReader().read(FileReader(perimeter_file))
-#     op = SubsetOp()
-#     op.setSourceProduct(product)
-#     op.setGeoRegion(perimeter)
-#     sub_product = op.getTargetProduct()
-#     sub_product = copy.deepcopy(product)
-#     ProductIO.writeProduct(sub_product, 'snappy_bmaths_output.nc', 'NetCDF-CF')
-    # get sub_product parameters
-    
+
     red_band = sub_product.getBand(rgb_layers[0]+'_ql')
     green_band = sub_product.getBand(rgb_layers[1]+'_ql')
     blue_band = sub_product.getBand(rgb_layers[2]+'_ql')
@@ -489,6 +487,7 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     geocoding = sub_product.getSceneGeoCoding()
     lowlef = geocoding.getGeoPos(snappy.PixelPos(0, height - 1), None)
     upprig = geocoding.getGeoPos(snappy.PixelPos(width - 1, 0), None)
+
     # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
     if crop_ext:
         lat_ext = (upprig.lat - lowlef.lat) / 8
@@ -512,22 +511,6 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     # Initialize plot
     fig = plt.figure()
     map = fig.add_subplot(111, projection=ccrs.PlateCarree())# ccrs.PlateCarree()) ccrs.Mercator())
-    
-    if perimeter_file:
-        perimeter = WKTReader().read(FileReader(perimeter_file))
-        lats = []
-        lons = []
-        for coordinate in perimeter.getCoordinates():
-            lats.append(coordinate.y)
-            lons.append(coordinate.x)
-        canvas_area = [[min(lons), min(lats)], [max(lons), max(lats)]]
-    else:
-        canvas_area = product_area
-#     canvas_area = product_area
-    map.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
-    
-    
-#     map.set_extent([lowlef.lon - lon_ext, upprig.lon + lon_ext, lowlef.lat  - lat_ext, upprig.lat + lat_ext])
 
     # adjust image brightness scaling (empirical...)
     red_min = 0   #np.percentile(red_arr, 10)
@@ -558,13 +541,25 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     rgb_array[..., 2] = (blue_arr - blue_min) * blue_factor
 
     img = Image.fromarray(rgb_array)
-    
-    #img.save('myimg.jpeg')
+
+    if perimeter_file:
+        perimeter = WKTReader().read(FileReader(perimeter_file))
+        lats = []
+        lons = []
+        for coordinate in perimeter.getCoordinates():
+            lats.append(coordinate.y)
+            lons.append(coordinate.x)
+        canvas_area = [[min(lons), min(lats)], [max(lons), max(lats)]]
+    else:
+        canvas_area = product_area
+    map.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
 
     # Plot RGB
-    rgb_image = map.imshow(img, extent=[canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]],
-                           transform=ccrs.PlateCarree(), origin='upper', interpolation='nearest',
-                           zorder=1)
+    rgb_image = map.imshow(img, extent=[product_area[0][0], product_area[1][0], product_area[0][1], product_area[1][1]],
+                      transform=ccrs.PlateCarree(), origin='upper', interpolation='nearest', zorder=1)
+
+    # map.set_xlim(canvas_area[0][0], canvas_area[1][0])
+    # map.set_ylim(canvas_area[1][0], canvas_area[1][1])
 
     # Add gridlines
     if grid:
@@ -726,3 +721,4 @@ def get_legend_str(layer_str):      #'$\mathbf{Secchi\/depth\/[m]}$'
         title_str = layer_str
         log = False
     return title_str, legend_str, log
+
