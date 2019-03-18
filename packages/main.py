@@ -70,6 +70,7 @@ def eawag_hindcast(params_filename):
         sys.exit()
         
     if xmlfs:
+        xmlfs.sort()
         # Create required folders
         dir_dict = {}
         # Check qmode    

@@ -217,17 +217,17 @@ def background_processing(myproduct, params, dir_dict, save_out):
     if not oriproduct.products:
         return
     #------------------ IdePix -----------------------#
-    if not os.path.isfile(os.path.join(dir_dict['L1P dir'], 'L1P_' + oriproduct.products[0].getName() + '.nc')):
-        print('\nstarting Idepix...')
-        oriproduct.idepix()
+    print('\nstarting Idepix...')
+    oriproduct.idepix()
         #---------------- Save Idepix --------------------#
-        if save_out:
+    if save_out:
+        if not os.path.isfile(os.path.join(dir_dict['L1P dir'], oriproduct.products[0].getName() + '.nc')):
             wktfn = os.path.basename(params['wkt file']).split('.')[0]
             print('\nWriting L1P_{} product to disk...'.format(wktfn))
             oriproduct.write(dir_dict['L1P dir'])
             print('Writing completed.')
-    else:
-        print('Skipping Idepix: L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+        else:
+            print('Not saving Idepix: L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
 
     #-------------------------------------------------#
 #     print('Getting flags.')
@@ -254,8 +254,10 @@ def background_processing(myproduct, params, dir_dict, save_out):
         print('Done.')
     #------------------ C2RCC ------------------------#
     if '1' in params['pcombo']:
-        if not os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc'))\
-                and not os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_reproj_L1P_' + oriproduct.products[0].getName() + '.nc')):
+        if os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_' + oriproduct.products[0].getName().split('.')[0] + '.nc'))\
+                or os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_reproj_' + oriproduct.products[0].getName().split('.')[0] + '.nc')):
+            print('Skipping C2RCC: L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+        else:
             print('\nProcessing with the C2RCC algorithm...')
             c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
             c2rccproduct.c2rcc()
@@ -281,12 +283,13 @@ def background_processing(myproduct, params, dir_dict, save_out):
                 c2rccproduct.write(dir_dict['c2rcc dir'])
                 print('Writing completed.')
             c2rccproduct.close()
-        else:
-            print('Skipping C2RCC: L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+
     #------------------ MPH ------------------------#
     if '3' in params['pcombo'] and params['sensor'].upper() == 'OLCI':
-        if not os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_L1P_' + oriproduct.products[0].getName() + '.nc'))\
-                and not os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_reproj_L1P_' + oriproduct.products[0].getName() + '.nc')):
+        if os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_' + oriproduct.products[0].getName().split('.')[0] + '.nc'))\
+                or os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_reproj_' + oriproduct.products[0].getName().split('.')[0] + '.nc')):
+            print('Skipping MPH: L2MPH_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+        else:
             print('\nMPH...')
             mphproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
             mphproduct.mph()
@@ -311,13 +314,13 @@ def background_processing(myproduct, params, dir_dict, save_out):
                 mphproduct.write(dir_dict['mph dir'])
                 print('Writing completed.')
             mphproduct.close()
-        else:
-            print('Skipping MPH: L2MPH_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
 
     #------------------ Polymer ------------------#
     if '2' in params['pcombo']:
-        if not os.path.isfile(os.path.join(dir_dict['polymer dir'], 'L2POLY_L1P_' + myproduct.products[0].getName() + '.nc'))\
-                and not os.path.isfile(os.path.join(dir_dict['polymer dir'], 'L2POLY_reproj_L1P_' + myproduct.products[0].getName() + '.nc')):
+        if os.path.isfile(os.path.join(dir_dict['polymer dir'], 'L2POLY_L1P_' + myproduct.products[0].getName().split('.')[0] + '.nc'))\
+                or os.path.isfile(os.path.join(dir_dict['polymer dir'], 'projected_L2POLY_L1P_' + myproduct.products[0].getName().split('.')[0] + '.nc')):
+            print('Skipping Polymer: L2POLY_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+        else:
             try:
                 print('\nPolymer...')
                 polyproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
@@ -352,8 +355,6 @@ def background_processing(myproduct, params, dir_dict, save_out):
                 print('\nPolymer processing failed because of ValueError!\n')
             except OSError:
                 print('\nPolymer processing failed because of "mv" command!\n')
-        else:
-            print('Skipping Polymer: L2POLY_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
 
     oriproduct.close()
     

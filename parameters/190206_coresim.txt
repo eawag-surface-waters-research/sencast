@@ -32,7 +32,7 @@ qmode='2'
 # - '2' (Polymer)
 # - '3' (MPH)    # MPH is only available for OLCI
 # example: '1, 2, 3' Will apply Idepix, C2RCC, Polymer and MPH
-pcombo='1, 2'
+pcombo='1, 2, 3'
 
 # Specify a valid expression for the mask (used only for c2rcc)
 # OLCI example: ...
