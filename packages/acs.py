@@ -254,7 +254,7 @@ def background_processing(myproduct, params, dir_dict, save_out):
         print('Done.')
     #------------------ C2RCC ------------------------#
     if '1' in params['pcombo']:
-        if not os.path.isfile(os.path.loin(dir_dict['c2rcc dir'], 'L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc')):
+        if not os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc')):
             print('\nProcessing with the C2RCC algorithm...')
             c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
             c2rccproduct.c2rcc()
@@ -287,7 +287,7 @@ def background_processing(myproduct, params, dir_dict, save_out):
             print('Skipping C2RCC: L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
     #------------------ MPH ------------------------#
     if '3' in params['pcombo'] and params['sensor'].upper() == 'OLCI':
-        if not os.path.isfile(os.path.loin(dir_dict['mph dir'], 'L2MPH_L1P_' + oriproduct.products[0].getName() + '.nc')):
+        if not os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_L1P_' + oriproduct.products[0].getName() + '.nc')):
             print('\nMPH...')
             mphproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
             mphproduct.mph()
