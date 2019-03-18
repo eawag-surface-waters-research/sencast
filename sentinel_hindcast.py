@@ -6,6 +6,6 @@ from packages.main import eawag_hindcast
 
 
 # Options
-params_filename = '190303_gupana.txt'
+params_filename = '190215_ehrenfels.txt'
 
 eawag_hindcast(params_filename)

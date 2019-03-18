@@ -254,14 +254,13 @@ def background_processing(myproduct, params, dir_dict, save_out):
         print('Done.')
     #------------------ C2RCC ------------------------#
     if '1' in params['pcombo']:
-        if not os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc')):
+        if not os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc'))\
+                and not os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_reproj_L1P_' + oriproduct.products[0].getName() + '.nc')):
             print('\nProcessing with the C2RCC algorithm...')
             c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
             c2rccproduct.c2rcc()
             for product in c2rccproduct.products:
                 pname = product.getName()
-    #             ingestday = get_ingestion_date(pname)
-    #             ingestday = datetime.strptime(ingestday, '%Y%m%d').strftime('%Y-%m-%d')
                 print('\nCreating quicklooks for bands: {}\n'.format(params['c2rcc bands']))
                 # Check if parameter range is provided
                 params_range = params['c2rcc max']
@@ -277,7 +276,6 @@ def background_processing(myproduct, params, dir_dict, save_out):
                     plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True,
                              perimeter_file=params['wkt file'], param_range=param_range)
                     print('Plot for band {} finished.\n'.format(bn))
-    #             product.closeIO()
             if save_out:
                 print('\nWriting L2C2R product to disk...')
                 c2rccproduct.write(dir_dict['c2rcc dir'])
@@ -287,7 +285,8 @@ def background_processing(myproduct, params, dir_dict, save_out):
             print('Skipping C2RCC: L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
     #------------------ MPH ------------------------#
     if '3' in params['pcombo'] and params['sensor'].upper() == 'OLCI':
-        if not os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_L1P_' + oriproduct.products[0].getName() + '.nc')):
+        if not os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_L1P_' + oriproduct.products[0].getName() + '.nc'))\
+                and not os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_reproj_L1P_' + oriproduct.products[0].getName() + '.nc')):
             print('\nMPH...')
             mphproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
             mphproduct.mph()
@@ -317,7 +316,8 @@ def background_processing(myproduct, params, dir_dict, save_out):
 
     #------------------ Polymer ------------------#
     if '2' in params['pcombo']:
-        if not os.path.isfile(os.path.join(dir_dict['polymer dir'], 'L2POLY_L1P_' + myproduct.products[0].getName() + '.nc')):
+        if not os.path.isfile(os.path.join(dir_dict['polymer dir'], 'L2POLY_L1P_' + myproduct.products[0].getName() + '.nc'))\
+                and not os.path.isfile(os.path.join(dir_dict['polymer dir'], 'L2POLY_reproj_L1P_' + myproduct.products[0].getName() + '.nc')):
             try:
                 print('\nPolymer...')
                 polyproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
