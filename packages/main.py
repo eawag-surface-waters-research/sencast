@@ -134,13 +134,7 @@ def eawag_hindcast(params_filename):
                     if not os.path.isdir(mphname):
                         os.mkdir(mphname)
                     dir_dict[mphb] = mphname
-        print('\nInitialization complete.')
-        #*********************************************************
-        # Start processing
-        # Check quiclklooks handling mode
-        #--------------- Interactive mode -----------------------#
-        if params['qmode'] == '1':
-            # Check pmode and create relevant dir (would be better to do it on click)
+        # Check pmode and create relevant dir (would be better to do it on click)
             if params['pmode'] == '2':
                 print('Creating C2RCC directories.')
                 c2rcc_dir = os.path.join(project_dir,'L2C2R')
@@ -152,6 +146,13 @@ def eawag_hindcast(params_filename):
                 if not os.path.isdir(polymer_dir):
                     os.mkdir(polymer_dir)
                 dir_dict['polymer dir'] = polymer_dir
+
+        print('\nInitialization complete.')
+        #*********************************************************
+        # Start processing
+        # Check quicklooks handling mode
+        #--------------- Interactive mode -----------------------#
+        if params['qmode'] == '1':
             print('\nInteractive quicklooks handling mode')
             products = []
             for xmlf in xmlfs:
@@ -179,6 +180,7 @@ def eawag_hindcast(params_filename):
                 print('\n\033[1mProcessing product ({}/{}): {}...\033[0m\n'.format(c, nbtot, products[0].getName()))
                 startt = time.time()
                 background_processing(myproduct, params, dir_dict, save_out)
+                print(dir_dict)
                 myproduct.close()
                 print('\nProduct processed in {0:.1f} seconds.\n'.format(time.time() - startt))
                 c += 1
