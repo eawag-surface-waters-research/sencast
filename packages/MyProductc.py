@@ -27,7 +27,7 @@ else:
     POLYMER_INSTALL_DIR = '/home/' + user + '/software/polymer-v4.9'
 
 sys.path.append(POLYMER_INSTALL_DIR)
-print(sys.path)
+
 from polymer.main import run_atm_corr
 from polymer.main import Level1, Level2
 from polymer.level1_msi import Level1_MSI
