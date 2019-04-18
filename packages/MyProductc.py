@@ -14,18 +14,20 @@ import socket
 
 user = getpass.getuser()
 hostname = socket.gethostname()
+
 print()
 print('Script running on ' + hostname)
 print()
+
 if hostname == 'daniels-macbook-pro.home':
     POLYMER_INSTALL_DIR = '/miniconda3/lib/python3.6/site-packages/polymer-v4.9'
 elif hostname == 'SUR-ODERMADA-MC.local':
         POLYMER_INSTALL_DIR = '/Users/' + user + '/anaconda3/envs/sentinel-hindcast/lib/python3.6/site-packages/polymer-v4.10'
 else:
-    POLYMER_INSTALL_DIR = '/home/'+user+'/software/polymer-v4.9'
+    POLYMER_INSTALL_DIR = '/home/' + user + '/software/polymer-v4.9'
 
 sys.path.append(POLYMER_INSTALL_DIR)
-
+print(sys.path)
 from polymer.main import run_atm_corr
 from polymer.main import Level1, Level2
 from polymer.level1_msi import Level1_MSI
