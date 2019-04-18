@@ -317,6 +317,7 @@ def background_processing(myproduct, params, dir_dict, save_out):
 
     #------------------ Polymer ------------------#
     if '2' in params['pcombo']:
+        print(dir_dict)
         if os.path.isfile(os.path.join(dir_dict['polymer dir'], 'L2POLY_L1P_' + myproduct.products[0].getName().split('.')[0] + '.nc'))\
                 or os.path.isfile(os.path.join(dir_dict['polymer dir'], 'projected_L2POLY_L1P_' + myproduct.products[0].getName().split('.')[0] + '.nc')):
             print('Skipping Polymer: L2POLY_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
