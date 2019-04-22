@@ -64,7 +64,6 @@ def eawag_hindcast(params_filename):
     elif params['API'] == 'COAH':
         print('COAH query...')
         xmlfs = query_dl_coah(params, L1_dir_sensor)
-        print(xmlfs)
         print('COAH query completed.')
     else:
         print('API unknown (possible options are ''HDA'' or ''COAH''), exiting.')
