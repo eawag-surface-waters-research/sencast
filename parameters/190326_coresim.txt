@@ -1,5 +1,5 @@
-start='2017-01-01T00:00:00.000Z'
-end='2017-12-31T00:00:00.000Z'
+start='2019-04-01T00:00:00.000Z'
+end='2019-04-04T00:00:00.000Z'
 
 # Input data type
 # For example 'olci' or 'msi'
@@ -15,7 +15,7 @@ tile='EU-042_012'
 wkt='gva.wkt'
 
 # Specify the desired spatial resolution in m (MSI only)
-resolution='0'
+resolution='300'
 
 # Specify the names of quicklook rgb/false color bands from L1 products
 rgb_bands='Oa08_radiance, Oa06_radiance, Oa04_radiance'

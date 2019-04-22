@@ -64,6 +64,7 @@ def eawag_hindcast(params_filename):
     elif params['API'] == 'COAH':
         print('COAH query...')
         xmlfs = query_dl_coah(params, L1_dir_sensor)
+        print(xmlfs)
         print('COAH query completed.')
     else:
         print('API unknown (possible options are ''HDA'' or ''COAH''), exiting.')
@@ -180,7 +181,6 @@ def eawag_hindcast(params_filename):
                 print('\n\033[1mProcessing product ({}/{}): {}...\033[0m\n'.format(c, nbtot, products[0].getName()))
                 startt = time.time()
                 background_processing(myproduct, params, dir_dict, save_out)
-                print(dir_dict)
                 myproduct.close()
                 print('\nProduct processed in {0:.1f} seconds.\n'.format(time.time() - startt))
                 c += 1
