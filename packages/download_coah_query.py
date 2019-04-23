@@ -72,8 +72,9 @@ def query_dl_coah(params, outdir):
           ' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:' + \
           params['sensor'].lower()+' AND producttype:' + datatype + ' AND beginPosition:['+params['start']+' TO ' + \
           params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start=0\' >/dev/null 2>&1'
-    print()
+    print('SUBMITTING COMMAND:')
     print(cmd)
+    print()
     os.system(cmd)
 
     # Read the XML file with max. 100 human-readable pnames and machine-readable uuids, and the number 'total_results'
