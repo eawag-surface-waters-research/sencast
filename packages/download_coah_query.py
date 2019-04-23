@@ -72,6 +72,8 @@ def query_dl_coah(params, outdir):
           ' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:' + \
           params['sensor'].lower()+' AND producttype:' + datatype + ' AND beginPosition:['+params['start']+' TO ' + \
           params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start=0\' >/dev/null 2>&1'
+    print()
+    print(cmd)
     os.system(cmd)
 
     # Read the XML file with max. 100 human-readable pnames and machine-readable uuids, and the number 'total_results'
@@ -80,7 +82,7 @@ def query_dl_coah(params, outdir):
         coah_xml = parse_coah_xml('products-list.xml')
         os.remove('products-list.xml')
     except TypeError:
-        print('No products found for this date. Exiting...')
+        print('No products found for this request. Exiting...')
         os.remove('products-list.xml')
         return
     
