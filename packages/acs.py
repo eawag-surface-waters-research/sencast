@@ -195,12 +195,11 @@ def background_processing(myproduct, params, dir_dict, save_out):
         print('Done, resuming processing\n')
 
     #------------------ Start processing ------------------#        
-    regions = oriproduct.get_regions()
-
-    # First Resample product if sensor is MSI
+    #Resample product if sensor is MSI
     if params['sensor'].upper() == 'MSI':
         res = int(params['resolution'])
         oriproduct.resample(res=res)
+        regions = oriproduct.get_regions()
         UL = [0, 0]
         UL[1] = regions[0].split(',')[0]
         UL[0] = regions[0].split(',')[1]
@@ -211,6 +210,9 @@ def background_processing(myproduct, params, dir_dict, save_out):
         while not (h / (60 / res)).is_integer():
             h += 1
         regions = [UL[1] + ',' + UL[0] + ',' + str(w) + ',' + str(h)]
+    else:
+        regions = oriproduct.get_regions()
+
     #------------------ Subset ------------------#
     print('starting subsetting for region x,y,w,h=' + regions[0])
     oriproduct.subset(regions=regions)

@@ -143,7 +143,7 @@ class MyProduct(object):
             h = product.getSceneRasterHeight()
             w = product.getSceneRasterWidth()
             print('Size before subset: {}, {}'.format(h, w))
-            # Iniatialisation
+            # Initialisation
             parameters = MyProduct.HashMap()
             if regions is None:
                 parameters.put('geoRegion', self.params['wkt'])
