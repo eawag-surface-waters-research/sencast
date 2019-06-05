@@ -92,11 +92,19 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
             print('Sensor: MSI')
         satnumber = 2
         sensorname = '' # Used to call the Idepix operator
+        resolution = [re.findall("'([^']*)'", x) for x in params_list if 'resolution=' in x][0][0]
+        mph_bands = ''
+        mph_max = ''
     elif 'OLCI' in sensor.upper():
         if verbose:
             print('Sensor: OLCI')
         satnumber = 3
         sensorname = '.Olci'  # Used to call the Idepix operator
+        resolution = ''
+        mph_bands = [re.findall("'([^']*)'", x) for x in params_list if 'mph_bands=' in x.lower()]
+        mph_bands = [e.strip() for e in mph_bands[0][0].split(',')]
+        mph_max = [re.findall("'([^']*)'", x) for x in params_list if 'mph_maxbands=' in x.lower()]
+        mph_max = [float(e.strip()) for e in mph_max[0][0].split(',')]
     else:
         print('No valid sensor detected in the parameter file.' + \
               ' Valid options are either <MSI> or <OLCI>')
@@ -106,7 +114,6 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     tile = [e.strip() for e in tile[0][0].split(',')]
     start = [re.findall("'([^']*)'", x) for x in params_list if 'start=' in x][0][0]
     end = [re.findall("'([^']*)'", x) for x in params_list if 'end=' in x][0][0]
-    resolution = [re.findall("'([^']*)'", x) for x in params_list if 'resolution=' in x][0][0]
     rgb = [re.findall("'([^']*)'", x) for x in params_list if 'rgb_bands=' in x]
     rgb = [e.strip() for e in rgb[0][0].split(',')]
     falsecolor = [re.findall("'([^']*)'", x) for x in params_list if 'false_color_bands=' in x]
@@ -126,19 +133,16 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     c2rcc_bands = [e.strip() for e in c2rcc_bands[0][0].split(',')]
     c2rcc_max = [re.findall("'([^']*)'", x) for x in params_list if 'c2rcc_maxbands=' in x.lower()]
     c2rcc_max = [float(e.strip()) for e in c2rcc_max[0][0].split(',')]
+    c2rcc_altnn = [re.findall("'([^']*)'", x) for x in params_list if 'altnn=' in x.lower()][0][0]
     polymer_bands = [re.findall("'([^']*)'", x) for x in params_list if 'polymer_bands=' in x.lower()]
     polymer_bands = [e.strip() for e in polymer_bands[0][0].split(',')]
     polymer_max = [re.findall("'([^']*)'", x) for x in params_list if 'polymer_maxbands=' in x.lower()]
     polymer_max = [float(e.strip()) for e in polymer_max[0][0].split(',')]
-    mph_bands = [re.findall("'([^']*)'", x) for x in params_list if 'mph_bands=' in x.lower()]
-    mph_bands = [e.strip() for e in mph_bands[0][0].split(',')]
-    mph_max = [re.findall("'([^']*)'", x) for x in params_list if 'mph_maxbands=' in x.lower()]
-    mph_max = [float(e.strip()) for e in mph_max[0][0].split(',')]
     if verbose:
-        print('job name: ' + name)
-        print('sensor: ' + sensor.upper())
-        print('start: '+ start)
-        print('end: '+ end)
+        print('Job name: ' + name)
+        print('Sensor: ' + sensor.upper())
+        print('Start: '+ start)
+        print('End: '+ end)
     
     params = {'name': name, 'sensor': sensor.upper(), 'region': region.upper(), 'tile':
               tile, 'start': start, 'end': end, 'satnumber': satnumber, 'resolution': resolution,
@@ -146,7 +150,7 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
               'True color': rgb, 'False color': falsecolor, 'qmode': qmode, 
               'pmode': pmode, 'API': API, 'username': username, 'password': password,
               'c2rcc bands': c2rcc_bands, 'polymer bands': polymer_bands, 'pcombo': pcombo,
-              'wkt file': wkt_file, 'mph bands': mph_bands, 'c2rcc max': c2rcc_max, 
+              'wkt file': wkt_file, 'mph bands': mph_bands, 'c2rcc max': c2rcc_max, 'c2rcc altnn': c2rcc_altnn,
               'polymer max': polymer_max, 'mph max': mph_max}
     return params
 

@@ -219,17 +219,19 @@ def background_processing(myproduct, params, dir_dict, save_out):
     if not oriproduct.products:
         return
     #------------------ IdePix -----------------------#
-    print('\nstarting Idepix...')
-    oriproduct.idepix()
-        #---------------- Save Idepix --------------------#
+    print('\nStarting Idepix...')
+    #---------------- Save Idepix --------------------#
     if save_out:
         if not os.path.isfile(os.path.join(dir_dict['L1P dir'], oriproduct.products[0].getName() + '.nc')):
+            oriproduct.idepix()
             wktfn = os.path.basename(params['wkt file']).split('.')[0]
             print('\nWriting L1P_{} product to disk...'.format(wktfn))
             oriproduct.write(dir_dict['L1P dir'])
             print('Writing completed.')
         else:
-            print('Not saving Idepix: L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+            print('L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+    else:
+        oriproduct.idepix()
 
     #-------------------------------------------------#
 #     print('Getting flags.')
@@ -258,11 +260,15 @@ def background_processing(myproduct, params, dir_dict, save_out):
     if '1' in params['pcombo']:
         if os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_' + oriproduct.products[0].getName().split('.')[0] + '.nc'))\
                 or os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_reproj_' + oriproduct.products[0].getName().split('.')[0] + '.nc')):
-            print('Skipping C2RCC: L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+            print('\nSkipping C2RCC: L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
         else:
             print('\nProcessing with the C2RCC algorithm...')
             c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
             c2rccproduct.c2rcc()
+            if save_out:
+                print('\nWriting L2C2R product to disk...')
+                c2rccproduct.write(dir_dict['c2rcc dir'])
+                print('Writing completed.')
             for product in c2rccproduct.products:
                 pname = product.getName()
                 print('\nCreating quicklooks for bands: {}\n'.format(params['c2rcc bands']))
@@ -280,10 +286,6 @@ def background_processing(myproduct, params, dir_dict, save_out):
                     plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True,
                              perimeter_file=params['wkt file'], param_range=param_range)
                     print('Plot for band {} finished.\n'.format(bn))
-            if save_out:
-                print('\nWriting L2C2R product to disk...')
-                c2rccproduct.write(dir_dict['c2rcc dir'])
-                print('Writing completed.')
             c2rccproduct.close()
 
     #------------------ MPH ------------------------#

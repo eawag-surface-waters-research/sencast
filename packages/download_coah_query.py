@@ -5,6 +5,7 @@ import os
 import sys
 import getpass
 import concurrent.futures
+import urllib3
 
 from subprocess import check_output
 from packages.auxil import list_xml_scene_dir
@@ -57,6 +58,19 @@ def wc(filename):
 
 def download(url, usr, pwd, count):
     sys.stdout.write("\033[K")
+
+    # ONE DAY THIS WILL RUN WITH URLLIB3!
+    # url_manager = urllib3.PoolManager()
+    # headers = urllib3.util.make_headers(basic_auth=usr + ':' + pwd)
+    # download = url_manager.request('GET', url.replace('"', ''), headers=headers, preload_content=False, redirect=True)
+    # with open('download.zip', 'wb') as down_stream:
+    #     while True:
+    #         data = download.read(65536)
+    #         if not data:
+    #             break
+    #         down_stream.write(data)
+    # download.release_conn()
+
     cmd = 'wget --quiet --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url
     os.system(cmd)
     print("\r \r{0}".format(count + ' product(s) downloaded'), end='')
@@ -68,28 +82,32 @@ def query_dl_coah(params, outdir):
         datatype = 'OL_1_EFR___'
     elif params['sensor'].upper() == 'MSI':
         datatype = 'S2MSI1C'
-    cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+\
-          ' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:' + \
-          params['sensor'].lower()+' AND producttype:' + datatype + ' AND beginPosition:['+params['start']+' TO ' + \
-          params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start=0\' >/dev/null 2>&1'
-    print('SUBMITTING COMMAND:')
-    print(cmd)
-    print()
-    os.system(cmd)
 
-    # Read the XML file with max. 100 human-readable pnames and machine-readable uuids, and the number 'total_results'
-    # obtained from the COAH server
+    # Send a product query
+    url_manager = urllib3.PoolManager()
+    query_url = 'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:' + \
+          params['sensor'].lower() + \
+          ' AND producttype:' + datatype + \
+          ' AND beginPosition:[' + params['start'] + \
+          ' TO ' + params['end'] + \
+          '] AND footprint:"Intersects(' + params['wkt'] + \
+          ')"&rows=100&start=0\''
+    headers = urllib3.util.make_headers(basic_auth=params['username'] + ':' + params['password'])
+    query_response = url_manager.request('GET', query_url.replace(' ', '+'), headers=headers)
+    xml_file = open('query-list.xml', 'wb')
+    xml_file.write(query_response.data)
+    xml_file.close
     try:
-        coah_xml = parse_coah_xml('products-list.xml')
-        os.remove('products-list.xml')
+        coah_xml = parse_coah_xml('query-list.xml')
+        os.remove('query-list.xml')
     except TypeError:
         print('No products found for this request. Exiting...')
         os.remove('products-list.xml')
         return
-    
     total_results = coah_xml['total_results']
     print('{} products found'.format(total_results))
 
+    # Download in junks of no more than 100 results at once
     nit = np.ceil(total_results/100).astype(int)
     if nit == 1:
         all_pnames = coah_xml['pnames']
@@ -99,11 +117,17 @@ def query_dl_coah(params, outdir):
         all_uuids = []
         c = 0
         for i in range(nit):
-            cmd = 'wget --no-check-certificate --user='+params['username']+' --password='+params['password']+\
-                  ' --output-document=products-list.xml \'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:' \
-                  ''+params['sensor'].lower()+' AND producttype:'+datatype+' AND beginPosition:['+params['start']+\
-                  ' TO '+params['end']+'] AND footprint:"Intersects('+params['wkt']+')"&rows=100&start='+str(c)+'\' >/dev/null 2>&1'
-            os.system(cmd)
+            product_url = 'https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:' + \
+                  params['sensor'].lower() + \
+                  ' AND producttype:' + datatype + \
+                  ' AND beginPosition:[' + params['start'] + \
+                  ' TO ' + params['end'] + \
+                  '] AND footprint:"Intersects(' + params['wkt'] + \
+                  ')"&rows=100&start=' + str(c) + '\''
+            product_response = url_manager.request('GET', product_url.replace(' ', '+'), headers=headers)
+            xml_file = open('product-list.xml', 'wb')
+            xml_file.write(product_response.data)
+            xml_file.close
             coah_xml = parse_coah_xml('products-list.xml')
             for pname in coah_xml['pnames']:
                 all_pnames.append(pname)
@@ -122,7 +146,7 @@ def query_dl_coah(params, outdir):
     # Download
     if uuids:
         user = getpass.getuser()
-        # Create CSV file for wget
+        # Create CSV file for urllib3 download
         url_list = os.path.join(outdir,'urls_list_'+user+'.txt')
         if os.path.isfile(url_list):
             os.remove(url_list)

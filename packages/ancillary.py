@@ -11,6 +11,7 @@ from os.path import join, exists, dirname, basename
 from packages.luts import LUT, Idx
 from warnings import warn
 import sys
+import urllib3
 import bz2
 import tempfile
 
@@ -282,15 +283,11 @@ class Ancillary_NASA(object):
         # download that file
         if not exists(dirname(target)):
             makedirs(dirname(target))
-
         lock = target + '.lock'
         if exists(lock):
             raise Exception('lock file "{}" is present'.format(lock))
-
         assert basename(url) == basename(target)
-
         with LockFile(lock):
-
             cmd = 'wget -nv {} -O {}'.format(url, target+'.tmp')
             ret = system(cmd)
             if ret == 0:
@@ -299,7 +296,6 @@ class Ancillary_NASA(object):
             else:
                 if exists(target+'.tmp'):
                     system('rm {}'.format(target+'.tmp'))
-
         return ret
 
 

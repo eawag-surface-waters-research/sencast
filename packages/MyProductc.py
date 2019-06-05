@@ -22,7 +22,7 @@ print()
 if hostname == 'daniels-macbook-pro.home':
     POLYMER_INSTALL_DIR = '/miniconda3/lib/python3.6/site-packages/polymer-v4.9'
 elif hostname == 'SUR-ODERMADA-MC.local':
-        POLYMER_INSTALL_DIR = '/Users/' + user + '/anaconda3/envs/sentinel-hindcast/lib/python3.6/site-packages/polymer-v4.10'
+        POLYMER_INSTALL_DIR = '/Users/' + user + '/anaconda3/envs/sentinel-hindcast/lib/python3.6/site-packages/polymer-v4.11'
 else:
     POLYMER_INSTALL_DIR = '/home/' + user + '/software/polymer-v4.11'
 
@@ -300,6 +300,9 @@ class MyProduct(object):
                 parameters.put('useEcmwfAuxData', True)
             c += 1
             print('apply c2rcc...')
+            if self.params['c2rcc altnn'] != '':
+                print('...using alternative NN specified in param file')
+                parameters.put('alternativeNNPath', self.params['c2rcc altnn'])
             resultc2r = GPF.createProduct('c2rcc.'+self.params['sensor'].lower(), parameters, product)
             print('Done.')
             pname = product.getName().split('.')[0]
@@ -360,9 +363,9 @@ class MyProduct(object):
         # If MSI we need to find the coordinates on a resampled product
         # Note that the new product needs the original file names
         nametemp = [p.getName() for p in self.products]
-        res = int(params['resolution'])
 
         if self.params['sensor'].upper() == 'MSI':
+            res = int(params['resolution'])
             tempmyproduct = MyProduct(self.products, self.params, self.path)
             tempmyproduct.resample(res=res)
             products = []
@@ -419,7 +422,13 @@ class MyProduct(object):
             print('Polymer applied')
             ULs.append(UL)
             LRs.append(LR)
-            resultpoly = ProductIO.readProduct(pfname)
+
+            # There seems to be a bug for reprojecting polymer outputs with SNAP. It 'heals' when creating a tif first..
+            temppoly = ProductIO.readProduct(pfname)
+            tfname = pfname[:-2] + 'tif'
+            ProductIO.writeProduct(temppoly, tfname, 'GeoTIFF')
+            resultpoly = ProductIO.readProduct(tfname)
+
             pname = product.getName().split('.')[0]
             if myproductmask is not None:
                 newname = 'L2POLY_L1P_'+pname
@@ -428,6 +437,7 @@ class MyProduct(object):
             resultpoly.setName(newname)
             results.append(resultpoly)
             os.remove(pfname)
+            os.remove(tfname)
             
         self.products = results
         self.state.append('polymer')
@@ -435,6 +445,7 @@ class MyProduct(object):
         if myproductmask is not None:
             self.copyMasks(myproductmask)
         if self.params['sensor'].upper() == 'OLCI':
+
             # Reproject (UTM)
             results = []
             for product in self.products:
@@ -442,6 +453,7 @@ class MyProduct(object):
                 parameters.put('crs', 'EPSG:32662')
                 reprProduct = GPF.createProduct("Reproject", parameters, resultpoly)
                 results.append(reprProduct)
+
             self.products = results
             self.update()
         
@@ -450,7 +462,7 @@ class MyProduct(object):
     
     
     def write(self, writedir):
-        writer = ProductIO.getProductWriter('NetCDF-CF')
+        writer = ProductIO.getProductWriter('NetCDF-BEAM') # -CF writer does not add wavelength attributes
         for product in self.products:
             # If file already exist remove it 
             fname = os.path.join(writedir, product.getName()+'.nc')
@@ -458,7 +470,7 @@ class MyProduct(object):
                 os.remove(fname)
             product.setProductWriter(writer)
             product.writeHeader(fname)
-            ProductIO.writeProduct(product, fname, 'NetCDF-CF')
+            ProductIO.writeProduct(product, fname, 'NetCDF-BEAM') # -CF writer does not add wavelength attributes
      
     
     def close(self):

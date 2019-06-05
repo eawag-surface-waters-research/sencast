@@ -406,7 +406,7 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     linewidth = 0.8
     gridlabel_size = 6
 
-    print('\nProcessing image ' + product.getName())
+    print('Processing image ' + product.getName())
     all_bns = product.getBandNames()
     for rgbls in rgb_layers:
         if rgbls not in all_bns:
