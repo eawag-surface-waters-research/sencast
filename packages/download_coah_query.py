@@ -96,7 +96,7 @@ def query_dl_coah(params, outdir):
     query_response = url_manager.request('GET', query_url.replace(' ', '+'), headers=headers)
     xml_file = open('query-list.xml', 'wb')
     xml_file.write(query_response.data)
-    xml_file.close
+    xml_file.close()
     try:
         coah_xml = parse_coah_xml('query-list.xml')
         os.remove('query-list.xml')
@@ -127,7 +127,7 @@ def query_dl_coah(params, outdir):
             product_response = url_manager.request('GET', product_url.replace(' ', '+'), headers=headers)
             xml_file = open('product-list.xml', 'wb')
             xml_file.write(product_response.data)
-            xml_file.close
+            xml_file.close()
             coah_xml = parse_coah_xml('products-list.xml')
             for pname in coah_xml['pnames']:
                 all_pnames.append(pname)
