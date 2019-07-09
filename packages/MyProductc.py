@@ -23,8 +23,10 @@ if hostname == 'daniels-macbook-pro.home':
     POLYMER_INSTALL_DIR = '/miniconda3/lib/python3.6/site-packages/polymer-v4.9'
 elif hostname == 'SUR-ODERMADA-MC.local':
         POLYMER_INSTALL_DIR = '/Users/' + user + '/anaconda3/envs/sentinel-hindcast/lib/python3.6/site-packages/polymer-v4.11'
+elif hostname == 'Luca-Bruderlins-MacBook-Pro.local':
+        POLYMER_INSTALL_DIR = '/Users/' + user + '/PycharmProjects/sentinel_hindcast_git/polymer-v4.11'
 else:
-    POLYMER_INSTALL_DIR = '/home/' + user + '/software/polymer-v4.11'
+    POLYMER_INSTALL_DIR = '/Users/' + user + '/PycharmProjects/sentinel_hindcast_git/polymer-v4.11'
 
 sys.path.append(POLYMER_INSTALL_DIR)
 
@@ -32,6 +34,7 @@ from polymer.main import run_atm_corr
 from polymer.main import Level1, Level2
 from polymer.level1_msi import Level1_MSI
 from polymer.gsw import GSW
+from polymer.level2 import default_datasets
 
 
 class MyProduct(object):
@@ -412,13 +415,13 @@ class MyProduct(object):
                 assert len(temppath) == 1
                 ppath = temppath[0]
                 run_atm_corr(Level1_MSI(ppath, sline=UL[0], scol=UL[1], eline=UL[0]+h,ecol=UL[1]+w, landmask=GSW(),
-                                        resolution=res), Level2(filename=pfname, fmt='netcdf4', overwrite=True))
+                                        resolution=res), Level2(filename=pfname, fmt='netcdf4', overwrite=True, datasets=default_datasets+['sza']))
             else:
                 if not os.path.isdir('data_landmask_gsw'):
                     os.mkdir('data_landmask_gsw')
                 run_atm_corr(Level1(ppath, sline=UL[0], scol=UL[1],
                                     eline=UL[0]+h,ecol=UL[1]+w, landmask=GSW(agg=8)),
-                Level2(filename=pfname, fmt='netcdf4', overwrite=True))
+                Level2(filename=pfname, fmt='netcdf4', overwrite=True, datasets=default_datasets+['sza']))
             print('Polymer applied')
             ULs.append(UL)
             LRs.append(LR)
