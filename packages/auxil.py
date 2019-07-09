@@ -100,7 +100,7 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
             print('Sensor: OLCI')
         satnumber = 3
         sensorname = '.Olci'  # Used to call the Idepix operator
-        resolution = ''
+        resolution = [re.findall("'([^']*)'", x) for x in params_list if 'resolution=' in x][0][0]
         mph_bands = [re.findall("'([^']*)'", x) for x in params_list if 'mph_bands=' in x.lower()]
         mph_bands = [e.strip() for e in mph_bands[0][0].split(',')]
         mph_max = [re.findall("'([^']*)'", x) for x in params_list if 'mph_maxbands=' in x.lower()]

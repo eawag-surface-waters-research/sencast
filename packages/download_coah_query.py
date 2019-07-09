@@ -78,7 +78,9 @@ def download(url, usr, pwd, count):
 def query_dl_coah(params, outdir):
     xmlf = []
     wd = os.getcwd()
-    if params['sensor'].upper() == 'OLCI':
+    if params['sensor'].upper() == 'OLCI' and params['resolution'].upper() == '1000':
+        datatype = 'OL_1_ERR___'
+    elif params['sensor'].upper() == 'OLCI' and params['resolution'].upper() != '1000':
         datatype = 'OL_1_EFR___'
     elif params['sensor'].upper() == 'MSI':
         datatype = 'S2MSI1C'
