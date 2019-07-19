@@ -59,21 +59,23 @@ def wc(filename):
 def download(url, usr, pwd, count):
     sys.stdout.write("\033[K")
 
-    # ONE DAY THIS WILL RUN WITH URLLIB3!
-    # url_manager = urllib3.PoolManager()
-    # headers = urllib3.util.make_headers(basic_auth=usr + ':' + pwd)
-    # download = url_manager.request('GET', url.replace('"', ''), headers=headers, preload_content=False, redirect=True)
-    # with open('download.zip', 'wb') as down_stream:
-    #     while True:
-    #         data = download.read(65536)
-    #         if not data:
-    #             break
-    #         down_stream.write(data)
-    # download.release_conn()
-
-    cmd = 'wget --quiet --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url
-    os.system(cmd)
+    # NEW URLLIB3 DOWNLOAD TO REPLACE WGET
+    url_manager = urllib3.PoolManager()
+    headers = urllib3.util.make_headers(basic_auth=usr + ':' + pwd)
+    download = url_manager.request('GET', url.replace('"', ''), headers=headers, preload_content=False, redirect=True)
+    with open('download.zip', 'wb') as down_stream:
+        while True:
+            data = download.read(65536)
+            if not data:
+                break
+            down_stream.write(data)
+    download.release_conn()
     print("\r \r{0}".format(count + ' product(s) downloaded'), end='')
+
+    # OLD WGET DOWNLOAD
+    #cmd = 'wget --quiet --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url
+    #os.system(cmd)
+
 
 def query_dl_coah(params, outdir):
     xmlf = []

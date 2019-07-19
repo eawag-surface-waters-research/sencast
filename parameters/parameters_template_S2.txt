@@ -1,5 +1,5 @@
-start='2019-06-01T00:00:00.000Z'
-end='2019-06-02T00:00:00.000Z'
+start='2019-06-23T00:00:00.000Z'
+end='2019-06-30T00:00:00.000Z'
 
 # Input data type
 # For example 'olci' or 'msi'
@@ -10,14 +10,14 @@ resolution='60'
 
 # Specify the geometry for the subset
 # Name of wkt file ('gva.wkt') available in perimeter folder, or string in format POLYGON(...)
-wkt='tno.wkt'
+wkt='gva.wkt'
 
 # Select processor combination (Ignored if qmode is '1' as everything is interactively selected)
 # - '0' (Idepix) # Idepix is always applied, either pcombo includes '0' or not
 # - '1' (C2RCC)
 # - '2' (Polymer)
 # example: '1, 2' Will apply Idepix, C2RCC and Polymer
-pcombo='1, 2'
+pcombo='2'
 
 # Specify the names of quicklook rgb/false color bands from L1 products
 rgb_bands='B4, B3, B2'
