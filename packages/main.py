@@ -75,7 +75,7 @@ def eawag_hindcast(params_filename):
         dir_dict = {}
         # Check qmode    
         if params['qmode'] == '2':
-            print('\nqmode = {}, quicklooks will be saved in the project directory\n'.format(params['qmode']))
+            print('\nqmode = {}, quicklooks will be saved in the project directory'.format(params['qmode']))
             qlrgb_dir = os.path.join(project_dir,'L1P-rgb-quicklooks')
             if not os.path.isdir(qlrgb_dir):
                 os.mkdir(qlrgb_dir)
@@ -94,60 +94,49 @@ def eawag_hindcast(params_filename):
             # Check pcombo
             if '1' in params['pcombo']:
                 # Create c2rcc directories
-                print('pcombo = {}, Creating C2RCC directories'.format(params['pcombo']))
-                if params['pmode'] == '2':
-                    print('Creating C2RCC directory')
-                    c2rcc_dir = os.path.join(project_dir,'L2C2R')
-                    if not os.path.isdir(c2rcc_dir):
-                        os.mkdir(c2rcc_dir)
-                    dir_dict['c2rcc dir'] = c2rcc_dir
+                print('Creating C2RCC map directories')
                 for c2rb in params['c2rcc bands']:
                     c2name = os.path.join(project_dir,'L2C2R-' + c2rb)
                     if not os.path.isdir(c2name):
                         os.mkdir(c2name)
                     dir_dict[c2rb] = c2name
-            if '2' in params['pcombo']:
-                print('pcombo = {}, Creating Polymer directories'.format(params['pcombo']))
-                # Create polymer bands directory
                 if params['pmode'] == '2':
-                    polymer_dir = os.path.join(project_dir,'L2POLY')
-                    print('Creating L2POLY directory')
-                    if not os.path.isdir(polymer_dir):
-                        os.mkdir(polymer_dir)
-                    dir_dict['polymer dir'] = polymer_dir
+                    print('Creating C2RCC L2 directory')
+                    c2rcc_dir = os.path.join(project_dir,'L2C2R')
+                    if not os.path.isdir(c2rcc_dir):
+                        os.mkdir(c2rcc_dir)
+                    dir_dict['c2rcc dir'] = c2rcc_dir
+            if '2' in params['pcombo']:
+                # Create polymer bands directory
+                print('Creating Polymer map directories')
                 for polyb in params['polymer bands']:
                     polyname = os.path.join(project_dir,'L2POLY-' + polyb)
                     if not os.path.isdir(polyname):
                         os.mkdir(polyname)
                     dir_dict[polyb] = polyname
-            if '3' in params['pcombo'] and params['sensor'].upper() == 'OLCI':
-                print('pcombo = {}, Creating MPH directories'.format(params['pcombo']))
-                # Create polymer bands directory
                 if params['pmode'] == '2':
-                    mph_dir = os.path.join(project_dir,'L2MPH')
-                    print('Creating L2MPH directory')
-                    if not os.path.isdir(mph_dir):
-                        os.mkdir(mph_dir)
-                    dir_dict['mph dir'] = mph_dir
+                    print('Creating Polymer L2 directory')
+                    polymer_dir = os.path.join(project_dir,'L2POLY')
+                    if not os.path.isdir(polymer_dir):
+                        os.mkdir(polymer_dir)
+                    dir_dict['polymer dir'] = polymer_dir
+            if '3' in params['pcombo'] and params['sensor'].upper() == 'OLCI':
+                # Create polymer bands directory
+                print('Creating MPH map directories')
                 for mphb in params['mph bands']:
-                    mphname = os.path.join(project_dir,'L2MPH-' + mphb)
+                    mphname = os.path.join(project_dir, 'L2MPH-' + mphb)
                     if not os.path.isdir(mphname):
                         os.mkdir(mphname)
                     dir_dict[mphb] = mphname
-        # Check pmode and create relevant dir (would be better to do it on click)
-            if params['pmode'] == '2':
-                print('Creating C2RCC directories.')
-                c2rcc_dir = os.path.join(project_dir,'L2C2R')
-                if not os.path.isdir(c2rcc_dir):
-                    os.mkdir(c2rcc_dir)
-                dir_dict['c2rcc dir'] = c2rcc_dir
-                print('Creating Polymer directories.')
-                polymer_dir = os.path.join(project_dir,'L2POLY')
-                if not os.path.isdir(polymer_dir):
-                    os.mkdir(polymer_dir)
-                dir_dict['polymer dir'] = polymer_dir
+                if params['pmode'] == '2':
+                    print('Creating MPH L2 directory')
+                    mph_dir = os.path.join(project_dir,'L2MPH')
+                    if not os.path.isdir(mph_dir):
+                        os.mkdir(mph_dir)
+                    dir_dict['mph dir'] = mph_dir
 
         print('\nInitialization complete.')
+
         #*********************************************************
         # Start processing
         # Check quicklooks handling mode
@@ -177,7 +166,7 @@ def eawag_hindcast(params_filename):
                 #print(os.system('java -version 2>&1 | awk -F[\\\"_] \'NR==1{print $2}\''))
                 products.append(ProductIO.readProduct(xmlf))
                 myproduct = MyProduct(products, params, L1_dir_sensor)
-                print('\n\033[1mProcessing product ({}/{}): {}...\033[0m\n'.format(c, nbtot, products[0].getName()))
+                print('\033[1mProcessing product ({}/{}): {}...\033[0m\n'.format(c, nbtot, products[0].getName()))
                 startt = time.time()
                 background_processing(myproduct, params, dir_dict, save_out)
                 myproduct.close()

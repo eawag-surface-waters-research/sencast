@@ -145,6 +145,7 @@ class MyProduct(object):
         for product in self.products:
             h = product.getSceneRasterHeight()
             w = product.getSceneRasterWidth()
+            print('Subsetting {}...'.format(product.getName()))
             print('Size before subset: {}, {}'.format(h, w))
             # Initialisation
             parameters = MyProduct.HashMap()
@@ -155,7 +156,6 @@ class MyProduct(object):
             
             parameters.put('sourceBands', self.band_names_str)
             parameters.put('copyMetadata', 'True')
-            print('Subsetting {}...'.format(product.getName()))
             try:
                 result = GPF.createProduct('Subset', parameters, product)
             except RuntimeError:
@@ -166,9 +166,9 @@ class MyProduct(object):
                 if 'Subset' in result.getName():
                     h = result.getSceneRasterHeight()
                     w = result.getSceneRasterWidth()
-                    print('Size After subset: {}, {}'.format(h, w))
+                    print('Size after subset: {}, {}'.format(h, w))
                     subsets.append(result)
-                    print('Done.')
+                    print('Done.\n')
                 else:
                      print('ROI outside the frame.')
             c += 1
@@ -298,16 +298,16 @@ class MyProduct(object):
                 parameters.put('ozone', ozone)
                 parameters.put('press', surfpress)
                 parameters.put('salinity', 0.5)
-                print('default salinity is 0.5 PSU for freshwater')
+                print('Default salinity is 0.5 PSU for freshwater')
             else:
                 parameters.put('useEcmwfAuxData', True)
             c += 1
-            print('apply c2rcc...')
             if self.params['c2rcc altnn'] != '':
-                print('...using alternative NN specified in param file')
+                print('Using alternative NN specified in param file...')
                 parameters.put('alternativeNNPath', self.params['c2rcc altnn'])
+            else:
+                print('Using default NN...')
             resultc2r = GPF.createProduct('c2rcc.'+self.params['sensor'].lower(), parameters, product)
-            print('Done.')
             pname = product.getName().split('.')[0]
             if self.params['sensor'].upper() == 'OLCI':
                 print('Reprojecting C2RCC output...')
@@ -318,7 +318,6 @@ class MyProduct(object):
                 newname = 'L2C2R_reproj_'+pname
                 reprProduct.setName(newname)
                 results.append(reprProduct)
-                print('Done.')
             else:
                 newname = 'L2C2R_'+pname
                 resultc2r.setName(newname)

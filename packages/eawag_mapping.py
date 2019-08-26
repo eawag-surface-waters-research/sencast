@@ -406,7 +406,7 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     linewidth = 0.8
     gridlabel_size = 6
 
-    print('Processing image ' + product.getName())
+    # print('Processing image ' + product.getName())
     all_bns = product.getBandNames()
     for rgbls in rgb_layers:
         if rgbls not in all_bns:
@@ -439,7 +439,7 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
         data_type = np.float64
         d_type = 'float64'
     else:
-        raise ValueError('cannot handle band of data_sh type \'' + str(red_dt) + '\'')
+        raise ValueError('Cannot handle band of data_sh type \'' + str(red_dt) + '\'')
 
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
     BandDescriptor = jpy.get_type('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
@@ -470,7 +470,7 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     red_band = sub_product.getBand(rgb_layers[0]+'_ql')
     green_band = sub_product.getBand(rgb_layers[1]+'_ql')
     blue_band = sub_product.getBand(rgb_layers[2]+'_ql')
-    print('   image dimensions are ' + str(width) + ' by ' + str(height) + ' pixels')
+    # print('   Image dimensions are ' + str(width) + ' by ' + str(height) + ' pixels')
 
     # read rgb bands
     red_arr = np.zeros(width * height,  dtype=data_type)
@@ -584,7 +584,7 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
         gridlines.ylabel_style = {'size': gridlabel_size, 'color': 'black'}
     
     # Save plot
-    print('   saving to {}'.format(os.path.basename(output_file)))
+    print('Saving image {}'.format(os.path.basename(output_file)))
     plt.savefig(output_file, bbox_inches='tight', dpi=300)
     plt.close()
     sub_product.closeIO()

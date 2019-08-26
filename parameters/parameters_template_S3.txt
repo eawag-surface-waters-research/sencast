@@ -1,17 +1,17 @@
-start='2019-06-02T00:00:00.000Z'
-end='2019-06-05T00:00:00.000Z'
+start='2017-10-05T00:00:00.000Z'
+end='2017-10-09T00:00:00.000Z'
 
 # Input data type
 # For example 'olci' or 'msi'
 sensor='olci'
 
-# To download the EFR (full resolution images) leave empty
-# to download the ERR (reduced resolution images) use 1000
+# OLCI EFR (full resolution) data is used by default
+# To download ERR (reduced resolution) data use '1000'
 resolution=''
 
 # Specify the geometry for the subset
 # Name of wkt file ('gva.wkt') available in perimeter folder, or string in format POLYGON(...)
-wkt='gva.wkt'
+wkt='tya.wkt'
 
 # Select processor combination (Ignored if qmode is '1' as everything is interactively selected)
 # - '0' (Idepix) # Idepix is always applied, either pcombo includes '0' or not
@@ -19,7 +19,7 @@ wkt='gva.wkt'
 # - '2' (Polymer)
 # - '3' (MPH)
 # example: '1, 2, 3' Will apply Idepix, C2RCC, Polymer and MPH
-pcombo='2'
+pcombo='1'
 
 # Specify the names of quicklook rgb/false color bands from L1 products
 rgb_bands='Oa08_radiance, Oa06_radiance, Oa04_radiance'

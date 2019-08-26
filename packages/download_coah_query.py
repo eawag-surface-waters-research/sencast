@@ -48,7 +48,7 @@ def parse_coah_xml(filename):
     return coah_xml
 
 def coah_xmlparsed_to_txt(uuids, out_fname):
-    basestr = '"https://scihub.copernicus.eu/dhus/odata/v1/Products(\'{}\')/\$value"\n'
+    basestr = 'https://scihub.copernicus.eu/dhus/odata/v1/Products(\'{}\')/$value\n'
     with open(out_fname, 'w+') as of:
         for uuid in uuids:
             of.write(basestr.format(uuid))
@@ -58,23 +58,22 @@ def wc(filename):
 
 def download(url, usr, pwd, count):
     sys.stdout.write("\033[K")
-
-    # NEW URLLIB3 DOWNLOAD TO REPLACE WGET
+    dl_name = url.split("'")[1]
     url_manager = urllib3.PoolManager()
     headers = urllib3.util.make_headers(basic_auth=usr + ':' + pwd)
-    download = url_manager.request('GET', url.replace('"', ''), headers=headers, preload_content=False, redirect=True)
-    with open('download.zip', 'wb') as down_stream:
+    download = url_manager.request('GET', url, headers=headers, preload_content=False, redirect=True)
+    with open(dl_name + '.zip', 'wb') as down_stream:
         while True:
             data = download.read(65536)
             if not data:
                 break
             down_stream.write(data)
     download.release_conn()
-    print("\r \r{0}".format(count + ' product(s) downloaded'), end='')
-
-    # OLD WGET DOWNLOAD
-    #cmd = 'wget --quiet --content-disposition --continue --user=' + usr + ' --password=' + pwd + ' ' + url
-    #os.system(cmd)
+    with ZipFile(dl_name + '.zip', 'r') as zip:
+        prod_name = zip.namelist()[0]
+        zip.extractall(prod_name.split('.')[0])
+    os.remove(dl_name + '.zip')
+    print("\r \r{0}".format('Product no. ' + count + ' downloaded'), end='')
 
 
 def query_dl_coah(params, outdir):
@@ -181,19 +180,10 @@ def query_dl_coah(params, outdir):
             return
         else:
             print('\ndownload complete')
-            
-        os.remove(url_list)
-        for pn in pnames:
-            zf = [os.path.join(outdir, zf) for zf in os.listdir(outdir) if pn.split('.')[0] in zf]
-            tempdir = os.path.join(outdir, zf[0].split('.')[0])
-            os.mkdir(tempdir)
-            with ZipFile(zf[0], 'r') as zipf:
-                zipf.extractall(tempdir)
-            os.remove(os.path.join(outdir, zf[0]))
+            os.remove(url_list)
     else:
-        print('\nAll products already downloaded, skipping...')
-        
-    
+        print('All products already downloaded, skipping...')
+
     if total_results > 0:
        # Read products
         xmlf = list_xml_scene_dir(outdir, sensor=params['sensor'], file_list=all_pnames)

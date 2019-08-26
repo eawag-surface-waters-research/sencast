@@ -150,7 +150,6 @@ def background_processing(myproduct, params, dir_dict, save_out):
     #------------------ S3 Quicklooks ------------------#
     # If the sensor is OLCI, the RGB and false color quicklooks must be done on the original, reprojected products
     if params['sensor'].upper() == 'OLCI':
-        print('\nEntering quicklooks processing for S3 OLCI\n')
         # Change radiance band names 
         rgb_bands = [bn.replace('radiance', 'reflectance') for bn in params['True color']]
         fc_bands = [bn.replace('radiance', 'reflectance') for bn in params['False color']]
@@ -192,7 +191,7 @@ def background_processing(myproduct, params, dir_dict, save_out):
             plot_pic(product, fcname, rgb_layers=fc_bands, grid=True, max_val=0.5,
                      perimeter_file=params['wkt file'])
         qlproduct.close()
-        print('Done, resuming processing\n')
+        print('Done.\n')
 
     #------------------ Start processing ------------------#        
     #Resample product if sensor is MSI
@@ -214,20 +213,20 @@ def background_processing(myproduct, params, dir_dict, save_out):
         regions = oriproduct.get_regions()
 
     #------------------ Subset ------------------#
-    print('starting subsetting for region x,y,w,h=' + regions[0])
+    print('Starting subsetting for region x,y,w,h=' + regions[0])
     oriproduct.subset(regions=regions)
     if not oriproduct.products:
         return
     #------------------ IdePix -----------------------#
-    print('\nStarting Idepix...')
+    print('Starting Idepix')
     #---------------- Save Idepix --------------------#
     if save_out:
         if not os.path.isfile(os.path.join(dir_dict['L1P dir'], oriproduct.products[0].getName() + '.nc')):
             oriproduct.idepix()
             wktfn = os.path.basename(params['wkt file']).split('.')[0]
-            print('\nWriting L1P_{} product to disk...'.format(wktfn))
+            print('Writing L1P_{} product to disk...'.format(wktfn))
             oriproduct.write(dir_dict['L1P dir'])
-            print('Writing completed.')
+            print('Done.')
         else:
             print('L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
     else:
@@ -266,9 +265,9 @@ def background_processing(myproduct, params, dir_dict, save_out):
             c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
             c2rccproduct.c2rcc()
             if save_out:
-                print('\nWriting L2C2R product to disk...')
+                print('Writing C2RCC L2 to disk...')
                 c2rccproduct.write(dir_dict['c2rcc dir'])
-                print('Writing completed.')
+                print('Done.')
             for product in c2rccproduct.products:
                 pname = product.getName()
                 print('\nCreating quicklooks for bands: {}\n'.format(params['c2rcc bands']))
