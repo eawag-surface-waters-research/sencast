@@ -6,8 +6,7 @@ import ipywidgets as widgets
 from IPython.display import display
 from packages.MyProductc import MyProduct
 from packages.display_fun import display_band_with_flag, display_rgb_with_flag
-from packages.product_fun import get_UL_LR_pixels_ROI, get_UL_LR_geo_ROI
-from snappy import ProductUtils, jpy, GPF
+from snappy import jpy, GPF
 import re
 from datetime import datetime
 import os
@@ -142,7 +141,7 @@ def widget_display_myproduct_3bands_3flags(myproduct):
     display(ui, uii, uiii, out)
     
     
-def background_processing(myproduct, params, dir_dict, save_out):
+def background_processing(myproduct, params, dir_dict, pmode):
     HashMap = jpy.get_type('java.util.HashMap')
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
     oriproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
@@ -220,7 +219,7 @@ def background_processing(myproduct, params, dir_dict, save_out):
     #------------------ IdePix -----------------------#
     print('Starting Idepix')
     #---------------- Save Idepix --------------------#
-    if save_out:
+    if pmode in [2, 3]:
         if not os.path.isfile(os.path.join(dir_dict['L1P dir'], oriproduct.products[0].getName() + '.nc')):
             oriproduct.idepix()
             wktfn = os.path.basename(params['wkt file']).split('.')[0]
@@ -263,11 +262,17 @@ def background_processing(myproduct, params, dir_dict, save_out):
         else:
             print('\nProcessing with the C2RCC algorithm...')
             c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
-            c2rccproduct.c2rcc()
-            if save_out:
-                print('Writing C2RCC L2 to disk...')
-                c2rccproduct.write(dir_dict['c2rcc dir'])
+            if pmode in [1, 2]:
+                c2rccproduct.c2rcc(pmode)
+                if pmode == 2:
+                    print('Writing C2RCC L2 to disk with snappy...')
+                    c2rccproduct.write(dir_dict['c2rcc dir'])
+                    print('Done.')
+            elif pmode == 3:
+                print('Writing C2RCC L2 to disk with gpt...')
+                c2rccproduct.c2rcc(pmode, read_dir = dir_dict['L1P dir'], write_dir = dir_dict['c2rcc dir'])
                 print('Done.')
+
             for product in c2rccproduct.products:
                 pname = product.getName()
                 print('\nCreating quicklooks for bands: {}\n'.format(params['c2rcc bands']))
@@ -312,7 +317,7 @@ def background_processing(myproduct, params, dir_dict, save_out):
                     plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True,
                              perimeter_file=params['wkt file'], param_range=param_range)
                     print('Plot for band {} finished.\n'.format(bn))
-            if save_out:
+            if pmode in [2, 3]:
                 print('\nWriting L2MPH product to disk...')
                 mphproduct.write(dir_dict['mph dir'])
                 print('Writing completed.')
@@ -349,7 +354,7 @@ def background_processing(myproduct, params, dir_dict, save_out):
                         print('Plot for band {} finished.\n'.format(bn))
 
                 # Write product
-                if save_out:
+                if pmode in [2, 3]:
                     print('\nWriting L2POLY product to disk...')
                     polyproduct.write(dir_dict['polymer dir'])
                     print('Writing completed.')

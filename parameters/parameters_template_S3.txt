@@ -32,8 +32,9 @@ qmode='2'
 
 # Product handling (Ignored if pcombo = '0'):
 # - '1' (L2 in memory/temp only)
-# - '2' (save L2 to disk)
-pmode='2'
+# - '2' (save L2 to disk using snappy)
+# - '3' (save L2 to disk using gpt *CURRENTLY ONLY C2RCC!*)
+pmode='3'
 
 ###########################   DOWNLOAD OPTIONS   ###########################
 # Select which API to use for the data query

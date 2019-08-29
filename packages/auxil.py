@@ -1,15 +1,20 @@
 #! /usr/bin/env python
 # coding: utf8
 
-
 import sys
 import os
 import re
-import requests
-import json
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from snappy import ProductIO
+
+
+
+def gpt_xml(product, operator, out_path):
+    asdf = 1234
+    print()
+
+    return asdf
 
 
 def open_wkt(wkt):

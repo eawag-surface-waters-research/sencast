@@ -100,7 +100,7 @@ def eawag_hindcast(params_filename):
                     if not os.path.isdir(c2name):
                         os.mkdir(c2name)
                     dir_dict[c2rb] = c2name
-                if params['pmode'] == '2':
+                if params['pmode'] in ['2', '3']:
                     print('Creating C2RCC L2 directory')
                     c2rcc_dir = os.path.join(project_dir,'L2C2R')
                     if not os.path.isdir(c2rcc_dir):
@@ -114,7 +114,7 @@ def eawag_hindcast(params_filename):
                     if not os.path.isdir(polyname):
                         os.mkdir(polyname)
                     dir_dict[polyb] = polyname
-                if params['pmode'] == '2':
+                if params['pmode'] in ['2', '3']:
                     print('Creating Polymer L2 directory')
                     polymer_dir = os.path.join(project_dir,'L2POLY')
                     if not os.path.isdir(polymer_dir):
@@ -128,7 +128,7 @@ def eawag_hindcast(params_filename):
                     if not os.path.isdir(mphname):
                         os.mkdir(mphname)
                     dir_dict[mphb] = mphname
-                if params['pmode'] == '2':
+                if params['pmode'] in ['2', '3']:
                     print('Creating MPH L2 directory')
                     mph_dir = os.path.join(project_dir,'L2MPH')
                     if not os.path.isdir(mph_dir):
@@ -153,10 +153,8 @@ def eawag_hindcast(params_filename):
         elif params['qmode'] == '2':
             print('\nBackground quicklooks handling mode')
             if params['pmode'] == '1':
-                save_out = False
                 print("Output products won't be written to the disk\n")
-            elif params['pmode'] == '2': 
-                save_out = True
+            elif params['pmode'] == '2':
                 print('L2 products will be written to the disk\n')
             starttime = time.time()
             nbtot = len(xmlfs)
@@ -168,7 +166,7 @@ def eawag_hindcast(params_filename):
                 myproduct = MyProduct(products, params, L1_dir_sensor)
                 print('\033[1mProcessing product ({}/{}): {}...\033[0m\n'.format(c, nbtot, products[0].getName()))
                 startt = time.time()
-                background_processing(myproduct, params, dir_dict, save_out)
+                background_processing(myproduct, params, dir_dict, params['pmode'])
                 myproduct.close()
                 print('\nProduct processed in {0:.1f} seconds.\n'.format(time.time() - startt))
                 c += 1

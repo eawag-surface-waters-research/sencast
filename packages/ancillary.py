@@ -11,7 +11,6 @@ from os.path import join, exists, dirname, basename
 from packages.luts import LUT, Idx
 from warnings import warn
 import sys
-import urllib3
 import bz2
 import tempfile
 

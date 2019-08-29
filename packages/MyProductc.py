@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import subprocess
 from snappy import jpy, GPF, ProductIO, ProductUtils
 from datetime import datetime
 from packages.product_fun import get_UL_LR_pixels_ROI, get_UL_LR_geo_ROI
@@ -9,6 +10,7 @@ import re
 import numpy as np
 import os
 from packages.ancillary import Ancillary_NASA
+from packages.auxil import gpt_xml
 import getpass
 import socket
 
@@ -232,7 +234,7 @@ class MyProduct(object):
                 flagProduct.closeIO()
             flags.append(flag)
         return flags
-        
+
         
     def get_regions(self):
         regions = []
@@ -267,7 +269,7 @@ class MyProduct(object):
         self.update()
         
         
-    def c2rcc(self):
+    def c2rcc(self, pmode, read_dir='', write_dir=''):
         results = []
         c = 0
         for product in self.products:
@@ -297,8 +299,8 @@ class MyProduct(object):
                     surfpress = 1000.
                 parameters.put('ozone', ozone)
                 parameters.put('press', surfpress)
-                parameters.put('salinity', 0.5)
-                print('Default salinity is 0.5 PSU for freshwater')
+                parameters.put('salinity', 0.05)
+                print('Default salinity is 0.05 PSU for freshwater')
             else:
                 parameters.put('useEcmwfAuxData', True)
             c += 1
@@ -307,27 +309,40 @@ class MyProduct(object):
                 parameters.put('alternativeNNPath', self.params['c2rcc altnn'])
             else:
                 print('Using default NN...')
-            resultc2r = GPF.createProduct('c2rcc.'+self.params['sensor'].lower(), parameters, product)
-            pname = product.getName().split('.')[0]
-            if self.params['sensor'].upper() == 'OLCI':
-                print('Reprojecting C2RCC output...')
-                # Reprojection (UTM)
-                parameters = MyProduct.HashMap()
-                parameters.put('crs', 'EPSG:32662')
-                reprProduct = GPF.createProduct("Reproject", parameters, resultc2r)
-                newname = 'L2C2R_reproj_'+pname
-                reprProduct.setName(newname)
-                results.append(reprProduct)
-            else:
-                newname = 'L2C2R_'+pname
-                resultc2r.setName(newname)
-                results.append(resultc2r)
-            
+            if pmode in [1, 2]:
+                resultc2r = GPF.createProduct('c2rcc.'+self.params['sensor'].lower(), parameters, product)
+                pname = product.getName().split('.')[0]
+                if self.params['sensor'].upper() == 'OLCI':
+                    print('Reprojecting C2RCC output...')
+                    # Reprojection (UTM)
+                    parameters = MyProduct.HashMap()
+                    parameters.put('crs', 'EPSG:32662')
+                    reprProduct = GPF.createProduct("Reproject", parameters, resultc2r)
+                    newname = 'L2C2R_reproj_'+pname
+                    reprProduct.setName(newname)
+                    results.append(reprProduct)
+                else:
+                    newname = 'L2C2R_'+pname
+                    resultc2r.setName(newname)
+                    results.append(resultc2r)
+            if pmode == 3:
+                op_str = 'c2rcc.' + self.params['sensor'].lower()
+                gpt_path = '/Applications/snap/bin/gpt'
+                xml_path = './temp.xml'
+                gpt_xml(product, operator=op_str, xml_path=xml_path)
+                input_path = read_dir + '/' + product.getName() + '.nc'
+                if not os.path.isfile(gpt_path):
+                    sys.exit('Ooops, gpt is not in Applications/snap/bin!')
+                else:
+                    subprocess.call([gpt_path, xml_path, '-SsourceProduct=' + input_path])
+                    #os.rm('./temp.xml')
+                    results.append(re)
+
         self.products = results
         self.state.append('c2rcc')
         self.update()
-    
-    
+
+
     def mph(self):
         if self.params['sensor'].upper() == 'OLCI':
             parameters = MyProduct.HashMap()

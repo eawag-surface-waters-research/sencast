@@ -1,5 +1,5 @@
-start='2019-06-23T00:00:00.000Z'
-end='2019-06-30T00:00:00.000Z'
+start='2017-06-19T00:00:00.000Z'
+end='2017-06-20T00:00:00.000Z'
 
 # Input data type
 # For example 'olci' or 'msi'
