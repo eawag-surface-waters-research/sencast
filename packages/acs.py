@@ -219,7 +219,7 @@ def background_processing(myproduct, params, dir_dict, pmode):
     #------------------ IdePix -----------------------#
     print('Starting Idepix')
     #---------------- Save Idepix --------------------#
-    if pmode in [2, 3]:
+    if pmode in ['2', '3']:
         if not os.path.isfile(os.path.join(dir_dict['L1P dir'], oriproduct.products[0].getName() + '.nc')):
             oriproduct.idepix()
             wktfn = os.path.basename(params['wkt file']).split('.')[0]
@@ -262,13 +262,13 @@ def background_processing(myproduct, params, dir_dict, pmode):
         else:
             print('\nProcessing with the C2RCC algorithm...')
             c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
-            if pmode in [1, 2]:
+            if pmode in ['1', '2']:
                 c2rccproduct.c2rcc(pmode)
                 if pmode == 2:
                     print('Writing C2RCC L2 to disk with snappy...')
                     c2rccproduct.write(dir_dict['c2rcc dir'])
                     print('Done.')
-            elif pmode == 3:
+            elif pmode == '3':
                 print('Writing C2RCC L2 to disk with gpt...')
                 c2rccproduct.c2rcc(pmode, read_dir = dir_dict['L1P dir'], write_dir = dir_dict['c2rcc dir'])
                 print('Done.')
@@ -317,7 +317,7 @@ def background_processing(myproduct, params, dir_dict, pmode):
                     plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True,
                              perimeter_file=params['wkt file'], param_range=param_range)
                     print('Plot for band {} finished.\n'.format(bn))
-            if pmode in [2, 3]:
+            if pmode in ['2', '3']:
                 print('\nWriting L2MPH product to disk...')
                 mphproduct.write(dir_dict['mph dir'])
                 print('Writing completed.')
@@ -354,7 +354,7 @@ def background_processing(myproduct, params, dir_dict, pmode):
                         print('Plot for band {} finished.\n'.format(bn))
 
                 # Write product
-                if pmode in [2, 3]:
+                if pmode in ['2', '3']:
                     print('\nWriting L2POLY product to disk...')
                     polyproduct.write(dir_dict['polymer dir'])
                     print('Writing completed.')

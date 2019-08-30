@@ -309,7 +309,7 @@ class MyProduct(object):
                 parameters.put('alternativeNNPath', self.params['c2rcc altnn'])
             else:
                 print('Using default NN...')
-            if pmode in [1, 2]:
+            if pmode in ['1', '2']:
                 resultc2r = GPF.createProduct('c2rcc.'+self.params['sensor'].lower(), parameters, product)
                 pname = product.getName().split('.')[0]
                 if self.params['sensor'].upper() == 'OLCI':
@@ -325,17 +325,22 @@ class MyProduct(object):
                     newname = 'L2C2R_'+pname
                     resultc2r.setName(newname)
                     results.append(resultc2r)
-            if pmode == 3:
+            if pmode == '3':
                 op_str = 'c2rcc.' + self.params['sensor'].lower()
                 gpt_path = '/Applications/snap/bin/gpt'
                 xml_path = './temp.xml'
-                gpt_xml(product, operator=op_str, xml_path=xml_path)
-                input_path = read_dir + '/' + product.getName() + '.nc'
+                product_path = read_dir + '/' + product.getName() + '.nc'
+                gpt_xml(operator=op_str, parameters=parameters, product_path = product_path, xml_path=xml_path)
                 if not os.path.isfile(gpt_path):
                     sys.exit('Ooops, gpt is not in Applications/snap/bin!')
                 else:
-                    subprocess.call([gpt_path, xml_path, '-SsourceProduct=' + input_path])
-                    #os.rm('./temp.xml')
+                    subprocess.call([gpt_path, xml_path])
+                    os.rm('./temp.xml')
+
+                    print('here we need to feed the gpt results back....')
+                    print('here we need to feed the gpt results back....')
+                    print('here we need to feed the gpt results back....')
+
                     results.append(re)
 
         self.products = results

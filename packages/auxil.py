@@ -6,15 +6,39 @@ import os
 import re
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+import xml.etree.cElementTree as ET
 from snappy import ProductIO
 
 
 
-def gpt_xml(product, operator, out_path):
-    asdf = 1234
-    print()
+def gpt_xml(operator, parameters, product_path, xml_path):
 
-    return asdf
+    graph = ET.Element('graph id')
+    graph.set('id', 'c2rcc-netcdf-reproj')
+
+    #C2RCC node elements
+    node = ET.SubElement(graph, 'node', id='c2rccNode')
+    operator = ET.SubElement(node, 'operator')
+    sources = ET.SubElement(node, 'sources')
+    sourceProduct = ET.SubElement(sources, 'sourceProduct')
+    parameters = ET.SubElement(node, 'parameters')
+    validPixelExpression = ET.SubElement(parameters, 'validPixelExpression')
+    salinity = ET.SubElement(parameters, 'salinity')
+
+
+
+    operator.text(operator)
+    sourceProduct.text(product_path)
+    validPixelExpression.text(parameters.get('validPixelExpression'))
+    salinity.text('0.05')
+
+
+
+
+    xml = open(xml_path, 'w')
+    tree = ET.ElementTree(graph)
+    tree.write(xml)
+    xml.close()
 
 
 def open_wkt(wkt):

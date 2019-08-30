@@ -84,7 +84,7 @@ def eawag_hindcast(params_filename):
             if not os.path.isdir(qlfc_dir):
                 os.mkdir(qlfc_dir)
             dir_dict['qlfc dir'] = qlfc_dir
-            if params['pmode'] == '2':
+            if params['pmode'] in ['2', '3']:
                 print('pmode = {}. Idepix subset will be saved to the project directory'.format(params['pmode']))
                 L1P_dir = os.path.join(project_dir,'L1P_'+os.path.basename(params['wkt file']).split('.')[0])
                 if not os.path.isdir(L1P_dir):
