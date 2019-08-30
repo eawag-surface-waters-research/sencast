@@ -16,7 +16,7 @@ def gpt_xml(operator, parameters, product_path, xml_path):
     graph = ET.Element('graph id')
     graph.set('id', 'c2rcc-netcdf-reproj')
 
-    #C2RCC node elements
+    # C2RCC node elements
     node = ET.SubElement(graph, 'node', id='c2rccNode')
     operator = ET.SubElement(node, 'operator')
     sources = ET.SubElement(node, 'sources')
@@ -24,6 +24,35 @@ def gpt_xml(operator, parameters, product_path, xml_path):
     parameters = ET.SubElement(node, 'parameters')
     validPixelExpression = ET.SubElement(parameters, 'validPixelExpression')
     salinity = ET.SubElement(parameters, 'salinity')
+    temperature = ET.SubElement(parameters, 'temperature')
+    ozone = ET.SubElement(parameters, 'ozone')
+    press = ET.SubElement(parameters, 'press')
+    TSMfakBpart = ET.SubElement(parameters, 'TSMfakBpart')
+    TSMfakBwit = ET.SubElement(parameters, 'TSMfakBwit')
+    CHLexp = ET.SubElement(parameters, 'CHLexp')
+    CHLfak = ET.SubElement(parameters, 'CHLfak')
+    thresholdRtosaOOS = ET.SubElement(parameters, 'thresholdRtosaOOS')
+    thresholdAcReflecOos = ET.SubElement(parameters, 'thresholdAcReflecOos')
+    thresholdCloudTDown865 = ET.SubElement(parameters, 'thresholdCloudTDown865')
+    alternativeNNPath = ET.SubElement(parameters, 'alternativeNNPath')
+    outputAsRrs = ET.SubElement(parameters, 'outputAsRrs')
+    deriveRwFromPathAndTransmittance = ET.SubElement(parameters, 'deriveRwFromPathAndTransmittance')
+    useEcmwfAuxData = ET.SubElement(parameters, 'useEcmwfAuxData')
+    outputRtoa = ET.SubElement(parameters, 'outputRtoa')
+    outputRtosaGc = ET.SubElement(parameters, 'outputRtosaGc')
+    outputRtosaGcAann = ET.SubElement(parameters, 'outputRtosaGcAann')
+    outputRpath = ET.SubElement(parameters, 'outputRpath')
+    outputTdown = ET.SubElement(parameters, 'outputTup')
+    outputTup = ET.SubElement(parameters, 'salinity')
+    outputAcReflectance = ET.SubElement(parameters, 'outputAcReflectance')
+    outputRhown = ET.SubElement(parameters, 'outputRhown')
+    outputOos = ET.SubElement(parameters, 'outputKd')
+    outputKd = ET.SubElement(parameters, 'salinity')
+    outputUncertainties = ET.SubElement(parameters, 'outputUncertainties')
+
+    # Reproject node elements
+    node = ET.SubElement(graph, 'node', id='reprojNode')
+
 
 
 
