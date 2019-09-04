@@ -21,7 +21,7 @@ print()
 print('Script running on ' + hostname)
 print()
 
-if hostname == 'daniels-macbook-pro.home':
+if hostname.lower() in ['daniels-macbook-pro.home', 'daniels-macbook-pro.local']:
     POLYMER_INSTALL_DIR = '/miniconda3/lib/python3.6/site-packages/polymer-v4.9'
 elif hostname == 'SUR-ODERMADA-MC.local':
         POLYMER_INSTALL_DIR = '/Users/' + user + '/anaconda3/envs/sentinel-hindcast/lib/python3.6/site-packages/polymer-v4.11'
@@ -329,19 +329,25 @@ class MyProduct(object):
                 op_str = 'c2rcc.' + self.params['sensor'].lower()
                 gpt_path = '/Applications/snap/bin/gpt'
                 xml_path = './temp.xml'
-                product_path = read_dir + '/' + product.getName() + '.nc'
-                gpt_xml(operator=op_str, parameters=parameters, product_path = product_path, xml_path=xml_path)
+                pname = product.getName() + '.nc'
+                product_path = read_dir + '/' + pname
+                if self.params['sensor'].upper() == 'OLCI':
+                    newname = 'L2C2R_reproj_' + pname
+                else:
+                    newname = 'L2C2R_'+pname
+                target_path = read_dir + '/../' + 'L2C2R/' + newname
+
+                gpt_xml(operator=op_str, product_parameters=parameters, xml_path=xml_path)
+
                 if not os.path.isfile(gpt_path):
                     sys.exit('Ooops, gpt is not in Applications/snap/bin!')
                 else:
-                    subprocess.call([gpt_path, xml_path])
-                    os.rm('./temp.xml')
+                    subprocess.call([gpt_path, xml_path, '-SsourceProduct=' + product_path, '-PtargetProduct=' + target_path])
+                    os.remove('./temp.xml')
 
-                    print('here we need to feed the gpt results back....')
-                    print('here we need to feed the gpt results back....')
-                    print('here we need to feed the gpt results back....')
-
-                    results.append(re)
+                    reprProduct = ProductIO.readProduct(target_path)
+                    reprProduct.setName(newname)
+                    results.append(reprProduct)
 
         self.products = results
         self.state.append('c2rcc')

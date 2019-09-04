@@ -1,11 +1,11 @@
-start='2017-10-05T00:00:00.000Z'
+start='2017-09-28T00:00:00.000Z'
 end='2017-10-09T00:00:00.000Z'
 
 # Input data type
 # For example 'olci' or 'msi'
 sensor='olci'
 
-# OLCI EFR (full resolution) data is used by default
+# OLCI EFR (full resolution) data is resampled if a value is specified
 # To download ERR (reduced resolution) data use '1000'
 resolution=''
 
@@ -65,7 +65,7 @@ altnn='/Applications/snap/C2RCCv2_OLCI'
 c2rcc_bands='conc_chl, conc_tsm, iop_bwit'
 
 # Define the maximum value to display for each c2rcc_bands (0 for automatic estimate)
-c2rcc_maxbands='0,0,0'
+c2rcc_maxbands='5,5,0'
 
 ###########################   POLYMER OPTIONS   ###########################
 # Specify which Polymer bands you want to plot if qmode is '2'

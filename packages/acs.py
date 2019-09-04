@@ -193,27 +193,28 @@ def background_processing(myproduct, params, dir_dict, pmode):
         print('Done.\n')
 
     #------------------ Start processing ------------------#        
-    #Resample product if sensor is MSI
+    #Resample product
+    res = params['resolution']
+    if res not in ['', '1000']:
+        oriproduct.resample(res=int(res))
+    regions = qlproduct.get_regions()
+    UL = [0, 0]
+    UL[1] = regions[0].split(',')[0]
+    UL[0] = regions[0].split(',')[1]
+    w = int(regions[0].split(',')[2])
+    h = int(regions[0].split(',')[3])
+
+    #------------------ Subset ------------------#
     if params['sensor'].upper() == 'MSI':
-        res = int(params['resolution'])
-        oriproduct.resample(res=res)
-        regions = oriproduct.get_regions()
-        UL = [0, 0]
-        UL[1] = regions[0].split(',')[0]
-        UL[0] = regions[0].split(',')[1]
-        w = int(regions[0].split(',')[2])
-        h = int(regions[0].split(',')[3])
         while not (w / (60 / res)).is_integer():
             w += 1
         while not (h / (60 / res)).is_integer():
             h += 1
         regions = [UL[1] + ',' + UL[0] + ',' + str(w) + ',' + str(h)]
+        print('Starting subsetting for region x,y,w,h=' + regions[0])
+        oriproduct.subset(regions=regions)
     else:
-        regions = oriproduct.get_regions()
-
-    #------------------ Subset ------------------#
-    print('Starting subsetting for region x,y,w,h=' + regions[0])
-    oriproduct.subset(regions=regions)
+        oriproduct.subset()
     if not oriproduct.products:
         return
     #------------------ IdePix -----------------------#
@@ -231,13 +232,6 @@ def background_processing(myproduct, params, dir_dict, pmode):
     else:
         oriproduct.idepix()
 
-    #-------------------------------------------------#
-#     print('Getting flags.')
-#     flags = oriproduct.get_flags(match='pixel_classif_flags.IDEPIX_CLOUD')
-#     print('Done. ')
-    
-#     c = 0
-
     #------------------ S2 Quicklooks ------------------#
     if params['sensor'].upper() == 'MSI':
         print('Quicklooks for S2 MSI\n')
@@ -254,11 +248,13 @@ def background_processing(myproduct, params, dir_dict, pmode):
             plot_pic(product, fcname, rgb_layers=params['False color'], grid=True, max_val=0.3, 
                     perimeter_file=params['wkt file'])
         print('Done.')
+
     #------------------ C2RCC ------------------------#
     if '1' in params['pcombo']:
-        if os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_' + oriproduct.products[0].getName().split('.')[0] + '.nc'))\
-                or os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_reproj_' + oriproduct.products[0].getName().split('.')[0] + '.nc')):
-            print('\nSkipping C2RCC: L2C2R_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+        if os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_' + oriproduct.products[0].getName().split('.')[0] + '.nc')):
+            print('\nSkipping C2RCC: L2C2R_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+        elif os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_reproj_' + oriproduct.products[0].getName().split('.')[0] + '.nc')):
+            print('\nSkipping C2RCC: L2C2R_reproj_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
         else:
             print('\nProcessing with the C2RCC algorithm...')
             c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)

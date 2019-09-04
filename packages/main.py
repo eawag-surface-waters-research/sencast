@@ -17,7 +17,7 @@ import socket
 def eawag_hindcast(params_filename):
     user = getpass.getuser()
     hostname = socket.gethostname()
-    if hostname in ['daniels-macbook-pro.home', 'SUR-ODERMADA-MC.local']:
+    if hostname in ['daniels-macbook-pro.home', 'Daniels-MacBook-Pro.local', 'SUR-ODERMADA-MC.local']:
         os.chdir(os.path.join('/Users', user, 'Dropbox', 'Wrk Eawag', 'DIAS'))
         cwd = os.getcwd()
         wkt_dir = os.path.join(cwd, 'wkt')

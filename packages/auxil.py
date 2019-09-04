@@ -11,17 +11,18 @@ from snappy import ProductIO
 
 
 
-def gpt_xml(operator, parameters, product_path, xml_path):
+def gpt_xml(operator, product_parameters, xml_path):
 
-    graph = ET.Element('graph id')
+    graph = ET.Element('graph')
     graph.set('id', 'c2rcc-netcdf-reproj')
+    version = ET.SubElement(graph, 'version')
 
     # C2RCC node elements
-    node = ET.SubElement(graph, 'node', id='c2rccNode')
-    operator = ET.SubElement(node, 'operator')
-    sources = ET.SubElement(node, 'sources')
+    c2rcc_node = ET.SubElement(graph, 'node', id='c2rccNode')
+    c2rcc_op = ET.SubElement(c2rcc_node, 'operator')
+    sources = ET.SubElement(c2rcc_node, 'sources')
     sourceProduct = ET.SubElement(sources, 'sourceProduct')
-    parameters = ET.SubElement(node, 'parameters')
+    parameters = ET.SubElement(c2rcc_node, 'parameters')
     validPixelExpression = ET.SubElement(parameters, 'validPixelExpression')
     salinity = ET.SubElement(parameters, 'salinity')
     temperature = ET.SubElement(parameters, 'temperature')
@@ -42,29 +43,85 @@ def gpt_xml(operator, parameters, product_path, xml_path):
     outputRtosaGc = ET.SubElement(parameters, 'outputRtosaGc')
     outputRtosaGcAann = ET.SubElement(parameters, 'outputRtosaGcAann')
     outputRpath = ET.SubElement(parameters, 'outputRpath')
-    outputTdown = ET.SubElement(parameters, 'outputTup')
-    outputTup = ET.SubElement(parameters, 'salinity')
+    outputTdown = ET.SubElement(parameters, 'outputTdown')
+    outputTup = ET.SubElement(parameters, 'outputTup')
     outputAcReflectance = ET.SubElement(parameters, 'outputAcReflectance')
     outputRhown = ET.SubElement(parameters, 'outputRhown')
-    outputOos = ET.SubElement(parameters, 'outputKd')
-    outputKd = ET.SubElement(parameters, 'salinity')
+    outputOos = ET.SubElement(parameters, 'outputOos')
+    outputKd = ET.SubElement(parameters, 'outputKd')
     outputUncertainties = ET.SubElement(parameters, 'outputUncertainties')
 
     # Reproject node elements
-    node = ET.SubElement(graph, 'node', id='reprojNode')
+    reproj_node = ET.SubElement(graph, 'node', id='reprojNode')
+    reproj_op = ET.SubElement(reproj_node, 'operator')
+    reproj_sources = ET.SubElement(reproj_node, 'sources')
+    reproj_source = ET.SubElement(reproj_sources, 'source')
+    reproj_parameters = ET.SubElement(reproj_node, 'parameters')
+    crs = ET.SubElement(reproj_parameters, 'crs')
+    resampling = ET.SubElement(reproj_parameters, 'resampling')
+    orthorectify = ET.SubElement(reproj_parameters, 'orthorectify')
+    noDataValue = ET.SubElement(reproj_parameters, 'noDataValue')
+    includeTiePointGrids = ET.SubElement(reproj_parameters, 'includeTiePointGrids')
+    addDeltaBands = ET.SubElement(reproj_parameters, 'addDeltaBands')
 
+    # Write node elements
+    write_node = ET.SubElement(graph, 'node', id='writeNode')
+    write_op = ET.SubElement(write_node, 'operator')
+    write_sources = ET.SubElement(write_node, 'sources')
+    write_source = ET.SubElement(write_sources, 'source')
+    write_parameters = ET.SubElement(write_node, 'parameters')
+    file = ET.SubElement(write_parameters, 'file')
+    formatName = ET.SubElement(write_parameters, 'formatName')
 
+    # fill c2rcc subelements with content
+    version.text = '1.0'
+    c2rcc_op.text = operator
+    sourceProduct.text = '${sourceProduct}'
+    validPixelExpression.text = product_parameters.get('validPixelExpression')
+    salinity.text = '0.05'
+    temperature.text = '15.0'
+    ozone.text = '330.0' # str(product_parameters.get('ozone'))
+    press.text = '1000.0'  # str(product_parameters.get('press'))
+    TSMfakBpart.text = '1.72'
+    TSMfakBwit.text= '3.1'
+    CHLexp.text = '1.04'
+    CHLfak.text = '21.0'
+    thresholdRtosaOOS.text = '0.05'
+    thresholdAcReflecOos.text = '0.1'
+    thresholdCloudTDown865.text = '0.955'
+    alternativeNNPath.text = product_parameters.get('alternativeNNPath')
+    outputAsRrs.text = 'false'
+    deriveRwFromPathAndTransmittance.text = 'false'
+    useEcmwfAuxData.text = 'true'
+    outputRtoa.text = 'true'
+    outputRtosaGc.text = 'false'
+    outputRtosaGcAann.text = 'false'
+    outputRpath.text = 'false'
+    outputTdown.text = 'false'
+    outputTup.text = 'false'
+    outputAcReflectance.text = 'true'
+    outputRhown.text = 'true'
+    outputOos.text = 'false'
+    outputKd.text = 'true'
+    outputUncertainties.text = 'true'
 
+    # fill reproject subelements with content
+    reproj_op.text = 'Reproject'
+    reproj_source.text = 'c2rccNode'
+    crs.text = "PROJCS[\"WGS 84 / Plate Carree\", GEOGCS[\"WGS 84\", DATUM[\"World Geodetic System 1984\", SPHEROID[\"WGS 84\", 6378137.0, 298.257223563, AUTHORITY[\"EPSG\",\"7030\"]], AUTHORITY[\"EPSG\",\"6326\"]], PRIMEM[\"Greenwich\", 0.0, AUTHORITY[\"EPSG\",\"8901\"]], UNIT[\"degree\", 0.017453292519943295], AXIS[\"Geodetic longitude\", EAST], AXIS[\"Geodetic latitude\", NORTH], AUTHORITY[\"EPSG\",\"4326\"]], PROJECTION[\"Equidistant Cylindrical (Spherical)\", AUTHORITY[\"EPSG\",\"9823\"]], PARAMETER[\"central_meridian\", 0.0], PARAMETER[\"latitude_of_origin\", 0.0], PARAMETER[\"standard_parallel_1\", 0.0], PARAMETER[\"false_easting\", 0.0], PARAMETER[\"false_northing\", 0.0], UNIT[\"m\", 1.0], AXIS[\"Easting\", EAST], AXIS[\"Northing\", NORTH], AUTHORITY[\"EPSG\",\"32662\"]]"
+    resampling.text = 'Nearest'
+    orthorectify.text = 'false'
+    noDataValue.text = 'NaN'
+    includeTiePointGrids.text = 'true'
+    addDeltaBands.text = 'false'
 
-    operator.text(operator)
-    sourceProduct.text(product_path)
-    validPixelExpression.text(parameters.get('validPixelExpression'))
-    salinity.text('0.05')
+    # fill writer subelements with content
+    write_op.text = 'Write'
+    write_source.text = 'reprojNode'
+    file.text = '${targetProduct}'
+    formatName.text = 'NetCDF-BEAM'
 
-
-
-
-    xml = open(xml_path, 'w')
+    xml = open(xml_path, 'wb')
     tree = ET.ElementTree(graph)
     tree.write(xml)
     xml.close()
