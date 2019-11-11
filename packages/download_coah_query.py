@@ -105,7 +105,7 @@ def query_dl_coah(params, outdir):
         os.remove('query-list.xml')
     except TypeError:
         print('No products found for this request. Exiting...')
-        os.remove('products-list.xml')
+        os.remove('query-list.xml')
         return
     total_results = coah_xml['total_results']
     print('{} products found'.format(total_results))
@@ -126,9 +126,9 @@ def query_dl_coah(params, outdir):
                   ' AND beginPosition:[' + params['start'] + \
                   ' TO ' + params['end'] + \
                   '] AND footprint:"Intersects(' + params['wkt'] + \
-                  ')"&rows=100&start=' + str(c) + '\''
+                  ')"&start=' + str(c) + '&rows=100&\''
             product_response = url_manager.request('GET', product_url.replace(' ', '+'), headers=headers)
-            xml_file = open('product-list.xml', 'wb')
+            xml_file = open('products-list.xml', 'wb')
             xml_file.write(product_response.data)
             xml_file.close()
             coah_xml = parse_coah_xml('products-list.xml')

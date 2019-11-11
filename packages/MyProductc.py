@@ -275,6 +275,7 @@ class MyProduct(object):
         for product in self.products:
             parameters = MyProduct.HashMap()
             parameters.put('validPixelExpression', self.params['validexpression'])
+            print(self.params['validexpression'])
             if self.params['sensor'].upper() == 'MSI':
                 # GET ANCILLARY
                 # cd to jupyter/sentinel_hindcast directory

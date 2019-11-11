@@ -17,8 +17,13 @@ import socket
 def eawag_hindcast(params_filename):
     user = getpass.getuser()
     hostname = socket.gethostname()
-    if hostname in ['daniels-macbook-pro.home', 'Daniels-MacBook-Pro.local', 'SUR-ODERMADA-MC.local']:
+    if hostname in ['daniels-macbook-pro.home', 'Daniels-MacBook-Pro.local']:
         os.chdir(os.path.join('/Users', user, 'Dropbox', 'Wrk Eawag', 'DIAS'))
+        cwd = os.getcwd()
+        wkt_dir = os.path.join(cwd, 'wkt')
+        params_path = os.path.join('/Users', user, 'PycharmProjects', 'sentinel_hindcast', 'parameters', params_filename)
+    elif hostname == 'SUR-ODERMADA-MC.local':
+        os.chdir(os.path.join('/Volumes', 'WD-EXTERNAL', 'DIAS'))
         cwd = os.getcwd()
         wkt_dir = os.path.join(cwd, 'wkt')
         params_path = os.path.join('/Users', user, 'PycharmProjects', 'sentinel_hindcast', 'parameters', params_filename)
@@ -70,7 +75,12 @@ def eawag_hindcast(params_filename):
         sys.exit()
         
     if xmlfs:
-        xmlfs.sort()
+        # S3 is sorted by date, independent of satellite A or B... cool! feature needed for S2, too...
+        if params['sensor'] == 'OLCI':
+            xmlfs.sort(key=lambda path: path.split('R___')[1])
+        else:
+            xmlfs.sort()
+
         # Create required folders
         dir_dict = {}
         # Check qmode    

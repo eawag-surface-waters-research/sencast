@@ -273,13 +273,8 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     ##### SRTM plot version ######
     ##############################
 
-    # Skip if SRTM requested for area outside 55 deg NS
     if basemap in ['srtm_hillshade', 'srtm_elevation']:
-        
-        if canvas_area[1][1] > 55 or canvas_area[0][1] < -55:
-            print('   no SRTM data outside 55 deg N/S, skipping job')
-            return
-        else:
+        if canvas_area[1][1] <= 60 and canvas_area[0][1] >= -60:
             if x_dist < 50 and y_dist < 50:
                 print('   larger image side is ' + str(round(max(x_dist, y_dist), 1)) + ' km, applying SRTM1')
                 source = srtm.SRTM1Source
@@ -287,28 +282,32 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
                 print('   larger image side is ' + str(round(max(x_dist, y_dist), 1)) + ' km, applying SRTM3')
                 source = srtm.SRTM3Source
 
-        #  Add shading if requested
-        if basemap == 'srtm_hillshade':
-            print('   preparing SRTM hillshade basemap')
-            srtm_raster = PostprocessedRasterSource(source(max_nx=8, max_ny=8), shade)
-            color_vals = [[0.8, 0.8, 0.8, 1], [1.0, 1.0, 1.0, 1]]
-            shade_grey = colors.LinearSegmentedColormap.from_list("ShadeGrey", color_vals)
-            base_cols = shade_grey
-        elif basemap == 'srtm_elevation':
-            print('   preparing SRTM elevation basemap')
-            srtm_raster = PostprocessedRasterSource(source(max_nx=6, max_ny=6), elevate)
-            color_vals = [[0.7, 0.7, 0.7, 1], [0.90, 0.90, 0.90, 1], [0.97, 0.97, 0.97, 1], [1.0, 1.0, 1.0, 1]]
-            elev_grey = colors.LinearSegmentedColormap.from_list("ElevGrey", color_vals)
-            base_cols = elev_grey
+    #  Add shading if requested
+            if basemap == 'srtm_hillshade':
+                print('   preparing SRTM hillshade basemap')
+                srtm_raster = PostprocessedRasterSource(source(max_nx=8, max_ny=8), shade)
+                color_vals = [[0.8, 0.8, 0.8, 1], [1.0, 1.0, 1.0, 1]]
+                shade_grey = colors.LinearSegmentedColormap.from_list("ShadeGrey", color_vals)
+                base_cols = shade_grey
+            elif basemap == 'srtm_elevation':
+                print('   preparing SRTM elevation basemap')
+                srtm_raster = PostprocessedRasterSource(source(max_nx=6, max_ny=6), elevate)
+                color_vals = [[0.7, 0.7, 0.7, 1], [0.90, 0.90, 0.90, 1], [0.97, 0.97, 0.97, 1], [1.0, 1.0, 1.0, 1]]
+                elev_grey = colors.LinearSegmentedColormap.from_list("ElevGrey", color_vals)
+                base_cols = elev_grey
 
-        # Plot the background
-        map.add_raster(srtm_raster, cmap=base_cols)
+            # Plot the background
+            map.add_raster(srtm_raster, cmap=base_cols)
+
+        else:
+            print('   no SRTM data outside 55 deg N/S, proceeding without basemap')
+            basemap = 'nobasemap'
 
     ##################################
     ##### non-SRTM plot version ######
     ##################################
 
-    elif basemap in ['quadtree_rgb', 'nobasemap']:
+    if basemap in ['quadtree_rgb', 'nobasemap']:
 
         if basemap == 'nobasemap':
             print('   proceeding without basemap')
@@ -399,7 +398,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     sub_product.closeIO()
 
 
-def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_layers=False, grid=True, max_val=0.14):
+def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_layers=False, grid=True, max_val=0.10):
 
 #     mpl.rc('font', family='Times New Roman')
 #     mpl.rc('text', usetex=True)

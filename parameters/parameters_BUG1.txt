@@ -1,5 +1,5 @@
-start='2019-01-01T00:00:00.000Z'
-end='2019-04-30T00:00:00.000Z'
+start='2019-06-19T00:00:00.000Z'
+end='2019-06-20T00:00:00.000Z'
 
 # Input data type
 # For example 'olci' or 'msi'
@@ -65,7 +65,7 @@ altnn='/Applications/snap/C2RCCv2_OLCI'
 c2rcc_bands='conc_chl, conc_tsm, iop_bwit'
 
 # Define the maximum value to display for each c2rcc_bands (0 for automatic estimate)
-c2rcc_maxbands='0,0,0'
+c2rcc_maxbands='20, 10, 5'
 
 ###########################   POLYMER OPTIONS   ###########################
 # Specify which Polymer bands you want to plot if qmode is '2'
