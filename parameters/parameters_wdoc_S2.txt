@@ -1,29 +1,27 @@
-start='2017-06-29T00:00:00.000Z'
-end='2017-09-30T00:00:00.000Z'
+start='2019-06-15T00:00:00.000Z'
+end='2019-07-16T00:00:00.000Z'
 
 # Input data type
 # For example 'olci' or 'msi'
-sensor='olci'
+sensor='msi'
 
-# OLCI EFR (full resolution) data is resampled if a value is specified
-# To download ERR (reduced resolution) data use '1000'
-resolution=''
+# Specify the desired output spatial resolution in m
+resolution='60'
 
 # Specify the geometry for the subset
 # Name of wkt file ('gva.wkt') available in perimeter folder, or string in format POLYGON(...)
-wkt='sui.wkt'
+wkt='gva.wkt'
 
 # Select processor combination (Ignored if qmode is '1' as everything is interactively selected)
 # - '0' (Idepix) # Idepix is always applied, either pcombo includes '0' or not
 # - '1' (C2RCC)
 # - '2' (Polymer)
-# - '3' (MPH)
-# example: '1, 2, 3' Will apply Idepix, C2RCC, Polymer and MPH
-pcombo='1'
+# example: '1, 2' Will apply Idepix, C2RCC and Polymer
+pcombo='1, 2'
 
 # Specify the names of quicklook rgb/false color bands from L1 products
-rgb_bands='Oa08_radiance, Oa06_radiance, Oa04_radiance'
-false_color_bands='Oa17_radiance, Oa06_radiance, Oa03_radiance'
+rgb_bands='B4, B3, B2'
+false_color_bands='B8, B4, B3'
 
 # Quicklook handling:
 # - '1' (display)
@@ -32,9 +30,8 @@ qmode='2'
 
 # Product handling (Ignored if pcombo = '0'):
 # - '1' (L2 in memory/temp only)
-# - '2' (save L2 to disk using snappy)
-# - '3' (save L2 to disk using gpt *CURRENTLY ONLY C2RCC!*)
-pmode='3'
+# - '2' (save L2 to disk)
+pmode='2'
 
 ###########################   DOWNLOAD OPTIONS   ###########################
 # Select which API to use for the data query
@@ -53,12 +50,12 @@ tile='EU-042_012'
 
 ###########################    C2RCC OPTIONS    ###########################
 # Specify a valid expression for the mask
-# OLCI example: '!quality_flags.invalid and quality_flags.fresh_inland_water and !pixel_classif_flags.IDEPIX_LAND and !pixel_classif_flags.IDEPIX_CLOUD'
-validexpression='!quality_flags.invalid and quality_flags.fresh_inland_water and !pixel_classif_flags.IDEPIX_LAND and !pixel_classif_flags.IDEPIX_COASTLINE and !pixel_classif_flags.IDEPIX_CLOUD and !pixel_classif_flags.IDEPIX_CLOUD_BUFFER and !pixel_classif_flags.IDEPIX_CLOUD_SHADOW'
+# MSI example: ...
+validexpression='!pixel_classif_flags.IDEPIX_LAND and !pixel_classif_flags.IDEPIX_CLOUD and !pixel_classif_flags.IDEPIX_INVALID'
 
-# Specify the path to an alternative Neural Network
-# OLCI example: '/Applications/snap/C2RCCv2_OLCI'
-altnn='/Applications/snap/C2RCCv2_OLCI'
+# Specify the path to an alternative Neural Network (used only for c2rcc)
+# MSI example: ''
+altnn=''
 
 # Specify which c2rcc bands you want to plot if qmode is '2'
 # Example: 'conc_chl, conc_tsm, iop_bwit'
@@ -69,16 +66,7 @@ c2rcc_maxbands='0,0,0'
 
 ###########################   POLYMER OPTIONS   ###########################
 # Specify which Polymer bands you want to plot if qmode is '2'
-# Example: 'logchl, bbs, Rw665'
-polymer_bands='logchl, Rw665'
-
+# Example: 'logchl, bbs'
+polymer_bands='logchl'
 # Define the maximum value to display for each polymer_bands (0 for automatic estimate)
-polymer_maxbands='0,0'
-
-###########################     MPH OPTIONS     ###########################
-# Specify which MPH bands you want to plot if qmode is '2'
-# Example: 'chl, floating_cyanobacteria, floating_vegetation'
-mph_bands='chl, immersed_cyanobacteria'
-
-# Define the maximum value to display for each mph_bands (0 for automatic estimate)
-mph_maxbands='50, 1'
+polymer_maxbands='0'

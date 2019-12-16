@@ -3,16 +3,20 @@
 
 import sys
 import subprocess
-from snappy import jpy, GPF, ProductIO, ProductUtils
-from datetime import datetime
-from packages.product_fun import get_UL_LR_pixels_ROI, get_UL_LR_geo_ROI
 import re
-import numpy as np
 import os
-from packages.ancillary import Ancillary_NASA
-from packages.auxil import gpt_xml
 import getpass
 import socket
+
+import numpy as np
+
+from snappy import jpy, GPF, ProductIO, ProductUtils
+from datetime import datetime
+from packages.product_fun import get_corner_pixels_ROI, get_UL_LR_geo_ROI
+from packages.ancillary import Ancillary_NASA
+from packages.auxil import gpt_xml
+from shutil import rmtree
+
 
 user = getpass.getuser()
 hostname = socket.gethostname()
@@ -147,8 +151,8 @@ class MyProduct(object):
         for product in self.products:
             h = product.getSceneRasterHeight()
             w = product.getSceneRasterWidth()
-            print('Subsetting {}...'.format(product.getName()))
-            print('Size before subset: {}, {}'.format(h, w))
+            print('    Subsetting {}...'.format(product.getName()))
+            print('    Size before subset: {}, {}'.format(h, w))
             # Initialisation
             parameters = MyProduct.HashMap()
             if regions is None:
@@ -161,21 +165,21 @@ class MyProduct(object):
             try:
                 result = GPF.createProduct('Subset', parameters, product)
             except RuntimeError:
-                print('Failed. ROI probably outside the frame, or bad wkt.')
+                print('    Failed. ROI probably outside the frame, or bad wkt.')
                 result = product
             else:
                 # Append subset if not empty
                 if 'Subset' in result.getName():
                     h = result.getSceneRasterHeight()
                     w = result.getSceneRasterWidth()
-                    print('Size after subset: {}, {}'.format(h, w))
+                    print('    Size after subset: {}, {}'.format(h, w))
                     subsets.append(result)
-                    print('Done.\n')
+                    print('    Subsetting completed\n')
                 else:
-                     print('ROI outside the frame.')
+                     print('    ROI outside the frame')
             c += 1
         if not subsets:
-            print('\nNo products passed the subsetting... exiting\n')
+            print('\n    No products passed the subsetting... exiting\n')
             self.products = []
             return
             
@@ -239,7 +243,7 @@ class MyProduct(object):
     def get_regions(self):
         regions = []
         for product in self.products:
-            UL, LR = get_UL_LR_pixels_ROI(product, self.params)
+            UL, UR, LR, LL = get_corner_pixels_ROI(product, self.params)
             w = LR[1] - UL[1]
             h = LR[0] - UL[0]
             regions.append(str(UL[1])+','+str(UL[0])+','+str(w)+','+str(h))
@@ -380,8 +384,12 @@ class MyProduct(object):
             self.update()
     
     
-    def polymer(self, myproductmask=None, params=None):
+    def polymer(self, masterProduct=None, params=None):
         """ Apply POLYMER atmospheric correction."""
+        # Polymer needs original input files and will fail with L1P generated with SNAP
+
+        # ToDo: merge L2 Polymer output with the L1P product
+
         results = []
         # To use POLYMER, we need to work from its home directory
         cwd = os.getcwd()
@@ -410,28 +418,38 @@ class MyProduct(object):
             temppath = [os.path.join(temppath[0], p) for p in os.listdir(temppath[0]) if \
                         product.getName().split('.')[0] in p]
             ppath = temppath[0]
-            UL, LR = get_UL_LR_pixels_ROI(product, self.params)
+            UL, UR, LR, LL = get_corner_pixels_ROI(product, self.params)
             w = LR[1] - UL[1]
             h = LR[0] - UL[0]
 
-            print(UL, LR, w, h)
-
-            # make sure S-2 subsets comprise of an integer number of pixels at low res for upsampling
+            # make sure S-2 subsets comprise of an integer number of 60 m pixels
             if self.params['sensor'].upper() == 'MSI':
-                while not  (w / (60 / res)).is_integer():
+                while not  (w / 6).is_integer():
                     LR[1] += 1
                     w = LR[1] - UL[1]
-                while not (h / (60 / res)).is_integer():
+                while not (h / 6).is_integer():
                     LR[0] += 1
                     h = LR[0] - UL[0]
+                sline = UL[0]
+                scol =  UL[1]
+                eline = UL[0] + h
+                ecol =  UL[1] + w
+            # or subset a somewhat larger are for distorted S-3 images
+            else:
+                sline = min(UL[0], UR[0])
+                eline = max(LL[0], LR[0])
+                scol = min(UL[1], UR[1])
+                ecol = max(LL[1], LR[1])
 
             savdir = POLYMER_INSTALL_DIR
             if not os.path.isdir(savdir):
                 os.mkdir(savdir)
             pfname = os.path.join(savdir, 'temp.nc')
+
             # If file already exist remove it 
             if os.path.isfile(pfname):
                 os.remove(pfname)
+
             # Run AC and write product to disk
             print('Applying Polymer...')
             if self.params['sensor'].upper() == 'MSI':
@@ -440,54 +458,46 @@ class MyProduct(object):
                             if 'L1C' in tp]
                 assert len(temppath) == 1
                 ppath = temppath[0]
-                run_atm_corr(Level1_MSI(ppath, sline=UL[0], scol=UL[1], eline=UL[0]+h,ecol=UL[1]+w, landmask=GSW(),
+                run_atm_corr(Level1_MSI(ppath, sline=sline, scol=scol, eline=eline,ecol=ecol, landmask=GSW(),
                                         resolution=res), Level2(filename=pfname, fmt='netcdf4', overwrite=True, datasets=default_datasets+['sza']))
             else:
                 if not os.path.isdir('data_landmask_gsw'):
                     os.mkdir('data_landmask_gsw')
-                run_atm_corr(Level1(ppath, sline=UL[0], scol=UL[1],
-                                    eline=UL[0]+h,ecol=UL[1]+w, landmask=GSW(agg=8)),
-                Level2(filename=pfname, fmt='netcdf4', overwrite=True, datasets=default_datasets+['sza']))
-            print('Polymer applied')
-            ULs.append(UL)
-            LRs.append(LR)
+                run_atm_corr(Level1(ppath, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=GSW(agg=8)),
+                    Level2(filename=pfname, fmt='netcdf4', overwrite=True, datasets=default_datasets+['sza']))
 
-            # There seems to be a bug for reprojecting polymer outputs with SNAP. It 'heals' when creating a tif first..
-            temppoly = ProductIO.readProduct(pfname)
-            tfname = pfname[:-2] + 'tif'
-            ProductIO.writeProduct(temppoly, tfname, 'GeoTIFF')
-            resultpoly = ProductIO.readProduct(tfname)
+            resultpoly = ProductIO.readProduct(pfname)
+            print('Polymer applied')
 
             pname = product.getName().split('.')[0]
-            if myproductmask is not None:
-                newname = 'L2POLY_L1P_'+pname
+            if masterProduct is not None:
+                newname = 'L2POLY_reproj_L1P_' + pname
+                coll_parameters = MyProduct.HashMap()
+                sourceProducts = MyProduct.HashMap()
+                sourceProducts.put('master', masterProduct)
+                sourceProducts.put('slave', resultpoly)
+                coll_parameters.put('renameMasterComponents', False)
+                coll_parameters.put('renameSlaveComponents', False)
+                mergedProduct = GPF.createProduct('Collocate', coll_parameters, sourceProducts)
+
+                subs_parameters = MyProduct.HashMap()
+                subs_parameters.put('bandNames', 'OAA,OZA,SAA,SZA,Rw400,Rw412,Rw443,Rw490,Rw510,' +
+                                                 'Rw560,Rw620,Rw665,Rw681,Rw709,Rw754,Rw779,Rw865,Rw1020,' +
+                                                 'Rnir,Rgli,logchl,bbs,bitmask,quality_flags,pixel_classif_flags')
+                subs_parameters.put('copyMetadata', True)
+                bandsetProduct = GPF.createProduct('Subset', subs_parameters, mergedProduct)
             else:
-                newname = 'L2POLY_'+pname
-            resultpoly.setName(newname)
-            results.append(resultpoly)
-            os.remove(pfname)
-            os.remove(tfname)
-            
+                newname = 'L2POLY_' + pname
+
+            bandsetProduct.setName(newname)
+            results.append(bandsetProduct)
+
         self.products = results
         self.state.append('polymer')
+
         self.update()
-        if myproductmask is not None:
-            self.copyMasks(myproductmask)
-        if self.params['sensor'].upper() == 'OLCI':
 
-            # Reproject (UTM)
-            results = []
-            for product in self.products:
-                parameters = MyProduct.HashMap()
-                parameters.put('crs', 'EPSG:32662')
-                reprProduct = GPF.createProduct("Reproject", parameters, resultpoly)
-                results.append(reprProduct)
-
-            self.products = results
-            self.update()
-        
         os.chdir(cwd)
-        return ULs, LRs
     
     
     def write(self, writedir):
@@ -500,8 +510,8 @@ class MyProduct(object):
             product.setProductWriter(writer)
             product.writeHeader(fname)
             ProductIO.writeProduct(product, fname, 'NetCDF-BEAM') # -CF writer does not add wavelength attributes
-     
-    
+
+
     def close(self):
         for product in self.products:
             product.closeIO()

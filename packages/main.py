@@ -23,7 +23,7 @@ def eawag_hindcast(params_filename):
         wkt_dir = os.path.join(cwd, 'wkt')
         params_path = os.path.join('/Users', user, 'PycharmProjects', 'sentinel_hindcast', 'parameters', params_filename)
     elif hostname == 'SUR-ODERMADA-MC.local':
-        os.chdir(os.path.join('/Volumes', 'WD-EXTERNAL', 'DIAS'))
+        os.chdir(os.path.join('/Volumes', 'DIAS-drive', 'DIAS'))
         cwd = os.getcwd()
         wkt_dir = os.path.join(cwd, 'wkt')
         params_path = os.path.join('/Users', user, 'PycharmProjects', 'sentinel_hindcast', 'parameters', params_filename)
@@ -171,7 +171,6 @@ def eawag_hindcast(params_filename):
             c = 1
             for xmlf in xmlfs:
                 products = []
-                #print(os.system('java -version 2>&1 | awk -F[\\\"_] \'NR==1{print $2}\''))
                 products.append(ProductIO.readProduct(xmlf))
                 myproduct = MyProduct(products, params, L1_dir_sensor)
                 print('\033[1mProcessing product ({}/{}): {}...\033[0m\n'.format(c, nbtot, products[0].getName()))

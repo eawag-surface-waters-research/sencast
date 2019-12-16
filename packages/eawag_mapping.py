@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__author__ = 'Daniel&Vincent'
+__author__ = 'Daniel'
 
 import os
 import sys
@@ -400,8 +400,6 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
 
 def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_layers=False, grid=True, max_val=0.10):
 
-#     mpl.rc('font', family='Times New Roman')
-#     mpl.rc('text', usetex=True)
     linewidth = 0.8
     gridlabel_size = 6
 
@@ -425,6 +423,10 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     
     red_band = perim_product.getBand(rgb_layers[0])
     red_dt = red_band.getDataType()
+
+    # ToDo: somehow rad2refl writes a float band but names it int16, therefore reading the data_type fails
+    red_dt = 30
+
     if red_dt <= 12:
         data_type = np.int32
         d_type = 'int32'
@@ -469,7 +471,6 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     red_band = sub_product.getBand(rgb_layers[0]+'_ql')
     green_band = sub_product.getBand(rgb_layers[1]+'_ql')
     blue_band = sub_product.getBand(rgb_layers[2]+'_ql')
-    # print('   Image dimensions are ' + str(width) + ' by ' + str(height) + ' pixels')
 
     # read rgb bands
     red_arr = np.zeros(width * height,  dtype=data_type)
@@ -509,37 +510,26 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     
     # Initialize plot
     fig = plt.figure()
-    map = fig.add_subplot(111, projection=ccrs.PlateCarree())# ccrs.PlateCarree()) ccrs.Mercator())
+    map = fig.add_subplot(111, projection=ccrs.PlateCarree())  #ccrs.Mercator())
 
     # adjust image brightness scaling (empirical...)
-    red_min = 0   #np.percentile(red_arr, 10)
-    red_max = max_val #np.percentile(red_arr, 95)
-    red_inc = np.where(red_arr < red_min)
-    red_arr[red_inc] = red_min
-    red_dec = np.where(red_arr > red_max)
-    red_arr[red_dec] = red_max
-    red_factor = 250 / red_max
-    green_min = 0   #np.percentile(green_arr, 10)
-    green_max = max_val #np.percentile(green_arr, 95)
-    green_inc = np.where(green_arr < green_min)
-    green_arr[green_inc] = green_min
-    green_dec = np.where(green_arr > green_max)
-    green_arr[green_dec] = green_max
-    green_factor = 250 / green_max
-    blue_min = 0   #np.percentile(blue_arr, 10)
-    blue_max = max_val #np.percentile(blue_arr, 95)
-    blue_inc = np.where(blue_arr < blue_min)
-    blue_arr[blue_inc] = blue_min
-    blue_dec = np.where(blue_arr > blue_max)
-    blue_arr[blue_dec] = blue_max
-    blue_factor = 250 / blue_max
+    rgb_array = np.zeros((height, width, 3), 'float32') #uint8
+    rgb_array[..., 0] = red_arr
+    rgb_array[..., 1] = green_arr
+    rgb_array[..., 2] = blue_arr
 
-    rgb_array = np.zeros((height, width ,3), 'uint8')
-    rgb_array[..., 0] = (red_arr - red_min) * red_factor
-    rgb_array[..., 1] = (green_arr - green_min) * green_factor
-    rgb_array[..., 2] = (blue_arr - blue_min) * blue_factor
+    scale_factor = 250 / max_val
 
-    img = Image.fromarray(rgb_array)
+    for i_rgb in range(rgb_array.shape[-1]):
+        zero_ind = np.where(rgb_array[:,:,i_rgb] == 0)
+        nan_ind = np.where(rgb_array[:,:,i_rgb] == -1)
+        exc_ind = np.where(rgb_array[:,:,i_rgb] > max_val)
+        rgb_array[:,:,i_rgb] = rgb_array[:,:,i_rgb] * scale_factor
+        rgb_array[:,:,i_rgb][zero_ind] = 250
+        rgb_array[:,:,i_rgb][nan_ind] = 250
+        rgb_array[:,:,i_rgb][exc_ind]  = 250
+
+    img = Image.fromarray(rgb_array.astype(np.uint8))
 
     if perimeter_file:
         perimeter = WKTReader().read(FileReader(perimeter_file))
@@ -553,12 +543,8 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
         canvas_area = product_area
     map.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
 
-    # Plot RGB
     rgb_image = map.imshow(img, extent=[product_area[0][0], product_area[1][0], product_area[0][1], product_area[1][1]],
                       transform=ccrs.PlateCarree(), origin='upper', interpolation='nearest', zorder=1)
-
-    # map.set_xlim(canvas_area[0][0], canvas_area[1][0])
-    # map.set_ylim(canvas_area[1][0], canvas_area[1][1])
 
     # Add gridlines
     if grid:
@@ -584,7 +570,7 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     
     # Save plot
     print('Saving image {}'.format(os.path.basename(output_file)))
-    plt.savefig(output_file, bbox_inches='tight', dpi=300)
+    plt.savefig(output_file, box_inches='tight', dpi=300)
     plt.close()
     sub_product.closeIO()
 

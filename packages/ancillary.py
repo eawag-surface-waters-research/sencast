@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, division, absolute_import
+from snappy import ProductIO
+from shutil import rmtree
 from os.path import isdir
 from datetime import datetime, timedelta
 from pyhdf.SD import SD
@@ -354,4 +356,3 @@ class Ancillary_NASA(object):
             raise Exception('Could not find any valid ozone file for {}'.format(date))
 
         return f1
-

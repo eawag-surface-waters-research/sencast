@@ -9,7 +9,7 @@ import re
 FileReader = jpy.get_type('java.io.FileReader')
 
 
-def get_UL_LR_pixels_ROI(product, params):
+def get_corner_pixels_ROI(product, params):
         # Read the wkt parameter from params
         wkt_file = params['wkt file']
         perimeter = WKTReader().read(FileReader(wkt_file))
@@ -70,7 +70,7 @@ def get_UL_LR_pixels_ROI(product, params):
             LR = [LL[0], w]
         if not ul_bool and not ur_bool and lr_bool and ll_bool:
             UL = [0, LL[1]]
-        return UL, LR
+        return UL, UR, LR, LL
 
 
 def get_UL_LR_geo_ROI(product, params):

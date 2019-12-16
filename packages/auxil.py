@@ -38,7 +38,8 @@ def gpt_xml(operator, product_parameters, xml_path):
     alternativeNNPath = ET.SubElement(parameters, 'alternativeNNPath')
     outputAsRrs = ET.SubElement(parameters, 'outputAsRrs')
     deriveRwFromPathAndTransmittance = ET.SubElement(parameters, 'deriveRwFromPathAndTransmittance')
-    useEcmwfAuxData = ET.SubElement(parameters, 'useEcmwfAuxData')
+    if not 'msi' in operator:
+        useEcmwfAuxData = ET.SubElement(parameters, 'useEcmwfAuxData')
     outputRtoa = ET.SubElement(parameters, 'outputRtoa')
     outputRtosaGc = ET.SubElement(parameters, 'outputRtosaGc')
     outputRtosaGcAann = ET.SubElement(parameters, 'outputRtosaGcAann')
@@ -92,7 +93,8 @@ def gpt_xml(operator, product_parameters, xml_path):
     alternativeNNPath.text = product_parameters.get('alternativeNNPath')
     outputAsRrs.text = 'false'
     deriveRwFromPathAndTransmittance.text = 'false'
-    useEcmwfAuxData.text = 'true'
+    if not 'msi' in operator:
+        useEcmwfAuxData.text = 'true'
     outputRtoa.text = 'true'
     outputRtosaGc.text = 'false'
     outputRtosaGcAann.text = 'false'

@@ -6,9 +6,9 @@ import ipywidgets as widgets
 from IPython.display import display
 from packages.MyProductc import MyProduct
 from packages.display_fun import display_band_with_flag, display_rgb_with_flag
-from snappy import jpy, GPF
+from snappy import jpy, GPF, ProductUtils
+import copy
 import re
-from datetime import datetime
 import os
 from packages.eawag_mapping import plot_pic, plot_map
 
@@ -145,119 +145,102 @@ def background_processing(myproduct, params, dir_dict, pmode):
     HashMap = jpy.get_type('java.util.HashMap')
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
     oriproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
+    deriproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
 
-    #------------------ S3 Quicklooks ------------------#
-    # If the sensor is OLCI, the RGB and false color quicklooks must be done on the original, reprojected products
-    if params['sensor'].upper() == 'OLCI':
-        # Change radiance band names 
-        rgb_bands = [bn.replace('radiance', 'reflectance') for bn in params['True color']]
-        fc_bands = [bn.replace('radiance', 'reflectance') for bn in params['False color']]
-        # Initialise a quicklooks product
-        qlproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path) 
-        products = []
-        # Radiance to Reflectance 
-        for product in qlproduct.products:
-            # Convert Radiance to reflectance
-            parameters = HashMap()
-            parameters.put("sensor", "OLCI")
-            parameters.put("conversionMode", "RAD_TO_REFL")
-            parameters.put("copyNonSpectralBands", "false")
-            reflProduct = GPF.createProduct("Rad2Refl", parameters, product)
-            products.append(reflProduct)
-        qlproduct.products = products
-        qlproduct.update() 
-        
-        # Reproject (UTM)
-        products = []
-        for product in qlproduct.products:
-            parameters = HashMap()
-            parameters.put('crs', 'EPSG:32662')
-            reprProduct = GPF.createProduct("Reproject", parameters, product)
-            products.append(reprProduct)
-        qlproduct.products = products
-        qlproduct.update()
-        # Subset
-        qlproduct.subset()
-        if not qlproduct.products:
-            return
-        # Display
-        for product in qlproduct.products:
-            pname = product.getName()
-            tcname = os.path.join(dir_dict['qlrgb dir'], pname.split('.')[0] + '_rgb.png')
-            fcname = os.path.join(dir_dict['qlfc dir'],pname.split('.')[0] + '_falsecolor.png')
-            plot_pic(product, tcname, rgb_layers=rgb_bands, grid=True, max_val=0.25, 
-                     perimeter_file=params['wkt file'])
-            plot_pic(product, fcname, rgb_layers=fc_bands, grid=True, max_val=0.5,
-                     perimeter_file=params['wkt file'])
-        qlproduct.close()
-        print('Done.\n')
-
-    #------------------ Start processing ------------------#        
-    #Resample product
+    #------------------ Resampling ------------------#
     res = params['resolution']
     if res not in ['', '1000']:
-        oriproduct.resample(res=int(res))
-    regions = qlproduct.get_regions()
+        deriproduct.resample(res=int(res))
+
+    #---------------- Reprojecting ------------------#
+    products = []
+    for product in oriproduct.products:
+        parameters = HashMap()
+        parameters.put('crs', 'EPSG:32662')
+        reprProduct = GPF.createProduct('Reproject', parameters, product)
+        products.append(reprProduct)
+    deriproduct.products = products
+    deriproduct.update()
+
+    #------------------ Subsetting ------------------#
+    regions = deriproduct.get_regions()
     UL = [0, 0]
     UL[1] = regions[0].split(',')[0]
     UL[0] = regions[0].split(',')[1]
     w = int(regions[0].split(',')[2])
     h = int(regions[0].split(',')[3])
-
-    #------------------ Subset ------------------#
     if params['sensor'].upper() == 'MSI':
-        while not (w / (60 / res)).is_integer():
+        while not (w / (60 / int(res))).is_integer():
             w += 1
-        while not (h / (60 / res)).is_integer():
+        while not (h / (60 / int(res))).is_integer():
             h += 1
         regions = [UL[1] + ',' + UL[0] + ',' + str(w) + ',' + str(h)]
-        print('Starting subsetting for region x,y,w,h=' + regions[0])
-        oriproduct.subset(regions=regions)
-    else:
-        oriproduct.subset()
-    if not oriproduct.products:
+
+    print('Subsetting region x,y,w,h=' + regions[0])
+    deriproduct.subset(regions=regions)
+
+    if not deriproduct.products:
         return
+
+    #------------------- Quicklooks -------------------#
+    # The RGB and false color quicklooks must be done on the original, reprojected products
+    print('Creating quicklooks')
+    reflproduct = copy.copy(deriproduct)
+
+    # Convert Radiance to reflectance
+    if params['sensor'].upper() == 'OLCI':
+        rgb_bands = [bn.replace('radiance', 'reflectance') for bn in params['True color']]
+        fc_bands = [bn.replace('radiance', 'reflectance') for bn in params['False color']]
+        products = []
+        for product in reflproduct.products:
+            parameters = HashMap()
+            parameters.put('sensor', 'OLCI')
+            parameters.put('conversionMode', 'RAD_TO_REFL')
+            parameters.put('copyNonSpectralBands', 'false')
+            rad2refl = GPF.createProduct('Rad2Refl', parameters, product)
+            products.append(rad2refl)
+        reflproduct.products = products
+        reflproduct.update()
+
+    elif params['sensor'].upper() == 'MSI':
+        rgb_bands = params['True color']
+        fc_bands = params['False color']
+
+    # Write pngs
+    for product in reflproduct.products:
+        pname = product.getName()
+        tcname = os.path.join(dir_dict['qlrgb dir'], pname.split('.')[0] + '_rgb.png')
+        fcname = os.path.join(dir_dict['qlfc dir'],pname.split('.')[0] + '_falsecolor.png')
+        plot_pic(product, tcname, rgb_layers=rgb_bands, grid=True, max_val=0.16,
+                 perimeter_file=params['wkt file'])
+        plot_pic(product, fcname, rgb_layers=fc_bands, grid=True, max_val=0.3,
+                 perimeter_file=params['wkt file'])
+    print('Quicklooks completed.')
+    print('')
+
     #------------------ IdePix -----------------------#
     print('Starting Idepix')
-    #---------------- Save Idepix --------------------#
     if pmode in ['2', '3']:
-        if not os.path.isfile(os.path.join(dir_dict['L1P dir'], oriproduct.products[0].getName() + '.nc')):
-            oriproduct.idepix()
+        if not os.path.isfile(os.path.join(dir_dict['L1P dir'], deriproduct.products[0].getName() + '.nc')):
+            deriproduct.idepix()
             wktfn = os.path.basename(params['wkt file']).split('.')[0]
             print('Writing L1P_{} product to disk...'.format(wktfn))
-            oriproduct.write(dir_dict['L1P dir'])
+            deriproduct.write(dir_dict['L1P dir'])
             print('Done.')
         else:
-            print('L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+            print('L1P_' + deriproduct.products[0].getName() + '.nc' + ' already exists.')
     else:
-        oriproduct.idepix()
-
-    #------------------ S2 Quicklooks ------------------#
-    if params['sensor'].upper() == 'MSI':
-        print('Quicklooks for S2 MSI\n')
-        for product in oriproduct.products:
-    #         flag1 = flags[c]['pixel_classif_flags.IDEPIX_CLOUD']
-    #         c += 1
-            pname = product.getName()
-            ingestday = get_ingestion_date(pname)
-            ingestday = datetime.strptime(ingestday, '%Y%m%d').strftime('%Y-%m-%d')
-            tcname = os.path.join(dir_dict['qlrgb dir'], pname.split('.')[0] + '_rgb.png')
-            fcname = os.path.join(dir_dict['qlfc dir'], pname.split('.')[0] + '_falsecolor.png')
-            plot_pic(product, tcname, rgb_layers=params['True color'], grid=True, max_val=0.14, 
-                    perimeter_file=params['wkt file'])
-            plot_pic(product, fcname, rgb_layers=params['False color'], grid=True, max_val=0.3, 
-                    perimeter_file=params['wkt file'])
-        print('Done.')
+        deriproduct.idepix()
 
     #------------------ C2RCC ------------------------#
     if '1' in params['pcombo']:
-        if os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_' + oriproduct.products[0].getName().split('.')[0] + '.nc')):
-            print('\nSkipping C2RCC: L2C2R_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
-        elif os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_reproj_' + oriproduct.products[0].getName().split('.')[0] + '.nc')):
-            print('\nSkipping C2RCC: L2C2R_reproj_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+        if os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_' + deriproduct.products[0].getName().split('.')[0] + '.nc')):
+            print('\nSkipping C2RCC: L2C2R_' + deriproduct.products[0].getName() + '.nc' + ' already exists.')
+        elif os.path.isfile(os.path.join(dir_dict['c2rcc dir'], 'L2C2R_reproj_' + deriproduct.products[0].getName().split('.')[0] + '.nc')):
+            print('\nSkipping C2RCC: L2C2R_reproj_' + deriproduct.products[0].getName() + '.nc' + ' already exists.')
         else:
             print('\nProcessing with the C2RCC algorithm...')
-            c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
+            c2rccproduct = MyProduct(deriproduct.products, deriproduct.params, deriproduct.path)
             if pmode in ['1', '2']:
                 c2rccproduct.c2rcc(pmode)
                 if pmode == 2:
@@ -281,7 +264,6 @@ def background_processing(myproduct, params, dir_dict, pmode):
                     else:
                         param_range = [0, params_range[c]]
                     c += 1
-                    # plot
                     bname = os.path.join(dir_dict[bn], pname.split('.')[0] + '_' + bn + '.png')
                     plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True,
                              perimeter_file=params['wkt file'], param_range=param_range)
@@ -290,12 +272,12 @@ def background_processing(myproduct, params, dir_dict, pmode):
 
     #------------------ MPH ------------------------#
     if '3' in params['pcombo'] and params['sensor'].upper() == 'OLCI':
-        if os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_' + oriproduct.products[0].getName().split('.')[0] + '.nc'))\
-                or os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_reproj_' + oriproduct.products[0].getName().split('.')[0] + '.nc')):
-            print('Skipping MPH: L2MPH_L1P_' + oriproduct.products[0].getName() + '.nc' + ' already exists.')
+        if os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_' + deriproduct.products[0].getName().split('.')[0] + '.nc'))\
+                or os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_reproj_' + deriproduct.products[0].getName().split('.')[0] + '.nc')):
+            print('Skipping MPH: L2MPH_L1P_' + deriproduct.products[0].getName() + '.nc' + ' already exists.')
         else:
             print('\nMPH...')
-            mphproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
+            mphproduct = MyProduct(deriproduct.products, deriproduct.params, deriproduct.path)
             mphproduct.mph()
             for product in mphproduct.products:
                 pname = product.getName()
@@ -328,7 +310,7 @@ def background_processing(myproduct, params, dir_dict, pmode):
             try:
                 print('\nPolymer...')
                 polyproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
-                polyproduct.polymer(myproductmask=oriproduct, params=params)
+                polyproduct.polymer(masterProduct=deriproduct.products[0], params=params)
                 print('Done.')
                 # Create bands image of polymer
                 for product in polyproduct.products:
@@ -355,10 +337,12 @@ def background_processing(myproduct, params, dir_dict, pmode):
                     polyproduct.write(dir_dict['polymer dir'])
                     print('Writing completed.')
                 polyproduct.close()
+
             except ValueError:
                 print('\nPolymer processing failed because of ValueError!\n')
             except OSError:
                 print('\nPolymer processing failed because of "mv" command!\n')
 
     oriproduct.close()
-    
+    deriproduct.close()
+

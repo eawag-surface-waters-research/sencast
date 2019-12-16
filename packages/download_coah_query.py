@@ -157,7 +157,6 @@ def query_dl_coah(params, outdir):
         os.chdir(outdir)
         num_lines = sum(1 for x in open(url_list))
         print(str(num_lines) + ' missing in input_data folder, starting download')
-
         with open(url_list) as f:
             with concurrent.futures.ThreadPoolExecutor(max_workers=2) as ex:
                 for i_line, line in enumerate(f):
