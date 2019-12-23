@@ -6,7 +6,7 @@ import ipywidgets as widgets
 from IPython.display import display
 from packages.MyProductc import MyProduct
 from packages.display_fun import display_band_with_flag, display_rgb_with_flag
-from snappy import jpy, GPF, ProductUtils
+from snappy import jpy, GPF
 import copy
 import re
 import os

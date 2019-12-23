@@ -15,7 +15,6 @@ from datetime import datetime
 from packages.product_fun import get_corner_pixels_ROI, get_UL_LR_geo_ROI
 from packages.ancillary import Ancillary_NASA
 from packages.auxil import gpt_xml
-from shutil import rmtree
 
 
 user = getpass.getuser()
@@ -419,6 +418,7 @@ class MyProduct(object):
                         product.getName().split('.')[0] in p]
             ppath = temppath[0]
             UL, UR, LR, LL = get_corner_pixels_ROI(product, self.params)
+
             w = LR[1] - UL[1]
             h = LR[0] - UL[0]
 
