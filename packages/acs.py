@@ -1,146 +1,12 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-import ipywidgets as widgets
-
-from IPython.display import display
-from packages.MyProductc import MyProduct
-from packages.display_fun import display_band_with_flag, display_rgb_with_flag
-from snappy import jpy, GPF
 import copy
-import re
 import os
+
+from packages.MyProductc import MyProduct
+from snappy import jpy, GPF
+
 from packages.eawag_mapping import plot_pic, plot_map
 
 
-def get_ingestion_date(productname):
-    temp = re.findall('_(\d{8})', productname)
-    return temp[0]
-
-
-def interactive_processing(myproduct, params, dir_dict):
-    b1 = widgets.Button(description='Polymer')
-    b2 = widgets.Button(description='C2RCC')
-    uibutton = widgets.HBox([b1, b2])
-    res = int(params['resolution'])
-    
-    oriproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
-    # First Resample product if sensor is MSI
-    if params['sensor'].upper() == 'MSI':
-        oriproduct.resample(res=res)
-    
-    # First subset the original product
-    regions = oriproduct.get_regions()
-    print('starting subsets...')
-    oriproduct.subset(regions=regions)
-    print('starting Idepix...')
-    # Apply idepix
-    oriproduct.idepix()
-    print('Done. Displaying...')
-    # Display rgb and false color with flags
-    widget_display_myproduct_3bands_3flags(oriproduct)
-    print('\nYou can now play with the dropdown options')
-    print('\nSelect an atmospheric correction processor:')
-    display(uibutton)
-    
-    def button1_clicked(b):
-        # Start Polymer processing
-        print('\n\033[1mPolymer\033[0m processing (wait until the end of the processing before clicking another button)...')
-        c = 0
-        dates = []
-        for dt, i in oriproduct.product_dict.items():
-            dates.append(dt)
-        dates = [dt for dt, d in myproduct.product_dict.items() if dt in dates]
-        products = [p for p in myproduct.products if any(dt in p.getName() for dt in dates)]
-        print('polymer input products')
-        print(products)
-        polyproduct = MyProduct(products, myproduct.params, myproduct.path)
-        # Apply Polymer and get the ROI
-        polyproduct.polymer(myproductmask=oriproduct, params=params)
-        if params['pmode'] == '2':
-            print('Writing L2POLY product to disk...')
-            polyproduct.write(dir_dict['polymer dir'])
-            print('Writing completed.')
-        print('Displaying products...')
-        # Display product
-        widget_display_myproduct_band(polyproduct)
-        print('Processing complete.')
-        print('\nYou can now play with the dropdown options, or start a new atmospheric correction using the button above.')
-    def button2_clicked(b):
-        print('\n\033[1mC2RCC\033[0m processing (wait until the end of the processing before clicking another button)...')
-        c2rccproduct = MyProduct(oriproduct.products, oriproduct.params, oriproduct.path)
-        c2rccproduct.c2rcc()
-        if myproduct.params['pmode'] == '2':
-            print('Saving products... ')
-            polyproduct.write(dir_dict['c2rcc'])
-        print('Displaying products...')
-        widget_display_myproduct_band(c2rccproduct)
-        print('Processing complete.')
-        if params['pmode'] == '2':
-            print('Writing L2C2R product to disk...')
-            c2rccproduct.write(dir_dict['c2rcc dir'])
-            print('Writing completed.')
-        print('\nYou can now play with the dropdown options, or start a new atmospheric correction using the button above.')
-    b1.on_click(button1_clicked)
-    b2.on_click(button2_clicked)
-    
-
-def widget_display_myproduct_band(myproduct):
-    flags = myproduct.get_flags('')
-    band_names = myproduct.get_band_names('')
-    band_names = [bn for bn in band_names if (('latitude' not in bn) and ('longitude' not in bn) and \
-                 ('bitmask' not in bn) and ('quality_flags' not in bn) and \
-                 ('pixel_classif_flags' not in bn) and ('c2rcc_flags' not in bn) and \
-                 ('rtoa' not in bn))]
-    flag_names = [f for f, val in flags[0].items()]
-    w = widgets.Dropdown(options=myproduct.date_str, description='Scene date-time:', 
-                         style={'description_width': 'initial'}, disabled=False)
-    we = widgets.FloatLogSlider(value=0.00001, base=10, min=-5, max=2, step=0.1, 
-                                readout_format='.4f')
-    wb = widgets.Dropdown(options=band_names, description='Display band:', 
-                          style={'description_width': 'initial'}, disabled=False)
-    ui = widgets.HBox([w, wb])
-    uii = widgets.HBox([widgets.Label('colorbar max stretch value (except 0 which is the 99th percentile):'), we])
-    def f(x1, x2, x3):
-        print('Displaying {} Band {}...'.format(x1, x2))
-        products = myproduct.products
-        band = x2
-        if 'log' in x2:
-            log = True
-        else:
-            log = False
-        display_band_with_flag(products[myproduct.product_dict[x1]], band, vmax=x3, log=log)
-    out = widgets.interactive_output(f, {'x1': w, 'x2': wb, 'x3': we})
-    display(ui, uii, out)
-    
-
-def widget_display_myproduct_3bands_3flags(myproduct):
-    flags = myproduct.get_flags('')
-    flag_names = [f for f, val in flags[0].items()]
-    w = widgets.Dropdown(options=myproduct.date_str, description='Scene date-time:', 
-                         style={'description_width': 'initial'}, disabled=False)
-    wfc = widgets.Dropdown(options=['True color', 'False color'], description='Display:', 
-                         style={'description_width': 'initial'}, disabled=False)
-    wf1 = widgets.Dropdown(options=flag_names, description='Flag #1:', 
-                          style={'description_width': 'initial'}, disabled=False)
-    wf2 = widgets.Dropdown(options=flag_names, description='Flag #2:', 
-                          style={'description_width': 'initial'}, disabled=False)
-    wf3 = widgets.Dropdown(options=flag_names, description='Flag #3:', 
-                          style={'description_width': 'initial'}, disabled=False)
-    ui = widgets.HBox([w, wfc])
-    uii = widgets.HBox([wf1, wf2])
-    uiii = widgets.HBox([wf3])
-    def f(x1, x2, x3, x4, x5):
-        print('Displaying {}...'.format(x1))
-        products = myproduct.products
-        flag1 = flags[myproduct.product_dict[x1]][x3]
-        flag2 = flags[myproduct.product_dict[x1]][x4]
-        flag3 = flags[myproduct.product_dict[x1]][x5]
-        display_rgb_with_flag(products[myproduct.product_dict[x1]], myproduct.params[x2], flag1=flag1, flag2=flag2, flag3=flag3)
-    out = widgets.interactive_output(f, {'x1': w, 'x2': wfc, 'x3': wf1, 'x4': wf2, 'x5': wf3})
-    display(ui, uii, uiii, out)
-    
-    
 def background_processing(myproduct, params, dir_dict, pmode):
     HashMap = jpy.get_type('java.util.HashMap')
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
@@ -150,17 +16,25 @@ def background_processing(myproduct, params, dir_dict, pmode):
     #------------------ Resampling ------------------#
     res = params['resolution']
     if res not in ['', '1000']:
-        deriproduct.resample(res=int(res))
+        products = []
+        for product in deriproduct.products:
+            product.resample(res=int(res))
+            products.append(product)
+        deriproduct.products = products
+        deriproduct.update()
 
     #---------------- Reprojecting ------------------#
-    products = []
-    for product in oriproduct.products:
-        parameters = HashMap()
-        parameters.put('crs', 'EPSG:32662')
-        reprProduct = GPF.createProduct('Reproject', parameters, product)
-        products.append(reprProduct)
-    deriproduct.products = products
-    deriproduct.update()
+    # Somehow the subset of S2 data fails to process with Idepix when doing the reprojection
+    # see history of 14 Jan 2020, 19:30
+    if params['sensor'].upper() == 'OLCI':
+        products = []
+        for product in oriproduct.products:
+            parameters = HashMap()
+            parameters.put('crs', 'EPSG:32662')
+            reprProduct = GPF.createProduct('Reproject', parameters, product)
+            products.append(reprProduct)
+        deriproduct.products = products
+        deriproduct.update()
 
     #------------------ Subsetting ------------------#
     regions = deriproduct.get_regions()
@@ -175,7 +49,6 @@ def background_processing(myproduct, params, dir_dict, pmode):
         while not (h / (60 / int(res))).is_integer():
             h += 1
         regions = [UL[1] + ',' + UL[0] + ',' + str(w) + ',' + str(h)]
-
     print('Subsetting region x,y,w,h=' + regions[0])
     deriproduct.subset(regions=regions)
 
@@ -222,7 +95,7 @@ def background_processing(myproduct, params, dir_dict, pmode):
     print('Starting Idepix')
     if pmode in ['2', '3']:
         if not os.path.isfile(os.path.join(dir_dict['L1P dir'], deriproduct.products[0].getName() + '.nc')):
-            deriproduct.idepix()
+            deriproduct.idepix(pmode)
             wktfn = os.path.basename(params['wkt file']).split('.')[0]
             print('Writing L1P_{} product to disk...'.format(wktfn))
             deriproduct.write(dir_dict['L1P dir'])
@@ -230,7 +103,7 @@ def background_processing(myproduct, params, dir_dict, pmode):
         else:
             print('L1P_' + deriproduct.products[0].getName() + '.nc' + ' already exists.')
     else:
-        deriproduct.idepix()
+        deriproduct.idepix(pmode)
 
     #------------------ C2RCC ------------------------#
     if '1' in params['pcombo']:

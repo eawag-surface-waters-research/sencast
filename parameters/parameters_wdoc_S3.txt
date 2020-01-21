@@ -1,5 +1,5 @@
-start='2019-07-02T00:00:00.000Z'
-end='2019-11-30T00:00:00.000Z'
+start='2019-03-21T00:00:00.000Z'
+end='2019-03-22T00:00:00.000Z'
 
 # Input data type
 # For example 'olci' or 'msi'
@@ -13,22 +13,17 @@ resolution=''
 # Name of wkt file ('gva.wkt') available in perimeter folder, or string in format POLYGON(...)
 wkt='sui.wkt'
 
-# Select processor combination (Ignored if qmode is '1' as everything is interactively selected)
-# - '0' (Idepix) # Idepix is always applied, either pcombo includes '0' or not
+# Select processor combination
+# - '0' (Idepix only)
 # - '1' (C2RCC)
 # - '2' (Polymer)
 # - '3' (MPH)
 # example: '1, 2, 3' Will apply Idepix, C2RCC, Polymer and MPH
-pcombo='2'
+pcombo='1'
 
 # Specify the names of quicklook rgb/false color bands from L1 products
 rgb_bands='Oa08_radiance, Oa06_radiance, Oa04_radiance'
 false_color_bands='Oa17_radiance, Oa06_radiance, Oa03_radiance'
-
-# Quicklook handling:
-# - '1' (display)
-# - '2' (save to disk)
-qmode='2'
 
 # Product handling (Ignored if pcombo = '0'):
 # - '1' (L2 in memory/temp only)

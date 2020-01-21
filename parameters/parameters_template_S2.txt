@@ -12,8 +12,8 @@ resolution='60'
 # Name of wkt file ('gva.wkt') available in perimeter folder, or string in format POLYGON(...)
 wkt='gva.wkt'
 
-# Select processor combination (Ignored if qmode is '1' as everything is interactively selected)
-# - '0' (Idepix) # Idepix is always applied, either pcombo includes '0' or not
+# Select processor combination
+# - '0' (Idepix only)
 # - '1' (C2RCC)
 # - '2' (Polymer)
 # example: '1, 2' Will apply Idepix, C2RCC and Polymer
@@ -23,14 +23,10 @@ pcombo='2'
 rgb_bands='B4, B3, B2'
 false_color_bands='B8, B4, B3'
 
-# Quicklook handling:
-# - '1' (display)
-# - '2' (save to disk)
-qmode='2'
-
 # Product handling (Ignored if pcombo = '0'):
 # - '1' (L2 in memory/temp only)
 # - '2' (save L2 to disk)
+# - '3' (save L2 to disk using gpt *CURRENTLY ONLY C2RCC!*)
 pmode='2'
 
 ###########################   DOWNLOAD OPTIONS   ###########################

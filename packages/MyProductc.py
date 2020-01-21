@@ -5,8 +5,6 @@ import sys
 import subprocess
 import re
 import os
-import getpass
-import socket
 
 import numpy as np
 
@@ -16,24 +14,8 @@ from packages.product_fun import get_corner_pixels_ROI, get_UL_LR_geo_ROI
 from packages.ancillary import Ancillary_NASA
 from packages.auxil import gpt_xml
 
-
-user = getpass.getuser()
-hostname = socket.gethostname()
-
-print()
-print('Script running on ' + hostname)
-print()
-
-if hostname.lower() in ['daniels-macbook-pro.home', 'daniels-macbook-pro.local']:
-    POLYMER_INSTALL_DIR = '/miniconda3/lib/python3.6/site-packages/polymer-v4.9'
-elif hostname == 'SUR-ODERMADA-MC.local':
-        POLYMER_INSTALL_DIR = '/Users/' + user + '/anaconda3/envs/sentinel-hindcast/lib/python3.6/site-packages/polymer-v4.11'
-elif hostname == 'Luca-Bruderlins-MacBook-Pro.local':
-        POLYMER_INSTALL_DIR = '/Users/' + user + '/PycharmProjects/sentinel_hindcast_git/polymer-v4.11'
-else:
-    POLYMER_INSTALL_DIR = '/Users/' + user + '/PycharmProjects/sentinel_hindcast_git/polymer-v4.11'
-
-sys.path.append(POLYMER_INSTALL_DIR)
+from packages import path_config
+sys.path.append(path_config.polymer_path)
 
 from polymer.main import run_atm_corr
 from polymer.main import Level1, Level2
@@ -249,18 +231,34 @@ class MyProduct(object):
         return regions
     
     
-    def idepix(self):
-        """ This function is used to remove products with cloud % > 8 % """
-        # Initialisation
+    def idepix(self, pmode):
         results_idpx = []
         parameters = MyProduct.HashMap()
+        if self.params['sensorname'] == 'MSI':
+            parameters.put('computeMountainShadow', True)
+            parameters.put('computeCloudShadow', True)
+            parameters.put('computeCloudBuffer', True)
+            parameters.put('computeCloudBufferForCloudAmbiguous', True)
+            parameters.put('cloudBufferWidth', 2)
+
         for product in self.products:
-            h = product.getSceneRasterHeight()
-            w = product.getSceneRasterWidth()
-            resultIdpx = GPF.createProduct('Idepix.Sentinel'+\
-                                           str(self.params['satnumber'])+\
-                                           self.params['sensorname'], 
-                                           parameters, product)
+            if pmode in ['1', '2']:
+                resultIdpx = GPF.createProduct('Idepix.Sentinel'+\
+                                               str(self.params['satnumber'])+\
+                                               self.params['sensorname'],
+                                               parameters, product)
+            if pmode == '3':
+                if self.params['sensor'].lower() == 'olci':
+                    op_str = 'Idepix.Sentinel3.Olci'
+                elif self.params['sensor'].lower() == 'msi':
+                    op_str = 'Idepix.Sentinel2'
+
+
+                print()
+
+
+
+
             ProductUtils.copyOverlayMasks(resultIdpx, product)
             ProductUtils.copyFlagBands(resultIdpx, product, True)
             pname = product.getName()
@@ -283,7 +281,7 @@ class MyProduct(object):
                 # GET ANCILLARY
                 # cd to jupyter/sentinel_hindcast directory
                 cwd = os.getcwd()
-                os.chdir(POLYMER_INSTALL_DIR)
+                os.chdir(path_config.polymer_path)
                 ancillary = Ancillary_NASA()
                 os.chdir(cwd)
                 lat, lon = get_UL_LR_geo_ROI(product, self.params)
@@ -331,7 +329,6 @@ class MyProduct(object):
                     results.append(resultc2r)
             if pmode == '3':
                 op_str = 'c2rcc.' + self.params['sensor'].lower()
-                gpt_path = '/Applications/snap/bin/gpt'
                 xml_path = './temp.xml'
                 pname = product.getName() + '.nc'
                 product_path = read_dir + '/' + pname
@@ -340,18 +337,12 @@ class MyProduct(object):
                 else:
                     newname = 'L2C2R_'+pname
                 target_path = read_dir + '/../' + 'L2C2R/' + newname
-
                 gpt_xml(operator=op_str, product_parameters=parameters, xml_path=xml_path)
-
-                if not os.path.isfile(gpt_path):
-                    sys.exit('Ooops, gpt is not in Applications/snap/bin!')
-                else:
-                    subprocess.call([gpt_path, xml_path, '-SsourceProduct=' + product_path, '-PtargetProduct=' + target_path])
-                    os.remove('./temp.xml')
-
-                    reprProduct = ProductIO.readProduct(target_path)
-                    reprProduct.setName(newname)
-                    results.append(reprProduct)
+                subprocess.call([path_config.gpt_path, xml_path, '-SsourceProduct=' + product_path, '-PtargetProduct=' + target_path])
+                os.remove('./temp.xml')
+                reprProduct = ProductIO.readProduct(target_path)
+                reprProduct.setName(newname)
+                results.append(reprProduct)
 
         self.products = results
         self.state.append('c2rcc')
@@ -392,7 +383,7 @@ class MyProduct(object):
         results = []
         # To use POLYMER, we need to work from its home directory
         cwd = os.getcwd()
-        os.chdir(POLYMER_INSTALL_DIR)
+        os.chdir(path_config.polymer_path)
         # Get intersection between wkt and products coordinates
         ULs = []
         LRs = []
@@ -441,7 +432,7 @@ class MyProduct(object):
                 scol = min(UL[1], UR[1])
                 ecol = max(LL[1], LR[1])
 
-            savdir = POLYMER_INSTALL_DIR
+            savdir = path_config.polymer_path
             if not os.path.isdir(savdir):
                 os.mkdir(savdir)
             pfname = os.path.join(savdir, 'temp.nc')

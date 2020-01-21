@@ -15,6 +15,10 @@ def get_corner_pixels_ROI(product, params):
         perimeter = WKTReader().read(FileReader(wkt_file))
         lats = []
         lons = []
+
+        h = product.getSceneRasterHeight()
+        w = product.getSceneRasterWidth()
+
         for coordinate in perimeter.getCoordinates():
             lats.append(coordinate.y)
             lons.append(coordinate.x)
@@ -39,32 +43,29 @@ def get_corner_pixels_ROI(product, params):
         LR = np.array([np.ceil(lr_pos.getY()).astype(int), np.ceil(lr_pos.getX()).astype(int)])
         LL = np.array([np.ceil(ll_pos.getY()).astype(int), np.ceil(ll_pos.getX()).astype(int)])
 
-        h = product.getSceneRasterHeight()
-        w = product.getSceneRasterWidth()
-
         # missing with perimeter partly too north
         if not ul_bool and not ur_bool:
             # and too west (only LR covered)
             if not ll_bool:
-                UL = [0, 0]
-                UR = [0, LR[1]]
-                LL = [LR[0], 0]
+                UL = [1, 1]
+                UR = [1, LR[1]]
+                LL = [LR[0], 1]
             # and too east (only LL covered)
             elif not lr_bool:
-                UL = [0, LL[1]]
-                UR = [0, w]
+                UL = [1, LL[1]]
+                UR = [1, w]
                 LR = [LL[0], w]
             else:
-                UL = [0, LL[1]]
-                UR = [0, LR[1]]
+                UL = [1, LL[1]]
+                UR = [1, LR[1]]
 
         # missing with perimeter partly too south
         elif not ll_bool and not lr_bool:
             # and too west (only UR covered)
             if not ul_bool:
-                UL = [UR[0], 0]
+                UL = [UR[0], 1]
                 LR = [h, UR[1]]
-                LL = [h, 0]
+                LL = [h, 1]
             # and too east (only UL covered)
             elif not ur_bool:
                 LL = [h, UL[1]]
@@ -81,10 +82,18 @@ def get_corner_pixels_ROI(product, params):
 
         # missing with perimeter partly too west
         elif not ul_bool and not ll_bool:
-                UL = [UR[0], 0]
-                LL = [LR[0], 0]
+                UL = [UR[0], 1]
+                LL = [LR[0], 1]
 
-        # single missing corners are not necessary, right?
+        # single missing corners
+        elif not ul_bool:
+            UL = [UR[0], 1]
+        elif not ur_bool:
+            UR = [UL[0], w]
+        elif not ll_bool:
+            LL = [LR[0], 1]
+        elif not lr_bool:
+            LR = [LL[0], w]
 
         return UL, UR, LR, LL
 

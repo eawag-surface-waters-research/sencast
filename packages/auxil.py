@@ -242,7 +242,6 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     pcombo = [re.findall("'([^']*)'", x) for x in params_list if 'pcombo=' in x]
     pcombo = [e.strip() for e in pcombo[0][0].split(',')]
     pmode = [re.findall("'([^']*)'", x) for x in params_list if 'pmode=' in x.lower()][0][0]
-    qmode = [re.findall("'([^']*)'", x) for x in params_list if 'qmode=' in x.lower()][0][0]
     API = [re.findall("'([^']*)'", x) for x in params_list if 'api=' in x.lower()][0][0]
     username = [re.findall("'([^']*)'", x) for x in params_list if 'username=' in x.lower()][0][0]
     password = [re.findall("'([^']*)'", x) for x in params_list if 'password=' in x.lower()][0][0]
@@ -264,7 +263,7 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     params = {'name': name, 'sensor': sensor.upper(), 'region': region.upper(), 'tile':
               tile, 'start': start, 'end': end, 'satnumber': satnumber, 'resolution': resolution,
               'sensorname': sensorname, 'wkt': wkt, 'validexpression': validexpression,
-              'True color': rgb, 'False color': falsecolor, 'qmode': qmode, 
+              'True color': rgb, 'False color': falsecolor,
               'pmode': pmode, 'API': API, 'username': username, 'password': password,
               'c2rcc bands': c2rcc_bands, 'polymer bands': polymer_bands, 'pcombo': pcombo,
               'wkt file': wkt_file, 'mph bands': mph_bands, 'c2rcc max': c2rcc_max, 'c2rcc altnn': c2rcc_altnn,
