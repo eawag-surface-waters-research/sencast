@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
 import re
 import os
+import sys
 
 import numpy as np
 
@@ -12,6 +12,15 @@ from datetime import datetime
 from packages.product_fun import get_corner_pixels_ROI
 
 from packages import path_config
+
+sys.path.append(path_config.polymer_path)
+from polymer.main import run_atm_corr
+from polymer.main import Level1, Level2
+from polymer.level1_msi import Level1_MSI
+from polymer.gsw import GSW
+from polymer.level2 import default_datasets
+
+
 
 
 class MyProduct(object):

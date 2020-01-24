@@ -19,7 +19,7 @@ wkt='sui.wkt'
 # - '2' (Polymer)
 # - '3' (MPH)
 # example: '1, 2, 3' Will apply Idepix, C2RCC, Polymer and MPH
-pcombo='1'
+pcombo='2'
 
 # Specify the names of quicklook rgb/false color bands from L1 products
 rgb_bands='Oa08_radiance, Oa06_radiance, Oa04_radiance'

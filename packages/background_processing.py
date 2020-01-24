@@ -47,62 +47,68 @@ def background_processing(myproduct, params, dir_dict):
     # ---------------- Reprojecting ------------------#
     # This creates always the same raster for a given set of wkt, sensor and resolution
     for product in oriproduct.products:
-        l1name = product.getName()
-        l1rname = 'reproj_' + l1name + '.nc'
-        l1pname = 'L1P_' + l1rname
-        l1mname = 'merged_' + l1pname
-        l1_path = dir_dict['L1 dir'] + '/' + l1name.split('.')[0] + '/' + l1name
-        l1r_path = './' + l1rname
-        l1p_path = dir_dict['L1P dir'] + '/' + l1pname
-        l1m_path = './' + l1mname
-        op_str = 'Reproject'
-        xml_path = './reproj_temp.xml'
-        parameters = MyProduct.HashMap()
-        parameters.put('referencePixelX', '0')
-        parameters.put('referencePixelY', '0')
-        parameters.put('easting', str(min(lons)))
-        parameters.put('northing', str(max(lats)))
-        parameters.put('pixelSizeX', str(x_pixsize))
-        parameters.put('pixelSizeY', str(y_pixsize))
-        parameters.put('width', str(x_pix))
-        parameters.put('height', str(y_pix))
-        gpt_xml(operator=op_str, product_parameters=parameters, xml_path=xml_path)
-        print()
-        print('Reprojecting L1 product...')
-        subprocess.call([path_config.gpt_path, xml_path, '-SsourceProduct=' + l1_path, '-PtargetProduct=' + l1r_path])
-        os.remove('./reproj_temp.xml')
+        if os.path.isfile(l1r_path):
+            print('\nSkipping Reproj: ' + l1rname + ' already exists.')
+        else:
+            l1name = product.getName()
+            l1rname = 'reproj_' + l1name + '.nc'
+            l1pname = 'L1P_' + l1rname
+            l1mname = 'merged_' + l1pname
+            l1_path = dir_dict['L1 dir'] + '/' + l1name.split('.')[0] + '/' + l1name
+            l1r_path = './' + l1rname
+            l1p_path = dir_dict['L1P dir'] + '/' + l1pname
+            l1m_path = './' + l1mname
+            op_str = 'Reproject'
+            xml_path = './reproj_temp.xml'
+            parameters = MyProduct.HashMap()
+            parameters.put('referencePixelX', '0')
+            parameters.put('referencePixelY', '0')
+            parameters.put('easting', str(min(lons)))
+            parameters.put('northing', str(max(lats)))
+            parameters.put('pixelSizeX', str(x_pixsize))
+            parameters.put('pixelSizeY', str(y_pixsize))
+            parameters.put('width', str(x_pix))
+            parameters.put('height', str(y_pix))
+            gpt_xml(operator=op_str, product_parameters=parameters, xml_path=xml_path)
+            print()
+            print('Reprojecting L1 product...')
+            subprocess.call([path_config.gpt_path, xml_path, '-SsourceProduct=' + l1_path, '-PtargetProduct=' + l1r_path])
+            os.remove('./reproj_temp.xml')
 
     # ---------------------- Idepix ----------------------#
-        if params['sensor'].lower() == 'olci':
-            op_str = 'Idepix.Sentinel3.Olci'
-        elif params['sensor'].lower() == 'msi':
-            op_str = 'Idepix.Sentinel2'
-        xml_path = './idepix_temp.xml'
-        parameters = MyProduct.HashMap()
-        gpt_xml(operator=op_str, product_parameters=parameters, xml_path=xml_path)
-        wktfn = os.path.basename(params['wkt file']).split('.')[0]
-        print()
-        print('Writing L1P_{} product to disk...'.format(wktfn))
-        subprocess.call([path_config.gpt_path, xml_path, '-SsourceProduct=' + l1r_path, '-PtargetProduct=' + l1p_path])
-        os.remove('./idepix_temp.xml')
+        if os.path.isfile(l1p_path):
+            print('\nSkipping Idepix: ' + l1pname + ' already exists.')
+        else:
+            if params['sensor'].lower() == 'olci':
+                op_str = 'Idepix.Sentinel3.Olci'
+            elif params['sensor'].lower() == 'msi':
+                op_str = 'Idepix.Sentinel2'
+            xml_path = './idepix_temp.xml'
+            parameters = MyProduct.HashMap()
+            gpt_xml(operator=op_str, product_parameters=parameters, xml_path=xml_path)
+            wktfn = os.path.basename(params['wkt file']).split('.')[0]
+            print()
+            print('Writing L1P_{} product to disk...'.format(wktfn))
+            subprocess.call([path_config.gpt_path, xml_path, '-SsourceProduct=' + l1r_path, '-PtargetProduct=' + l1p_path])
+            os.remove('./idepix_temp.xml')
 
     # --------------------- Quicklooks --------------------#
-        print()
-        print('Saving quicklooks to disk...')
-        if params['sensor'].upper() == 'MSI':
-            rgb_bands = params['True color']
-            fc_bands = params['False color']
-        if params['sensor'].upper() == 'OLCI':
-            rgb_bands = [bn.replace('radiance', 'reflectance') for bn in params['True color']]
-            fc_bands = [bn.replace('radiance', 'reflectance') for bn in params['False color']]
-        l1p_product = ProductIO.readProduct(l1p_path)
-        pname = l1p_product.getName()
-        tcname = os.path.join(dir_dict['qlrgb dir'], pname.split('.')[0] + '_rgb.png')
-        fcname = os.path.join(dir_dict['qlfc dir'],pname.split('.')[0] + '_falsecolor.png')
-        plot_pic(l1p_product, tcname, rgb_layers=rgb_bands, grid=True, max_val=0.16,
-                 perimeter_file=params['wkt file'])
-        plot_pic(l1p_product, fcname, rgb_layers=fc_bands, grid=True, max_val=0.3,
-                 perimeter_file=params['wkt file'])
+            print()
+            print('Saving quicklooks to disk...')
+            if params['sensor'].upper() == 'MSI':
+                rgb_bands = params['True color']
+                fc_bands = params['False color']
+            if params['sensor'].upper() == 'OLCI':
+                rgb_bands = [bn.replace('radiance', 'reflectance') for bn in params['True color']]
+                fc_bands = [bn.replace('radiance', 'reflectance') for bn in params['False color']]
+            l1p_product = ProductIO.readProduct(l1p_path)
+            pname = l1p_product.getName()
+            tcname = os.path.join(dir_dict['qlrgb dir'], pname.split('.')[0] + '_rgb.png')
+            fcname = os.path.join(dir_dict['qlfc dir'],pname.split('.')[0] + '_falsecolor.png')
+            plot_pic(l1p_product, tcname, rgb_layers=rgb_bands, grid=True, max_val=0.16,
+                     perimeter_file=params['wkt file'])
+            plot_pic(l1p_product, fcname, rgb_layers=fc_bands, grid=True, max_val=0.3,
+                     perimeter_file=params['wkt file'])
 
     # -------------------- C2RCC --------------------------#
     # Idepix and Reproj output must be merged first
@@ -172,13 +178,15 @@ def background_processing(myproduct, params, dir_dict):
                              perimeter_file=params['wkt file'], param_range=param_range)
                     print('Plot for band {} finished.\n'.format(bn))
 
-        os.remove(l1r_path)
-        os.remove(l1m_path)
+        if os.path.isfile(l1r_path):
+            os.remove(l1r_path)
+        if os.path.isfile(l1m_path):
+            os.remove(l1m_path)
 
         # ------------------ Polymer ------------------#
         if '2' in params['pcombo']:
-            polyname = 'L2POLY_' + l1pname
-            polytemp_path = './L2POLY' + l1name
+            polyname = 'L2POLY_' + l1pname.split('.')[0]
+            polytemp_path = './L2POLY' + l1name + '.nc'
             if not os.path.isdir('data_landmask_gsw'):
                 os.mkdir('data_landmask_gsw')
             if os.path.isfile(os.path.join(dir_dict['polymer dir'], polyname)):
@@ -188,8 +196,6 @@ def background_processing(myproduct, params, dir_dict):
                 cwd = os.getcwd()
                 os.chdir(path_config.polymer_path)
                 UL, UR, LR, LL = get_corner_pixels_ROI(product, params)
-                w = LR[1] - UL[1]
-                h = LR[0] - UL[0]
                 sline = min(UL[0], UR[0])
                 eline = max(LL[0], LR[0])
                 scol = min(UL[1], UR[1])
