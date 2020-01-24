@@ -403,25 +403,17 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     linewidth = 0.8
     gridlabel_size = 6
 
-    # print('Processing image ' + product.getName())
     all_bns = product.getBandNames()
     for rgbls in rgb_layers:
         if rgbls not in all_bns:
             print('{} not in product bands. Edit the parameter file.\nExiting.'.format(rgbls))
             sys.exit()
 
-    # subset perimeter
-    perimeter = WKTReader().read(FileReader(perimeter_file))
-    op = SubsetOp()
-    op.setSourceProduct(product)
-    op.setGeoRegion(perimeter)
-    perim_product = op.getTargetProduct()
-
     # Create a new product With RGB bands only
-    width = perim_product.getSceneRasterWidth()
-    height = perim_product.getSceneRasterHeight()
+    width = product.getSceneRasterWidth()
+    height = product.getSceneRasterHeight()
     
-    red_band = perim_product.getBand(rgb_layers[0])
+    red_band = product.getBand(rgb_layers[0])
     red_dt = red_band.getDataType()
 
     # ToDo: somehow rad2refl writes a float band but names it int16, therefore reading the data_type fails
@@ -442,35 +434,9 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     else:
         raise ValueError('Cannot handle band of data_sh type \'' + str(red_dt) + '\'')
 
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-    BandDescriptor = jpy.get_type('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
-    
-    targetBand1 = BandDescriptor()
-    targetBand1.name = rgb_layers[0]+'_ql'
-    targetBand1.type = d_type
-    targetBand1.expression = rgb_layers[0]
-    targetBand2 = BandDescriptor()
-    targetBand2.name = rgb_layers[1]+'_ql'
-    targetBand2.type = d_type
-    targetBand2.expression = rgb_layers[1]
-    targetBand3 = BandDescriptor()
-    targetBand3.name = rgb_layers[2]+'_ql'
-    targetBand3.type = d_type
-    targetBand3.expression = rgb_layers[2]
-    targetBands = jpy.array('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor', 3)
-    targetBands[0] = targetBand1
-    targetBands[1] = targetBand2
-    targetBands[2] = targetBand3
-
-    parameters = HashMap()
-    parameters.put('targetBands', targetBands)
-
-    sub_product = GPF.createProduct('BandMaths', parameters, perim_product)
-    ProductUtils.copyGeoCoding(product, sub_product)
-
-    red_band = sub_product.getBand(rgb_layers[0]+'_ql')
-    green_band = sub_product.getBand(rgb_layers[1]+'_ql')
-    blue_band = sub_product.getBand(rgb_layers[2]+'_ql')
+    red_band = product.getBand(rgb_layers[0])
+    green_band = product.getBand(rgb_layers[1])
+    blue_band = product.getBand(rgb_layers[2])
 
     # read rgb bands
     red_arr = np.zeros(width * height,  dtype=data_type)
@@ -484,7 +450,7 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     blue_arr = blue_arr.reshape(height, width)
     
     # read lat and lon information
-    geocoding = sub_product.getSceneGeoCoding()
+    geocoding = product.getSceneGeoCoding()
     lowlef = geocoding.getGeoPos(snappy.PixelPos(0, height - 1), None)
     upprig = geocoding.getGeoPos(snappy.PixelPos(width - 1, 0), None)
 
@@ -572,7 +538,6 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     print('Saving image {}'.format(os.path.basename(output_file)))
     plt.savefig(output_file, box_inches='tight', dpi=300)
     plt.close()
-    sub_product.closeIO()
 
 
 def elevate(located_elevations):

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import subprocess
 import re
 import os
 
@@ -10,22 +9,13 @@ import numpy as np
 
 from snappy import jpy, GPF, ProductIO, ProductUtils
 from datetime import datetime
-from packages.product_fun import get_corner_pixels_ROI, get_UL_LR_geo_ROI
-from packages.ancillary import Ancillary_NASA
-from packages.auxil import gpt_xml
+from packages.product_fun import get_corner_pixels_ROI
 
 from packages import path_config
-sys.path.append(path_config.polymer_path)
-
-from polymer.main import run_atm_corr
-from polymer.main import Level1, Level2
-from polymer.level1_msi import Level1_MSI
-from polymer.gsw import GSW
-from polymer.level2 import default_datasets
 
 
 class MyProduct(object):
-    """This class is used to process a snappy Product. It contains a list of snappy Product which should all be of the same 
+    """This class is used to process a snappy Product. It contains a list of product that should all be the same
     kind (OLCI or MSI)."""
     
     HashMap = jpy.get_type('java.util.HashMap')
@@ -37,12 +27,12 @@ class MyProduct(object):
         self.date_str = []
         self.products = productslist
         self.path = productspath
-        self.product_dict = {} # If you have a date, gives you the idx for the class lists
+        self.product_dict = {}  # If you have a date, gives you the idx for the class lists
         self.params = params
         self.band_names = []
         self.band_names_str = ''
         self.state = []
-        self.valid_pixels = [] # percentage of valid pixels
+        self.valid_pixels = []  # percentage of valid pixels
         self.masks = []
         self.update()
         
@@ -229,124 +219,6 @@ class MyProduct(object):
             h = LR[0] - UL[0]
             regions.append(str(UL[1])+','+str(UL[0])+','+str(w)+','+str(h))
         return regions
-    
-    
-    def idepix(self, pmode):
-        results_idpx = []
-        parameters = MyProduct.HashMap()
-        if self.params['sensorname'] == 'MSI':
-            parameters.put('computeMountainShadow', True)
-            parameters.put('computeCloudShadow', True)
-            parameters.put('computeCloudBuffer', True)
-            parameters.put('computeCloudBufferForCloudAmbiguous', True)
-            parameters.put('cloudBufferWidth', 2)
-
-        for product in self.products:
-            if pmode in ['1', '2']:
-                resultIdpx = GPF.createProduct('Idepix.Sentinel'+\
-                                               str(self.params['satnumber'])+\
-                                               self.params['sensorname'],
-                                               parameters, product)
-            if pmode == '3':
-                if self.params['sensor'].lower() == 'olci':
-                    op_str = 'Idepix.Sentinel3.Olci'
-                elif self.params['sensor'].lower() == 'msi':
-                    op_str = 'Idepix.Sentinel2'
-
-
-                print()
-
-
-
-
-            ProductUtils.copyOverlayMasks(resultIdpx, product)
-            ProductUtils.copyFlagBands(resultIdpx, product, True)
-            pname = product.getName()
-            product.setName('L1P_'+pname)
-            results_idpx.append(product)
-        
-        self.products = results_idpx
-        self.state.append('Idepix')
-        self.update()
-        
-        
-    def c2rcc(self, pmode, read_dir='', write_dir=''):
-        results = []
-        c = 0
-        for product in self.products:
-            parameters = MyProduct.HashMap()
-            parameters.put('validPixelExpression', self.params['validexpression'])
-            print(self.params['validexpression'])
-            if self.params['sensor'].upper() == 'MSI':
-                # GET ANCILLARY
-                # cd to jupyter/sentinel_hindcast directory
-                cwd = os.getcwd()
-                os.chdir(path_config.polymer_path)
-                ancillary = Ancillary_NASA()
-                os.chdir(cwd)
-                lat, lon = get_UL_LR_geo_ROI(product, self.params)
-                lat = np.nanmean(lat)
-                lon = np.nanmean(lon)
-                coords = lat, lon
-                try:
-                    ozone = ancillary.get('ozone', self.date[c])
-                    ozone = np.round(ozone[coords])
-                except:
-                    ozone = 300.
-                    pass
-                try:
-                    surfpress = ancillary.get('surf_press', self.date[c])
-                    surfpress = np.round(surfpress[coords])
-                except:
-                    surfpress = 1000.
-                parameters.put('ozone', ozone)
-                parameters.put('press', surfpress)
-                parameters.put('salinity', 0.05)
-                print('Default salinity is 0.05 PSU for freshwater')
-            else:
-                parameters.put('useEcmwfAuxData', True)
-            c += 1
-            if self.params['c2rcc altnn'] != '':
-                print('Using alternative NN specified in param file...')
-                parameters.put('alternativeNNPath', self.params['c2rcc altnn'])
-            else:
-                print('Using default NN...')
-            if pmode in ['1', '2']:
-                resultc2r = GPF.createProduct('c2rcc.'+self.params['sensor'].lower(), parameters, product)
-                pname = product.getName().split('.')[0]
-                if self.params['sensor'].upper() == 'OLCI':
-                    print('Reprojecting C2RCC output...')
-                    # Reprojection (UTM)
-                    parameters = MyProduct.HashMap()
-                    parameters.put('crs', 'EPSG:32662')
-                    reprProduct = GPF.createProduct("Reproject", parameters, resultc2r)
-                    newname = 'L2C2R_reproj_'+pname
-                    reprProduct.setName(newname)
-                    results.append(reprProduct)
-                else:
-                    newname = 'L2C2R_'+pname
-                    resultc2r.setName(newname)
-                    results.append(resultc2r)
-            if pmode == '3':
-                op_str = 'c2rcc.' + self.params['sensor'].lower()
-                xml_path = './temp.xml'
-                pname = product.getName() + '.nc'
-                product_path = read_dir + '/' + pname
-                if self.params['sensor'].upper() == 'OLCI':
-                    newname = 'L2C2R_reproj_' + pname
-                else:
-                    newname = 'L2C2R_'+pname
-                target_path = read_dir + '/../' + 'L2C2R/' + newname
-                gpt_xml(operator=op_str, product_parameters=parameters, xml_path=xml_path)
-                subprocess.call([path_config.gpt_path, xml_path, '-SsourceProduct=' + product_path, '-PtargetProduct=' + target_path])
-                os.remove('./temp.xml')
-                reprProduct = ProductIO.readProduct(target_path)
-                reprProduct.setName(newname)
-                results.append(reprProduct)
-
-        self.products = results
-        self.state.append('c2rcc')
-        self.update()
 
 
     def mph(self):

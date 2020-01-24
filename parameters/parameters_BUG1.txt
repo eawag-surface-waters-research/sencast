@@ -25,12 +25,6 @@ pcombo='1'
 rgb_bands='Oa08_radiance, Oa06_radiance, Oa04_radiance'
 false_color_bands='Oa17_radiance, Oa06_radiance, Oa03_radiance'
 
-# Product handling (Ignored if pcombo = '0'):
-# - '1' (L2 in memory/temp only)
-# - '2' (save L2 to disk using snappy)
-# - '3' (save L2 to disk using gpt *CURRENTLY ONLY C2RCC!*)
-pmode='3'
-
 ###########################   DOWNLOAD OPTIONS   ###########################
 # Select which API to use for the data query
 # - COAH (Copernicus Open Access HUB; MSI and OLCI available; MENTION DL LIMITATIONS...)

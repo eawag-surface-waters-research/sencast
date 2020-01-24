@@ -23,11 +23,6 @@ pcombo='0'
 rgb_bands='B4, B3, B2'
 false_color_bands='B8, B4, B3'
 
-# Product handling (Ignored if pcombo = '0'):
-# - '1' (L2 in memory/temp only)
-# - '2' (save L2 to disk)
-pmode='2'
-
 ###########################   DOWNLOAD OPTIONS   ###########################
 # Select which API to use for the data query
 # - COAH (Copernicus Open Access HUB; MSI and OLCI available; MENTION DL LIMITATIONS...)

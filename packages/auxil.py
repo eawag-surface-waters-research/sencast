@@ -5,67 +5,187 @@ import sys
 import os
 import re
 import urllib3
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import xml.etree.cElementTree as ET
-from snappy import ProductIO
 
+from snappy import ProductIO
 
 
 def gpt_xml(operator, product_parameters, xml_path):
 
     graph = ET.Element('graph')
-    graph.set('id', 'c2rcc-netcdf-reproj')
-    version = ET.SubElement(graph, 'version')
 
-    # C2RCC node elements
-    c2rcc_node = ET.SubElement(graph, 'node', id='c2rccNode')
-    c2rcc_op = ET.SubElement(c2rcc_node, 'operator')
-    sources = ET.SubElement(c2rcc_node, 'sources')
-    sourceProduct = ET.SubElement(sources, 'sourceProduct')
-    parameters = ET.SubElement(c2rcc_node, 'parameters')
-    validPixelExpression = ET.SubElement(parameters, 'validPixelExpression')
-    salinity = ET.SubElement(parameters, 'salinity')
-    temperature = ET.SubElement(parameters, 'temperature')
-    ozone = ET.SubElement(parameters, 'ozone')
-    press = ET.SubElement(parameters, 'press')
-    TSMfakBpart = ET.SubElement(parameters, 'TSMfakBpart')
-    TSMfakBwit = ET.SubElement(parameters, 'TSMfakBwit')
-    CHLexp = ET.SubElement(parameters, 'CHLexp')
-    CHLfak = ET.SubElement(parameters, 'CHLfak')
-    thresholdRtosaOOS = ET.SubElement(parameters, 'thresholdRtosaOOS')
-    thresholdAcReflecOos = ET.SubElement(parameters, 'thresholdAcReflecOos')
-    thresholdCloudTDown865 = ET.SubElement(parameters, 'thresholdCloudTDown865')
-    alternativeNNPath = ET.SubElement(parameters, 'alternativeNNPath')
-    outputAsRrs = ET.SubElement(parameters, 'outputAsRrs')
-    deriveRwFromPathAndTransmittance = ET.SubElement(parameters, 'deriveRwFromPathAndTransmittance')
-    if not 'msi' in operator:
-        useEcmwfAuxData = ET.SubElement(parameters, 'useEcmwfAuxData')
-    outputRtoa = ET.SubElement(parameters, 'outputRtoa')
-    outputRtosaGc = ET.SubElement(parameters, 'outputRtosaGc')
-    outputRtosaGcAann = ET.SubElement(parameters, 'outputRtosaGcAann')
-    outputRpath = ET.SubElement(parameters, 'outputRpath')
-    outputTdown = ET.SubElement(parameters, 'outputTdown')
-    outputTup = ET.SubElement(parameters, 'outputTup')
-    outputAcReflectance = ET.SubElement(parameters, 'outputAcReflectance')
-    outputRhown = ET.SubElement(parameters, 'outputRhown')
-    outputOos = ET.SubElement(parameters, 'outputOos')
-    outputKd = ET.SubElement(parameters, 'outputKd')
-    outputUncertainties = ET.SubElement(parameters, 'outputUncertainties')
+    ###########################################
+    # REPROJECT
+    # create Reproject node elements
+    if operator == 'Reproject':
+        graph.set('id', 'Reproj')
+        version = ET.SubElement(graph, 'version')
+        reproj_node = ET.SubElement(graph, 'node', id='reprojNode')
+        op = ET.SubElement(reproj_node, 'operator')
+        sources = ET.SubElement(reproj_node, 'sources')
+        sourceProduct = ET.SubElement(sources, 'source')
+        parameters = ET.SubElement(reproj_node, 'parameters')
+        crs = ET.SubElement(parameters, 'crs')
+        resampling = ET.SubElement(parameters, 'resampling')
+        referencePixelX = ET.SubElement(parameters, 'referencePixelX')
+        referencePixelY = ET.SubElement(parameters, 'referencePixelY')
+        easting = ET.SubElement(parameters, 'easting')
+        northing = ET.SubElement(parameters, 'northing')
+        pixelSizeX = ET.SubElement(parameters, 'pixelSizeX')
+        pixelSizeY = ET.SubElement(parameters, 'pixelSizeY')
+        width = ET.SubElement(parameters, 'width')
+        height = ET.SubElement(parameters, 'height')
+        orthorectify = ET.SubElement(parameters, 'orthorectify')
+        noDataValue = ET.SubElement(parameters, 'noDataValue')
+        includeTiePointGrids = ET.SubElement(parameters, 'includeTiePointGrids')
+        addDeltaBands = ET.SubElement(parameters, 'addDeltaBands')
+    # specify Reproject elements
+        version.text = '1.0'
+        op.text = 'Reproject'
+        sourceProduct.text = '${sourceProduct}'
+        crs.text = 'EPSG:4326'
+        resampling.text = 'Nearest'
+        referencePixelX.text = product_parameters.get('referencePixelX')
+        referencePixelY.text = product_parameters.get('referencePixelY')
+        easting.text = product_parameters.get('easting')
+        northing.text = product_parameters.get('northing')
+        pixelSizeX.text = product_parameters.get('pixelSizeX')
+        pixelSizeY.text = product_parameters.get('pixelSizeY')
+        width.text = product_parameters.get('width')
+        height.text = product_parameters.get('height')
+        orthorectify.text = 'false'
+        noDataValue.text = 'NaN'
+        includeTiePointGrids.text = 'true'
+        addDeltaBands.text = 'false'
 
-    # Reproject node elements
-    reproj_node = ET.SubElement(graph, 'node', id='reprojNode')
-    reproj_op = ET.SubElement(reproj_node, 'operator')
-    reproj_sources = ET.SubElement(reproj_node, 'sources')
-    reproj_source = ET.SubElement(reproj_sources, 'source')
-    reproj_parameters = ET.SubElement(reproj_node, 'parameters')
-    crs = ET.SubElement(reproj_parameters, 'crs')
-    resampling = ET.SubElement(reproj_parameters, 'resampling')
-    orthorectify = ET.SubElement(reproj_parameters, 'orthorectify')
-    noDataValue = ET.SubElement(reproj_parameters, 'noDataValue')
-    includeTiePointGrids = ET.SubElement(reproj_parameters, 'includeTiePointGrids')
-    addDeltaBands = ET.SubElement(reproj_parameters, 'addDeltaBands')
+    ###########################################
+    # IDEPIX
+    # create and specify general Idepix elements
+    if operator.startswith('Idepix'):
+        graph.set('id', 'idepix')
+        version = ET.SubElement(graph, 'version')
+        idepix_node = ET.SubElement(graph, 'node', id='idepixNode')
+        idepix_op = ET.SubElement(idepix_node, 'operator')
+        sources = ET.SubElement(idepix_node, 'sources')
+        sourceProduct = ET.SubElement(sources, 'sourceProduct')
+        parameters = ET.SubElement(idepix_node, 'parameters')
+        computeCloudBuffer = ET.SubElement(parameters, 'computeCloudBuffer')
+        cloudBufferWidth = ET.SubElement(parameters, 'cloudBufferWidth')
+        version.text = '1.0'
+        idepix_op.text = operator
+        sourceProduct.text = '${sourceProduct}'
+        computeCloudBuffer.text = 'true'
+    # create and specify S2 Idepix specific elements
+        if 'Sentinel2' in operator:
+            copyToaReflectances = ET.SubElement(parameters, 'copyToaReflectances')
+            copyFeatureValues = ET.SubElement(parameters, 'copyFeatureValues')
+            computeMountainShadow = ET.SubElement(parameters, 'computeMountainShadow')
+            computeCloudShadow = ET.SubElement(parameters, 'computeCloudShadow')
+            computeCloudBufferForCloudAmbiguous = ET.SubElement(parameters, 'computeCloudBufferForCloudAmbiguous')
+            demName = ET.SubElement(parameters, 'demName')
+            copyToaReflectances.text = 'true'
+            copyFeatureValues.text = 'false'
+            computeMountainShadow.text = 'true'
+            computeCloudShadow.text = 'true'
+            computeCloudBufferForCloudAmbiguous.text = 'true'
+            demName.text = 'SRTM 3Sec'
+            cloudBufferWidth.text = '5'
+    # create and specify S2 Idepix specific elements
+        elif 'Sentinel3' in operator:
+            radianceBandsToCopy = ET.SubElement(parameters, 'radianceBandsToCopy')
+            reflBandsToCopy = ET.SubElement(parameters, 'reflBandsToCopy')
+            outputSchillerNNValue = ET.SubElement(parameters, 'outputSchillerNNValue')
+            useSrtmLandWaterMask = ET.SubElement(parameters, 'useSrtmLandWaterMask')
+            radianceBandsToCopy.text = 'Oa01_radiance,Oa02_radiance,Oa03_radiance,Oa04_radiance,Oa05_radiance,' \
+                                       'Oa06_radiance,Oa07_radiance,Oa08_radiance,Oa09_radiance,Oa10_radiance,' \
+                                       'Oa11_radiance,Oa12_radiance,Oa13_radiance,Oa14_radiance,Oa15_radiance,' \
+                                       'Oa16_radiance,Oa17_radiance,Oa18_radiance,Oa19_radiance,Oa20_radiance,' \
+                                       'Oa21_radiance'
+            reflBandsToCopy.text = 'Oa01_reflectance,Oa02_reflectance,Oa03_reflectance,Oa04_reflectance,' \
+                                   'Oa05_reflectance,Oa06_reflectance,Oa07_reflectance,Oa08_reflectance,' \
+                                   'Oa09_reflectance,Oa10_reflectance,Oa11_reflectance,Oa12_reflectance,' \
+                                   'Oa13_reflectance,Oa14_reflectance,Oa15_reflectance,Oa16_reflectance,' \
+                                   'Oa17_reflectance,Oa18_reflectance,Oa19_reflectance,Oa20_reflectance,' \
+                                   'Oa21_reflectance'
+            outputSchillerNNValue.text = 'false'
+            useSrtmLandWaterMask.text = 'true'
+            cloudBufferWidth.text = '2'
 
-    # Write node elements
+    ###########################################
+    # C2RCC
+    # create C2RCC elements
+    if operator.startswith('c2rcc'):
+        graph.set('id', 'c2rcc')
+        version = ET.SubElement(graph, 'version')
+        c2rcc_node = ET.SubElement(graph, 'node', id='c2rccNode')
+        c2rcc_op = ET.SubElement(c2rcc_node, 'operator')
+        sources = ET.SubElement(c2rcc_node, 'sources')
+        sourceProduct = ET.SubElement(sources, 'sourceProduct')
+        parameters = ET.SubElement(c2rcc_node, 'parameters')
+        validPixelExpression = ET.SubElement(parameters, 'validPixelExpression')
+        salinity = ET.SubElement(parameters, 'salinity')
+        temperature = ET.SubElement(parameters, 'temperature')
+        ozone = ET.SubElement(parameters, 'ozone')
+        press = ET.SubElement(parameters, 'press')
+        TSMfakBpart = ET.SubElement(parameters, 'TSMfakBpart')
+        TSMfakBwit = ET.SubElement(parameters, 'TSMfakBwit')
+        CHLexp = ET.SubElement(parameters, 'CHLexp')
+        CHLfak = ET.SubElement(parameters, 'CHLfak')
+        thresholdRtosaOOS = ET.SubElement(parameters, 'thresholdRtosaOOS')
+        thresholdAcReflecOos = ET.SubElement(parameters, 'thresholdAcReflecOos')
+        thresholdCloudTDown865 = ET.SubElement(parameters, 'thresholdCloudTDown865')
+        alternativeNNPath = ET.SubElement(parameters, 'alternativeNNPath')
+        outputAsRrs = ET.SubElement(parameters, 'outputAsRrs')
+        deriveRwFromPathAndTransmittance = ET.SubElement(parameters, 'deriveRwFromPathAndTransmittance')
+        if not 'msi' in operator:
+            useEcmwfAuxData = ET.SubElement(parameters, 'useEcmwfAuxData')
+        outputRtoa = ET.SubElement(parameters, 'outputRtoa')
+        outputRtosaGc = ET.SubElement(parameters, 'outputRtosaGc')
+        outputRtosaGcAann = ET.SubElement(parameters, 'outputRtosaGcAann')
+        outputRpath = ET.SubElement(parameters, 'outputRpath')
+        outputTdown = ET.SubElement(parameters, 'outputTdown')
+        outputTup = ET.SubElement(parameters, 'outputTup')
+        outputAcReflectance = ET.SubElement(parameters, 'outputAcReflectance')
+        outputRhown = ET.SubElement(parameters, 'outputRhown')
+        outputOos = ET.SubElement(parameters, 'outputOos')
+        outputKd = ET.SubElement(parameters, 'outputKd')
+        outputUncertainties = ET.SubElement(parameters, 'outputUncertainties')
+        # specify C2RCC elements
+        version.text = '1.0'
+        c2rcc_op.text = operator
+        sourceProduct.text = '${sourceProduct}'
+        validPixelExpression.text = product_parameters.get('validPixelExpression')
+        salinity.text = '0.05'
+        temperature.text = '15.0'
+        ozone.text = '330.0'        # str(product_parameters.get('ozone'))
+        press.text = '1000.0'       # str(product_parameters.get('press'))
+        TSMfakBpart.text = '1.72'
+        TSMfakBwit.text= '3.1'
+        CHLexp.text = '1.04'
+        CHLfak.text = '21.0'
+        thresholdRtosaOOS.text = '0.05'
+        thresholdAcReflecOos.text = '0.1'
+        thresholdCloudTDown865.text = '0.955'
+        alternativeNNPath.text = product_parameters.get('alternativeNNPath')
+        outputAsRrs.text = 'false'
+        deriveRwFromPathAndTransmittance.text = 'false'
+        if not 'msi' in operator:
+            useEcmwfAuxData.text = 'true'
+        outputRtoa.text = 'true'
+        outputRtosaGc.text = 'false'
+        outputRtosaGcAann.text = 'false'
+        outputRpath.text = 'false'
+        outputTdown.text = 'false'
+        outputTup.text = 'false'
+        outputAcReflectance.text = 'true'
+        outputRhown.text = 'true'
+        outputOos.text = 'false'
+        outputKd.text = 'true'
+        outputUncertainties.text = 'true'
+
+    # create NetCDF writer elements
     write_node = ET.SubElement(graph, 'node', id='writeNode')
     write_op = ET.SubElement(write_node, 'operator')
     write_sources = ET.SubElement(write_node, 'sources')
@@ -74,52 +194,14 @@ def gpt_xml(operator, product_parameters, xml_path):
     file = ET.SubElement(write_parameters, 'file')
     formatName = ET.SubElement(write_parameters, 'formatName')
 
-    # fill c2rcc subelements with content
-    version.text = '1.0'
-    c2rcc_op.text = operator
-    sourceProduct.text = '${sourceProduct}'
-    validPixelExpression.text = product_parameters.get('validPixelExpression')
-    salinity.text = '0.05'
-    temperature.text = '15.0'
-    ozone.text = '330.0' # str(product_parameters.get('ozone'))
-    press.text = '1000.0'  # str(product_parameters.get('press'))
-    TSMfakBpart.text = '1.72'
-    TSMfakBwit.text= '3.1'
-    CHLexp.text = '1.04'
-    CHLfak.text = '21.0'
-    thresholdRtosaOOS.text = '0.05'
-    thresholdAcReflecOos.text = '0.1'
-    thresholdCloudTDown865.text = '0.955'
-    alternativeNNPath.text = product_parameters.get('alternativeNNPath')
-    outputAsRrs.text = 'false'
-    deriveRwFromPathAndTransmittance.text = 'false'
-    if not 'msi' in operator:
-        useEcmwfAuxData.text = 'true'
-    outputRtoa.text = 'true'
-    outputRtosaGc.text = 'false'
-    outputRtosaGcAann.text = 'false'
-    outputRpath.text = 'false'
-    outputTdown.text = 'false'
-    outputTup.text = 'false'
-    outputAcReflectance.text = 'true'
-    outputRhown.text = 'true'
-    outputOos.text = 'false'
-    outputKd.text = 'true'
-    outputUncertainties.text = 'true'
-
-    # fill reproject subelements with content
-    reproj_op.text = 'Reproject'
-    reproj_source.text = 'c2rccNode'
-    crs.text = "PROJCS[\"WGS 84 / Plate Carree\", GEOGCS[\"WGS 84\", DATUM[\"World Geodetic System 1984\", SPHEROID[\"WGS 84\", 6378137.0, 298.257223563, AUTHORITY[\"EPSG\",\"7030\"]], AUTHORITY[\"EPSG\",\"6326\"]], PRIMEM[\"Greenwich\", 0.0, AUTHORITY[\"EPSG\",\"8901\"]], UNIT[\"degree\", 0.017453292519943295], AXIS[\"Geodetic longitude\", EAST], AXIS[\"Geodetic latitude\", NORTH], AUTHORITY[\"EPSG\",\"4326\"]], PROJECTION[\"Equidistant Cylindrical (Spherical)\", AUTHORITY[\"EPSG\",\"9823\"]], PARAMETER[\"central_meridian\", 0.0], PARAMETER[\"latitude_of_origin\", 0.0], PARAMETER[\"standard_parallel_1\", 0.0], PARAMETER[\"false_easting\", 0.0], PARAMETER[\"false_northing\", 0.0], UNIT[\"m\", 1.0], AXIS[\"Easting\", EAST], AXIS[\"Northing\", NORTH], AUTHORITY[\"EPSG\",\"32662\"]]"
-    resampling.text = 'Nearest'
-    orthorectify.text = 'false'
-    noDataValue.text = 'NaN'
-    includeTiePointGrids.text = 'true'
-    addDeltaBands.text = 'false'
-
-    # fill writer subelements with content
+    # specify NetCDF writer elements
     write_op.text = 'Write'
-    write_source.text = 'reprojNode'
+    if operator.startswith('c2rcc'):
+        write_source.text = 'c2rccNode'
+    elif operator.startswith('Idepix'):
+        write_source.text = 'idepixNode'
+    elif operator == 'Reproject':
+        write_source.text = 'reprojNode'
     file.text = '${targetProduct}'
     formatName.text = 'NetCDF-BEAM'
 
@@ -241,7 +323,6 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     validexpression = [re.findall("'([^']*)'", x) for x in params_list if 'validexpression=' in x.lower()][0][0]
     pcombo = [re.findall("'([^']*)'", x) for x in params_list if 'pcombo=' in x]
     pcombo = [e.strip() for e in pcombo[0][0].split(',')]
-    pmode = [re.findall("'([^']*)'", x) for x in params_list if 'pmode=' in x.lower()][0][0]
     API = [re.findall("'([^']*)'", x) for x in params_list if 'api=' in x.lower()][0][0]
     username = [re.findall("'([^']*)'", x) for x in params_list if 'username=' in x.lower()][0][0]
     password = [re.findall("'([^']*)'", x) for x in params_list if 'password=' in x.lower()][0][0]
@@ -264,7 +345,7 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
               tile, 'start': start, 'end': end, 'satnumber': satnumber, 'resolution': resolution,
               'sensorname': sensorname, 'wkt': wkt, 'validexpression': validexpression,
               'True color': rgb, 'False color': falsecolor,
-              'pmode': pmode, 'API': API, 'username': username, 'password': password,
+              'API': API, 'username': username, 'password': password,
               'c2rcc bands': c2rcc_bands, 'polymer bands': polymer_bands, 'pcombo': pcombo,
               'wkt file': wkt_file, 'mph bands': mph_bands, 'c2rcc max': c2rcc_max, 'c2rcc altnn': c2rcc_altnn,
               'polymer max': polymer_max, 'mph max': mph_max}

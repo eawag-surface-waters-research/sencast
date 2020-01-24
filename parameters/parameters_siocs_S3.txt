@@ -5,9 +5,9 @@ end='2017-06-20T00:00:00.000Z'
 # For example 'olci' or 'msi'
 sensor='olci'
 
-# OLCI EFR (full resolution) data is resampled if a value is specified
+# The resolution of the output rasters, in meters
 # To download ERR (reduced resolution) data use '1000'
-resolution=''
+resolution='300'
 
 # Specify the geometry for the subset
 # Name of wkt file ('gva.wkt') available in perimeter folder, or string in format POLYGON(...)
@@ -24,12 +24,6 @@ pcombo='1,2'
 # Specify the names of quicklook rgb/false color bands from L1 products
 rgb_bands='Oa08_radiance, Oa06_radiance, Oa04_radiance'
 false_color_bands='Oa17_radiance, Oa06_radiance, Oa03_radiance'
-
-# Product handling (Ignored if pcombo = '0'):
-# - '1' (L2 in memory/temp only)
-# - '2' (save L2 to disk using snappy)
-# - '3' (save L2 to disk using gpt *CURRENTLY ONLY C2RCC!*)
-pmode='3'
 
 ###########################   DOWNLOAD OPTIONS   ###########################
 # Select which API to use for the data query
