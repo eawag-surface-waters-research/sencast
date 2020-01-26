@@ -142,8 +142,8 @@ def eawag_hindcast(params_filename):
 
         # FOR S3 MAKE SURE THE NON-DEFAULT S3TBX SETTING IS SELECTED IN THE SNAP PREFERENCES!
             if params['sensor'] == 'OLCI' and not 'PixelGeoCoding2' in str(myproduct.products[0].getSceneGeoCoding()):
-                print('The S3 product was read without pixelwise geocoding, please check the preference settings of the S3TBX!')
-                sys.exit()
+                print()
+                sys.exit('The S3 product was read without pixelwise geocoding, please check the preference settings of the S3TBX!')
 
             print('\033[1mProcessing product ({}/{}): {}...\033[0m\n'.format(c, nbtot, products[0].getName()))
             startt = time.time()

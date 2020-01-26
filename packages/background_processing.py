@@ -44,20 +44,48 @@ def background_processing(myproduct, params, dir_dict):
     x_pixsize = (max(lons) - min(lons)) / x_pix
     y_pixsize = (max(lats) - min(lats)) / y_pix
 
-    # ---------------- Reprojecting ------------------#
-    # This creates always the same raster for a given set of wkt, sensor and resolution
+    # ---------------- Initialising ------------------#
     for product in oriproduct.products:
-        if os.path.isfile(l1r_path):
-            print('\nSkipping Reproj: ' + l1rname + ' already exists.')
+        l1name = product.getName()
+        l1rname = 'reproj_' + l1name + '.nc'
+        l1pname = 'L1P_' + l1rname
+        l1mname = 'merged_' + l1pname
+        l1_path = dir_dict['L1 dir'] + '/' + l1name.split('.')[0] + '/' + l1name
+        l1r_path = './' + l1rname
+        l1p_path = dir_dict['L1P dir'] + '/' + l1pname
+        l1m_path = './' + l1mname
+        run_process = [False, False, False, False]
+        if os.path.isfile(l1p_path):
+            print('\nSkipping Idepix: ' + l1pname + ' already exists.')
         else:
-            l1name = product.getName()
-            l1rname = 'reproj_' + l1name + '.nc'
-            l1pname = 'L1P_' + l1rname
-            l1mname = 'merged_' + l1pname
-            l1_path = dir_dict['L1 dir'] + '/' + l1name.split('.')[0] + '/' + l1name
-            l1r_path = './' + l1rname
-            l1p_path = dir_dict['L1P dir'] + '/' + l1pname
-            l1m_path = './' + l1mname
+            run_process[0] = True
+        if '1' in params['pcombo']:
+            l2c2rname = 'L2C2R_' + l1pname
+            l2c2r_path = dir_dict['c2rcc dir'] + '/' + l2c2rname
+            if os.path.isfile(l2c2r_path):
+                print('\nSkipping C2RCC: ' + l2c2rname + ' already exists.')
+            else:
+                run_process[1] = True
+        if '2' in params['pcombo']:
+            polytempname = 'L2POLY_' + l1name + '.nc'
+            polyname = 'L2POLY_' + l1pname
+            polytemp_path = path_config.cwd + '/' + polytempname
+            poly_path = dir_dict['polymer dir'] + '/' + polyname
+            if os.path.isfile(poly_path):
+                print('\nSkipping Polymer: ' + polyname + ' already exists.')
+            else:
+                run_process[2] = True
+        if '3' in params['pcombo']:
+            mphname = ''
+            mph_path = ''
+            if os.path.isfile(mph_path):
+                print('\nSkipping MPH: ' + mphname + ' already exists.')
+            else:
+                run_process[3] = True
+
+        # ---------------- Reprojecting ------------------#
+        # This creates always the same raster for a given set of wkt, sensor and resolution
+        if any(run_process):
             op_str = 'Reproject'
             xml_path = './reproj_temp.xml'
             parameters = MyProduct.HashMap()
@@ -76,9 +104,7 @@ def background_processing(myproduct, params, dir_dict):
             os.remove('./reproj_temp.xml')
 
     # ---------------------- Idepix ----------------------#
-        if os.path.isfile(l1p_path):
-            print('\nSkipping Idepix: ' + l1pname + ' already exists.')
-        else:
+        if run_process[0]:
             if params['sensor'].lower() == 'olci':
                 op_str = 'Idepix.Sentinel3.Olci'
             elif params['sensor'].lower() == 'msi':
@@ -112,12 +138,10 @@ def background_processing(myproduct, params, dir_dict):
 
     # -------------------- C2RCC --------------------------#
     # Idepix and Reproj output must be merged first
-        if '1' in params['pcombo']:
+        if run_process[1]:
             print()
             print('Merging Reprojected L1 and Idepix products...')
             subprocess.call([path_config.gpt_path, 'Merge', '-SmasterProduct=' + l1r_path, '-Ssource=' + l1p_path, '-t', l1m_path])
-            l2c2rname = 'L2C2R_' + l1pname
-            l2c2r_path = dir_dict['c2rcc dir'] + '/' + l2c2rname
             if os.path.isfile(l2c2r_path):
                 print('\nSkipping C2RCC: ' + l2c2rname + ' already exists.')
             else:
@@ -177,16 +201,13 @@ def background_processing(myproduct, params, dir_dict):
                     plot_map(l2c2r_product, bname, bn, basemap='srtm_hillshade', grid=True,
                              perimeter_file=params['wkt file'], param_range=param_range)
                     print('Plot for band {} finished.\n'.format(bn))
-
         if os.path.isfile(l1r_path):
             os.remove(l1r_path)
         if os.path.isfile(l1m_path):
             os.remove(l1m_path)
 
         # ------------------ Polymer ------------------#
-        if '2' in params['pcombo']:
-            polyname = 'L2POLY_' + l1pname.split('.')[0]
-            polytemp_path = './L2POLY' + l1name + '.nc'
+        if run_process[2]:
             if not os.path.isdir('data_landmask_gsw'):
                 os.mkdir('data_landmask_gsw')
             if os.path.isfile(os.path.join(dir_dict['polymer dir'], polyname)):
@@ -208,6 +229,7 @@ def background_processing(myproduct, params, dir_dict):
                     run_atm_corr(Level1(l1_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=GSW(agg=8)),
                                  Level2(filename=polytemp_path, fmt='netcdf4', overwrite=True,
                                  datasets=default_datasets + ['sza']))
+
 
 
                     masterProduct = None
