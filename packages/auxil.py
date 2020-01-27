@@ -88,7 +88,9 @@ def gpt_xml(operator, product_parameters, xml_path):
             copyToaReflectances.text = 'true'
             copyFeatureValues.text = 'false'
             computeMountainShadow.text = 'true'
-            computeCloudShadow.text = 'true'
+            # Calculating cloud shadows with reprojected data in degree units gives terrible errors:
+            # java.lang.IllegalArgumentException: Width (-329182666) and height (-329182666) must be > 0
+            computeCloudShadow.text = 'false'
             computeCloudBufferForCloudAmbiguous.text = 'true'
             demName.text = 'SRTM 3Sec'
             cloudBufferWidth.text = '5'
@@ -287,16 +289,12 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     name = os.path.basename(filename.split('.')[0])
     sensor = [re.findall("'([^']*)'", x) for x in params_list if 'sensor' in x.lower()][0][0]
     if 'MSI' in sensor.upper():
-        if verbose:
-            print('Sensor: MSI')
         satnumber = 2
         sensorname = '' # Used to call the Idepix operator
         resolution = [re.findall("'([^']*)'", x) for x in params_list if 'resolution=' in x][0][0]
         mph_bands = ''
         mph_max = ''
     elif 'OLCI' in sensor.upper():
-        if verbose:
-            print('Sensor: OLCI')
         satnumber = 3
         sensorname = '.Olci'  # Used to call the Idepix operator
         resolution = [re.findall("'([^']*)'", x) for x in params_list if 'resolution=' in x][0][0]

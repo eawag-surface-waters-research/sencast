@@ -47,6 +47,8 @@ def background_processing(myproduct, params, dir_dict):
     # ---------------- Initialising ------------------#
     for product in oriproduct.products:
         l1name = product.getName()
+        if params['sensor'].lower() == 'msi':
+            l1name = l1name + '.SAFE'
         l1rname = 'reproj_' + l1name + '.nc'
         l1pname = 'L1P_' + l1rname
         l1mname = 'merged_' + l1pname
@@ -84,8 +86,8 @@ def background_processing(myproduct, params, dir_dict):
             else:
                 run_process[3] = True
 
-        # ---------------- Reprojecting ------------------#
-        # This creates always the same raster for a given set of wkt, sensor and resolution
+        # ----------------- Reprojecting -----------------#
+    # This creates always the same raster for a given set of wkt, sensor and resolution
         if any(run_process):
             op_str = 'Reproject'
             xml_path = './reproj_temp.xml'
@@ -98,6 +100,7 @@ def background_processing(myproduct, params, dir_dict):
             parameters.put('pixelSizeY', str(y_pixsize))
             parameters.put('width', str(x_pix))
             parameters.put('height', str(y_pix))
+            parameters.put('sensor', params['sensor'].lower())
             gpt_xml(operator=op_str, product_parameters=parameters, xml_path=xml_path)
             print()
             print('Reprojecting L1 product...')
