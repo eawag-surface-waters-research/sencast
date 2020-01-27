@@ -69,7 +69,8 @@ def background_processing(myproduct, params, dir_dict):
         if '2' in params['pcombo']:
             polytempname = 'L2POLY_' + l1name + '.nc'
             polyname = 'L2POLY_' + l1pname
-            polytemp_path = path_config.cwd + '/' + polytempname
+            # Somehow polymer doesn't seem to write to other places than the package location
+            polytemp_path = path_config.polymer_path + '/' + polytempname
             poly_path = dir_dict['polymer dir'] + '/' + polyname
             if os.path.isfile(poly_path):
                 print('\nSkipping Polymer: ' + polyname + ' already exists.')
@@ -197,8 +198,8 @@ def background_processing(myproduct, params, dir_dict):
                     else:
                         param_range = [0, params_range[c]]
                     c += 1
-                    bname = os.path.join(dir_dict[bn], pname.split('.')[0] + '_' + bn + '.png')
-                    plot_map(l2c2r_product, bname, bn, basemap='srtm_hillshade', grid=True,
+                    ql_path = os.path.join(dir_dict[bn], l2c2rname.split('.')[0] + '_' + bn + '.png')
+                    plot_map(l2c2r_product, ql_path, bn, basemap='srtm_hillshade', grid=True,
                              perimeter_file=params['wkt file'], param_range=param_range)
                     print('Plot for band {} finished.\n'.format(bn))
         if os.path.isfile(l1r_path):
@@ -208,6 +209,7 @@ def background_processing(myproduct, params, dir_dict):
 
         # ------------------ Polymer ------------------#
         if run_process[2]:
+            colloc_xml = os.path.join(path_config.cwd, 'xml', 'poly-colloc.xml')
             if not os.path.isdir('data_landmask_gsw'):
                 os.mkdir('data_landmask_gsw')
             if os.path.isfile(os.path.join(dir_dict['polymer dir'], polyname)):
@@ -228,37 +230,25 @@ def background_processing(myproduct, params, dir_dict):
                 elif params['sensor'].upper() == 'OLCI':
                     run_atm_corr(Level1(l1_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=GSW(agg=8)),
                                  Level2(filename=polytemp_path, fmt='netcdf4', overwrite=True,
-                                 datasets=default_datasets + ['sza']))
-
-
-
-                    masterProduct = None
-                    resultpoly = ''
-                    pname = product.getName().split('.')[0]
-                    if masterProduct is not None:
-                        newname = 'L2POLY_reproj_L1P_' + pname
-                        coll_parameters = MyProduct.HashMap()
-                        sourceProducts = MyProduct.HashMap()
-                        sourceProducts.put('master', masterProduct)
-                        sourceProducts.put('slave', resultpoly)
-                        coll_parameters.put('renameMasterComponents', False)
-                        coll_parameters.put('renameSlaveComponents', False)
-                        mergedProduct = GPF.createProduct('Collocate', coll_parameters, sourceProducts)
-
-                        subs_parameters = MyProduct.HashMap()
-                        subs_parameters.put('bandNames', 'OAA,OZA,SAA,SZA,Rw400,Rw412,Rw443,Rw490,Rw510,' +
-                                            'Rw560,Rw620,Rw665,Rw681,Rw709,Rw754,Rw779,Rw865,Rw1020,' +
-                                            'Rnir,Rgli,logchl,bbs,bitmask,quality_flags,pixel_classif_flags')
-                        subs_parameters.put('copyMetadata', True)
-                        bandsetProduct = GPF.createProduct('Subset', subs_parameters, mergedProduct)
+                                 datasets=default_datasets + ['vaa', 'vza', 'saa', 'sza']))
+                subprocess.call([path_config.gpt_path, colloc_xml, '-SmasterProduct=' + l1p_path,
+                                 '-SslaveProduct=' + polytemp_path, '-PtargetProduct=' + poly_path])
+                poly_product = ProductIO.readProduct(poly_path)
+                print('\nCreating quicklooks for bands: {}\n'.format(params['polymer bands']))
+                params_range = params['polymer max']
+                c = 0
+                for bn in params['polymer bands']:
+                    if params_range[c] == 0:
+                        param_range = False
                     else:
-                        newname = 'L2POLY_' + pname
-
-                    bandsetProduct.setName(newname)
-
-
-                    os.chdir(cwd)
-
+                        param_range = [0, params_range[c]]
+                    c += 1
+                    ql_path = os.path.join(dir_dict[bn], polyname.split('.')[0] + '_' + bn + '.png')
+                    plot_map(poly_product, ql_path, bn, basemap='srtm_hillshade', grid=True,
+                             perimeter_file=params['wkt file'], param_range=param_range)
+                    print('Plot for band {} finished.\n'.format(bn))
+                os.remove(polytemp_path)
+                os.chdir(cwd)
 
 
 
