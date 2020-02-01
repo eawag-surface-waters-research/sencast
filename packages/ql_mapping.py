@@ -603,6 +603,10 @@ def get_legend_str(layer_str):      #'$\mathbf{Secchi\/depth\/[m]}$'
         legend_str = '$\mathbf{[dl]}$'
         title_str = '$\mathbf{NDCI}$'
         log = False
+    elif layer_str in ['kdmin']:
+        legend_str = '$\mathbf{[m^-1]}$'
+        title_str = '$\mathbf{C2RCC\/K_{d}}$'
+        log = False
     elif layer_str in ['IVI_shadow-masked', 'IVI_shadow-allowed', 'IVI_SWIR-masked']:
         legend_str = '$\mathbf{[dl]}$'
         title_str = '$\mathbf{IVI}$'

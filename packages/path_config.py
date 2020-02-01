@@ -7,7 +7,7 @@ import sys
 user = getpass.getuser()
 hostname = socket.gethostname()
 
-if hostname in ['daniels-macbook-pro.home']:
+if hostname in ['daniels-macbook-pro.home', 'Daniels-MacBook-Pro.local']:
     os.chdir(os.path.join('/Users', user, 'Dropbox', 'Wrk Eawag', 'DIAS clean'))
     cwd = os.getcwd()
     wkt_dir = os.path.join(cwd, 'wkt')
