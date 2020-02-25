@@ -15,7 +15,7 @@ from packages.download_coah_query import query_dl_coah
 from packages import path_config
 
 
-def eawag_hindcast(params_filename):
+def hindcast(params_filename):
 
     # *********************************************************
     # Check paths

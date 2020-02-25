@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Import libs
-from packages.main import eawag_hindcast
+from packages.main import hindcast
 
 # Options
 params_filename = 'parameters_silsersee_S2.txt'
 
-eawag_hindcast(params_filename)
+hindcast(params_filename)
