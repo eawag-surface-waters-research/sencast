@@ -19,7 +19,7 @@ wkt='cst.wkt'
 # - '2' (Polymer)
 # - '3' (MPH)
 # example: '1, 2, 3' Will apply Idepix, C2RCC, Polymer and MPH
-pcombo='1'
+pcombo='0'
 
 # Specify the names of quicklook rgb/false color bands from L1 products
 rgb_bands='Oa08_radiance, Oa06_radiance, Oa04_radiance'
@@ -34,6 +34,17 @@ API='COAH'
 # For COAH, you need to specify a user credentials for the Copernicus Open Access HUB
 username='dani.odermatt'
 password='ANSTALT133'
+username='daniel.odermatt'
+password='b0e8663cf6a1'
+username='scheunro'
+password='ceEvzjUT53cSrpY'
+
+coah_query_url="https://scihub.copernicus.eu/dhus/search?q=instrumentshortname:{}+AND+producttype:{}+AND+beginPosition:[{}+TO+{}]+AND+footprint:'Intersects({})'&rows=100&start=0"
+hda_gettoken_url="https://wekeo-broker.apps.mercator.dpi.wekeo.eu/databroker/gettoken"
+hda_metadata_url="https://wekeo-broker.apps.mercator.dpi.wekeo.eu/databroker/querymetadata/{}"
+hda_datarequest_post_url="https://wekeo-broker.apps.mercator.dpi.wekeo.eu/databroker/datarequest"
+hda_datarequest_status_url="https://wekeo-broker.apps.mercator.dpi.wekeo.eu/databroker/datarequest/status/{}"
+hda_datarequest_result_url="https://wekeo-broker.apps.mercator.dpi.wekeo.eu/databroker/datarequest/jobs/{}/result"
 
 # For using the HDA API, specify a region and one or multiple tiles from https://www.wekeo.eu/dataset-navigator/start
 region='EU'
