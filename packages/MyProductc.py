@@ -14,13 +14,6 @@ from packages.product_fun import get_corner_pixels_ROI
 from packages import path_config
 
 sys.path.append(path_config.polymer_path)
-from polymer.main import run_atm_corr
-from polymer.main import Level1, Level2
-from polymer.level1_msi import Level1_MSI
-from polymer.gsw import GSW
-from polymer.level2 import default_datasets
-
-
 
 
 class MyProduct(object):
@@ -30,7 +23,7 @@ class MyProduct(object):
     HashMap = jpy.get_type('java.util.HashMap')
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
     BandDescriptor = jpy.get_type('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
-        
+
     def __init__(self, productslist, params, productspath):
         self.date = []
         self.date_str = []
@@ -44,8 +37,7 @@ class MyProduct(object):
         self.valid_pixels = []  # percentage of valid pixels
         self.masks = []
         self.update()
-        
-        
+
     def __repr__(self):
         dispstr = 'Product List:'
         c = 0
@@ -55,38 +47,35 @@ class MyProduct(object):
                 dispstr += '\n{} % of valid pixels'.format(self.valid_pixels[c])
             c += 1
         return dispstr
-    
-    
+
     def update_date(self):
         """ Update field date with a list of datetime for each product"""
         dtlist = []
         dtstrlist = []
         for product in self.products:
             name = product.getName()
-            name = re.search('\d{8}T\d{6}', name).group(0)
+            name = re.search(r'\d{8}T\d{6}', name).group(0)
             dt = datetime.strptime(name, '%Y%m%dT%H%M%S')
             dtlist.append(dt)
             dtstrlist.append(dt.strftime('%Y%m%dT%H%M'))
         self.date = dtlist
         self.date_str = dtstrlist
-        
-      
+
     def update_dict(self):
         """ Update product dictionary.
         - the key is the date of the product (YYYYMMDD)
         - the value is the corresponding product"""
-        c = 0
+
         dicttemp = {}
         # If self.date and self.products have different size update the dates
         if len(self.products) != len(self.date):
             self.update_date()
-        c = 0
-        for product in self.products:
+
+        for c in range(len(self.products)):
             dicttemp[self.date_str[c]] = c
-            c += 1
+
         self.product_dict = dicttemp
-        
-        
+
     def update_band_names(self):
         """ Update product band names """
         bnames = []
@@ -98,17 +87,14 @@ class MyProduct(object):
         self.band_names = bnames
         self.band_names_str = bnstr
 
-        
     def update(self):
         self.update_date()
         self.update_dict()
         self.update_band_names()
-    
-    
+
     def get_band_names(self, pattern=''):
         return [bn for bn in self.products[0].getBandNames() if pattern in bn]
-    
-    
+
     def resample(self, res=20):
         parameters = MyProduct.HashMap()
         parameters.put('targetResolution', res)
@@ -122,7 +108,6 @@ class MyProduct(object):
         self.state.append('Resample')
         self.update()
 
-    
     def subset(self, regions=None):
         # Update MyProduct
         self.update()
@@ -146,7 +131,7 @@ class MyProduct(object):
                 result = GPF.createProduct('Subset', parameters, product)
             except RuntimeError:
                 print('    Failed. ROI probably outside the frame, or bad wkt.')
-                result = product
+                # result = product
             else:
                 # Append subset if not empty
                 if 'Subset' in result.getName():
@@ -156,7 +141,7 @@ class MyProduct(object):
                     subsets.append(result)
                     print('    Subsetting completed\n')
                 else:
-                     print('    ROI outside the frame')
+                    print('    ROI outside the frame')
             c += 1
         if not subsets:
             print('\n    No products passed the subsetting... exiting\n')
@@ -166,14 +151,13 @@ class MyProduct(object):
         self.products = subsets
         self.state.append('Subset')
         self.update()
-        
-        
-    def copyMasks(self, sourcemyproduct):
+
+    def copy_masks(self, sourcemyproduct):
         count = 0
         products = []
         for product in self.products:
             sourceproduct = sourcemyproduct.products[count]
-            ProductUtils.copyMasks(sourceproduct, product)
+            ProductUtils.copy_masks(sourceproduct, product)
             ProductUtils.copyOverlayMasks(sourceproduct, product)
             ProductUtils.copyFlagCodings(sourceproduct, product)
             ProductUtils.copyFlagBands(sourceproduct, product, True)
@@ -182,12 +166,15 @@ class MyProduct(object):
         self.products = products
         self.state.append('Mask')
         self.update()
-        
-        
-    def get_flags(self, pattern=[], match=[]):
+
+    def get_flags(self, pattern=None, match=None):
         """ This function returns a flag list with one field per product. each element of the list is a dictionnary 
         with the key corresponding to the flag name and the value is a numpy array (uint32) with the corresponding
         flag"""
+        if pattern is None:
+            pattern = []
+        if match is None:
+            match = []
         flags = []
         for product in self.products:
             h = product.getSceneRasterHeight()
@@ -197,8 +184,7 @@ class MyProduct(object):
                 flagNames = [fn for fn in flagNames if pattern in fn]
             elif match:
                 flagNames = [fn for fn in flagNames if fn == match]
-            flag = {}
-            flag['no flag'] = np.zeros((h, w), dtype=np.uint32)
+            flag = {'no flag': np.zeros((h, w), dtype=np.uint32)}
             for i in range(len(flagNames)):
                 params = MyProduct.HashMap()
                 targetBand = MyProduct.BandDescriptor()
@@ -219,7 +205,6 @@ class MyProduct(object):
             flags.append(flag)
         return flags
 
-        
     def get_regions(self):
         regions = []
         for product in self.products:
@@ -228,7 +213,6 @@ class MyProduct(object):
             h = LR[0] - UL[0]
             regions.append(str(UL[1])+','+str(UL[0])+','+str(w)+','+str(h))
         return regions
-
 
     def mph(self):
         if self.params['sensor'].upper() == 'OLCI':
@@ -254,9 +238,8 @@ class MyProduct(object):
             self.state.append('MPH')
             self.update()
 
-    
     def write(self, writedir):
-        writer = ProductIO.getProductWriter('NetCDF-BEAM') # -CF writer does not add wavelength attributes
+        writer = ProductIO.getProductWriter('NetCDF-BEAM')  # -CF writer does not add wavelength attributes
         for product in self.products:
             # If file already exist remove it 
             fname = os.path.join(writedir, product.getName()+'.nc')
@@ -264,10 +247,8 @@ class MyProduct(object):
                 os.remove(fname)
             product.setProductWriter(writer)
             product.writeHeader(fname)
-            ProductIO.writeProduct(product, fname, 'NetCDF-BEAM') # -CF writer does not add wavelength attributes
-
+            ProductIO.writeProduct(product, fname, 'NetCDF-BEAM')  # -CF writer does not add wavelength attributes
 
     def close(self):
         for product in self.products:
             product.closeIO()
-   
