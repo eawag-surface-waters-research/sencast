@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+from zipfile import ZipFile
 import requests
 from requests.auth import HTTPBasicAuth
 from requests.status_codes import codes
@@ -10,19 +12,25 @@ import time
 
 
 # HDA-API endpoint address
-apis_endpoint = "https://wekeo-broker.apps.mercator.dpi.wekeo.eu"
+api_endpoint = "https://wekeo-broker.apps.mercator.dpi.wekeo.eu"
 # Access-token address
-access_token_address = apis_endpoint + "/databroker/gettoken"
+access_token_address = api_endpoint + "/databroker/gettoken"
 # Terms and conditions
-accept_tc_address = apis_endpoint + "/databroker/termsaccepted/Copernicus_General_License"
+accept_tc_address = api_endpoint + "/databroker/termsaccepted/Copernicus_General_License"
 # Metadata address
-metadata_address = apis_endpoint + "/databroker/querymetadata/{}"
+metadata_address = api_endpoint + "/databroker/querymetadata/{}"
 # Data request address
-datarequest_address = apis_endpoint + "/databroker/datarequest"
+datarequest_address = api_endpoint + "/databroker/datarequest"
 # Data request status address
-datarequest_status_address = apis_endpoint + "/databroker/datarequest/status/{}"
+datarequest_status_address = api_endpoint + "/databroker/datarequest/status/{}"
 # Data request data address
-datarequest_result_address = apis_endpoint + "/databroker/datarequest/jobs/{}/result"
+datarequest_result_address = api_endpoint + "/databroker/datarequest/jobs/{}/result"
+# Data order address
+dataorder_address = api_endpoint + "/databroker/dataorder"
+# Data order status address
+dataorder_status_address = api_endpoint + "/databroker/dataorder/status/{}"
+# Data order download address
+dataorder_download_address = api_endpoint + "/databroker/dataorder/download/{}"
 
 
 def get_access_token(username, password):
@@ -87,7 +95,7 @@ def wait_for_datarequest_to_complete(access_token, job_id):
                 print("Job {} completed!".format(job_id))
                 return
             else:
-                print("Job {} not yet completed. Waiting another 10 seconds before checking again...".format(job_id))
+                print("Job {} not yet completed. Wait 10 seconds before checking again...".format(job_id))
                 time.sleep(10)
         else:
             raise RuntimeError("Unexpected response {}".format(response.text))
@@ -95,7 +103,8 @@ def wait_for_datarequest_to_complete(access_token, job_id):
 
 def get_datarequest_results(access_token, job_id):
     print("Getting data request results from {}".format(datarequest_result_address.format(job_id)))
-    results = []
+    uris = []
+    filenames = []
     headers = {'authorization': access_token}
     datarequest_result_address_paged = datarequest_result_address.format(job_id)
     while True:
@@ -103,11 +112,56 @@ def get_datarequest_results(access_token, job_id):
         if response.status_code == codes.OK:
             response_dict = json.loads(response.text)
             for result in response_dict['content']:
-                results.append(result)
+                uris.append(result['url'])
+                filenames.append(result['filename'])
             if not response_dict['nextPage']:
                 break
             datarequest_result_address_paged = response_dict['nextPage']
         else:
             raise RuntimeError("Unexpected response {}".format(response.text))
-    numberOfResults = response_dict['totItems']
-    return results, numberOfResults
+    return filenames, uris, response_dict['totItems']
+
+
+def post_dataorder(access_token, job_id, uri):
+    print("Posting dataorder to {}".format(dataorder_address))
+    headers = {'authorization': access_token}
+    dataorder = {
+        'jobId': job_id,
+        'uri': uri
+    }
+    response = requests.post(dataorder_address, headers=headers, json=dataorder)
+    if response.status_code == codes.OK:
+        order_id = json.loads(response.text)["orderId"]
+        print("Dataorder submitted. Order ID is " + order_id)
+        return order_id
+    else:
+        raise RuntimeError("Unexpected response {}".format(response.text))
+
+
+def wait_for_dataorder_to_complete(access_token, order_id):
+    print("Waiting for dataorder {} to complete...".format(order_id))
+    headers = {'authorization': access_token}
+    while True:
+        response = requests.get(dataorder_status_address.format(order_id), headers=headers)
+        if response.status_code == codes.OK:
+            if json.loads(response.text)["status"] == "completed":
+                print("Dataorder {} completed!".format(order_id))
+                return
+            else:
+                print("Dataorder {} not yet completed. Wait 10 seconds before checking again...".format(order_id))
+                time.sleep(10)
+        else:
+            raise RuntimeError("Unexpected response {}".format(response.text))
+
+
+def dataorder_download(access_token, order_id, filename):
+    print("Downloading data from {}".format(dataorder_download_address.format(order_id)))
+    headers = {'authorization': access_token}
+    response = requests.get(dataorder_download_address.format(order_id), headers=headers, stream=True)
+    with open(filename + '.zip', 'wb') as down_stream:
+        for chunk in response.iter_content(chunk_size=65536):
+            down_stream.write(chunk)
+    with ZipFile(filename + '.zip', 'r') as zip_file:
+        prod_name = zip_file.namelist()[0]
+        zip_file.extractall(prod_name.split('.')[0])
+    os.remove(filename + '.zip')
