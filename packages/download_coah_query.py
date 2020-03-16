@@ -74,7 +74,7 @@ def download(url, usr, pwd, count):
         prod_name = zip_file.namelist()[0]
         zip_file.extractall(prod_name.split('.')[0])
     os.remove(dl_name + '.zip')
-    print("Product no. {} downloaded".format(count))
+    print("Product no. {} downloaded".format(count), end="\r")
     return
 
 
