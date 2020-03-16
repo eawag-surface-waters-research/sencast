@@ -6,7 +6,7 @@ import sys
 import getpass
 import concurrent.futures
 import requests
-import urllib3
+from requests.auth import HTTPBasicAuth
 
 from subprocess import check_output
 from packages.auxil import list_xml_scene_dir
@@ -64,9 +64,8 @@ def wc(filename):
 def download(url, usr, pwd, count):
     sys.stdout.write("\033[K")
     dl_name = url.split("'")[1]
-    headers = urllib3.util.make_headers(basic_auth=usr + ':' + pwd)
 
-    response = requests.get(url, headers=headers, stream=True)
+    response = requests.get(url, auth=HTTPBasicAuth(usr, pwd), stream=True)
     with open(dl_name + '.zip', 'wb') as down_stream:
         for chunk in response.iter_content(chunk_size=65536):
             down_stream.write(chunk)
@@ -98,10 +97,10 @@ def query_dl_coah(params, outdir):
                 ' TO ' + params['end'] + \
                 '] AND footprint:"Intersects(' + params['wkt'] + \
                 ')"&rows=100&start=0\''
-    headers = urllib3.util.make_headers(basic_auth=params['username'] + ':' + params['password'])
-    query_response = requests.get(query_url.replace(' ', '+'), headers=headers)
+    basic_auth = HTTPBasicAuth(params['username'], params['password'])
+    response = requests.get(query_url.replace(' ', '+'), auth=basic_auth)
     xml_file = open('query-list.xml', 'wb')
-    xml_file.write(query_response.text.encode())
+    xml_file.write(response.text.encode())
     xml_file.close()
     try:
         coah_xml = parse_coah_xml('query-list.xml')
@@ -130,9 +129,9 @@ def query_dl_coah(params, outdir):
                           ' TO ' + params['end'] + \
                           '] AND footprint:"Intersects(' + params['wkt'] + \
                           ')"&start=' + str(c) + '&rows=100&\''
-            product_response = requests.get(product_url.replace(' ', '+'), headers=headers)
+            response = requests.get(product_url.replace(' ', '+'), auth=basic_auth)
             xml_file = open('products-list.xml', 'wb')
-            xml_file.write(product_response.text.encode())
+            xml_file.write(response.text.encode())
             xml_file.close()
             coah_xml = parse_coah_xml('products-list.xml')
             for pname in coah_xml['pnames']:
@@ -152,7 +151,6 @@ def query_dl_coah(params, outdir):
     # Download
     if uuids:
         user = getpass.getuser()
-        # Create CSV file for urllib3 download
         url_list = os.path.join(outdir, 'urls_list_' + user + '.txt')
         if os.path.isfile(url_list):
             os.remove(url_list)
