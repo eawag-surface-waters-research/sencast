@@ -4,43 +4,42 @@
 import sys
 import os
 import re
-import urllib3
+from configparser import ConfigParser
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-import xml.etree.cElementTree as ET
+import xml.etree.cElementTree as ElementTree
 
 from snappy import ProductIO
 
 
 def gpt_xml(operator, product_parameters, xml_path):
 
-    graph = ET.Element('graph')
+    graph = ElementTree.Element('graph')
 
     ###########################################
     # REPROJECT
     # create Reproject node elements
     if operator == 'Reproject':
         graph.set('id', 'Reproj')
-        version = ET.SubElement(graph, 'version')
-        reproj_node = ET.SubElement(graph, 'node', id='reprojNode')
-        op = ET.SubElement(reproj_node, 'operator')
-        sources = ET.SubElement(reproj_node, 'sources')
-        sourceProduct = ET.SubElement(sources, 'source')
-        parameters = ET.SubElement(reproj_node, 'parameters')
-        crs = ET.SubElement(parameters, 'crs')
-        resampling = ET.SubElement(parameters, 'resampling')
-        referencePixelX = ET.SubElement(parameters, 'referencePixelX')
-        referencePixelY = ET.SubElement(parameters, 'referencePixelY')
-        easting = ET.SubElement(parameters, 'easting')
-        northing = ET.SubElement(parameters, 'northing')
-        pixelSizeX = ET.SubElement(parameters, 'pixelSizeX')
-        pixelSizeY = ET.SubElement(parameters, 'pixelSizeY')
-        width = ET.SubElement(parameters, 'width')
-        height = ET.SubElement(parameters, 'height')
-        orthorectify = ET.SubElement(parameters, 'orthorectify')
-        noDataValue = ET.SubElement(parameters, 'noDataValue')
-        includeTiePointGrids = ET.SubElement(parameters, 'includeTiePointGrids')
-        addDeltaBands = ET.SubElement(parameters, 'addDeltaBands')
+        version = ElementTree.SubElement(graph, 'version')
+        reproj_node = ElementTree.SubElement(graph, 'node', id='reprojNode')
+        op = ElementTree.SubElement(reproj_node, 'operator')
+        sources = ElementTree.SubElement(reproj_node, 'sources')
+        sourceProduct = ElementTree.SubElement(sources, 'source')
+        parameters = ElementTree.SubElement(reproj_node, 'parameters')
+        crs = ElementTree.SubElement(parameters, 'crs')
+        resampling = ElementTree.SubElement(parameters, 'resampling')
+        referencePixelX = ElementTree.SubElement(parameters, 'referencePixelX')
+        referencePixelY = ElementTree.SubElement(parameters, 'referencePixelY')
+        easting = ElementTree.SubElement(parameters, 'easting')
+        northing = ElementTree.SubElement(parameters, 'northing')
+        pixelSizeX = ElementTree.SubElement(parameters, 'pixelSizeX')
+        pixelSizeY = ElementTree.SubElement(parameters, 'pixelSizeY')
+        width = ElementTree.SubElement(parameters, 'width')
+        height = ElementTree.SubElement(parameters, 'height')
+        orthorectify = ElementTree.SubElement(parameters, 'orthorectify')
+        noDataValue = ElementTree.SubElement(parameters, 'noDataValue')
+        includeTiePointGrids = ElementTree.SubElement(parameters, 'includeTiePointGrids')
+        addDeltaBands = ElementTree.SubElement(parameters, 'addDeltaBands')
     # specify Reproject elements
         version.text = '1.0'
         op.text = 'Reproject'
@@ -65,26 +64,26 @@ def gpt_xml(operator, product_parameters, xml_path):
     # create and specify general Idepix elements
     if operator.startswith('Idepix'):
         graph.set('id', 'idepix')
-        version = ET.SubElement(graph, 'version')
-        idepix_node = ET.SubElement(graph, 'node', id='idepixNode')
-        idepix_op = ET.SubElement(idepix_node, 'operator')
-        sources = ET.SubElement(idepix_node, 'sources')
-        sourceProduct = ET.SubElement(sources, 'sourceProduct')
-        parameters = ET.SubElement(idepix_node, 'parameters')
-        computeCloudBuffer = ET.SubElement(parameters, 'computeCloudBuffer')
-        cloudBufferWidth = ET.SubElement(parameters, 'cloudBufferWidth')
+        version = ElementTree.SubElement(graph, 'version')
+        idepix_node = ElementTree.SubElement(graph, 'node', id='idepixNode')
+        idepix_op = ElementTree.SubElement(idepix_node, 'operator')
+        sources = ElementTree.SubElement(idepix_node, 'sources')
+        sourceProduct = ElementTree.SubElement(sources, 'sourceProduct')
+        parameters = ElementTree.SubElement(idepix_node, 'parameters')
+        computeCloudBuffer = ElementTree.SubElement(parameters, 'computeCloudBuffer')
+        cloudBufferWidth = ElementTree.SubElement(parameters, 'cloudBufferWidth')
         version.text = '1.0'
         idepix_op.text = operator
         sourceProduct.text = '${sourceProduct}'
         computeCloudBuffer.text = 'true'
     # create and specify S2 Idepix specific elements
         if 'Sentinel2' in operator:
-            copyToaReflectances = ET.SubElement(parameters, 'copyToaReflectances')
-            copyFeatureValues = ET.SubElement(parameters, 'copyFeatureValues')
-            computeMountainShadow = ET.SubElement(parameters, 'computeMountainShadow')
-            computeCloudShadow = ET.SubElement(parameters, 'computeCloudShadow')
-            computeCloudBufferForCloudAmbiguous = ET.SubElement(parameters, 'computeCloudBufferForCloudAmbiguous')
-            demName = ET.SubElement(parameters, 'demName')
+            copyToaReflectances = ElementTree.SubElement(parameters, 'copyToaReflectances')
+            copyFeatureValues = ElementTree.SubElement(parameters, 'copyFeatureValues')
+            computeMountainShadow = ElementTree.SubElement(parameters, 'computeMountainShadow')
+            computeCloudShadow = ElementTree.SubElement(parameters, 'computeCloudShadow')
+            computeCloudBufferForCloudAmbiguous = ElementTree.SubElement(parameters, 'computeCloudBufferForCloudAmbiguous')
+            demName = ElementTree.SubElement(parameters, 'demName')
             copyToaReflectances.text = 'true'
             copyFeatureValues.text = 'false'
             computeMountainShadow.text = 'true'
@@ -96,10 +95,10 @@ def gpt_xml(operator, product_parameters, xml_path):
             cloudBufferWidth.text = '5'
     # create and specify S2 Idepix specific elements
         elif 'Sentinel3' in operator:
-            radianceBandsToCopy = ET.SubElement(parameters, 'radianceBandsToCopy')
-            reflBandsToCopy = ET.SubElement(parameters, 'reflBandsToCopy')
-            outputSchillerNNValue = ET.SubElement(parameters, 'outputSchillerNNValue')
-            useSrtmLandWaterMask = ET.SubElement(parameters, 'useSrtmLandWaterMask')
+            radianceBandsToCopy = ElementTree.SubElement(parameters, 'radianceBandsToCopy')
+            reflBandsToCopy = ElementTree.SubElement(parameters, 'reflBandsToCopy')
+            outputSchillerNNValue = ElementTree.SubElement(parameters, 'outputSchillerNNValue')
+            useSrtmLandWaterMask = ElementTree.SubElement(parameters, 'useSrtmLandWaterMask')
             radianceBandsToCopy.text = 'Oa01_radiance,Oa02_radiance,Oa03_radiance,Oa04_radiance,Oa05_radiance,' \
                                        'Oa06_radiance,Oa07_radiance,Oa08_radiance,Oa09_radiance,Oa10_radiance,' \
                                        'Oa11_radiance,Oa12_radiance,Oa13_radiance,Oa14_radiance,Oa15_radiance,' \
@@ -120,40 +119,40 @@ def gpt_xml(operator, product_parameters, xml_path):
     # create C2RCC elements
     if operator.startswith('c2rcc'):
         graph.set('id', 'c2rcc')
-        version = ET.SubElement(graph, 'version')
-        c2rcc_node = ET.SubElement(graph, 'node', id='c2rccNode')
-        c2rcc_op = ET.SubElement(c2rcc_node, 'operator')
-        sources = ET.SubElement(c2rcc_node, 'sources')
-        sourceProduct = ET.SubElement(sources, 'sourceProduct')
-        parameters = ET.SubElement(c2rcc_node, 'parameters')
-        validPixelExpression = ET.SubElement(parameters, 'validPixelExpression')
-        salinity = ET.SubElement(parameters, 'salinity')
-        temperature = ET.SubElement(parameters, 'temperature')
-        ozone = ET.SubElement(parameters, 'ozone')
-        press = ET.SubElement(parameters, 'press')
-        TSMfakBpart = ET.SubElement(parameters, 'TSMfakBpart')
-        TSMfakBwit = ET.SubElement(parameters, 'TSMfakBwit')
-        CHLexp = ET.SubElement(parameters, 'CHLexp')
-        CHLfak = ET.SubElement(parameters, 'CHLfak')
-        thresholdRtosaOOS = ET.SubElement(parameters, 'thresholdRtosaOOS')
-        thresholdAcReflecOos = ET.SubElement(parameters, 'thresholdAcReflecOos')
-        thresholdCloudTDown865 = ET.SubElement(parameters, 'thresholdCloudTDown865')
-        alternativeNNPath = ET.SubElement(parameters, 'alternativeNNPath')
-        outputAsRrs = ET.SubElement(parameters, 'outputAsRrs')
-        deriveRwFromPathAndTransmittance = ET.SubElement(parameters, 'deriveRwFromPathAndTransmittance')
-        if not 'msi' in operator:
-            useEcmwfAuxData = ET.SubElement(parameters, 'useEcmwfAuxData')
-        outputRtoa = ET.SubElement(parameters, 'outputRtoa')
-        outputRtosaGc = ET.SubElement(parameters, 'outputRtosaGc')
-        outputRtosaGcAann = ET.SubElement(parameters, 'outputRtosaGcAann')
-        outputRpath = ET.SubElement(parameters, 'outputRpath')
-        outputTdown = ET.SubElement(parameters, 'outputTdown')
-        outputTup = ET.SubElement(parameters, 'outputTup')
-        outputAcReflectance = ET.SubElement(parameters, 'outputAcReflectance')
-        outputRhown = ET.SubElement(parameters, 'outputRhown')
-        outputOos = ET.SubElement(parameters, 'outputOos')
-        outputKd = ET.SubElement(parameters, 'outputKd')
-        outputUncertainties = ET.SubElement(parameters, 'outputUncertainties')
+        version = ElementTree.SubElement(graph, 'version')
+        c2rcc_node = ElementTree.SubElement(graph, 'node', id='c2rccNode')
+        c2rcc_op = ElementTree.SubElement(c2rcc_node, 'operator')
+        sources = ElementTree.SubElement(c2rcc_node, 'sources')
+        sourceProduct = ElementTree.SubElement(sources, 'sourceProduct')
+        parameters = ElementTree.SubElement(c2rcc_node, 'parameters')
+        validPixelExpression = ElementTree.SubElement(parameters, 'validPixelExpression')
+        salinity = ElementTree.SubElement(parameters, 'salinity')
+        temperature = ElementTree.SubElement(parameters, 'temperature')
+        ozone = ElementTree.SubElement(parameters, 'ozone')
+        press = ElementTree.SubElement(parameters, 'press')
+        TSMfakBpart = ElementTree.SubElement(parameters, 'TSMfakBpart')
+        TSMfakBwit = ElementTree.SubElement(parameters, 'TSMfakBwit')
+        CHLexp = ElementTree.SubElement(parameters, 'CHLexp')
+        CHLfak = ElementTree.SubElement(parameters, 'CHLfak')
+        thresholdRtosaOOS = ElementTree.SubElement(parameters, 'thresholdRtosaOOS')
+        thresholdAcReflecOos = ElementTree.SubElement(parameters, 'thresholdAcReflecOos')
+        thresholdCloudTDown865 = ElementTree.SubElement(parameters, 'thresholdCloudTDown865')
+        alternativeNNPath = ElementTree.SubElement(parameters, 'alternativeNNPath')
+        outputAsRrs = ElementTree.SubElement(parameters, 'outputAsRrs')
+        deriveRwFromPathAndTransmittance = ElementTree.SubElement(parameters, 'deriveRwFromPathAndTransmittance')
+        if 'msi' not in operator:
+            useEcmwfAuxData = ElementTree.SubElement(parameters, 'useEcmwfAuxData')
+        outputRtoa = ElementTree.SubElement(parameters, 'outputRtoa')
+        outputRtosaGc = ElementTree.SubElement(parameters, 'outputRtosaGc')
+        outputRtosaGcAann = ElementTree.SubElement(parameters, 'outputRtosaGcAann')
+        outputRpath = ElementTree.SubElement(parameters, 'outputRpath')
+        outputTdown = ElementTree.SubElement(parameters, 'outputTdown')
+        outputTup = ElementTree.SubElement(parameters, 'outputTup')
+        outputAcReflectance = ElementTree.SubElement(parameters, 'outputAcReflectance')
+        outputRhown = ElementTree.SubElement(parameters, 'outputRhown')
+        outputOos = ElementTree.SubElement(parameters, 'outputOos')
+        outputKd = ElementTree.SubElement(parameters, 'outputKd')
+        outputUncertainties = ElementTree.SubElement(parameters, 'outputUncertainties')
         # specify C2RCC elements
         version.text = '1.0'
         c2rcc_op.text = operator
@@ -164,7 +163,7 @@ def gpt_xml(operator, product_parameters, xml_path):
         ozone.text = '330.0'        # str(product_parameters.get('ozone'))
         press.text = '1000.0'       # str(product_parameters.get('press'))
         TSMfakBpart.text = '1.72'
-        TSMfakBwit.text= '3.1'
+        TSMfakBwit.text = '3.1'
         CHLexp.text = '1.04'
         CHLfak.text = '21.0'
         thresholdRtosaOOS.text = '0.05'
@@ -173,7 +172,7 @@ def gpt_xml(operator, product_parameters, xml_path):
         alternativeNNPath.text = product_parameters.get('alternativeNNPath')
         outputAsRrs.text = 'false'
         deriveRwFromPathAndTransmittance.text = 'false'
-        if not 'msi' in operator:
+        if 'msi' not in operator:
             useEcmwfAuxData.text = 'true'
         outputRtoa.text = 'true'
         outputRtosaGc.text = 'false'
@@ -188,13 +187,13 @@ def gpt_xml(operator, product_parameters, xml_path):
         outputUncertainties.text = 'true'
 
     # create NetCDF writer elements
-    write_node = ET.SubElement(graph, 'node', id='writeNode')
-    write_op = ET.SubElement(write_node, 'operator')
-    write_sources = ET.SubElement(write_node, 'sources')
-    write_source = ET.SubElement(write_sources, 'source')
-    write_parameters = ET.SubElement(write_node, 'parameters')
-    file = ET.SubElement(write_parameters, 'file')
-    formatName = ET.SubElement(write_parameters, 'formatName')
+    write_node = ElementTree.SubElement(graph, 'node', id='writeNode')
+    write_op = ElementTree.SubElement(write_node, 'operator')
+    write_sources = ElementTree.SubElement(write_node, 'sources')
+    write_source = ElementTree.SubElement(write_sources, 'source')
+    write_parameters = ElementTree.SubElement(write_node, 'parameters')
+    file = ElementTree.SubElement(write_parameters, 'file')
+    formatName = ElementTree.SubElement(write_parameters, 'formatName')
 
     # specify NetCDF writer elements
     write_op.text = 'Write'
@@ -208,7 +207,7 @@ def gpt_xml(operator, product_parameters, xml_path):
     formatName.text = 'NetCDF-BEAM'
 
     xml = open(xml_path, 'wb')
-    tree = ET.ElementTree(graph)
+    tree = ElementTree.ElementTree(graph)
     tree.write(xml)
     xml.close()
 
@@ -219,7 +218,9 @@ def open_wkt(wkt):
     return wkt
 
 
-def  list_xml_scene_dir(scenesdir, sensor='OLCI', file_list=[]):
+def list_xml_scene_dir(scenesdir, sensor='OLCI', file_list=None):
+    if file_list is None:
+        file_list = []
     if sensor.upper() == 'OLCI':
         if not file_list:
             prod_paths = [os.path.join(scenesdir, prod_name) for prod_name in os.listdir(scenesdir) if 'S3' in prod_name]
@@ -232,7 +233,7 @@ def  list_xml_scene_dir(scenesdir, sensor='OLCI', file_list=[]):
         xmlfs = []
         for s in sd:
             temp = [os.path.join(s, cd) for cd in os.listdir(s) if 'xml' in cd]
-            if temp == []:
+            if not temp:
                 print('no xml found in ' + s)
             else:
                 xmlfs.append(temp[0])
@@ -249,6 +250,8 @@ def  list_xml_scene_dir(scenesdir, sensor='OLCI', file_list=[]):
         for s in sd:
             temp = [os.path.join(s, cd) for cd in os.listdir(s) if 'MSI' in cd and 'xml' in cd]
             xmlfs.append(temp[0])
+    else:
+        raise RuntimeError("Invalid sensor: {}".format(sensor))
     return xmlfs
 
 
@@ -258,10 +261,10 @@ def open_products(product_directory):
 
 
 def create_polymer_product(polymer_out, original_sentinel_file):
-    product = ProductIO.readProduct(original_sentinel_file)
+    ProductIO.readProduct(original_sentinel_file)
     w, h, b = polymer_out.Rw.shape
     print(w, h, b)
-    
+
 
 def get_S3_products_list(rootdir):
     product_dirs = [os.path.join(rootdir, f) for f in os.listdir(rootdir) if 'S3' in f]
@@ -290,7 +293,7 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     sensor = [re.findall("'([^']*)'", x) for x in params_list if 'sensor' in x.lower()][0][0]
     if 'MSI' in sensor.upper():
         satnumber = 2
-        sensorname = '' # Used to call the Idepix operator
+        sensorname = ''  # Used to call the Idepix operator
         resolution = [re.findall("'([^']*)'", x) for x in params_list if 'resolution=' in x][0][0]
         mph_bands = ''
         mph_max = ''
@@ -303,8 +306,7 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
         mph_max = [re.findall("'([^']*)'", x) for x in params_list if 'mph_maxbands=' in x.lower()]
         mph_max = [float(e.strip()) for e in mph_max[0][0].split(',')]
     else:
-        print('No valid sensor detected in the parameter file.' + \
-              ' Valid options are either <MSI> or <OLCI>')
+        print('No valid sensor detected in the parameter file. Valid options are either <MSI> or <OLCI>')
         sys.exit()
     region = [re.findall("'([^']*)'", x) for x in params_list if 'region=' in x.lower()][0][0]
     tile = [re.findall("'([^']*)'", x) for x in params_list if 'tile=' in x.lower()]
@@ -336,8 +338,8 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
     if verbose:
         print('Job name: ' + name)
         print('Sensor: ' + sensor.upper())
-        print('Start: '+ start)
-        print('End: '+ end)
+        print('Start: ' + start)
+        print('End: ' + end)
     
     params = {'name': name, 'sensor': sensor.upper(), 'region': region.upper(), 'tile':
               tile, 'start': start, 'end': end, 'satnumber': satnumber, 'resolution': resolution,
@@ -349,3 +351,9 @@ def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
               'polymer max': polymer_max, 'mph max': mph_max}
     return params
 
+
+def load_properties(filepath):
+    config = ConfigParser(allow_no_value=True)
+    with open(filepath) as f:
+        config.read_string(f.read())
+    return config["Default"]
