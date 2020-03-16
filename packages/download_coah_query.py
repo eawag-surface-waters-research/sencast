@@ -74,7 +74,6 @@ def download(url, usr, pwd, count):
         zip_file.extractall(prod_name.split('.')[0])
     os.remove(dl_name + '.zip')
     print("Product no. {} downloaded".format(count), end="\r")
-    return
 
 
 def query_dl_coah(params, outdir):
@@ -179,7 +178,7 @@ def query_dl_coah(params, outdir):
             os.remove(url_list)
             return
         else:
-            print('\ndownload complete')
+            print('\nDownload complete')
             os.remove(url_list)
     else:
         print('All products already downloaded, skipping...')
