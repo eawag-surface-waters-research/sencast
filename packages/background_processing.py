@@ -24,7 +24,6 @@ from polymer.gsw import GSW
 from polymer.level2 import default_datasets
 
 
-
 def background_processing(myproduct, params, dir_dict):
     FileReader = jpy.get_type('java.io.FileReader')
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
@@ -52,9 +51,9 @@ def background_processing(myproduct, params, dir_dict):
         l1rname = 'reproj_' + l1name + '.nc'
         l1pname = 'L1P_' + l1rname
         l1mname = 'merged_' + l1pname
-        l1_path = dir_dict['L1 dir'] + '/' + l1name.split('.')[0] + '/' + l1name
+        l1_path = os.path.join(dir_dict['L1 dir'], l1name.split('.')[0], l1name)
         l1r_path = './' + l1rname
-        l1p_path = dir_dict['L1P dir'] + '/' + l1pname
+        l1p_path = os.path.join(dir_dict['L1P dir'], l1pname)
         l1m_path = './' + l1mname
         run_process = [False, False, False, False]
         if os.path.isfile(l1p_path):
@@ -63,7 +62,7 @@ def background_processing(myproduct, params, dir_dict):
             run_process[0] = True
         if '1' in params['pcombo']:
             l2c2rname = 'L2C2R_' + l1pname
-            l2c2r_path = dir_dict['c2rcc dir'] + '/' + l2c2rname
+            l2c2r_path = os.path.join(dir_dict['c2rcc dir'], l2c2rname)
             if os.path.isfile(l2c2r_path):
                 print('\nSkipping C2RCC: ' + l2c2rname + ' already exists.')
             else:
@@ -72,8 +71,8 @@ def background_processing(myproduct, params, dir_dict):
             polytempname = 'L2POLY_' + l1name + '.nc'
             polyname = 'L2POLY_' + l1pname
             # Somehow polymer doesn't seem to write to other places than the package location
-            polytemp_path = path_config.polymer_path + '/' + polytempname
-            poly_path = dir_dict['polymer dir'] + '/' + polyname
+            polytemp_path = os.path.join(path_config.polymer_path, polytempname)
+            poly_path = os.path.join(dir_dict['polymer dir'], polyname)
             if os.path.isfile(poly_path):
                 print('\nSkipping Polymer: ' + polyname + ' already exists.')
             else:
