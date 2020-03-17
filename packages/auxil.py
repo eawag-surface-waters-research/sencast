@@ -76,8 +76,9 @@ def gpt_xml(operator, product_parameters, xml_path):
         idepix_op.text = operator
         sourceProduct.text = '${sourceProduct}'
         computeCloudBuffer.text = 'true'
-    # create and specify S2 Idepix specific elements
-        if 'Sentinel2' in operator:
+
+        # create and specify S2 Idepix specific elements (first part of condition only for backward compatibility)
+        if "Sentinel2" in operator or "S2" in operator:
             copyToaReflectances = ElementTree.SubElement(parameters, 'copyToaReflectances')
             copyFeatureValues = ElementTree.SubElement(parameters, 'copyFeatureValues')
             computeMountainShadow = ElementTree.SubElement(parameters, 'computeMountainShadow')
@@ -93,8 +94,9 @@ def gpt_xml(operator, product_parameters, xml_path):
             computeCloudBufferForCloudAmbiguous.text = 'true'
             demName.text = 'SRTM 3Sec'
             cloudBufferWidth.text = '5'
-    # create and specify S2 Idepix specific elements
-        elif 'Sentinel3' in operator:
+
+        # create and specify S2 Idepix specific elements (first part of condition only for backward compatibility)
+        elif "Sentinel3" in operator or "Olci" in operator:
             radianceBandsToCopy = ElementTree.SubElement(parameters, 'radianceBandsToCopy')
             reflBandsToCopy = ElementTree.SubElement(parameters, 'reflBandsToCopy')
             outputSchillerNNValue = ElementTree.SubElement(parameters, 'outputSchillerNNValue')

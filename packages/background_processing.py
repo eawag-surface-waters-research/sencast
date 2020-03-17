@@ -109,9 +109,11 @@ def background_processing(myproduct, params, dir_dict):
     # ---------------------- Idepix ----------------------#
         if run_process[0]:
             if params['sensor'].lower() == 'olci':
-                op_str = 'Idepix.Sentinel3.Olci'
+                op_str = 'Idepix.Olci'
             elif params['sensor'].lower() == 'msi':
-                op_str = 'Idepix.Sentinel2'
+                op_str = 'Idepix.S2'
+            else:
+                raise RuntimeError("Unknown Sensor: {}".format(params['sensor']))
             xml_path = './idepix_temp.xml'
             parameters = MyProduct.HashMap()
             gpt_xml(operator=op_str, product_parameters=parameters, xml_path=xml_path)
@@ -127,13 +129,15 @@ def background_processing(myproduct, params, dir_dict):
             if params['sensor'].upper() == 'MSI':
                 rgb_bands = params['True color']
                 fc_bands = params['False color']
-            if params['sensor'].upper() == 'OLCI':
+            elif params['sensor'].upper() == 'OLCI':
                 rgb_bands = [bn.replace('radiance', 'reflectance') for bn in params['True color']]
                 fc_bands = [bn.replace('radiance', 'reflectance') for bn in params['False color']]
+            else:
+                raise RuntimeError("Unknown Sensor: {}".format(params['sensor']))
             l1p_product = ProductIO.readProduct(l1p_path)
             pname = l1p_product.getName()
             tcname = os.path.join(dir_dict['qlrgb dir'], pname.split('.')[0] + '_rgb.png')
-            fcname = os.path.join(dir_dict['qlfc dir'],pname.split('.')[0] + '_falsecolor.png')
+            fcname = os.path.join(dir_dict['qlfc dir'], pname.split('.')[0] + '_falsecolor.png')
             plot_pic(l1p_product, tcname, rgb_layers=rgb_bands, grid=True, max_val=0.16,
                      perimeter_file=params['wkt file'])
             plot_pic(l1p_product, fcname, rgb_layers=fc_bands, grid=True, max_val=0.3,
@@ -252,13 +256,10 @@ def background_processing(myproduct, params, dir_dict):
                 os.remove(polytemp_path)
                 os.chdir(cwd)
 
-
-
-
-
     deriproduct = oriproduct
     pmode = 3
-    #------------------ MPH ------------------------#
+
+    # ------------------ MPH ------------------------ #
     if '3' in params['pcombo'] and params['sensor'].upper() == 'OLCI':
         if os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_' + deriproduct.products[0].getName().split('.')[0] + '.nc'))\
                 or os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_reproj_' + deriproduct.products[0].getName().split('.')[0] + '.nc')):
