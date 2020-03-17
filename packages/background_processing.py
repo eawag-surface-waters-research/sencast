@@ -85,8 +85,8 @@ def background_processing(myproduct, params, dir_dict):
             else:
                 run_process[3] = True
 
-        # ----------------- Reprojecting -----------------#
-    # This creates always the same raster for a given set of wkt, sensor and resolution
+        # ----------------- Reprojecting ----------------- #
+        # This creates always the same raster for a given set of wkt, sensor and resolution
         if any(run_process):
             op_str = 'Reproject'
             xml_path = './reproj_temp.xml'
@@ -106,7 +106,7 @@ def background_processing(myproduct, params, dir_dict):
             subprocess.call([path_config.gpt_path, xml_path, '-SsourceProduct=' + l1_path, '-PtargetProduct=' + l1r_path])
             os.remove('./reproj_temp.xml')
 
-    # ---------------------- Idepix ----------------------#
+        # ---------------------- Idepix ---------------------- #
         if run_process[0]:
             if params['sensor'].lower() == 'olci':
                 op_str = 'Idepix.Olci'
@@ -123,7 +123,7 @@ def background_processing(myproduct, params, dir_dict):
             subprocess.call([path_config.gpt_path, xml_path, '-SsourceProduct=' + l1r_path, '-PtargetProduct=' + l1p_path])
             os.remove('./idepix_temp.xml')
 
-    # --------------------- Quicklooks --------------------#
+            # --------------------- Quicklooks -------------------- #
             print()
             print('Saving quicklooks to disk...')
             if params['sensor'].upper() == 'MSI':
@@ -143,8 +143,8 @@ def background_processing(myproduct, params, dir_dict):
             plot_pic(l1p_product, fcname, rgb_layers=fc_bands, grid=True, max_val=0.3,
                      perimeter_file=params['wkt file'])
 
-    # -------------------- C2RCC --------------------------#
-    # Idepix and Reproj output must be merged first
+        # -------------------- C2RCC -------------------------- #
+        # Idepix and Reproj output must be merged first
         if run_process[1]:
             print()
             print('Merging Reprojected L1 and Idepix products...')

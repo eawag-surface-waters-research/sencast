@@ -40,7 +40,8 @@ def gpt_xml(operator, product_parameters, xml_path):
         noDataValue = ElementTree.SubElement(parameters, 'noDataValue')
         includeTiePointGrids = ElementTree.SubElement(parameters, 'includeTiePointGrids')
         addDeltaBands = ElementTree.SubElement(parameters, 'addDeltaBands')
-    # specify Reproject elements
+
+        # specify Reproject elements
         version.text = '1.0'
         op.text = 'Reproject'
         sourceProduct.text = '${sourceProduct}'
