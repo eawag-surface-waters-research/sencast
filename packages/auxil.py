@@ -145,6 +145,7 @@ def gpt_xml(operator, product_parameters, xml_path):
         deriveRwFromPathAndTransmittance = ElementTree.SubElement(parameters, 'deriveRwFromPathAndTransmittance')
         if 'msi' not in operator:
             useEcmwfAuxData = ElementTree.SubElement(parameters, 'useEcmwfAuxData')
+            useEcmwfAuxData.text = 'true'
         outputRtoa = ElementTree.SubElement(parameters, 'outputRtoa')
         outputRtosaGc = ElementTree.SubElement(parameters, 'outputRtosaGc')
         outputRtosaGcAann = ElementTree.SubElement(parameters, 'outputRtosaGcAann')
@@ -175,8 +176,6 @@ def gpt_xml(operator, product_parameters, xml_path):
         alternativeNNPath.text = product_parameters.get('alternativeNNPath')
         outputAsRrs.text = 'false'
         deriveRwFromPathAndTransmittance.text = 'false'
-        if 'msi' not in operator:
-            useEcmwfAuxData.text = 'true'
         outputRtoa.text = 'true'
         outputRtosaGc.text = 'false'
         outputRtosaGcAann.text = 'false'
@@ -269,12 +268,12 @@ def create_polymer_product(polymer_out, original_sentinel_file):
     print(w, h, b)
 
 
-def get_S3_products_list(rootdir):
+def get_s3_products_list(rootdir):
     product_dirs = [os.path.join(rootdir, f) for f in os.listdir(rootdir) if 'S3' in f]
     products = []
     for product_dir in product_dirs:
         scene_dir = [os.path.join(product_dir, f) for f in os.listdir(product_dir) if 'SEN3' in f]
-        scene_date = re.search('\d{8}T\d{6}', scene_dir[0]).group(0)
+        scene_date = re.search(r'\d{8}T\d{6}', scene_dir[0]).group(0)
         xml_file = [os.path.join(scene_dir[0], f) for f in os.listdir(scene_dir[0]) if 'xml' in f]
         # Read product
         product = ProductIO.readProduct(xml_file[0])
