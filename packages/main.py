@@ -85,7 +85,7 @@ def hindcast(params_filename):
 
     # Idepix
         dir_dict['L1P dir'] = os.path.join(dir_dict['proj dir'], 'L1P_' +
-                                           os.path.basename(params['wkt file']).split('.')[0].decode())
+                                           str(os.path.basename(params['wkt file']).split('.')[0]))
         if not os.path.isdir(dir_dict['L1P dir']):
             os.mkdir(dir_dict['L1P dir'])
 
