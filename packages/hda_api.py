@@ -119,7 +119,7 @@ def get_datarequest_results(access_token, job_id):
             datarequest_result_address_paged = response_dict['nextPage']
         else:
             raise RuntimeError("Unexpected response {}".format(response.text))
-    return uris, filenames, response_dict['totItems']
+    return uris, filenames
 
 
 def post_dataorder(access_token, job_id, uri):

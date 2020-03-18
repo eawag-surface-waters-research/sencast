@@ -8,9 +8,9 @@ from packages import hda_api
 
 
 def query_dl_hda(params, outdir, max_threads=2):
-    job_id, uris, filenames, numberOfResults = find_products_to_download(params)
+    job_id, uris, filenames = find_products_to_download(params)
 
-    if numberOfResults == 0:
+    if not uris:
         print("No products found.")
         return
 
@@ -80,9 +80,9 @@ def find_products_to_download(params):
     hda_api.wait_for_datarequest_to_complete(access_token, job_id)
 
     print("Step-5")
-    uris, filenames, numberOfResults = hda_api.get_datarequest_results(access_token, job_id)
+    uris, filenames = hda_api.get_datarequest_results(access_token, job_id)
 
-    return job_id, uris, filenames, numberOfResults
+    return job_id, uris, filenames
 
 
 def do_download(access_token, job_id, uri, filename):
