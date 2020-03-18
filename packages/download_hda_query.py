@@ -7,39 +7,42 @@ from packages.auxil import list_xml_scene_dir
 from packages import hda_api
 
 
-def query_dl_hda(params, outdir, max_threads=2):
+def query_dl_hda(params, outdir, max_parallel_downloads=2):
     job_id, uris, filenames = find_products_to_download(params)
 
     if not uris:
         print("No products found.")
         return
 
-    # Check if one of the files already downloaded
-    uris_to_process = []
-    filenames_to_process = []
-    for i in range(len(filenames)):
-        filename = filenames[i]
+    # Only download files which have not been downloaded yet
+    uris_to_download, filenames_to_download = [], []
+    for uri, filename in zip(uris, filenames):
         if filename.split('.')[0] not in os.listdir(outdir):
-            uris_to_process.append(uris[i])
-            filenames_to_process.append(filename)
+            uris_to_download.append(uri)
+            filenames_to_download.append(filename)
 
-    if len(uris_to_process) == 0:
+    if not uris_to_download:
         print("All products already downloaded, skipping...")
         return
 
     # Spawn threads for downloads
-    print("Downloading {} product(s)...".format(len(uris_to_process)))
+    print("Downloading {} product(s)...".format(len(uris_to_download)))
     access_token = hda_api.get_access_token(params['username'], params['password'])
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as ex:
-        for i in range(len(uris_to_process)):
-            uri = uris_to_process[i]
-            filename = filenames_to_process[i]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_parallel_downloads) as ex:
+        for uri, filename in zip(uris_to_download, filenames_to_download):
             ex.submit(do_download, access_token, job_id, uri, filename)
-    print("Download complete.")
+
+    # Check if products were actually dowloaded:
+    dirs_of_outdir = os.listdir(outdir)
+    for filename in filenames_to_download:
+        if filename not in dirs_of_outdir:
+            print("\nDownload(s) failed, another user might be using COAH services with the same credentials. " +
+                  "Either wait for the other user to finish their job or change the credentials in the parameter file.")
+            return
+    print("\nDownload(s) complete!")
 
     # Read products
-    xmlf = list_xml_scene_dir(outdir, sensor=params['sensor'], file_list=filenames)
-    return xmlf
+    return list_xml_scene_dir(outdir, sensor=params['sensor'], file_list=filenames)
 
 
 def find_products_to_download(params):
