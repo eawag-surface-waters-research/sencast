@@ -80,7 +80,7 @@ def find_products_to_download(params):
     hda_api.wait_for_datarequest_to_complete(access_token, job_id)
 
     print("Step-5")
-    filenames, uris, numberOfResults = hda_api.get_datarequest_results(access_token, job_id)
+    uris, filenames, numberOfResults = hda_api.get_datarequest_results(access_token, job_id)
 
     return job_id, uris, filenames, numberOfResults
 
