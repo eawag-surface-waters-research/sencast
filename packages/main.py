@@ -49,7 +49,7 @@ def hindcast(params_filename):
     # *********************************************************
     if params['API'] == 'HDA':
         print('HDA query...')
-        xmlfs = query_dl_hda(params, dir_dict['L1 dir'], max_threads=4)
+        xmlfs = query_dl_hda(params, dir_dict['L1 dir'], max_parallel_downloads=4)
         print('HDA query completed.')
     elif params['API'] == 'COAH':
         print('COAH query...')
