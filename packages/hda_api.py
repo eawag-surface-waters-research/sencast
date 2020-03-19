@@ -158,10 +158,12 @@ def dataorder_download(access_token, order_id, filename):
     print("Downloading data from {}".format(dataorder_download_address.format(order_id)))
     headers = {'authorization': access_token}
     response = requests.get(dataorder_download_address.format(order_id), headers=headers, stream=True)
-    with open(filename + '.zip', 'wb') as down_stream:
-        for chunk in response.iter_content(chunk_size=65536):
-            down_stream.write(chunk)
-    with ZipFile(filename + '.zip', 'r') as zip_file:
-        prod_name = zip_file.namelist()[0]
-        zip_file.extractall(prod_name.split('.')[0])
-    os.remove(filename + '.zip')
+    if response.status_code == codes.OK:
+        with open(filename + '.zip', 'wb') as down_stream:
+            for chunk in response.iter_content(chunk_size=65536):
+                down_stream.write(chunk)
+        with ZipFile(filename + '.zip', 'r') as zip_file:
+            zip_file.extractall(os.path.dirname(filename))
+        os.remove(filename + '.zip')
+    else:
+        print("Unexpected response on download request: {}".format(response.text))

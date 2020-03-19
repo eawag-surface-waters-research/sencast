@@ -2,67 +2,29 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
-import concurrent.futures
-import requests
-from requests.auth import HTTPBasicAuth
 
-from packages.auxil import list_xml_scene_dir
+from threading import Semaphore, Thread
+
 from packages import coah_api
-from zipfile import ZipFile
 
 
-def download(url, usr, pwd, count):
-    sys.stdout.write("\033[K")
-    dl_name = url.split("'")[1]
+def start_download_threads(params, outdir, max_parallel_downloads=2):
+    uuids, product_names = find_products_to_download(params)
+    print("Found {} product(s)".format(len(uuids)))
 
-    response = requests.get(url, auth=HTTPBasicAuth(usr, pwd), stream=True)
-    with open(dl_name + '.zip', 'wb') as down_stream:
-        for chunk in response.iter_content(chunk_size=65536):
-            down_stream.write(chunk)
-    with ZipFile(dl_name + '.zip', 'r') as zip_file:
-        prod_name = zip_file.namelist()[0]
-        zip_file.extractall(prod_name.split('.')[0])
-    os.remove(dl_name + '.zip')
-    print("Product no. {} downloaded".format(count), end="\r")
-
-
-def query_dl_coah(params, outdir, max_parallel_downloads=2):
-    uuids, filenames = find_products_to_download(params)
-
-    if not uuids:
-        print("No products found.")
-        return
-
-    # Only download files which have not been downloaded yet
-    uuids_to_download, filenames_to_download = [], []
-    for uuid, filename in zip(uuids, filenames):
-        if filename.split('.')[0] not in os.listdir(outdir):
-            uuids_to_download.append(uuid)
-            filenames_to_download.append(filename)
-
-    if not uuids_to_download:
-        print("All products already downloaded, skipping...")
-        return
-
-    # Spawn threads for downloads
-    print("Downloading {} product(s)...".format(len(uuids_to_download)))
+    # Spawn download threads for products which are not yet available (locally)
+    product_paths_available, product_paths_to_download = [], []
+    semaphore, download_threads = Semaphore(max_parallel_downloads), []
     basic_auth = coah_api.get_auth(params['username'], params['password'])
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_parallel_downloads) as ex:
-        for uuid, filename in zip(uuids_to_download, filenames_to_download):
-            ex.submit(do_download, basic_auth, uuid, filename)
+    for uuid, product_name in zip(uuids, product_names):
+        if os.path.exists(os.path.join(outdir, product_name)):
+            product_paths_available.append(os.path.join(outdir, product_name))
+        else:
+            product_paths_to_download.append(os.path.join(outdir, product_name))
+            download_threads.append(Thread(target=do_download, args=(basic_auth, uuid, product_paths_to_download[-1], len(download_threads) + 1, semaphore)))
+            download_threads[-1].start()
 
-    # Check if products were actually dowloaded:
-    dirs_of_outdir = os.listdir(outdir)
-    for filename in filenames_to_download:
-        if filename not in dirs_of_outdir:
-            print("\nDownload(s) failed, another user might be using COAH services with the same credentials. " +
-                  "Either wait for the other user to finish their job or change the credentials in the parameter file.")
-            return
-    print("\nDownload(s) complete!")
-
-    # Read products
-    return list_xml_scene_dir(outdir, sensor=params['sensor'], file_list=filenames)
+    return product_paths_available, product_paths_to_download, download_threads
 
 
 def find_products_to_download(params):
@@ -79,9 +41,13 @@ def find_products_to_download(params):
     query = query.format(params['sensor'].lower(), datatype, params['start'], params['end'], params['wkt'])
 
     basic_auth = coah_api.get_auth(params['username'], params['password'])
-
     return coah_api.search(basic_auth, query)
 
 
-def do_download(basic_auth, uuid, filename):
-    coah_api.download(basic_auth, uuid, filename)
+def do_download(basic_auth, uuid, product_path, count, semaphore=None):
+    if semaphore:
+        with semaphore:
+            coah_api.download(basic_auth, uuid, product_path)
+    else:
+        coah_api.download(basic_auth, uuid, product_path)
+    print("Product {} downloaded.".format(count), end="\r")

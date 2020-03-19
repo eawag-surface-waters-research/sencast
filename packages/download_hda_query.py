@@ -1,8 +1,9 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import concurrent.futures
 import os
+import concurrent.futures
+
 from packages.auxil import list_xml_scene_dir
 from packages import hda_api
 
@@ -17,7 +18,7 @@ def query_dl_hda(params, outdir, max_parallel_downloads=2):
     # Only download files which have not been downloaded yet
     uris_to_download, filenames_to_download = [], []
     for uri, filename in zip(uris, filenames):
-        if filename.split('.')[0] not in os.listdir(outdir):
+        if filename not in os.listdir(outdir):
             uris_to_download.append(uri)
             filenames_to_download.append(filename)
 
@@ -30,7 +31,7 @@ def query_dl_hda(params, outdir, max_parallel_downloads=2):
     access_token = hda_api.get_access_token(params['username'], params['password'])
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_parallel_downloads) as ex:
         for uri, filename in zip(uris_to_download, filenames_to_download):
-            ex.submit(do_download, access_token, job_id, uri, filename)
+            ex.submit(do_download, access_token, job_id, uri, os.path.join(outdir, filename))
 
     # Check if products were actually dowloaded:
     dirs_of_outdir = os.listdir(outdir)

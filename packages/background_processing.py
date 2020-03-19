@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 
+from threading import Semaphore, Thread
 from haversine import haversine
 
 from packages.MyProductc import MyProduct
@@ -15,8 +16,6 @@ from packages.product_fun import get_UL_LR_geo_ROI
 from packages.ancillary import Ancillary_NASA
 from packages.auxil import gpt_xml
 
-sys.path.append(path_config.polymer_path)
-
 from polymer.main import run_atm_corr
 from polymer.main import Level1, Level2
 from polymer.level1_msi import Level1_MSI
@@ -24,27 +23,51 @@ from polymer.gsw import GSW
 from polymer.level2 import default_datasets
 
 
-def background_processing(myproduct, params, dir_dict):
-    FileReader = jpy.get_type('java.io.FileReader')
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-    oriproduct = MyProduct(myproduct.products, myproduct.params, myproduct.path)
+def start_processing_threads(params, dir_dict, product_paths_available, product_paths_to_download, download_threads, max_parallel_processing=1):
+    processing_threads = []
+    semaphore = Semaphore(max_parallel_processing)
 
-    # ------ Initializing the output raster ---------#
-    perimeter = WKTReader().read(FileReader(params['wkt file']))
-    lats = []
-    lons = []
-    for coordinate in perimeter.getCoordinates():
-        lats.append(coordinate.y)
-        lons.append(coordinate.x)
-    x_dist = haversine((min(lats), min(lons)), (min(lats), max(lons)))
-    y_dist = haversine((min(lats), min(lons)), (max(lats), min(lons)))
-    x_pix = int(round(x_dist / (int(params['resolution'])/1000)))
-    y_pix = int(round(y_dist / (int(params['resolution'])/1000)))
-    x_pixsize = (max(lons) - min(lons)) / x_pix
-    y_pixsize = (max(lats) - min(lats)) / y_pix
+    for product_path in product_paths_available:
+        processing_threads.append(Thread(target=do_processing, args=(params, dir_dict, product_path, semaphore)))
+        processing_threads[-1].start()
 
-    # ---------------- Initialising ------------------#
-    for product in oriproduct.products:
+    for product_path, download_thread in zip(product_paths_to_download, download_threads):
+        processing_threads.append(Thread(target=do_processing, args=(params, dir_dict, product_path, semaphore, download_thread)))
+        processing_threads[-1].start()
+
+    return processing_threads
+
+
+def do_processing(params, dir_dict, product_path, semaphore, download_thread=None):
+    if download_thread:
+        download_thread.join()
+
+    with semaphore:
+        product = ProductIO.readProduct(os.path.join(product_path))
+
+        # FOR S3 MAKE SURE THE NON-DEFAULT S3TBX SETTING IS SELECTED IN THE SNAP PREFERENCES!
+        if params['sensor'] == 'OLCI' and 'PixelGeoCoding2' not in str(product.getSceneGeoCoding()):
+            sys.exit('The S3 product was read without pixelwise geocoding, please check the preference settings of the S3TBX!')
+
+        FileReader = jpy.get_type('java.io.FileReader')
+        GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
+        oriproduct = MyProduct([product], params, dir_dict['L1 dir'])
+
+        # ------ Initializing the output raster ---------#
+        perimeter = WKTReader().read(FileReader(params['wkt file']))
+        lats = []
+        lons = []
+        for coordinate in perimeter.getCoordinates():
+            lats.append(coordinate.y)
+            lons.append(coordinate.x)
+        x_dist = haversine((min(lats), min(lons)), (min(lats), max(lons)))
+        y_dist = haversine((min(lats), min(lons)), (max(lats), min(lons)))
+        x_pix = int(round(x_dist / (int(params['resolution'])/1000)))
+        y_pix = int(round(y_dist / (int(params['resolution'])/1000)))
+        x_pixsize = (max(lons) - min(lons)) / x_pix
+        y_pixsize = (max(lats) - min(lats)) / y_pix
+
+        # ---------------- Initialising ------------------#
         l1name = product.getName()
         if params['sensor'].lower() == 'msi':
             l1name = l1name + '.SAFE'
@@ -256,38 +279,58 @@ def background_processing(myproduct, params, dir_dict):
                 os.remove(polytemp_path)
                 os.chdir(cwd)
 
-    deriproduct = oriproduct
-    pmode = 3
+        deriproduct = oriproduct
+        pmode = 3
 
-    # ------------------ MPH ------------------------ #
-    if '3' in params['pcombo'] and params['sensor'].upper() == 'OLCI':
-        if os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_' + deriproduct.products[0].getName().split('.')[0] + '.nc'))\
-                or os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_reproj_' + deriproduct.products[0].getName().split('.')[0] + '.nc')):
-            print('Skipping MPH: L2MPH_L1P_' + deriproduct.products[0].getName() + '.nc' + ' already exists.')
-        else:
-            print('\nMPH...')
-            mphproduct = MyProduct(deriproduct.products, deriproduct.params, deriproduct.path)
-            mphproduct.mph()
-            for product in mphproduct.products:
-                pname = product.getName()
-                print('\nCreating quicklooks for bands: {}\n'.format(params['mph bands']))
-                # Check if parameter range is provided
-                params_range = params['mph max']
-                c = 0
-                for bn in params['mph bands']:
-                    if params_range[c] == 0:
-                        param_range = False
-                    else:
-                        param_range = [0, params_range[c]]
-                    c += 1
-                    bname = os.path.join(dir_dict[bn], pname.split('.')[0] + '_' + bn + '.png')
-                    plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True,
-                             perimeter_file=params['wkt file'], param_range=param_range)
-                    print('Plot for band {} finished.\n'.format(bn))
-            if pmode in ['2', '3']:
-                print('\nWriting L2MPH product to disk...')
-                mphproduct.write(dir_dict['mph dir'])
-                print('Writing completed.')
-            mphproduct.close()
+        # ------------------ MPH ------------------------ #
+        if '3' in params['pcombo'] and params['sensor'].upper() == 'OLCI':
+            if os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_' + deriproduct.products[0].getName() + '.nc'))\
+                    or os.path.isfile(os.path.join(dir_dict['mph dir'], 'L2MPH_reproj_' + deriproduct.products[0].getName() + '.nc')):
+                print('Skipping MPH: L2MPH_L1P_' + deriproduct.products[0].getName() + '.nc' + ' already exists.')
+            else:
+                print('\nMPH...')
+                mphproduct = MyProduct(deriproduct.products, deriproduct.params, deriproduct.path)
+                mphproduct.mph()
+                for product in mphproduct.products:
+                    pname = product.getName()
+                    print('\nCreating quicklooks for bands: {}\n'.format(params['mph bands']))
+                    # Check if parameter range is provided
+                    params_range = params['mph max']
+                    c = 0
+                    for bn in params['mph bands']:
+                        if params_range[c] == 0:
+                            param_range = False
+                        else:
+                            param_range = [0, params_range[c]]
+                        c += 1
+                        bname = os.path.join(dir_dict[bn], pname.split('.')[0] + '_' + bn + '.png')
+                        plot_map(product, bname, bn, basemap='srtm_hillshade', grid=True,
+                                 perimeter_file=params['wkt file'], param_range=param_range)
+                        print('Plot for band {} finished.\n'.format(bn))
+                if pmode in ['2', '3']:
+                    print('\nWriting L2MPH product to disk...')
+                    mphproduct.write(dir_dict['mph dir'])
+                    print('Writing completed.')
+                mphproduct.close()
 
-    oriproduct.close()
+        oriproduct.close()
+
+
+def do_reproject():
+    print()
+
+
+def do_idepix():
+    print()
+
+
+def do_c2rcc():
+    print()
+
+
+def do_polymer():
+    print()
+
+
+def do_mph():
+    print()

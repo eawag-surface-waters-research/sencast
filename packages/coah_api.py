@@ -55,9 +55,10 @@ def download(basic_auth, uuid, filename):
             for chunk in response.iter_content(chunk_size=65536):
                 down_stream.write(chunk)
         with ZipFile(filename + '.zip', 'r') as zip_file:
-            prod_name = zip_file.namelist()[0]
-            zip_file.extractall(prod_name.split('.')[0])
+            zip_file.extractall(os.path.dirname(filename))
         os.remove(filename + '.zip')
+    else:
+        print("Unexpected response on download request: {}".format(response.text))
 
 
 def prepend_ns(s):
