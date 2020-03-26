@@ -219,8 +219,6 @@ def do_processing(env, params, product_path, out_paths, semaphore, download_thre
                 print('\nMPH...')
                 mphproduct = MyProduct([ProductIO.readProduct(l1m_path)], params, os.path.dirname(l1m_path))
                 mphproduct.mph()
-                mphproduct.close()
-                os.remove(l1m_path)
                 mphproduct.products[0].setName(MPH_NAME.format(product_name).replace(".nc", ""))
                 print('\nWriting L2MPH product to disk...')
                 mphproduct.write(out_paths['mph_path'])
