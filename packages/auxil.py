@@ -314,7 +314,7 @@ def init_out_paths(out_root_path, params):
     os.makedirs(c2rcc_path, exist_ok=True)
     print("Creating C2RCC map directories")
     c2rcc_band_paths = {}
-    for band in params['C2RCC_QL']['bands'].split(","):
+    for band in params['C2RCC']['bands'].split(","):
         c2rcc_band_paths[band] = os.path.join(out_path, C2RCC_QL_OUT_DIR.format(band))
         os.makedirs(c2rcc_band_paths[band], exist_ok=True)
 
@@ -324,7 +324,7 @@ def init_out_paths(out_root_path, params):
     os.makedirs(polymer_path, exist_ok=True)
     print("Creating Polymer map directories")
     polymer_band_paths = {}
-    for band in params['POLY_QL']['bands'].split(","):
+    for band in params['POLY']['bands'].split(","):
         polymer_band_paths[band] = os.path.join(out_path, POLY_QL_OUT_DIR.format(band))
         os.makedirs(polymer_band_paths[band], exist_ok=True)
 
@@ -334,7 +334,7 @@ def init_out_paths(out_root_path, params):
     os.makedirs(mph_path, exist_ok=True)
     print("Creating MPH map directories")
     mph_band_paths = {}
-    for band in params['MPH_QL']['bands'].split(","):
+    for band in params['MPH']['bands'].split(","):
         mph_band_paths[band] = os.path.join(out_path, MPH_QL_OUT_DIR.format(band))
         os.makedirs(mph_band_paths[band], exist_ok=True)
 

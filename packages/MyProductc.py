@@ -8,7 +8,6 @@ import numpy as np
 
 from snappy import jpy, GPF, ProductIO, ProductUtils
 from datetime import datetime
-from packages.product_fun import get_corner_pixels_ROI
 
 
 class MyProduct(object):

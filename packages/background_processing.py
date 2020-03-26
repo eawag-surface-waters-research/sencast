@@ -54,8 +54,6 @@ def do_processing(env, params, product_path, out_paths, semaphore, download_thre
         if params['General']['sensor'] == 'OLCI' and 'PixelGeoCoding2' not in str(product.getSceneGeoCoding()):
             sys.exit('The S3 product was read without pixelwise geocoding, please check the preference settings of the S3TBX!')
 
-        oriproduct = MyProduct([product], params, os.path.dirname(product_path))
-
         # ---------------- Initialising ------------------#
         product_name = os.path.basename(product_path)
         gpt = env['General']['gpt_path']
@@ -132,6 +130,7 @@ def do_processing(env, params, product_path, out_paths, semaphore, download_thre
         # -------------------- C2RCC -------------------------- #
         # Idepix and Reproj output must be merged first
         if run_process[1]:
+            oriproduct = MyProduct([product], params, os.path.dirname(product_path))
             print()
             print('Merging Reprojected L1 and Idepix products...')
             subprocess.call([gpt, 'Merge', '-SmasterProduct=' + l1r_path, '-Ssource=' + l1p_path, '-t', l1m_path])
@@ -180,6 +179,7 @@ def do_processing(env, params, product_path, out_paths, semaphore, download_thre
                 auxil.gpt_xml(operator=op_str, product_parameters=parameters, xml_path=xml_path)
                 subprocess.call([gpt, xml_path, '-SsourceProduct=' + l1m_path, '-PtargetProduct=' + l2c2r_path])
                 create_c2rcc_quicklooks(wkt_file, params, out_paths, product_name)
+            oriproduct.close()
 
         # ------------------ Polymer ------------------#
         if run_process[2]:
@@ -211,29 +211,29 @@ def do_processing(env, params, product_path, out_paths, semaphore, download_thre
                 os.remove(poly_tmp_path)
                 os.chdir(cwd)
 
-        deriproduct = oriproduct
-
         # ------------------ MPH ------------------------ #
-        if '3' in params['General']['pcombo'].split(",") and sensor == 'OLCI':
+        if run_process[3] and sensor == 'OLCI':
             if os.path.isfile(os.path.join(out_paths['mph_path'], MPH_NAME.format(product_name))):
-                print('Skipping MPH: L2MPH_L1P_' + deriproduct.products[0].getName() + '.nc' + ' already exists.')
+                print('Skipping MPH: {} already exists.'.format(MPH_NAME.format(product_name)))
             else:
                 print('\nMPH...')
                 mphproduct = MyProduct([ProductIO.readProduct(l1m_path)], params, os.path.dirname(l1m_path))
                 mphproduct.mph()
-                mphproduct.products[0].setName(MPH_NAME.format(product_name))
+                mphproduct.close()
+                os.remove(l1m_path)
+                mphproduct.products[0].setName(MPH_NAME.format(product_name).replace(".nc", ""))
                 print('\nWriting L2MPH product to disk...')
                 mphproduct.write(out_paths['mph_path'])
                 print('Writing completed.')
                 mphproduct.close()
                 create_mph_quicklooks(wkt_file, params, out_paths, product_name)
 
-        oriproduct.close()
-
         if os.path.isfile(l1r_path):
             os.remove(l1r_path)
-        if os.path.isfile(l1m_path):
-            os.remove(l1m_path)
+
+        # Not working because product is locked after mph operation.. I have no idea why.
+        # if os.path.isfile(l1m_path):
+            # os.remove(l1m_path)
 
 
 def create_l1p_quicklooks(wkt_file, params, out_paths, product_name):
@@ -248,11 +248,11 @@ def create_l1p_quicklooks(wkt_file, params, out_paths, product_name):
         raise RuntimeError("Unknown Sensor: {}".format(params['General']['sensor']))
 
     product = ProductIO.readProduct(os.path.join(out_paths['idepix_path'], IDEPIX_NAME.format(product_name)))
-
     ql_path = os.path.join(out_paths['qlrgb_path'], IDEPIX_QL_NAME.format(product_name, "rgb"))
     plot_pic(product, ql_path, rgb_layers=rgb_bands, grid=True, max_val=0.16, perimeter_file=wkt_file)
     ql_path = os.path.join(out_paths['qlfc_path'], IDEPIX_QL_NAME.format(product_name, "fc"))
     plot_pic(product, ql_path, rgb_layers=fc_bands, grid=True, max_val=0.3, perimeter_file=wkt_file)
+    product.closeIO()
 
 
 def create_c2rcc_quicklooks(wkt_file, params, out_paths, product_name):
@@ -266,6 +266,7 @@ def create_c2rcc_quicklooks(wkt_file, params, out_paths, product_name):
         ql_path = os.path.join(out_paths['c2rcc_band_paths'][band], C2RCC_QL_NAME.format(product_name, band))
         plot_map(product, ql_path, band, basemap="srtm_hillshade", grid=True, perimeter_file=wkt_file, param_range=bandmax)
         print("Plot for band {} finished.".format(band))
+    product.closeIO()
 
 
 def create_poly_quicklooks(wkt_file, params, out_paths, product_name):
@@ -279,6 +280,7 @@ def create_poly_quicklooks(wkt_file, params, out_paths, product_name):
         ql_path = os.path.join(out_paths['poly_band_paths'][band], POLY_QL_NAME.format(product_name, band))
         plot_map(product, ql_path, band, basemap='srtm_hillshade', grid=True, perimeter_file=wkt_file, param_range=bandmax)
         print("Plot for band {} finished.".format(band))
+    product.closeIO()
 
 
 def create_mph_quicklooks(wkt_file, params, out_paths, product_name):
@@ -292,6 +294,7 @@ def create_mph_quicklooks(wkt_file, params, out_paths, product_name):
         ql_path = os.path.join(out_paths['mph_band_paths'][band], MPH_QL_NAME.format(product_name, band))
         plot_map(product, ql_path, band, basemap="srtm_hillshade", grid=True, perimeter_file=wkt_file, param_range=bandmax)
         print("Plot for band {} finished.".format(band))
+    product.closeIO()
 
 
 def create_reproject_parameters_from_wkt(wkt_file, resolution):
