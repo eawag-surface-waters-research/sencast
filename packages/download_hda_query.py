@@ -2,77 +2,46 @@
 # -*- coding: utf-8 -*-
 
 import os
-import concurrent.futures
 
-from packages.auxil import list_xml_scene_dir
+from threading import Semaphore, Thread
+
 from packages import hda_api
 
 
-def query_dl_hda(params, outdir, max_parallel_downloads=2):
-    job_id, uris, filenames = find_products_to_download(params)
+def start_download_threads(env, params, max_parallel_downloads=2):
+    print("Step-1")
+    access_token = hda_api.get_access_token(env['HDA']['username'], env['HDA']['password'])
 
-    if not uris:
-        print("No products found.")
-        return
+    job_id, (uris, product_names) = find_products_to_download(access_token, params['sensor'], params['start'], params['end'])
+    print("Found {} product(s)".format(len(uris)))
 
-    # Only download files which have not been downloaded yet
-    uris_to_download, filenames_to_download = [], []
-    for uri, filename in zip(uris, filenames):
-        if filename not in os.listdir(outdir):
-            uris_to_download.append(uri)
-            filenames_to_download.append(filename)
+    # Spawn download threads for products which are not yet available (locally)
+    product_paths_available, product_paths_to_download = [], []
+    semaphore, download_threads = Semaphore(max_parallel_downloads), []
+    for uri, product_name in zip(uris, product_names):
+        product_path = os.path.join(env['DIAS']['l1_path'].format(params['General']['sensor']), product_name)
+        if os.path.exists(product_path):
+            product_paths_available.append(product_path)
+        else:
+            product_paths_to_download.append(product_path)
+            download_threads.append(Thread(target=do_download, args=(access_token, job_id, uri, product_path, semaphore)))
+            download_threads[-1].start()
 
-    if not uris_to_download:
-        print("All products already downloaded, skipping...")
-        return
-
-    # Spawn threads for downloads
-    print("Downloading {} product(s)...".format(len(uris_to_download)))
-    access_token = hda_api.get_access_token(params['username'], params['password'])
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_parallel_downloads) as ex:
-        for uri, filename in zip(uris_to_download, filenames_to_download):
-            ex.submit(do_download, access_token, job_id, uri, os.path.join(outdir, filename))
-
-    # Check if products were actually dowloaded:
-    dirs_of_outdir = os.listdir(outdir)
-    for filename in filenames_to_download:
-        if filename not in dirs_of_outdir:
-            print("\nDownload(s) failed, another user might be using COAH services with the same credentials. " +
-                  "Either wait for the other user to finish their job or change the credentials in the parameter file.")
-            return
-    print("\nDownload(s) complete!")
-
-    # Read products
-    return list_xml_scene_dir(outdir, sensor=params['sensor'], file_list=filenames)
+    return product_paths_available, product_paths_to_download, download_threads
 
 
-def find_products_to_download(params):
-    if params["sensor"].upper() == "OLCI":
-        dataset_id = "EO:EUM:DAT:SENTINEL-3:OL_1_EFR___"
+def find_products_to_download(access_token, sensor, start, end):
+    if sensor == "OLCI":
         datarequest = {
-            "datasetId": dataset_id,
-            "boundingBoxValues": [
-                {
-                    "name": "bbox",
-                    "bbox": [5.5, 48, 11, 45]
-                 }
-            ],
-            "dateRangeSelectValues": [
-                {
-                    "name": "dtrange",
-                    "start": params["start"],
-                    "end": params["end"]
-                }
-            ],
-            "stringChoiceValues": []
+            'datasetId': "EO:EUM:DAT:SENTINEL-3:OL_1_EFR___",
+            'boundingBoxValues': [{'name': "bbox", 'bbox': [5.5, 48, 11, 45]}],
+            'dateRangeSelectValues': [{'name': "dtrange", 'start': start, 'end': end}],
+            'stringChoiceValues': []
         }
-    elif params["sensor"].upper() == "MSI":
+    elif sensor == "MSI":
         datarequest = "tofill"
     else:
-        raise RuntimeError("Unknown sensor: " + params['sensor'])
-
-    print("Step-1")
-    access_token = hda_api.get_access_token(params['username'], params['password'])
+        raise RuntimeError("Unknown sensor: " + sensor)
 
     print("Step-2")
     hda_api.accept_tc_if_required(access_token)
@@ -84,12 +53,10 @@ def find_products_to_download(params):
     hda_api.wait_for_datarequest_to_complete(access_token, job_id)
 
     print("Step-5")
-    uris, filenames = hda_api.get_datarequest_results(access_token, job_id)
-
-    return job_id, uris, filenames
+    return job_id, hda_api.get_datarequest_results(access_token, job_id)
 
 
-def do_download(access_token, job_id, uri, filename):
+def do_download(access_token, job_id, uri, product_path):
     order_id = hda_api.post_dataorder(access_token, job_id, uri)
     hda_api.wait_for_dataorder_to_complete(access_token, order_id)
-    hda_api.dataorder_download(access_token, order_id, filename)
+    hda_api.dataorder_download(access_token, order_id, product_path)

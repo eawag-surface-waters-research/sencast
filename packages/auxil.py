@@ -1,14 +1,48 @@
 #! /usr/bin/env python
 # coding: utf8
 
-import sys
+import configparser
+import getpass
 import os
-import re
-from configparser import ConfigParser
-
+import socket
 import xml.etree.cElementTree as ElementTree
 
-from snappy import ProductIO
+
+# The name of the folder to which the output product will be saved
+IDEPIX_OUT_DIR = "L1P"
+# A pattern for the name of the file to which the output product will be saved (completed with product name)
+IDEPIX_NAME = "L1P_reproj_{}.nc"
+# A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
+IDEPIX_QL_OUT_DIR = "L1P-{}"
+# A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
+IDEPIX_QL_NAME = "L1P_reproj_{}_{}.png"
+
+# The name of the folder to which the output product will be saved
+C2RCC_OUT_DIR = "L2C2RCC"
+# A pattern for the name of the file to which the output product will be saved (completed with product name)
+C2RCC_NAME = "L2C2RCC_L1P_reproj_{}.nc"
+# A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
+C2RCC_QL_OUT_DIR = "L2C2RCC-{}"
+# A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
+C2RCC_QL_NAME = "L2C2RCC_L1P_reproj_{}_{}.png"
+
+# The name of the folder to which the output product will be saved
+POLY_OUT_DIR = "L2POLY"
+# A pattern for the name of the file to which the output product will be saved (completed with product name)
+POLY_NAME = "L2POLY_L1P_reproj_{}.nc"
+# A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
+POLY_QL_OUT_DIR = "L2POLY-{}"
+# A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
+POLY_QL_NAME = "L2POLY_L1P_reproj_{}_{}.png"
+
+# The name of the folder to which the output product will be saved
+MPH_OUT_DIR = "L2MPH"
+# A pattern for the name of the file to which the output product will be saved (completed with product name)
+MPH_NAME = "L2MPH_L1P_reproj_{}.nc"
+# A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
+MPH_QL_OUT_DIR = "L2MPH-{}"
+# A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
+MPH_QL_NAME = "L2MPH_L1P_reproj_{}_{}.png"
 
 
 def gpt_xml(operator, product_parameters, xml_path):
@@ -47,14 +81,14 @@ def gpt_xml(operator, product_parameters, xml_path):
         sourceProduct.text = '${sourceProduct}'
         crs.text = 'EPSG:4326'
         resampling.text = 'Nearest'
-        referencePixelX.text = product_parameters.get('referencePixelX')
-        referencePixelY.text = product_parameters.get('referencePixelY')
-        easting.text = product_parameters.get('easting')
-        northing.text = product_parameters.get('northing')
-        pixelSizeX.text = product_parameters.get('pixelSizeX')
-        pixelSizeY.text = product_parameters.get('pixelSizeY')
-        width.text = product_parameters.get('width')
-        height.text = product_parameters.get('height')
+        referencePixelX.text = '0'
+        referencePixelY.text = '0'
+        easting.text = product_parameters['easting']
+        northing.text = product_parameters['northing']
+        pixelSizeX.text = product_parameters['pixelSizeX']
+        pixelSizeY.text = product_parameters['pixelSizeY']
+        width.text = product_parameters['width']
+        height.text = product_parameters['height']
         orthorectify.text = 'false'
         noDataValue.text = 'NaN'
         includeTiePointGrids.text = 'true'
@@ -76,7 +110,7 @@ def gpt_xml(operator, product_parameters, xml_path):
         version.text = '1.0'
         idepix_op.text = operator
         sourceProduct.text = '${sourceProduct}'
-        computeCloudBuffer.text = 'true'
+        computeCloudBuffer.text = 'false'
 
         # create and specify S2 Idepix specific elements (first part of condition only for backward compatibility)
         if "Sentinel2" in operator or "S2" in operator:
@@ -214,148 +248,105 @@ def gpt_xml(operator, product_parameters, xml_path):
     xml.close()
 
 
-def open_wkt(wkt):
-    with open(wkt, 'r') as f:
-        wkt = f.read()
-    return wkt
+def load_environment(env_file=None, env_path="environments"):
+    env = configparser.ConfigParser()
+
+    # Try to use provided env file
+    if env_file and not os.path.isabs(env_file):
+        env_file = os.path.join(env_path, env_file)
+        if not os.path.isfile(env_file):
+            raise RuntimeError("The evironment file could not be found: {}".format(env_file))
+        env.read(env_file)
+        return env
+
+    # Try to use host and user specific env file
+    host_user_env_file = os.path.join(env_path, "{}.{}.ini".format(socket.gethostname(), getpass.getuser()))
+    if os.path.isfile(host_user_env_file):
+        env.read(host_user_env_file)
+        return env
+
+    # Try to use host specific env file
+    host_env_file = os.path.join(env_path, "{}.ini".format(socket.gethostname()))
+    if os.path.isfile(host_env_file):
+        env.read(host_env_file)
+        return env
+
+    raise RuntimeError("Could not load any of the following evironments:\n{}\n{}".format(host_user_env_file, host_env_file))
 
 
-def list_xml_scene_dir(scenesdir, sensor='OLCI', file_list=None):
-    if file_list is None:
-        file_list = []
-    if sensor.upper() == 'OLCI':
-        if not file_list:
-            prod_paths = [os.path.join(scenesdir, prod_name) for prod_name in os.listdir(scenesdir) if 'S3' in prod_name]
-        else:
-            prod_paths = [os.path.join(scenesdir, prod_name) for prod_name in os.listdir(scenesdir) if prod_name in file_list]
-        sd = []
-        for d in prod_paths:
-            temp = [os.path.join(d, cd) for cd in os.listdir(d) if 'S3' in cd]
-            sd.append(temp[0])
-        xmlfs = []
-        for s in sd:
-            temp = [os.path.join(s, cd) for cd in os.listdir(s) if 'xml' in cd]
-            if not temp:
-                print('no xml found in ' + s)
-            else:
-                xmlfs.append(temp[0])
-    elif sensor.upper() == 'MSI':
-        if not file_list:
-            prod_paths = [os.path.join(scenesdir, nd) for nd in os.listdir(scenesdir) if 'S2' in nd]
-        else:
-            prod_paths = [os.path.join(scenesdir, nd) for nd in os.listdir(scenesdir) if nd in file_list]
-        sd = []
-        for d in prod_paths:
-            temp = [os.path.join(d, cd) for cd in os.listdir(d) if 'SAFE' in cd]
-            sd.append(temp[0])
-        xmlfs = []
-        for s in sd:
-            temp = [os.path.join(s, cd) for cd in os.listdir(s) if 'MSI' in cd and 'xml' in cd]
-            xmlfs.append(temp[0])
-    else:
-        raise RuntimeError("Invalid sensor: {}".format(sensor))
-    return xmlfs
-
-
-def open_products(product_directory):
-    xmlfs = list_xml_scene_dir(product_directory)
-    return [ProductIO.readProduct(xml) for xml in xmlfs]
-
-
-def create_polymer_product(polymer_out, original_sentinel_file):
-    ProductIO.readProduct(original_sentinel_file)
-    w, h, b = polymer_out.Rw.shape
-    print(w, h, b)
-
-
-def get_s3_products_list(rootdir):
-    product_dirs = [os.path.join(rootdir, f) for f in os.listdir(rootdir) if 'S3' in f]
-    products = []
-    for product_dir in product_dirs:
-        scene_dir = [os.path.join(product_dir, f) for f in os.listdir(product_dir) if 'SEN3' in f]
-        scene_date = re.search(r'\d{8}T\d{6}', scene_dir[0]).group(0)
-        xml_file = [os.path.join(scene_dir[0], f) for f in os.listdir(scene_dir[0]) if 'xml' in f]
-        # Read product
-        product = ProductIO.readProduct(xml_file[0])
-        products.append(product)
-    return products
-
-
-def read_parameters_file(filename, verbose=True, wkt_dir='/home/odermatt/wkt'):
-    if verbose:
-        print('Reading file: ' + filename)
-        print()
-    params_list = []
-    with open(filename, 'r') as f:
-        for line in f:
-            params_list.append(line)
-    
-#     name = [re.findall("'([^']*)'", x) for x in params_list if 'name' in x.lower()][0][0]
-    name = os.path.basename(filename.split('.')[0])
-    sensor = [re.findall("'([^']*)'", x) for x in params_list if 'sensor' in x.lower()][0][0]
-    if 'MSI' in sensor.upper():
-        satnumber = 2
-        sensorname = ''  # Used to call the Idepix operator
-        resolution = [re.findall("'([^']*)'", x) for x in params_list if 'resolution=' in x][0][0]
-        mph_bands = ''
-        mph_max = ''
-    elif 'OLCI' in sensor.upper():
-        satnumber = 3
-        sensorname = '.Olci'  # Used to call the Idepix operator
-        resolution = [re.findall("'([^']*)'", x) for x in params_list if 'resolution=' in x][0][0]
-        mph_bands = [re.findall("'([^']*)'", x) for x in params_list if 'mph_bands=' in x.lower()]
-        mph_bands = [e.strip() for e in mph_bands[0][0].split(',')]
-        mph_max = [re.findall("'([^']*)'", x) for x in params_list if 'mph_maxbands=' in x.lower()]
-        mph_max = [float(e.strip()) for e in mph_max[0][0].split(',')]
-    else:
-        print('No valid sensor detected in the parameter file. Valid options are either <MSI> or <OLCI>')
-        sys.exit()
-    region = [re.findall("'([^']*)'", x) for x in params_list if 'region=' in x.lower()][0][0]
-    tile = [re.findall("'([^']*)'", x) for x in params_list if 'tile=' in x.lower()]
-    tile = [e.strip() for e in tile[0][0].split(',')]
-    start = [re.findall("'([^']*)'", x) for x in params_list if 'start=' in x][0][0]
-    end = [re.findall("'([^']*)'", x) for x in params_list if 'end=' in x][0][0]
-    rgb = [re.findall("'([^']*)'", x) for x in params_list if 'rgb_bands=' in x]
-    rgb = [e.strip() for e in rgb[0][0].split(',')]
-    falsecolor = [re.findall("'([^']*)'", x) for x in params_list if 'false_color_bands=' in x]
-    falsecolor = [e.strip() for e in falsecolor[0][0].split(',')]
-    wkt = [re.findall("'([^']*)'", x) for x in params_list if 'wkt=' in x.lower()][0][0]
-    wkt_file = os.path.join(wkt_dir, wkt)
-    wkt = open_wkt(os.path.join(wkt_dir, wkt))
-    validexpression = [re.findall("'([^']*)'", x) for x in params_list if 'validexpression=' in x.lower()][0][0]
-    pcombo = [re.findall("'([^']*)'", x) for x in params_list if 'pcombo=' in x]
-    pcombo = [e.strip() for e in pcombo[0][0].split(',')]
-    API = [re.findall("'([^']*)'", x) for x in params_list if 'api=' in x.lower()][0][0]
-    username = [re.findall("'([^']*)'", x) for x in params_list if 'username=' in x.lower()][0][0]
-    password = [re.findall("'([^']*)'", x) for x in params_list if 'password=' in x.lower()][0][0]
-    c2rcc_bands = [re.findall("'([^']*)'", x) for x in params_list if 'c2rcc_bands=' in x.lower()]
-    c2rcc_bands = [e.strip() for e in c2rcc_bands[0][0].split(',')]
-    c2rcc_max = [re.findall("'([^']*)'", x) for x in params_list if 'c2rcc_maxbands=' in x.lower()]
-    c2rcc_max = [float(e.strip()) for e in c2rcc_max[0][0].split(',')]
-    c2rcc_altnn = [re.findall("'([^']*)'", x) for x in params_list if 'altnn=' in x.lower()][0][0]
-    polymer_bands = [re.findall("'([^']*)'", x) for x in params_list if 'polymer_bands=' in x.lower()]
-    polymer_bands = [e.strip() for e in polymer_bands[0][0].split(',')]
-    polymer_max = [re.findall("'([^']*)'", x) for x in params_list if 'polymer_maxbands=' in x.lower()]
-    polymer_max = [float(e.strip()) for e in polymer_max[0][0].split(',')]
-    if verbose:
-        print('Job name: ' + name)
-        print('Sensor: ' + sensor.upper())
-        print('Start: ' + start)
-        print('End: ' + end)
-    
-    params = {'name': name, 'sensor': sensor.upper(), 'region': region.upper(), 'tile':
-              tile, 'start': start, 'end': end, 'satnumber': satnumber, 'resolution': resolution,
-              'sensorname': sensorname, 'wkt': wkt, 'validexpression': validexpression,
-              'True color': rgb, 'False color': falsecolor,
-              'API': API, 'username': username, 'password': password,
-              'c2rcc bands': c2rcc_bands, 'polymer bands': polymer_bands, 'pcombo': pcombo,
-              'wkt file': wkt_file, 'mph bands': mph_bands, 'c2rcc max': c2rcc_max, 'c2rcc altnn': c2rcc_altnn,
-              'polymer max': polymer_max, 'mph max': mph_max}
+def load_params(params_file, params_path=None):
+    if params_path and not os.path.isabs(params_file):
+        params_file = os.path.join(params_path, params_file)
+    if not os.path.isfile(params_file):
+        raise RuntimeError("The parameter file could not be found: {}".format(params_file))
+    params = configparser.ConfigParser()
+    params.read(params_file)
     return params
 
 
-def load_properties(filepath):
-    config = ConfigParser(allow_no_value=True)
-    with open(filepath) as f:
-        config.read_string(f.read())
-    return config["Default"]
+def load_wkt(wkt_file, wkt_path=None):
+    if wkt_path and not os.path.isabs(wkt_file):
+        wkt_file = os.path.join(wkt_path, wkt_file)
+    if not os.path.isfile(wkt_file):
+        raise RuntimeError("The wkt file could not be found: {}".format(wkt_file))
+    with open(wkt_file, "r") as file:
+        return file.read()
+
+
+def init_out_paths(out_root_path, params):
+    name, wkt = params['General']['name'], params['General']['wkt'].split(".")[0]
+    start, end = params['General']['start'][:10], params['General']['end'][:10]
+    out_path = os.path.join(out_root_path, "{}_{}_{}_{}".format(name, wkt, start, end))
+
+    # idepix output folder
+    print("Creating IdePix L1P directory")
+    idepix_path = os.path.join(out_path, IDEPIX_OUT_DIR)
+    os.makedirs(idepix_path, exist_ok=True)
+    print("Creating IdePix map directories")
+    qlrgb_path = os.path.join(out_path, IDEPIX_QL_OUT_DIR.format("rgb"))
+    os.makedirs(qlrgb_path, exist_ok=True)
+    qlfc_path = os.path.join(out_path, IDEPIX_QL_OUT_DIR.format("fc"))
+    os.makedirs(qlfc_path, exist_ok=True)
+
+    # c2rcc output folder
+    print("Creating C2RCC L2 directory")
+    c2rcc_path = os.path.join(out_path, C2RCC_OUT_DIR)
+    os.makedirs(c2rcc_path, exist_ok=True)
+    print("Creating C2RCC map directories")
+    c2rcc_band_paths = {}
+    for band in params['C2RCC_QL']['bands'].split(","):
+        c2rcc_band_paths[band] = os.path.join(out_path, C2RCC_QL_OUT_DIR.format(band))
+        os.makedirs(c2rcc_band_paths[band], exist_ok=True)
+
+    # polymer output folder
+    print("Creating Polymer L2 directory")
+    polymer_path = os.path.join(out_path, POLY_OUT_DIR)
+    os.makedirs(polymer_path, exist_ok=True)
+    print("Creating Polymer map directories")
+    polymer_band_paths = {}
+    for band in params['POLY_QL']['bands'].split(","):
+        polymer_band_paths[band] = os.path.join(out_path, POLY_QL_OUT_DIR.format(band))
+        os.makedirs(polymer_band_paths[band], exist_ok=True)
+
+    # mph output folder
+    print("Creating MPH L2 directory")
+    mph_path = os.path.join(out_path, MPH_OUT_DIR)
+    os.makedirs(mph_path, exist_ok=True)
+    print("Creating MPH map directories")
+    mph_band_paths = {}
+    for band in params['MPH_QL']['bands'].split(","):
+        mph_band_paths[band] = os.path.join(out_path, MPH_QL_OUT_DIR.format(band))
+        os.makedirs(mph_band_paths[band], exist_ok=True)
+
+    return {
+        'out_path': out_path,
+        'idepix_path': idepix_path,
+        'qlfc_path': qlfc_path,
+        'qlrgb_path': qlrgb_path,
+        'c2rcc_path': c2rcc_path,
+        'c2rcc_band_paths': c2rcc_band_paths,
+        'poly_path': polymer_path,
+        'poly_band_paths': polymer_band_paths,
+        'mph_path': mph_path,
+        'mph_band_paths': mph_band_paths
+    }

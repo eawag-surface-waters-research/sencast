@@ -23,10 +23,8 @@ def get_auth(username, password):
 
 def search(basic_auth, query):
     print("Search for products: {}".format(query))
-    uuids = []
-    filenames = []
-    start = 0
-    rows = 100
+    uuids, filenames = [], []
+    start, rows = 0, 100
     while True:
         response = requests.get(search_address.format(query, start, rows), auth=basic_auth)
         if response.status_code == codes.OK:

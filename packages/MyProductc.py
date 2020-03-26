@@ -3,17 +3,12 @@
 
 import re
 import os
-import sys
 
 import numpy as np
 
 from snappy import jpy, GPF, ProductIO, ProductUtils
 from datetime import datetime
 from packages.product_fun import get_corner_pixels_ROI
-
-from packages import path_config
-
-sys.path.append(path_config.polymer_path)
 
 
 class MyProduct(object):
@@ -108,7 +103,7 @@ class MyProduct(object):
         self.state.append('Resample')
         self.update()
 
-    def subset(self, regions=None):
+    def subset(self, wkt, regions=None):
         # Update MyProduct
         self.update()
         subsets = []
@@ -121,7 +116,7 @@ class MyProduct(object):
             # Initialisation
             parameters = MyProduct.HashMap()
             if regions is None:
-                parameters.put('geoRegion', self.params['wkt'])
+                parameters.put('geoRegion', wkt)
             else:
                 parameters.put('region', regions[c])
             
@@ -205,19 +200,10 @@ class MyProduct(object):
             flags.append(flag)
         return flags
 
-    def get_regions(self):
-        regions = []
-        for product in self.products:
-            UL, UR, LR, LL = get_corner_pixels_ROI(product, self.params)
-            w = LR[1] - UL[1]
-            h = LR[0] - UL[0]
-            regions.append(str(UL[1])+','+str(UL[0])+','+str(w)+','+str(h))
-        return regions
-
     def mph(self):
-        if self.params['sensor'].upper() == 'OLCI':
+        if self.params['General']['sensor'] == 'OLCI':
             parameters = MyProduct.HashMap()
-            parameters.put('validPixelExpression', self.params['validexpression'])
+            parameters.put('validPixelExpression', self.params['MPH']['validexpression'])
             parameters.put('exportMph', True)
             parametersrepr = MyProduct.HashMap()
             parametersrepr.put('crs', 'EPSG:32662')

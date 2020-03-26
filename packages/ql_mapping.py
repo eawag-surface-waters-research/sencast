@@ -37,7 +37,7 @@ authenticate(username='nouchi', password='EOdatap4s')
 
 
 def plot_map(product, output_file, layer_str, basemap='srtm_elevation', 
-             crop_ext=False, perimeter_file = False, param_range=False, 
+             crop_ext=False, perimeter_file=False, param_range=False,
              cloud_layer=False, suspect_layer=False, water_layer=False, 
              grid=True, shadow_layer=False, aspect_balance=False):
 
