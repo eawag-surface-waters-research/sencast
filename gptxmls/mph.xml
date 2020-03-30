@@ -1,0 +1,26 @@
+<graph id="idepix">
+	<version>1.0</version>
+	<node id="mphNode">
+		<operator>MphChl</operator>
+		<sources>
+			<sourceProduct>${sourceProduct}</sourceProduct>
+		</sources>
+		<parameters>
+			<validPixelExpression>${validPixelExpression}</validPixelExpression>
+			<cyanoMaxValue>${cyanoMaxValue}</cyanoMaxValue>
+			<chlThreshForFloatFlag>${chlThreshForFloatFlag}</chlThreshForFloatFlag>
+			<exportMph>${exportMph}</exportMph>
+			<applyLowPassFilter>${applyLowPassFilter}</applyLowPassFilter>
+		</parameters>
+	</node>
+	<node id="writeNode">
+		<operator>Write</operator>
+		<sources>
+			<source>mphNode</source>
+		</sources>
+		<parameters>
+			<file>${targetProduct}</file>
+			<formatName>NetCDF-BEAM</formatName>
+		</parameters>
+	</node>
+</graph>

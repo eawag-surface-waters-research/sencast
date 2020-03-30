@@ -1,4 +1,3 @@
-- Parallelize background_processing
 - Mosaicking for S2
 - OZA, VZA, SZA, SAA missing in Polymer products!
 - Install in new wekeo server
