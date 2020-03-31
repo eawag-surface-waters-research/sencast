@@ -72,7 +72,7 @@ def rewrite_xml(gpt_xml_path, gpt_xml_file):
 
 
 def create_quicklooks(out_path, product_name, wkt_file, bands, bandmaxs):
-    print("Creating quicklooks for C2RCC for bands: {}".format(bands))
+    print("Creating quicklooks for POLYMER for bands: {}".format(bands))
     product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, FILENAME.format(product_name)))
     for band, bandmax in zip(bands, bandmaxs):
         if int(bandmax) == 0:
