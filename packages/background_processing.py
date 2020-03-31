@@ -55,7 +55,7 @@ def do_processing(env, params, product_path, out_path, semaphore, download_threa
 
         if "POLYMER" in params['General']['processors'].split(","):
             gsw_path = os.path.join(env['DIAS']['dias_path'], "data_landmask_gsw")
-            polymer.process(gpt, gpt_xml_path, wkt_file, l1p, product_name, out_path, sensor, resolution, params['POLY'], gsw_path)
+            polymer.process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_path, sensor, resolution, params['POLY'], gsw_path)
 
         if "MPH" in params['General']['processors'].split(","):
             mph.process(gpt, gpt_xml_path, wkt_file, l1p, product_name, out_path, sensor, params['MPH'])

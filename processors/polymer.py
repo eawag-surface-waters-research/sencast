@@ -20,7 +20,7 @@ QL_OUT_DIR = "L2POLY-{}"
 QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
 
 
-def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor, resolution, params, gsw_path):
+def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_path, sensor, resolution, params, gsw_path):
     """ This processor applies polymer to the source product and stores the result. """
 
     print("Applying POLYMER...")
@@ -31,7 +31,7 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
         return target
     os.makedirs(os.path.dirname(target), exist_ok=True)
 
-    UL, UR, LR, LL = get_corner_pixels_ROI(ProductIO.readProduct(source), wkt_file)
+    UL, UR, LR, LL = get_corner_pixels_ROI(ProductIO.readProduct(product_path), wkt_file)
     sline = min(UL[0], UR[0])
     eline = max(LL[0], LR[0])
     scol = min(UL[1], UR[1])
@@ -40,12 +40,12 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
     poly_tmp_file = "{}.tmp".format(target)
     if sensor == "MSI":
         gsw = GSW(directory=gsw_path)
-        l1 = Level1_MSI(source, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, resolution=resolution)
+        l1 = Level1_MSI(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, resolution=resolution)
         l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['sza'])
         run_atm_corr(l1, l2)
     else:
         gsw = GSW(directory=gsw_path, agg=8)
-        l1 = Level1(source, sensor.lower(), sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw)
+        l1 = Level1(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw)
         l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['vaa', 'vza', 'saa', 'sza'])
         run_atm_corr(l1, l2)
 
@@ -54,7 +54,7 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
 
     args = [
         gpt, gpt_xml_file,
-        "-SmasterProduct={}".format(source),
+        "-SmasterProduct={}".format(l1p),
         "-SslaveProduct={}".format(poly_tmp_file),
         "-PtargetProduct={}".format(target)
     ]
