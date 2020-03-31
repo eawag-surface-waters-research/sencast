@@ -23,38 +23,6 @@
 			<useSrtmLandWaterMask>true</useSrtmLandWaterMask>
 		</parameters>
 	</node>
-	<node id="reprojectNode1">
-		<operator>Reproject</operator>
-		<sources>
-			<source>idepixNode</source>
-		</sources>
-		<parameters>
-			<crs>EPSG:4326</crs>
-			<resampling>Nearest</resampling>
-			<referencePixelX>0</referencePixelX>
-			<referencePixelY>0</referencePixelY>
-			<easting>${easting}</easting>
-			<northing>${northing}</northing>
-			<pixelSizeX>${pixelSizeX}</pixelSizeX>
-			<pixelSizeY>${pixelSizeY}</pixelSizeY>
-			<width>${width}</width>
-			<height>${height}</height>
-			<orthorectify>false</orthorectify>
-			<noDataValue>NaN</noDataValue>
-			<includeTiePointGrids>true</includeTiePointGrids>
-			<addDeltaBands>false</addDeltaBands>
-		</parameters>
-	</node>
-	<node id="writeReprojecetedNode">
-		<operator>Write</operator>
-		<sources>
-			<source>reprojectNode1</source>
-		</sources>
-		<parameters>
-			<file>${reprojectTarget}</file>
-			<formatName>NetCDF-BEAM</formatName>
-		</parameters>
-	</node>
 	<node id="mergeNode">
 		<operator>Merge</operator>
 		<sources>
@@ -62,7 +30,7 @@
 			<sourceProducts>idepixNode</sourceProducts>
 		</sources>
 	</node>
-	<node id="reprojectNode2">
+	<node id="reprojectNode">
 		<operator>Reproject</operator>
 		<sources>
 			<source>mergeNode</source>
@@ -84,13 +52,13 @@
 			<addDeltaBands>false</addDeltaBands>
 		</parameters>
 	</node>
-	<node id="writeMergedNode">
+	<node id="writeNode">
 		<operator>Write</operator>
 		<sources>
-			<source>reprojectNode2</source>
+			<source>reprojectNode</source>
 		</sources>
 		<parameters>
-			<file>${mergeTarget}</file>
+			<file>${targetProduct}</file>
 			<formatName>NetCDF-BEAM</formatName>
 		</parameters>
 	</node>

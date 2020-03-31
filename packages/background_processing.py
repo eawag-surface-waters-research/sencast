@@ -48,7 +48,7 @@ def do_processing(env, params, product_path, out_path, semaphore, download_threa
         sensor, resolution = params['General']['sensor'], params['General']['resolution']
 
         if "IDEPIX" == params['General']['preprocessor']:
-            l1p, l1m = idepix.process(gpt, gpt_xml_path, wkt_file, product_path, product_name, out_path, sensor, resolution, params['IDEPIX'])
+            l1m, l1p = idepix.process(gpt, gpt_xml_path, wkt_file, product_path, product_name, out_path, sensor, resolution, params['IDEPIX'])
 
         if "C2RCC" in params['General']['processors'].split(","):
             c2rcc.process(gpt, gpt_xml_path, wkt_file, l1m, product_name, out_path, sensor, params['C2RCC'])
