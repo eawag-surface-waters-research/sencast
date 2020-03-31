@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import subprocess
 import time
 
 from packages.auxil import load_environment, load_params
@@ -8,8 +8,12 @@ from packages.background_processing import start_processing_threads
 from packages.download_coah_query import start_download_threads as start_download_threads_c
 from packages.download_hda_query import start_download_threads as start_download_threads_h
 
+# Removes SEVERE message in gpt log
+subprocess.call(["export", "LD_LIBRARY_PATH='.'"])
+
 
 def hindcast(params, env=None):
+
     if not env:
         env = load_environment()
     elif isinstance(env, str):
