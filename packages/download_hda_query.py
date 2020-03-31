@@ -15,11 +15,14 @@ def start_download_threads(env, params, max_parallel_downloads=2):
     job_id, (uris, product_names) = find_products_to_download(access_token, params['sensor'], params['start'], params['end'])
     print("Found {} product(s)".format(len(uris)))
 
+    l1_path = env['DIAS']['l1_path'].format(params['General']['sensor'])
+    os.makedirs(l1_path, exist_ok=True)
+
     # Spawn download threads for products which are not yet available (locally)
     product_paths_available, product_paths_to_download = [], []
     semaphore, download_threads = Semaphore(max_parallel_downloads), []
     for uri, product_name in zip(uris, product_names):
-        product_path = os.path.join(env['DIAS']['l1_path'].format(params['General']['sensor']), product_name)
+        product_path = os.path.join(l1_path, product_name)
         if os.path.exists(product_path):
             product_paths_available.append(product_path)
         else:
