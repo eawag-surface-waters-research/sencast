@@ -6,12 +6,7 @@
 			<sourceProduct>${sourceProduct}</sourceProduct>
 		</sources>
 		<parameters>
-			<sourceBands/>
 			<geoRegion>${wkt}</geoRegion>
-			<subSamplingX>1</subSamplingX>
-			<subSamplingY>1</subSamplingY>
-			<fullSwath>false</fullSwath>
-			<copyMetadata>true</copyMetadata>
 		</parameters>
 	</node>
 	<node id="idepixNode">
