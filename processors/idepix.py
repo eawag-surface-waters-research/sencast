@@ -10,11 +10,13 @@ from packages.ql_mapping import plot_pic
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L1P"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-FILENAME = "L1P_reproj_{}.nc"
+FILENAME_REPR = "reproj_L1P_subset_{}.nc"
+# A pattern for the name of the file to which the output product will be saved (completed with product name)
+FILENAME_MERG = "merge_reproj_L1P_subset_{}.nc"
 # A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
 QL_OUT_DIR = "L1P-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
-QL_FILENAME = "L1P_reproj_{}_{}.png"
+QL_FILENAME = "reproj_L1P_subset_{}_{}.png"
 
 
 def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor, resolution, params):
@@ -23,23 +25,29 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
 
     print("Applying IDEPIX...")
 
-    target = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
-    if os.path.isfile(target):
-        print("Skipping IDEPIX, target already exists: {}".format(FILENAME.format(product_name)))
-        return target
-    os.makedirs(os.path.dirname(target), exist_ok=True)
+    reprojectTarget = os.path.join(out_path, OUT_DIR, FILENAME_REPR.format(product_name))
+    mergeTarget = os.path.join(out_path, OUT_DIR, FILENAME_MERG.format(product_name))
+    if os.path.isfile(reprojectTarget) and os.path.isfile(mergeTarget):
+        print("Skipping IDEPIX, targets already exist: {}, {}".format(os.path.basename(reprojectTarget), os.path.basename(mergeTarget)))
+        return reprojectTarget, mergeTarget
+    os.makedirs(os.path.dirname(reprojectTarget), exist_ok=True)
+    os.makedirs(os.path.dirname(mergeTarget), exist_ok=True)
 
     gpt_xml_file = os.path.join(out_path, "idepix.xml")
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_path, gpt_xml_file, wkt_file, sensor, resolution)
 
-    subprocess.call([gpt, gpt_xml_file, "-SsourceProduct={}".format(source),"-PtargetProduct={}".format(target)])
+    args = [gpt, gpt_xml_file,
+            "-SsourceProduct={}".format(source),
+            "-PreprojectTarget={}".format(reprojectTarget),
+            "-PmergeTarget={}".format(mergeTarget)]
+    subprocess.call(args)
 
     rgb_bands = params['rgb_bands'].split(",")
     fc_bands = params['fc_bands'].split(",")
     create_quicklooks(out_path, product_name, wkt_file, sensor, rgb_bands, fc_bands)
 
-    return target
+    return reprojectTarget, mergeTarget
 
 
 def rewrite_xml(gpt_xml_path, gpt_xml_file, wkt_file, sensor, resolution):
@@ -82,7 +90,7 @@ def create_quicklooks(out_path, product_name, wkt_file, sensor, rgb_bands, fc_ba
         rgb_bands = [bn.replace('radiance', 'reflectance') for bn in rgb_bands]
         fc_bands = [bn.replace('radiance', 'reflectance') for bn in fc_bands]
 
-    product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, FILENAME.format(product_name)))
+    product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, FILENAME_REPR.format(product_name)))
     ql_file = os.path.join(out_path, QL_OUT_DIR.format("rgb"), QL_FILENAME.format(product_name, "rgb"))
     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
     plot_pic(product, ql_file, rgb_layers=rgb_bands, grid=True, max_val=0.16, perimeter_file=wkt_file)
