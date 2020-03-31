@@ -14,6 +14,7 @@ except RuntimeError:
     from snappy import jpy, GPF, ProductIO, ProductUtils
 
 from packages.main import hindcast
+import os
 
-
-hindcast("parameters_wdoc_S3.ini")
+os.environ['LD_LIBRARY_PATH'] = "."
+hindcast("parameters_wdoc_S2.ini")

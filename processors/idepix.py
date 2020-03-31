@@ -10,13 +10,13 @@ from packages.ql_mapping import plot_pic
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L1P"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-FILENAME = "merge_reproj_L1P_subset_{}.nc"
-# A pattern for the name of the file to which the output product will be saved (completed with product name)
-FILENAME_2 = "L1P_reproj_{}.nc"
+FILENAME1, FILENAME2 = "merge_reproj_L1P_subset_{}.nc", "L1P_reproj_{}.nc"
 # A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
 QL_OUT_DIR = "L1P-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
 QL_FILENAME = "reproj_L1P_subset_{}_{}.png"
+# The name of the xml file for gpt
+GPT_XML_FILENAME = "idepix_{}.xml"
 
 
 def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor, resolution, params):
@@ -25,34 +25,34 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
 
     print("Applying IDEPIX...")
 
-    target = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
-    target_2 = os.path.join(out_path, OUT_DIR, FILENAME_2.format(product_name))
-    if os.path.isfile(target) and os.path.isfile(target_2):
-        print("Skipping IDEPIX, targets already exist: {}, {}".format(os.path.basename(target), os.path.basename(target_2)))
-        return target, target_2
-    os.makedirs(os.path.dirname(target), exist_ok=True)
-    os.makedirs(os.path.dirname(target_2), exist_ok=True)
+    output1 = os.path.join(out_path, OUT_DIR, FILENAME1.format(product_name))
+    output2 = os.path.join(out_path, OUT_DIR, FILENAME2.format(product_name))
+    if os.path.isfile(output1) and os.path.isfile(output2):
+        print("Skipping IDEPIX, targets already exist: {}, {}".format(os.path.basename(output1), os.path.basename(output2)))
+        return output1, output2
+    os.makedirs(os.path.dirname(output1), exist_ok=True)
+    os.makedirs(os.path.dirname(output2), exist_ok=True)
 
-    gpt_xml_file, gpt_xml_file_2 = rewrite_xml(gpt_xml_path, out_path, wkt_file, sensor, resolution)
+    gpt_xml_file = rewrite_xml(gpt_xml_path, out_path, wkt_file, sensor, resolution)
 
-    args = [gpt, gpt_xml_file, "-SsourceProduct={}".format(source), "-PtargetProduct={}".format(target)]
+    args = [gpt, gpt_xml_file,
+            "-Ssource={}".format(source),
+            "-Poutput1={}".format(output1),
+            "-Poutput2={}".format(output2)]
     subprocess.call(args)
-
-    args_2 = [gpt, gpt_xml_file_2, "-SsourceProduct={}".format(source), "-PtargetProduct={}".format(target_2)]
-    subprocess.call(args_2)
 
     rgb_bands = params['rgb_bands'].split(",")
     fc_bands = params['fc_bands'].split(",")
     create_quicklooks(out_path, product_name, wkt_file, sensor, rgb_bands, fc_bands)
 
-    return target, target_2
+    return output1, output2
 
 
 def rewrite_xml(gpt_xml_path, out_path, wkt_file, sensor, resolution):
-    with open(os.path.join(gpt_xml_path, "idepix.xml"), "r") as f:
+    with open(os.path.join(gpt_xml_path, GPT_XML_FILENAME.format(sensor.lower())), "r") as f:
         xml = f.read()
+
     reproject_params = create_reproject_parameters_from_wkt(wkt_file, resolution)
-    xml = xml.replace("${idepixOperator}", "Idepix.Olci" if sensor == "OLCI" else "Idepix.S2")
     xml = xml.replace("${wkt}", auxil.load_wkt(wkt_file))
     xml = xml.replace("${easting}", reproject_params['easting'])
     xml = xml.replace("${northing}", reproject_params['northing'])
@@ -60,28 +60,13 @@ def rewrite_xml(gpt_xml_path, out_path, wkt_file, sensor, resolution):
     xml = xml.replace("${pixelSizeY}", reproject_params['pixelSizeY'])
     xml = xml.replace("${width}", reproject_params['width'])
     xml = xml.replace("${height}", reproject_params['height'])
-    gpt_xml_file = os.path.join(out_path, "idepix.xml")
+
+    gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME.format(sensor.lower()))
     with open(gpt_xml_file, "wb") as f:
         f.truncate()
         f.write(xml.encode())
 
-    with open(os.path.join(gpt_xml_path, "idepix2.xml"), "r") as f:
-        xml_2 = f.read()
-    reproject_params = create_reproject_parameters_from_wkt(wkt_file, resolution)
-    xml_2 = xml_2.replace("${idepixOperator}", "Idepix.Olci" if sensor == "OLCI" else "Idepix.S2")
-    xml_2 = xml_2.replace("${wkt}", auxil.load_wkt(wkt_file))
-    xml_2 = xml_2.replace("${easting}", reproject_params['easting'])
-    xml_2 = xml_2.replace("${northing}", reproject_params['northing'])
-    xml_2 = xml_2.replace("${pixelSizeX}", reproject_params['pixelSizeX'])
-    xml_2 = xml_2.replace("${pixelSizeY}", reproject_params['pixelSizeY'])
-    xml_2 = xml_2.replace("${width}", reproject_params['width'])
-    xml_2 = xml_2.replace("${height}", reproject_params['height'])
-    gpt_xml_file_2 = os.path.join(out_path, "idepix2.xml")
-    with open(gpt_xml_file_2, "wb") as f:
-        f.truncate()
-        f.write(xml_2.encode())
-
-    return gpt_xml_file, gpt_xml_file_2
+    return gpt_xml_file
 
 
 def create_reproject_parameters_from_wkt(wkt_file, resolution):
@@ -105,7 +90,7 @@ def create_quicklooks(out_path, product_name, wkt_file, sensor, rgb_bands, fc_ba
         rgb_bands = [bn.replace('radiance', 'reflectance') for bn in rgb_bands]
         fc_bands = [bn.replace('radiance', 'reflectance') for bn in fc_bands]
 
-    product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, FILENAME.format(product_name)))
+    product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, FILENAME1.format(product_name)))
     ql_file = os.path.join(out_path, QL_OUT_DIR.format("rgb"), QL_FILENAME.format(product_name, "rgb"))
     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
     plot_pic(product, ql_file, rgb_layers=rgb_bands, grid=True, max_val=0.16, perimeter_file=wkt_file)

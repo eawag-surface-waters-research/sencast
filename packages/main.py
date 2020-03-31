@@ -10,7 +10,6 @@ from packages.download_coah_query import start_download_threads as start_downloa
 from packages.download_hda_query import start_download_threads as start_download_threads_h
 
 # Removes SEVERE message in gpt log
-os.environ['LD_LIBRARY_PATH'] = "."
 
 
 def hindcast(params, env=None):

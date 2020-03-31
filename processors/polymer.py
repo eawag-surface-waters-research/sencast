@@ -18,6 +18,8 @@ FILENAME = "L2POLY_L1P_reproj_{}.nc"
 QL_OUT_DIR = "L2POLY-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
 QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
+# The name of the xml file for gpt
+GPT_XML_FILENAME = "polymer.xml"
 
 
 def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_path, sensor, resolution, params, gsw_path):
@@ -49,7 +51,7 @@ def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_pa
         l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['vaa', 'vza', 'saa', 'sza'])
         run_atm_corr(l1, l2)
 
-    gpt_xml_file = os.path.join(out_path, "polymer.xml")
+    gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
     rewrite_xml(gpt_xml_path, gpt_xml_file)
 
     args = [gpt, gpt_xml_file,
@@ -64,7 +66,7 @@ def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_pa
 
 
 def rewrite_xml(gpt_xml_path, gpt_xml_file):
-    with open(os.path.join(gpt_xml_path, "polymer.xml"), "r") as f:
+    with open(os.path.join(gpt_xml_path, GPT_XML_FILENAME), "r") as f:
         xml = f.read()
 
     with open(gpt_xml_file, "wb") as f:

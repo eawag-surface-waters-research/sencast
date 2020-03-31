@@ -1,0 +1,68 @@
+<graph id="idepix">
+	<version>1.0</version>
+	<node id="subsetNode">
+		<operator>Subset</operator>
+		<sources>
+			<sourceProduct>${source}</sourceProduct>
+		</sources>
+		<parameters>
+			<geoRegion>${wkt}</geoRegion>
+		</parameters>
+	</node>
+	<node id="reprojectNode">
+		<operator>Reproject</operator>
+		<sources>
+			<source>subsetNode</source>
+		</sources>
+		<parameters>
+			<crs>EPSG:4326</crs>
+			<resampling>Nearest</resampling>
+			<referencePixelX>0</referencePixelX>
+			<referencePixelY>0</referencePixelY>
+			<easting>${easting}</easting>
+			<northing>${northing}</northing>
+			<pixelSizeX>${pixelSizeX}</pixelSizeX>
+			<pixelSizeY>${pixelSizeY}</pixelSizeY>
+			<width>${width}</width>
+			<height>${height}</height>
+			<noDataValue>NaN</noDataValue>
+		</parameters>
+	</node>
+	<node id="idepixNode">
+		<operator>idepix.s2</operator>
+		<sources>
+			<sourceProduct>reprojectNode</sourceProduct>
+		</sources>
+		<parameters>
+			<computeCloudBuffer>true</computeCloudBuffer>
+			<cloudBufferWidth>5</cloudBufferWidth>
+		</parameters>
+	</node>
+	<node id="writeNode2">
+		<operator>Write</operator>
+		<sources>
+			<source>idepixNode</source>
+		</sources>
+		<parameters>
+			<file>${output2}</file>
+			<formatName>NetCDF-BEAM</formatName>
+		</parameters>
+	</node>
+	<node id="mergeNode">
+		<operator>Merge</operator>
+		<sources>
+			<masterProduct>reprojectNode</masterProduct>
+			<sourceProducts>idepixNode</sourceProducts>
+		</sources>
+	</node>
+	<node id="writeNode1">
+		<operator>Write</operator>
+		<sources>
+			<source>mergeNode</source>
+		</sources>
+		<parameters>
+			<file>${output1}</file>
+			<formatName>NetCDF-BEAM</formatName>
+		</parameters>
+	</node>
+</graph>

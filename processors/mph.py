@@ -13,6 +13,8 @@ FILENAME = "L2MPH_L1P_reproj_{}.nc"
 QL_OUT_DIR = "L2MPH-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
 QL_FILENAME = "L2MPH_L1P_reproj_{}_{}.png"
+# The name of the xml file for gpt
+GPT_XML_FILENAME = "mph.xml"
 
 
 def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor, params):
@@ -29,7 +31,7 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
         return target
     os.makedirs(os.path.dirname(target), exist_ok=True)
 
-    gpt_xml_file = os.path.join(out_path, "mph.xml")
+    gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_path, gpt_xml_file, params['validexpression'])
 
@@ -44,7 +46,7 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
 
 
 def rewrite_xml(gpt_xml_path, gpt_xml_file, validexpression):
-    with open(os.path.join(gpt_xml_path, "mph.xml"), "r") as f:
+    with open(os.path.join(gpt_xml_path, GPT_XML_FILENAME), "r") as f:
         xml = f.read()
 
     xml = xml.replace("${validPixelExpression}", validexpression)
