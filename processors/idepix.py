@@ -21,6 +21,8 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
     """ This processor applies subset, idepix, merge and reprojection to the source product and stores the result.
     It returns the location of the output product. """
 
+    print("Applying IDEPIX...")
+
     target = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
     if os.path.isfile(target):
         print("Skipping IDEPIX, target already exists: {}".format(FILENAME.format(product_name)))

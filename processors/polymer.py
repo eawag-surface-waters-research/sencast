@@ -23,6 +23,8 @@ QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
 def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor, resolution, params, gsw_path):
     """ This processor applies polymer to the source product and stores the result. """
 
+    print("Applying POLYMER...")
+
     target = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
     if os.path.isfile(target):
         print("Skipping POLYMER, target already exists: {}".format(FILENAME.format(product_name)))
@@ -41,9 +43,9 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
         l1 = Level1_MSI(source, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, resolution=resolution)
         l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['sza'])
         run_atm_corr(l1, l2)
-    elif sensor == "OLCI":
+    else:
         gsw = GSW(directory=gsw_path, agg=8)
-        l1 = Level1(source, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw)
+        l1 = Level1(source, sensor.lower(), sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw)
         l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['vaa', 'vza', 'saa', 'sza'])
         run_atm_corr(l1, l2)
 

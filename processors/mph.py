@@ -18,6 +18,8 @@ QL_FILENAME = "L2MPH_L1P_reproj_{}_{}.png"
 def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor, params):
     """ This processor applies mph to the source product and stores the result. """
 
+    print("Applying MPH...")
+
     if sensor != "OLCI":
         return
 

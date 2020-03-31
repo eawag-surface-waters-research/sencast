@@ -18,6 +18,8 @@ QL_FILENAME = "L2C2RCC_L1P_reproj_{}_{}.png"
 def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor, params):
     """ This processor applies c2rcc to the source product and stores the result. """
 
+    print("Applying C2RCC...")
+
     target = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
     if os.path.isfile(target):
         print("Skipping C2RCC, target already exists: {}".format(FILENAME.format(product_name)))
