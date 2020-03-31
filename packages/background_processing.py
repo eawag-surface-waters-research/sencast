@@ -48,14 +48,14 @@ def do_processing(env, params, product_path, out_path, semaphore, download_threa
         sensor, resolution = params['General']['sensor'], params['General']['resolution']
 
         if "IDEPIX" == params['General']['preprocessor']:
-            l1p = idepix.process(gpt, gpt_xml_path, wkt_file, product_path, product_name, out_path, sensor, resolution, params['IDEPIX'])
+            l1p, l1m = idepix.process(gpt, gpt_xml_path, wkt_file, product_path, product_name, out_path, sensor, resolution, params['IDEPIX'])
 
         if "C2RCC" in params['General']['processors'].split(","):
-            c2rcc.process(gpt, gpt_xml_path, wkt_file, l1p, product_name, out_path, sensor, params['C2RCC'])
+            c2rcc.process(gpt, gpt_xml_path, wkt_file, l1m, product_name, out_path, sensor, params['C2RCC'])
 
         if "POLYMER" in params['General']['processors'].split(","):
             gsw_path = os.path.join(env['DIAS']['dias_path'], "data_landmask_gsw")
             polymer.process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_path, sensor, resolution, params['POLY'], gsw_path)
 
         if "MPH" in params['General']['processors'].split(","):
-            mph.process(gpt, gpt_xml_path, wkt_file, l1p, product_name, out_path, sensor, params['MPH'])
+            mph.process(gpt, gpt_xml_path, wkt_file, l1m, product_name, out_path, sensor, params['MPH'])
