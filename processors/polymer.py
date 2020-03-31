@@ -52,17 +52,15 @@ def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_pa
     gpt_xml_file = os.path.join(out_path, "polymer.xml")
     rewrite_xml(gpt_xml_path, gpt_xml_file)
 
-    args = [
-        gpt, gpt_xml_file,
-        "-SmasterProduct={}".format(l1p),
-        "-SslaveProduct={}".format(poly_tmp_file),
-        "-PtargetProduct={}".format(target)
-    ]
+    args = [gpt, gpt_xml_file,
+            "-SmasterProduct={}".format(l1p),
+            "-SslaveProduct={}".format(poly_tmp_file),
+            "-PtargetProduct={}".format(target)]
     subprocess.call(args)
 
     os.remove(poly_tmp_file)
 
-    create_quicklooks(out_path, product_name, wkt_file, params['bands'], params['bandmaxs'])
+    create_quicklooks(out_path, product_name, wkt_file, params['bands'].split(","), params['bandmaxs'].split(","))
 
 
 def rewrite_xml(gpt_xml_path, gpt_xml_file):

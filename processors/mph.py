@@ -33,11 +33,9 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_path, gpt_xml_file, params['validexpression'])
 
-    args = [
-        gpt, gpt_xml_file,
-        "-SsourceProduct={}".format(source),
-        "-PtargetProduct={}".format(target)
-    ]
+    args = [gpt, gpt_xml_file,
+            "-SsourceProduct={}".format(source),
+            "-PtargetProduct={}".format(target)]
     subprocess.call(args)
 
     create_quicklooks(out_path, product_name, wkt_file, params['bands'].split(","), params['bandmaxs'].split(","))
