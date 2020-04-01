@@ -4,7 +4,6 @@ import subprocess
 from haversine import haversine
 from snappy import WKTReader, ProductIO
 
-from packages import auxil
 from packages.ql_mapping import plot_pic
 
 # The name of the folder to which the output product will be saved
@@ -19,7 +18,7 @@ QL_FILENAME = "reproj_L1P_subset_{}_{}.png"
 GPT_XML_FILENAME = "idepix_{}.xml"
 
 
-def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor, resolution, params):
+def process(gpt, gpt_xml_path, wkt, source, product_name, out_path, sensor, resolution, params):
     """ This processor applies subset, idepix, merge and reprojection to the source product and stores the result.
     It returns the location of the output product. """
 
@@ -33,7 +32,7 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
     os.makedirs(os.path.dirname(output1), exist_ok=True)
     os.makedirs(os.path.dirname(output2), exist_ok=True)
 
-    gpt_xml_file = rewrite_xml(gpt_xml_path, out_path, wkt_file, sensor, resolution)
+    gpt_xml_file = rewrite_xml(gpt_xml_path, out_path, wkt, sensor, resolution)
 
     args = [gpt, gpt_xml_file,
             "-Ssource={}".format(source),
@@ -43,17 +42,17 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
 
     rgb_bands = params['rgb_bands'].split(",")
     fc_bands = params['fc_bands'].split(",")
-    create_quicklooks(out_path, product_name, wkt_file, sensor, rgb_bands, fc_bands)
+    create_quicklooks(out_path, product_name, wkt, sensor, rgb_bands, fc_bands)
 
     return output1, output2
 
 
-def rewrite_xml(gpt_xml_path, out_path, wkt_file, sensor, resolution):
+def rewrite_xml(gpt_xml_path, out_path, wkt, sensor, resolution):
     with open(os.path.join(gpt_xml_path, GPT_XML_FILENAME.format(sensor.lower())), "r") as f:
         xml = f.read()
 
-    reproject_params = create_reproject_parameters_from_wkt(wkt_file, resolution)
-    xml = xml.replace("${wkt}", auxil.load_wkt(wkt_file))
+    reproject_params = create_reproject_parameters_from_wkt(wkt, resolution)
+    xml = xml.replace("${wkt}", wkt)
     xml = xml.replace("${easting}", reproject_params['easting'])
     xml = xml.replace("${northing}", reproject_params['northing'])
     xml = xml.replace("${pixelSizeX}", reproject_params['pixelSizeX'])
@@ -69,8 +68,8 @@ def rewrite_xml(gpt_xml_path, out_path, wkt_file, sensor, resolution):
     return gpt_xml_file
 
 
-def create_reproject_parameters_from_wkt(wkt_file, resolution):
-    perimeter = WKTReader().read(auxil.load_wkt(wkt_file))
+def create_reproject_parameters_from_wkt(wkt, resolution):
+    perimeter = WKTReader().read(wkt)
     lats = [coordinate.y for coordinate in perimeter.getCoordinates()]
     lons = [coordinate.x for coordinate in perimeter.getCoordinates()]
     x_dist = haversine((min(lats), min(lons)), (min(lats), max(lons)))
@@ -84,7 +83,7 @@ def create_reproject_parameters_from_wkt(wkt_file, resolution):
             'pixelSizeY': str(y_pixsize), 'width': str(x_pix), 'height': str(y_pix)}
 
 
-def create_quicklooks(out_path, product_name, wkt_file, sensor, rgb_bands, fc_bands):
+def create_quicklooks(out_path, product_name, wkt, sensor, rgb_bands, fc_bands):
     print("Creating quicklooks for IDEPIX")
     if sensor == "OLCI":
         rgb_bands = [bn.replace('radiance', 'reflectance') for bn in rgb_bands]
@@ -93,8 +92,8 @@ def create_quicklooks(out_path, product_name, wkt_file, sensor, rgb_bands, fc_ba
     product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, FILENAME1.format(product_name)))
     ql_file = os.path.join(out_path, QL_OUT_DIR.format("rgb"), QL_FILENAME.format(product_name, "rgb"))
     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-    plot_pic(product, ql_file, rgb_layers=rgb_bands, grid=True, max_val=0.16, perimeter_file=wkt_file)
+    plot_pic(product, ql_file, rgb_layers=rgb_bands, grid=True, max_val=0.16, wkt=wkt)
     ql_file = os.path.join(out_path, QL_OUT_DIR.format("fc"), QL_FILENAME.format(product_name, "fc"))
     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-    plot_pic(product, ql_file, rgb_layers=fc_bands, grid=True, max_val=0.3, perimeter_file=wkt_file)
+    plot_pic(product, ql_file, rgb_layers=fc_bands, grid=True, max_val=0.3, wkt=wkt)
     product.closeIO()

@@ -6,15 +6,13 @@ import os
 from threading import Semaphore, Thread
 
 from packages import coah_api
-from packages.auxil import load_wkt
 
 
-def start_download_threads(env, params, max_parallel_downloads=2):
+def start_download_threads(env, params, wkt, max_parallel_downloads=2):
     basic_auth = coah_api.get_auth(env['COAH']['username'], env['COAH']['password'])
-    sensor, resolution = params['General']['sensor'], params['General']['resolution']
     start, end = params['General']['start'], params['General']['end']
-    wkt = load_wkt(os.path.join(env['DIAS']['wkt_path'], params['General']['wkt']))
-    uuids, product_names = find_products_to_download(basic_auth, sensor, resolution, start, end, wkt)
+    sensor, resolution = params['General']['sensor'], params['General']['resolution']
+    uuids, product_names = find_products_to_download(basic_auth, wkt, start, end, sensor, resolution)
     print("Found {} product(s)".format(len(uuids)))
 
     l1_path = env['DIAS']['l1_path'].format(params['General']['sensor'])
@@ -35,7 +33,7 @@ def start_download_threads(env, params, max_parallel_downloads=2):
     return product_paths_available, product_paths_to_download, download_threads
 
 
-def find_products_to_download(basic_auth, sensor, resolution, start, end, wkt):
+def find_products_to_download(basic_auth, wkt, start, end, sensor, resolution):
     if sensor == 'OLCI' and resolution == '1000':
         datatype = 'OL_1_ERR___'
     elif sensor == 'OLCI' and resolution != '1000':

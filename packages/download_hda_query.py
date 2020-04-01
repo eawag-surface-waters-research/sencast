@@ -6,13 +6,15 @@ import os
 from threading import Semaphore, Thread
 
 from packages import hda_api
+from packages.product_fun import get_ul_lr_geo_roi
 
 
-def start_download_threads(env, params, max_parallel_downloads=2):
+def start_download_threads(env, params, wkt, max_parallel_downloads=2):
     print("Step-1")
     access_token = hda_api.get_access_token(env['HDA']['username'], env['HDA']['password'])
-
-    job_id, (uris, product_names) = find_products_to_download(access_token, params['sensor'], params['start'], params['end'])
+    start, end = params['General']['start'], params['General']['end']
+    sensor, resolution = params['General']['sensor'], params['General']['resolution']
+    job_id, (uris, product_names) = find_products_to_download(access_token, wkt, start, end, sensor, resolution)
     print("Found {} product(s)".format(len(uris)))
 
     l1_path = env['DIAS']['l1_path'].format(params['General']['sensor'])
@@ -33,11 +35,12 @@ def start_download_threads(env, params, max_parallel_downloads=2):
     return product_paths_available, product_paths_to_download, download_threads
 
 
-def find_products_to_download(access_token, sensor, start, end):
+def find_products_to_download(access_token, wkt, start, end, sensor, resolution):
     if sensor == "OLCI":
+        ul, lr = get_ul_lr_geo_roi(wkt)
         datarequest = {
-            'datasetId': "EO:EUM:DAT:SENTINEL-3:OL_1_EFR___",
-            'boundingBoxValues': [{'name': "bbox", 'bbox': [5.5, 48, 11, 45]}],
+            'datasetId': "EO:EUM:DAT:SENTINEL-3:OL_1_{}___".format("EFR" if resolution < 1000 else "ERR"),
+            'boundingBoxValues': [{'name': "bbox", 'bbox': [ul[0], ul[1], lr[0], lr[1]]}],
             'dateRangeSelectValues': [{'name': "dtrange", 'start': start, 'end': end}],
             'stringChoiceValues': []
         }

@@ -31,20 +31,19 @@ plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')
 
 SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
-FileReader = snappy.jpy.get_type('java.io.FileReader')
 
 authenticate(username='nouchi', password='EOdatap4s')
 
 
-def plot_map(product, output_file, layer_str, basemap='srtm_elevation', 
-             crop_ext=False, perimeter_file=False, param_range=False,
-             cloud_layer=False, suspect_layer=False, water_layer=False, 
-             grid=True, shadow_layer=False, aspect_balance=False):
+def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
+             crop_ext=None, wkt=None, param_range=None,
+             cloud_layer=None, suspect_layer=None, water_layer=None,
+             grid=True, shadow_layer=None, aspect_balance=None):
 
     # basemap options are srtm_hillshade, srtm_elevation, quadtree_rgb, nobasemap
 
-    #mpl.rc('font', family='Times New Roman')
-    #mpl.rc('text', usetex=True)
+    # mpl.rc('font', family='Times New Roman')
+    # mpl.rc('text', usetex=True)
     
     all_bns = product.getBandNames()
     if layer_str not in all_bns:
@@ -107,7 +106,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         return
     
     # load flag bands if requested
-    if cloud_layer != False:
+    if cloud_layer:
         if sub_product.getBand(cloud_layer[0]) is None:
             cloud_mask = sub_product.getMaskGroup().get(cloud_layer[0])
             cloud_band = jpy.cast(cloud_mask, Mask)
@@ -120,7 +119,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         cloud_arr[cloud_ind] = 100
         masked_cloud_arr = np.ma.masked_where(cloud_arr != 100, cloud_arr)
 
-    if shadow_layer != False:
+    if shadow_layer:
         if sub_product.getBand(shadow_layer[0]) is None:
             shadow_mask = sub_product.getMaskGroup().get(shadow_layer[0])
             shadow_band = jpy.cast(shadow_mask, Mask)
@@ -133,7 +132,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         shadow_arr[shadow_ind] = 100
         masked_shadow_arr = np.ma.masked_where(shadow_arr != 100, shadow_arr)
 
-    if suspect_layer != False:
+    if suspect_layer:
         if sub_product.getBand(suspect_layer[0]) is None:
             suspect_mask = sub_product.getMaskGroup().get(suspect_layer[0])
             suspect_band = jpy.cast(suspect_mask, Mask)
@@ -146,7 +145,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         suspect_arr[suspect_ind] = 100
         masked_suspect_arr = np.ma.masked_where(suspect_arr != 100, suspect_arr)
 
-    if water_layer != False:
+    if water_layer:
         if sub_product.getBand(water_layer[0]) is None:
             water_mask = sub_product.getMaskGroup().get(water_layer[0])
             water_band = jpy.cast(water_mask, Mask)
@@ -170,9 +169,9 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     prod_min_lon = lowlef.lon
 
     # read lat and lon information
-    if perimeter_file:
+    if wkt:
         global canvas_area
-        perimeter = WKTReader().read(FileReader(perimeter_file))
+        perimeter = WKTReader().read(wkt)
         lats = []
         lons = []
         for coordinate in perimeter.getCoordinates():
@@ -264,13 +263,13 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
 
     # Initialize plot
     fig = plt.figure(figsize = ((aspect_ratio * 3) + (2 * legend_extension), 3))
-    map = fig.add_subplot(111, projection=ccrs.PlateCarree())# ccrs.PlateCarree()) ccrs.Mercator())
+    map = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.PlateCarree()) ccrs.Mercator())
 
-    if perimeter_file:
+    if wkt:
         map.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
 
     ##############################
-    ##### SRTM plot version ######
+    # ### SRTM plot version ######
     ##############################
 
     if basemap in ['srtm_hillshade', 'srtm_elevation']:
@@ -304,7 +303,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
             basemap = 'nobasemap'
 
     ##################################
-    ##### non-SRTM plot version ######
+    # ### non-SRTM plot version ######
     ##################################
 
     if basemap in ['quadtree_rgb', 'nobasemap']:
@@ -314,20 +313,20 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         if basemap == 'quadtree_rgb':
             print('   preparing Quadtree tiles basemap')
 
-            #background = maps.GoogleTiles(style='street')
-            #background = maps.GoogleTiles(style='satellite')
-            #background = maps.GoogleTiles(style='terrain')
-            #background = maps.MapQuestOpenAerial()
-            #background = maps.OSM()
+            # background = maps.GoogleTiles(style='street')
+            # background = maps.GoogleTiles(style='satellite')
+            # background = maps.GoogleTiles(style='terrain')
+            # background = maps.MapQuestOpenAerial()
+            # background = maps.OSM()
             background = maps.QuadtreeTiles()
-            #crs = maps.GoogleTiles().crs
-            #crs = maps.QuadtreeTiles().crs
+            # crs = maps.GoogleTiles().crs
+            # crs = maps.QuadtreeTiles().crs
 
     # Add background
             map.add_image(background, 10)
 
     ##############################
-    ##### both plot versions #####
+    # ### both plot versions #####
     ##############################
 
     # Plot parameter
@@ -336,21 +335,21 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
                            vmin=param_range[0], vmax=param_range[1], zorder=10)
 
     # Plot flags
-    if cloud_layer != False:
+    if cloud_layer:
         cloud_colmap = colscales.cloud_color()
         cloud_colmap.set_bad('w', 0)
         cloud = plt.imshow(masked_cloud_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
                            transform=ccrs.PlateCarree(), origin='upper', cmap=cloud_colmap, interpolation='none',
                            zorder=20)
 
-    if shadow_layer != False:
+    if shadow_layer:
         shadow_colmap = colscales.shadow_color()
         shadow_colmap.set_bad('w', 0)
         shadow = plt.imshow(masked_shadow_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
                            transform=ccrs.PlateCarree(), origin='upper', cmap=shadow_colmap, interpolation='none',
                            zorder=20)
 
-    if suspect_layer != False:
+    if suspect_layer:
         suspect_colmap = colscales.suspect_color()
         suspect_colmap.set_bad('w', 0)
         suspect = plt.imshow(masked_suspect_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
@@ -360,7 +359,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     # Add gridlines
     if grid:
         gridlines = map.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
-                                  linestyle=':', zorder=23)#, n_steps=3)
+                                  linestyle=':', zorder=23)  # , n_steps=3)
         if orientation == 'square':
             x_n_ticks = 4
             y_n_ticks = 4
@@ -383,11 +382,11 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     plt.title(title_str, y=1.1)
     print('   creating colorbar')
     fig = plt.gcf()
-    fig.subplots_adjust(top = 1, bottom = 0, left = 0, 
-                        right = (aspect_ratio * 3) / ((aspect_ratio * 3) + (1.2 * legend_extension)),
-                        wspace = 0.05, hspace = 0.05)
+    fig.subplots_adjust(top=1, bottom=0, left=0,
+                        right=(aspect_ratio * 3) / ((aspect_ratio * 3) + (1.2 * legend_extension)),
+                        wspace=0.05, hspace=0.05)
     cax = fig.add_axes([(aspect_ratio * 3) / ((aspect_ratio * 3) + (0.8 * legend_extension)), 0.15, 0.03, 0.7])
-    cbar = fig.colorbar(parameter, cax=cax, ticks = ticks, format = tick_format, orientation=bar_orientation)
+    cbar = fig.colorbar(parameter, cax=cax, ticks=ticks, format=tick_format, orientation=bar_orientation)
     cbar.ax.tick_params(labelsize=8)
 
     # Save plot
@@ -398,7 +397,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     sub_product.closeIO()
 
 
-def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_layers=False, grid=True, max_val=0.10):
+def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, grid=True, max_val=0.10):
 
     linewidth = 0.8
     gridlabel_size = 6
@@ -476,10 +475,10 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     
     # Initialize plot
     fig = plt.figure()
-    map = fig.add_subplot(111, projection=ccrs.PlateCarree())  #ccrs.Mercator())
+    map = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.Mercator())
 
     # adjust image brightness scaling (empirical...)
-    rgb_array = np.zeros((height, width, 3), 'float32') #uint8
+    rgb_array = np.zeros((height, width, 3), 'float32')  # uint8
     rgb_array[..., 0] = red_arr
     rgb_array[..., 1] = green_arr
     rgb_array[..., 2] = blue_arr
@@ -487,18 +486,18 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     scale_factor = 250 / max_val
 
     for i_rgb in range(rgb_array.shape[-1]):
-        zero_ind = np.where(rgb_array[:,:,i_rgb] == 0)
-        nan_ind = np.where(rgb_array[:,:,i_rgb] == -1)
-        exc_ind = np.where(rgb_array[:,:,i_rgb] > max_val)
-        rgb_array[:,:,i_rgb] = rgb_array[:,:,i_rgb] * scale_factor
-        rgb_array[:,:,i_rgb][zero_ind] = 250
-        rgb_array[:,:,i_rgb][nan_ind] = 250
-        rgb_array[:,:,i_rgb][exc_ind]  = 250
+        zero_ind = np.where(rgb_array[:, :, i_rgb] == 0)
+        nan_ind = np.where(rgb_array[:, :, i_rgb] == -1)
+        exc_ind = np.where(rgb_array[:, :, i_rgb] > max_val)
+        rgb_array[:, :, i_rgb] = rgb_array[:, :, i_rgb] * scale_factor
+        rgb_array[:, :, i_rgb][zero_ind] = 250
+        rgb_array[:, :, i_rgb][nan_ind] = 250
+        rgb_array[:, :, i_rgb][exc_ind] = 250
 
     img = Image.fromarray(rgb_array.astype(np.uint8))
 
-    if perimeter_file:
-        perimeter = WKTReader().read(FileReader(perimeter_file))
+    if wkt:
+        perimeter = WKTReader().read(wkt)
         lats = []
         lons = []
         for coordinate in perimeter.getCoordinates():
@@ -510,12 +509,12 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
     map.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
 
     rgb_image = map.imshow(img, extent=[product_area[0][0], product_area[1][0], product_area[0][1], product_area[1][1]],
-                      transform=ccrs.PlateCarree(), origin='upper', interpolation='nearest', zorder=1)
+                           transform=ccrs.PlateCarree(), origin='upper', interpolation='nearest', zorder=1)
 
     # Add gridlines
     if grid:
         gridlines = map.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
-                                  linestyle=':', zorder=2)#, n_steps=3)
+                                  linestyle=':', zorder=2)  # , n_steps=3)
         if orientation == 'square':
             x_n_ticks = 4
             y_n_ticks = 4
@@ -542,30 +541,30 @@ def plot_pic(product, output_file, perimeter_file=False, crop_ext=False, rgb_lay
 
 def elevate(located_elevations):
     canvas_extent = (canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1])
-    x_pixpdeg = len(located_elevations[0][0,:]) / (located_elevations.extent[1] - located_elevations.extent[0])
-    y_pixpdeg = len(located_elevations[0][:,0]) / (located_elevations.extent[3] - located_elevations.extent[2])
+    x_pixpdeg = len(located_elevations[0][0, :]) / (located_elevations.extent[1] - located_elevations.extent[0])
+    y_pixpdeg = len(located_elevations[0][:, 0]) / (located_elevations.extent[3] - located_elevations.extent[2])
     left_ind = math.floor(x_pixpdeg * (canvas_area[0][0] - located_elevations.extent[0]))
     righ_ind = math.floor(x_pixpdeg * (canvas_area[1][0] - located_elevations.extent[0]))
-    lowe_ind = len(located_elevations[0][:,0]) - math.ceil(y_pixpdeg * (canvas_area[1][1] - located_elevations.extent[2]))
-    uppe_ind = len(located_elevations[0][:,0]) - math.ceil(y_pixpdeg * (canvas_area[0][1] - located_elevations.extent[2]))
+    lowe_ind = len(located_elevations[0][:, 0]) - math.ceil(y_pixpdeg * (canvas_area[1][1] - located_elevations.extent[2]))
+    uppe_ind = len(located_elevations[0][:, 0]) - math.ceil(y_pixpdeg * (canvas_area[0][1] - located_elevations.extent[2]))
 
-    #Rückgabe ganzer SRTM Tiles, macht Bildcanvas so gross wie unsichtbare SRTM Fläche
-    #return LocatedImage(scaled_elevations, located_elevations.extent)
+    # Rückgabe ganzer SRTM Tiles, macht Bildcanvas so gross wie unsichtbare SRTM Fläche
+    # return LocatedImage(scaled_elevations, located_elevations.extent)
     return LocatedImage(located_elevations[0][lowe_ind:uppe_ind, left_ind:righ_ind], canvas_extent)
 
 
 def shade(located_elevations):
     located_shades = srtm.add_shading(located_elevations.image, azimuth=135, altitude=15)
     canvas_extent = (canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1])
-    x_pixpdeg = len(located_shades[0,:]) / (located_elevations.extent[1] - located_elevations.extent[0])
-    y_pixpdeg = len(located_shades[:,0]) / (located_elevations.extent[3] - located_elevations.extent[2])
+    x_pixpdeg = len(located_shades[0, :]) / (located_elevations.extent[1] - located_elevations.extent[0])
+    y_pixpdeg = len(located_shades[:, 0]) / (located_elevations.extent[3] - located_elevations.extent[2])
     left_ind = math.floor(x_pixpdeg * (canvas_area[0][0] - located_elevations.extent[0]))
     righ_ind = math.floor(x_pixpdeg * (canvas_area[1][0] - located_elevations.extent[0]))
-    lowe_ind = len(located_shades[:,0]) - math.ceil(y_pixpdeg * (canvas_area[1][1] - located_elevations.extent[2]))
-    uppe_ind = len(located_shades[:,0]) - math.ceil(y_pixpdeg * (canvas_area[0][1] - located_elevations.extent[2]))
+    lowe_ind = len(located_shades[:, 0]) - math.ceil(y_pixpdeg * (canvas_area[1][1] - located_elevations.extent[2]))
+    uppe_ind = len(located_shades[:, 0]) - math.ceil(y_pixpdeg * (canvas_area[0][1] - located_elevations.extent[2]))
 
-    #Rückgabe ganzer SRTM Tiles, macht Bildcanvas so gross wie unsichtbare SRTM Fläche
-    #return LocatedImage(located_shades, located_elevations.extent)
+    # Rückgabe ganzer SRTM Tiles, macht Bildcanvas so gross wie unsichtbare SRTM Fläche
+    # return LocatedImage(located_shades, located_elevations.extent)
     return LocatedImage(located_shades[lowe_ind:uppe_ind, left_ind:righ_ind], canvas_extent)
 
 
@@ -594,7 +593,7 @@ def get_tick_positions(lower, upper, n_ticks):
     return tick_list
 
 
-def get_legend_str(layer_str):      #'$\mathbf{Secchi\/depth\/[m]}$'
+def get_legend_str(layer_str):      # '$\mathbf{Secchi\/depth\/[m]}$'
     if layer_str in ['lswt']:
         legend_str = '$\mathbf{[deg.\/K]}$'
         title_str = '$\mathbf{LSWT}$'

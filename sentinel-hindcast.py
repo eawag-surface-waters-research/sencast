@@ -9,5 +9,7 @@ import os
 
 from packages.main import hindcast
 
+# Removes SEVERE message in gpt log
 os.environ['LD_LIBRARY_PATH'] = "."
+
 hindcast("parameters_wdoc_S3.ini")

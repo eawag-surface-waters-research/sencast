@@ -17,7 +17,7 @@ QL_FILENAME = "L2MPH_L1P_reproj_{}_{}.png"
 GPT_XML_FILENAME = "mph.xml"
 
 
-def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor, params):
+def process(gpt, gpt_xml_path, wkt, source, product_name, out_path, sensor, params):
     """ This processor applies mph to the source product and stores the result. """
 
     print("Applying MPH...")
@@ -40,7 +40,7 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
             "-Poutput={}".format(output)]
     subprocess.call(args)
 
-    create_quicklooks(out_path, product_name, wkt_file, params['bands'].split(","), params['bandmaxs'].split(","))
+    create_quicklooks(out_path, product_name, wkt, params['bands'].split(","), params['bandmaxs'].split(","))
 
     return output
 
@@ -59,7 +59,7 @@ def rewrite_xml(gpt_xml_path, gpt_xml_file, validexpression):
         f.write(xml.encode())
 
 
-def create_quicklooks(out_path, product_name, wkt_file, bands, bandmaxs):
+def create_quicklooks(out_path, product_name, wkt, bands, bandmaxs):
     print("Creating quicklooks for MPH for bands: {}".format(bands))
     product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, FILENAME.format(product_name)))
     for band, bandmax in zip(bands, bandmaxs):
@@ -69,6 +69,6 @@ def create_quicklooks(out_path, product_name, wkt_file, bands, bandmaxs):
             bandmax = range(0, int(bandmax))
         ql_file = os.path.join(out_path, QL_OUT_DIR.format(band), QL_FILENAME.format(product_name, band))
         os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-        plot_map(product, ql_file, band, basemap="srtm_hillshade", grid=True, perimeter_file=wkt_file, param_range=bandmax)
+        plot_map(product, ql_file, band, basemap="srtm_hillshade", grid=True, wkt=wkt, param_range=bandmax)
         print("Plot for band {} finished.".format(band))
     product.closeIO()

@@ -3,7 +3,7 @@ import subprocess
 
 from snappy import ProductIO
 
-from packages.product_fun import get_corner_pixels_ROI
+from packages.product_fun import get_corner_pixels_roi
 from packages.ql_mapping import plot_map
 
 # The name of the folder to which the output product will be saved
@@ -18,7 +18,7 @@ QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
 GPT_XML_FILENAME = "polymer.xml"
 
 
-def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_path, sensor, resolution, params, gsw_path):
+def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, sensor, resolution, params, gsw_path):
     """ This processor applies polymer to the source product and stores the result. """
 
     # These imports are here (and not at the top of the file) to make the rest of sentinel-hindcast work on systems without polymer installed
@@ -35,7 +35,7 @@ def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_pa
         return output
     os.makedirs(os.path.dirname(output), exist_ok=True)
 
-    UL, UR, LR, LL = get_corner_pixels_ROI(ProductIO.readProduct(product_path), wkt_file)
+    UL, UR, LR, LL = get_corner_pixels_roi(ProductIO.readProduct(product_path), wkt)
     sline = min(UL[0], UR[0])
     eline = max(LL[0], LR[0])
     scol = min(UL[1], UR[1])
@@ -64,7 +64,7 @@ def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_pa
 
     os.remove(poly_tmp_file)
 
-    create_quicklooks(out_path, product_name, wkt_file, params['bands'].split(","), params['bandmaxs'].split(","))
+    create_quicklooks(out_path, product_name, wkt, params['bands'].split(","), params['bandmaxs'].split(","))
 
 
 def rewrite_xml(gpt_xml_path, gpt_xml_file):
@@ -75,7 +75,7 @@ def rewrite_xml(gpt_xml_path, gpt_xml_file):
         f.write(xml.encode())
 
 
-def create_quicklooks(out_path, product_name, wkt_file, bands, bandmaxs):
+def create_quicklooks(out_path, product_name, wkt, bands, bandmaxs):
     print("Creating quicklooks for POLYMER for bands: {}".format(bands))
     product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, FILENAME.format(product_name)))
     for band, bandmax in zip(bands, bandmaxs):
@@ -85,6 +85,6 @@ def create_quicklooks(out_path, product_name, wkt_file, bands, bandmaxs):
             bandmax = range(0, int(bandmax))
         ql_file = os.path.join(out_path, QL_OUT_DIR.format(band), QL_FILENAME.format(product_name, band))
         os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-        plot_map(product, ql_file, band, basemap="srtm_hillshade", grid=True, perimeter_file=wkt_file, param_range=bandmax)
+        plot_map(product, ql_file, band, basemap="srtm_hillshade", grid=True, wkt=wkt, param_range=bandmax)
         print("Plot for band {} finished.".format(band))
     product.closeIO()

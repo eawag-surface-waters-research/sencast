@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from snappy import GeoPos, jpy, WKTReader
+from snappy import GeoPos, WKTReader
 import re
 
 
-def get_corner_pixels_ROI(product, wkt_file):
-    FileReader = jpy.get_type('java.io.FileReader')
-    perimeter = WKTReader().read(FileReader(wkt_file))
+def get_corner_pixels_roi(product, wkt):
+    perimeter = WKTReader().read(wkt)
     lats = []
     lons = []
 
@@ -94,9 +93,10 @@ def get_corner_pixels_ROI(product, wkt_file):
     return UL, UR, LR, LL
 
 
-def get_UL_LR_geo_ROI(wkt):
+def get_ul_lr_geo_roi(wkt):
+    if not wkt.starts_with("POLYGON"):
+        raise RuntimeError("Provided wkt must be a polygon!")
     corners = re.findall(r'[-]?\d+\.\d+', wkt)
-    corners = np.array([float(c) for c in corners], dtype=np.float32)
-    lat = np.array([corners[1], corners[5]])
-    lon = np.array([corners[0], corners[4]])
-    return lat, lon
+    lons = [float(corner) for corner in corners[::2]]
+    lats = [float(corner) for corner in corners[1::2]]
+    return [min(lons), max(lats)], [max(lons), min(lats)]
