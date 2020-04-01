@@ -2,8 +2,9 @@ import os
 import subprocess
 
 from haversine import haversine
-from snappy import WKTReader, ProductIO
+from snappy import ProductIO
 
+from packages.product_fun import get_lons_lats
 from packages.ql_mapping import plot_pic
 
 # The name of the folder to which the output product will be saved
@@ -69,9 +70,7 @@ def rewrite_xml(gpt_xml_path, out_path, wkt, sensor, resolution):
 
 
 def create_reproject_parameters_from_wkt(wkt, resolution):
-    perimeter = WKTReader().read(wkt)
-    lats = [coordinate.y for coordinate in perimeter.getCoordinates()]
-    lons = [coordinate.x for coordinate in perimeter.getCoordinates()]
+    lons, lats = get_lons_lats(wkt)
     x_dist = haversine((min(lats), min(lons)), (min(lats), max(lons)))
     y_dist = haversine((min(lats), min(lons)), (max(lats), min(lons)))
     x_pix = int(round(x_dist / (int(resolution) / 1000)))

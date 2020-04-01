@@ -6,7 +6,7 @@ import os
 from threading import Semaphore, Thread
 
 from packages import hda_api
-from packages.product_fun import get_ul_lr_geo_roi
+from packages.product_fun import get_lons_lats
 
 
 def start_download_threads(env, params, wkt, max_parallel_downloads=2):
@@ -37,10 +37,10 @@ def start_download_threads(env, params, wkt, max_parallel_downloads=2):
 
 def find_products_to_download(access_token, wkt, start, end, sensor, resolution):
     if sensor == "OLCI":
-        ul, lr = get_ul_lr_geo_roi(wkt)
+        lons, lats = get_lons_lats(wkt)
         datarequest = {
             'datasetId': "EO:EUM:DAT:SENTINEL-3:OL_1_{}___".format("EFR" if resolution < 1000 else "ERR"),
-            'boundingBoxValues': [{'name': "bbox", 'bbox': [ul[0], ul[1], lr[0], lr[1]]}],
+            'boundingBoxValues': [{'name': "bbox", 'bbox': [min(lons), max(lats), max(lons), min(lats)]}],
             'dateRangeSelectValues': [{'name': "dtrange", 'start': start, 'end': end}],
             'stringChoiceValues': []
         }

@@ -21,16 +21,14 @@ import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 
 from cartopy.io import PostprocessedRasterSource, LocatedImage
-from snappy import GPF, HashMap, ProductUtils, WKTReader, Mask
+from snappy import GPF, HashMap, ProductUtils, Mask
 from PIL import Image
 from haversine import haversine
 from packages.authenticate import authenticate
-
+from packages.product_fun import get_lons_lats
 
 plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')
-
-SubsetOp = snappy.jpy.get_type('org.esa.snap.core.gpf.common.SubsetOp')
 
 authenticate(username='nouchi', password='EOdatap4s')
 
@@ -171,12 +169,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     # read lat and lon information
     if wkt:
         global canvas_area
-        perimeter = WKTReader().read(wkt)
-        lats = []
-        lons = []
-        for coordinate in perimeter.getCoordinates():
-            lats.append(coordinate.y)
-            lons.append(coordinate.x)
+        lons, lats = get_lons_lats(wkt)
         max_lat = max(lats)
         min_lat = min(lats)
         max_lon = max(lons)
@@ -346,15 +339,15 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         shadow_colmap = colscales.shadow_color()
         shadow_colmap.set_bad('w', 0)
         shadow = plt.imshow(masked_shadow_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
-                           transform=ccrs.PlateCarree(), origin='upper', cmap=shadow_colmap, interpolation='none',
-                           zorder=20)
+                            transform=ccrs.PlateCarree(), origin='upper', cmap=shadow_colmap, interpolation='none',
+                            zorder=20)
 
     if suspect_layer:
         suspect_colmap = colscales.suspect_color()
         suspect_colmap.set_bad('w', 0)
         suspect = plt.imshow(masked_suspect_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
-                           transform=ccrs.PlateCarree(), origin='upper', cmap=suspect_colmap, interpolation='none',
-                           zorder=20)
+                             transform=ccrs.PlateCarree(), origin='upper', cmap=suspect_colmap, interpolation='none',
+                             zorder=20)
 
     # Add gridlines
     if grid:
@@ -497,12 +490,7 @@ def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, gri
     img = Image.fromarray(rgb_array.astype(np.uint8))
 
     if wkt:
-        perimeter = WKTReader().read(wkt)
-        lats = []
-        lons = []
-        for coordinate in perimeter.getCoordinates():
-            lats.append(coordinate.y)
-            lons.append(coordinate.x)
+        lons, lats = get_lons_lats(wkt)
         canvas_area = [[min(lons), min(lats)], [max(lons), max(lats)]]
     else:
         canvas_area = product_area

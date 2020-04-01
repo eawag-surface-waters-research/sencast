@@ -2,21 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from snappy import GeoPos, WKTReader
+from snappy import GeoPos
 import re
 
 
 def get_corner_pixels_roi(product, wkt):
-    perimeter = WKTReader().read(wkt)
-    lats = []
-    lons = []
-
     h = product.getSceneRasterHeight()
     w = product.getSceneRasterWidth()
 
-    for coordinate in perimeter.getCoordinates():
-        lats.append(coordinate.y)
-        lons.append(coordinate.x)
+    lons, lats = get_lons_lats(wkt)
 
     ul = [min(lons), max(lats)]
     ur = [max(lons), max(lats)]
@@ -93,10 +87,14 @@ def get_corner_pixels_roi(product, wkt):
     return UL, UR, LR, LL
 
 
-def get_ul_lr_geo_roi(wkt):
-    if not wkt.starts_with("POLYGON"):
+def get_coordinates(wkt):
+    return [{'x': lon, 'y': lat} for lon, lat in zip(get_lons_lats(wkt))]
+
+
+def get_lons_lats(wkt):
+    if not wkt.startswith("POLYGON"):
         raise RuntimeError("Provided wkt must be a polygon!")
-    corners = re.findall(r'[-]?\d+\.\d+', wkt)
+    corners = [float(c) for c in re.findall(r'[-]?\d+\.\d+', wkt)]
     lons = [float(corner) for corner in corners[::2]]
     lats = [float(corner) for corner in corners[1::2]]
-    return [min(lons), max(lats)], [max(lons), min(lats)]
+    return lons, lats
