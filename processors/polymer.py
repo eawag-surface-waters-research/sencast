@@ -1,10 +1,6 @@
 import os
 import subprocess
 
-from polymer.main import run_atm_corr, Level1, Level2
-from polymer.level1_msi import Level1_MSI
-from polymer.gsw import GSW
-from polymer.level2 import default_datasets
 from snappy import ProductIO
 
 from packages.product_fun import get_corner_pixels_ROI
@@ -24,6 +20,12 @@ GPT_XML_FILENAME = "polymer.xml"
 
 def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_path, sensor, resolution, params, gsw_path):
     """ This processor applies polymer to the source product and stores the result. """
+
+    # These imports are here (and not at the top of the file) to make the rest of sentinel-hindcast work on systems without polymer installed
+    from polymer.main import run_atm_corr, Level1, Level2
+    from polymer.level1_msi import Level1_MSI
+    from polymer.gsw import GSW
+    from polymer.level2 import default_datasets
 
     print("Applying POLYMER...")
 
