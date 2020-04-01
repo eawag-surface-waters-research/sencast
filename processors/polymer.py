@@ -27,11 +27,11 @@ def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_pa
 
     print("Applying POLYMER...")
 
-    target = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
-    if os.path.isfile(target):
+    output = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
+    if os.path.isfile(output):
         print("Skipping POLYMER, target already exists: {}".format(FILENAME.format(product_name)))
-        return target
-    os.makedirs(os.path.dirname(target), exist_ok=True)
+        return output
+    os.makedirs(os.path.dirname(output), exist_ok=True)
 
     UL, UR, LR, LL = get_corner_pixels_ROI(ProductIO.readProduct(product_path), wkt_file)
     sline = min(UL[0], UR[0])
@@ -39,7 +39,7 @@ def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_pa
     scol = min(UL[1], UR[1])
     ecol = max(LL[1], LR[1])
 
-    poly_tmp_file = "{}.tmp".format(target)
+    poly_tmp_file = "{}.tmp".format(output)
     if sensor == "MSI":
         gsw = GSW(directory=gsw_path)
         l1 = Level1_MSI(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, resolution=resolution)
@@ -55,9 +55,9 @@ def process(gpt, gpt_xml_path, wkt_file, product_path, l1p, product_name, out_pa
     rewrite_xml(gpt_xml_path, gpt_xml_file)
 
     args = [gpt, gpt_xml_file,
-            "-SmasterProduct={}".format(l1p),
-            "-SslaveProduct={}".format(poly_tmp_file),
-            "-PtargetProduct={}".format(target)]
+            "-Ssource1={}".format(l1p),
+            "-Ssource2={}".format(poly_tmp_file),
+            "-Poutput={}".format(output)]
     subprocess.call(args)
 
     os.remove(poly_tmp_file)

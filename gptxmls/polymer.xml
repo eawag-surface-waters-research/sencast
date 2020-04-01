@@ -3,8 +3,8 @@
     <node id="collocateNode">
         <operator>Collocate</operator>
         <sources>
-            <master>${masterProduct}</master>
-            <slave>${slaveProduct}</slave>
+            <master>${source1}</master>
+            <slave>${source2}</slave>
     	</sources>
         <parameters>
            	<renameMasterComponents>false</renameMasterComponents>
@@ -219,7 +219,7 @@
             	<source>bandMathNode</source>
             </sources>
             <parameters>
-                <file>${targetProduct}</file>
+                <file>${output}</file>
                 <formatName>NetCDF-BEAM</formatName>
             </parameters>
     </node>

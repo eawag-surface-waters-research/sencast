@@ -3,7 +3,7 @@
 	<node id="c2rccNode">
 		<operator>${c2rccOperator}</operator>
 		<sources>
-			<sourceProduct>${sourceProduct}</sourceProduct>
+			<sourceProduct>${source}</sourceProduct>
 		</sources>
 		<parameters>
 			<validPixelExpression>${validPixelExpression}</validPixelExpression>
@@ -27,7 +27,7 @@
 			<source>c2rccNode</source>
 		</sources>
 		<parameters>
-			<file>${targetProduct}</file>
+			<file>${output}</file>
 			<formatName>NetCDF-BEAM</formatName>
 		</parameters>
 	</node>

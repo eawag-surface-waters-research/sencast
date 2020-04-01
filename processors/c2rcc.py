@@ -22,24 +22,24 @@ def process(gpt, gpt_xml_path, wkt_file, source, product_name, out_path, sensor,
 
     print("Applying C2RCC...")
 
-    target = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
-    if os.path.isfile(target):
+    output = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
+    if os.path.isfile(output):
         print("Skipping C2RCC, target already exists: {}".format(FILENAME.format(product_name)))
-        return target
-    os.makedirs(os.path.dirname(target), exist_ok=True)
+        return output
+    os.makedirs(os.path.dirname(output), exist_ok=True)
 
     gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_path, gpt_xml_file, sensor, params['validexpression'], params['altnn'])
 
     args = [gpt, gpt_xml_file,
-            "-SsourceProduct={}".format(source),
-            "-PtargetProduct={}".format(target)]
+            "-Ssource={}".format(source),
+            "-Poutput={}".format(output)]
     subprocess.call(args)
 
     create_quicklooks(out_path, product_name, wkt_file, params['bands'].split(","), params['bandmaxs'].split(","))
 
-    return target
+    return output
 
 
 def rewrite_xml(gpt_xml_path, gpt_xml_file, sensor, validexpression, altnn):

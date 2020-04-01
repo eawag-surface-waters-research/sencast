@@ -3,7 +3,7 @@
 	<node id="mphNode">
 		<operator>MphChl</operator>
 		<sources>
-			<sourceProduct>${sourceProduct}</sourceProduct>
+			<sourceProduct>${source}</sourceProduct>
 		</sources>
 		<parameters>
 			<validPixelExpression>${validPixelExpression}</validPixelExpression>
@@ -19,7 +19,7 @@
 			<source>mphNode</source>
 		</sources>
 		<parameters>
-			<file>${targetProduct}</file>
+			<file>${output}</file>
 			<formatName>NetCDF-BEAM</formatName>
 		</parameters>
 	</node>

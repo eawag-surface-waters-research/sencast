@@ -17,4 +17,4 @@ from packages.main import hindcast
 import os
 
 os.environ['LD_LIBRARY_PATH'] = "."
-hindcast("parameters_wdoc_S2.ini")
+hindcast("parameters_wdoc_S3.ini")
