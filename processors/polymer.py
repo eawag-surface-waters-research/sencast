@@ -45,7 +45,7 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
     if sensor == "MSI":
         gsw = GSW(directory=gsw_path)
         ppp = msi_product_path_for_polymer(product_path)
-        l1 = Level1(ppp, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, kwargs={'resolution': resolution})
+        l1 = Level1_MSI(ppp, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw)
         l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['sza'])
         run_atm_corr(l1, l2)
     else:
