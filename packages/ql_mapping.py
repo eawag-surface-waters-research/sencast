@@ -37,17 +37,16 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
              crop_ext=None, wkt=None, param_range=None,
              cloud_layer=None, suspect_layer=None, water_layer=None,
              grid=True, shadow_layer=None, aspect_balance=None):
-
     # basemap options are srtm_hillshade, srtm_elevation, quadtree_rgb, nobasemap
 
     # mpl.rc('font', family='Times New Roman')
     # mpl.rc('text', usetex=True)
-    
+
     all_bns = product.getBandNames()
     if layer_str not in all_bns:
         print('{} not in product bands. Edit the parameter file.\nExiting.'.format(layer_str))
-        sys.exit() 
-    
+        sys.exit()
+
     legend_extension = 1
     bar_orientation = 'vertical'
     linewidth = 0.8
@@ -72,11 +71,11 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         d_type = 'float64'
     else:
         raise ValueError('cannot handle band of data_sh type \'' + param_dt + '\'')
-    
+
     GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
     BandDescriptor = jpy.get_type('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
     targetBand1 = BandDescriptor()
-    targetBand1.name = layer_str+'_ql'
+    targetBand1.name = layer_str + '_ql'
     targetBand1.type = d_type
     targetBand1.expression = layer_str
     targetBands = jpy.array('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor', 1)
@@ -87,10 +86,10 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     sub_product = GPF.createProduct('BandMaths', parameters, product)
     ProductUtils.copyGeoCoding(product, sub_product)
     print('Reading Band {}'.format(layer_str))
-    param_band = sub_product.getBand(layer_str+'_ql')
+    param_band = sub_product.getBand(layer_str + '_ql')
 
     # read constituent band
-    param_arr = np.zeros(width * height,  dtype=data_type)
+    param_arr = np.zeros(width * height, dtype=data_type)
     param_band.readPixels(0, 0, width, height, param_arr)
     param_arr = param_arr.reshape(height, width)
 
@@ -98,11 +97,12 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     masked_param_arr = np.ma.masked_invalid(param_arr)
     masked_param_arr = np.ma.masked_where(masked_param_arr >= 9999, masked_param_arr)
     masked_param_arr = np.ma.masked_where(masked_param_arr < 0.000000000001, masked_param_arr)
-    print('   applicable values are found in ' + str(masked_param_arr.count()) + ' of ' + str(height * width) + ' pixels')
+    print(
+        '   applicable values are found in ' + str(masked_param_arr.count()) + ' of ' + str(height * width) + ' pixels')
     if masked_param_arr.count() == 0:
         print('Image is empty, skipping...')
         return
-    
+
     # load flag bands if requested
     if cloud_layer:
         if sub_product.getBand(cloud_layer[0]) is None:
@@ -110,9 +110,9 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
             cloud_band = jpy.cast(cloud_mask, Mask)
         else:
             cloud_band = sub_product.getBand(cloud_layer[0])
-        cloud_arr = np.zeros(width * height,  dtype=np.int32)
+        cloud_arr = np.zeros(width * height, dtype=np.int32)
         cloud_band.readPixels(0, 0, width, height, cloud_arr)
-        cloud_arr = cloud_arr.reshape(height, width) # <- Problem: kommen nur Nullen!!
+        cloud_arr = cloud_arr.reshape(height, width)  # <- Problem: kommen nur Nullen!!
         cloud_ind = np.where(cloud_arr == cloud_layer[1])
         cloud_arr[cloud_ind] = 100
         masked_cloud_arr = np.ma.masked_where(cloud_arr != 100, cloud_arr)
@@ -123,7 +123,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
             shadow_band = jpy.cast(shadow_mask, Mask)
         else:
             shadow_band = sub_product.getBand(shadow_layer[0])
-        shadow_arr = np.zeros(width * height,  dtype=np.int32)
+        shadow_arr = np.zeros(width * height, dtype=np.int32)
         shadow_band.readPixels(0, 0, width, height, shadow_arr)
         shadow_arr = shadow_arr.reshape(height, width)
         shadow_ind = np.where(shadow_arr == shadow_layer[1])
@@ -136,7 +136,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
             suspect_band = jpy.cast(suspect_mask, Mask)
         else:
             suspect_band = sub_product.getBand(suspect_layer[0])
-        suspect_arr = np.zeros(width * height,  dtype=np.int32)
+        suspect_arr = np.zeros(width * height, dtype=np.int32)
         suspect_band.readPixels(0, 0, width, height, suspect_arr)
         suspect_arr = suspect_arr.reshape(height, width)
         suspect_ind = np.where(suspect_arr == suspect_layer[1])
@@ -149,10 +149,10 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
             water_band = jpy.cast(water_mask, Mask)
         else:
             water_band = sub_product.getBand(water_layer[0])
-        water_arr = np.zeros(width * height,  dtype=np.int32)
+        water_arr = np.zeros(width * height, dtype=np.int32)
         water_band.readPixels(0, 0, width, height, water_arr)
         water_arr = water_arr.reshape(height, width)
-        land_arr = np.zeros(width * height,  dtype=np.int32)
+        land_arr = np.zeros(width * height, dtype=np.int32)
         land_arr = land_arr.reshape(height, width)
         land_ind = np.where(water_arr != water_layer[1])
         land_arr[land_ind] = 100
@@ -202,10 +202,10 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
 
     # increase the smaller portion until the image aspect ratio is at most 3:2
     if aspect_balance:
-        if aspect_ratio < 2/3:
+        if aspect_ratio < 2 / 3:
             if lon_ext == 0:
                 lon_ext = (max_lon - min_lon) / 20
-            while aspect_ratio < 2/3:
+            while aspect_ratio < 2 / 3:
                 lon_ext = lon_ext * 1.1
                 x_dist = haversine((min_lat, min_lon - lon_ext), (min_lat, max_lon + lon_ext))
                 aspect_ratio = x_dist / y_dist
@@ -224,19 +224,19 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     if log:
         print('Transforming log data...')
         masked_param_arr = np.exp(masked_param_arr)
-        
+
     color_type = cm.get_cmap(name='viridis')
     color_type.set_bad(alpha=0)
     if not param_range:
         print('No range provided. Estimating...')
-        range_intervals = [2000, 1000, 500, 200, 100, 50, 40, 30, 20, 15, 
-                           10, 8, 6, 4, 2, 1, 0.5, 0.2, 0.1, 0.08, 0.06, 
-                           0.04, 0.02, 0.01, 0.008, 0.006, 0.004, 0.002, 
+        range_intervals = [2000, 1000, 500, 200, 100, 50, 40, 30, 20, 15,
+                           10, 8, 6, 4, 2, 1, 0.5, 0.2, 0.1, 0.08, 0.06,
+                           0.04, 0.02, 0.01, 0.008, 0.006, 0.004, 0.002,
                            0.001]
         for n_interval in range(2, len(range_intervals)):
             if np.percentile(masked_param_arr.compressed(), 90) > range_intervals[n_interval]:
                 param_range = [0, range_intervals[n_interval - 2]]
-                break 
+                break
             elif np.percentile(masked_param_arr.compressed(), 90) < range_intervals[-1]:
                 param_range = [0, range_intervals[-1]]
                 break
@@ -255,7 +255,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     ticks = [rel_tick * (param_range[1] - param_range[0]) + param_range[0] for rel_tick in rel_ticks]
 
     # Initialize plot
-    fig = plt.figure(figsize = ((aspect_ratio * 3) + (2 * legend_extension), 3))
+    fig = plt.figure(figsize=((aspect_ratio * 3) + (2 * legend_extension), 3))
     map = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.PlateCarree()) ccrs.Mercator())
 
     if wkt:
@@ -274,7 +274,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
                 print('   larger image side is ' + str(round(max(x_dist, y_dist), 1)) + ' km, applying SRTM3')
                 source = srtm.SRTM3Source
 
-    #  Add shading if requested
+            #  Add shading if requested
             if basemap == 'srtm_hillshade':
                 print('   preparing SRTM hillshade basemap')
                 srtm_raster = PostprocessedRasterSource(source(max_nx=8, max_ny=8), shade)
@@ -315,7 +315,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
             # crs = maps.GoogleTiles().crs
             # crs = maps.QuadtreeTiles().crs
 
-    # Add background
+            # Add background
             map.add_image(background, 10)
 
     ##############################
@@ -391,7 +391,6 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
 
 
 def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, grid=True, max_val=0.10):
-
     linewidth = 0.8
     gridlabel_size = 6
 
@@ -404,7 +403,7 @@ def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, gri
     # Create a new product With RGB bands only
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
-    
+
     red_band = product.getBand(rgb_layers[0])
     red_dt = red_band.getDataType()
 
@@ -431,16 +430,16 @@ def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, gri
     blue_band = product.getBand(rgb_layers[2])
 
     # read rgb bands
-    red_arr = np.zeros(width * height,  dtype=data_type)
+    red_arr = np.zeros(width * height, dtype=data_type)
     red_band.readPixels(0, 0, width, height, red_arr)
     red_arr = red_arr.reshape(height, width)
-    green_arr = np.zeros(width * height,  dtype=data_type)
+    green_arr = np.zeros(width * height, dtype=data_type)
     green_band.readPixels(0, 0, width, height, green_arr)
     green_arr = green_arr.reshape(height, width)
-    blue_arr = np.zeros(width * height,  dtype=data_type)
+    blue_arr = np.zeros(width * height, dtype=data_type)
     blue_band.readPixels(0, 0, width, height, blue_arr)
     blue_arr = blue_arr.reshape(height, width)
-    
+
     # read lat and lon information
     geocoding = product.getSceneGeoCoding()
     lowlef = geocoding.getGeoPos(snappy.PixelPos(0, height - 1), None)
@@ -465,7 +464,7 @@ def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, gri
         orientation = 'landscape'
 
     product_area = [[lowlef.lon - lon_ext, lowlef.lat - lat_ext], [upprig.lon + lon_ext, upprig.lat + lat_ext]]
-    
+
     # Initialize plot
     fig = plt.figure()
     map = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.Mercator())
@@ -520,7 +519,7 @@ def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, gri
 
         gridlines.xlabel_style = {'size': gridlabel_size, 'color': 'black'}
         gridlines.ylabel_style = {'size': gridlabel_size, 'color': 'black'}
-    
+
     # Save plot
     print('Saving image {}'.format(os.path.basename(output_file)))
     plt.savefig(output_file, box_inches='tight', dpi=300)
@@ -533,8 +532,10 @@ def elevate(located_elevations):
     y_pixpdeg = len(located_elevations[0][:, 0]) / (located_elevations.extent[3] - located_elevations.extent[2])
     left_ind = math.floor(x_pixpdeg * (canvas_area[0][0] - located_elevations.extent[0]))
     righ_ind = math.floor(x_pixpdeg * (canvas_area[1][0] - located_elevations.extent[0]))
-    lowe_ind = len(located_elevations[0][:, 0]) - math.ceil(y_pixpdeg * (canvas_area[1][1] - located_elevations.extent[2]))
-    uppe_ind = len(located_elevations[0][:, 0]) - math.ceil(y_pixpdeg * (canvas_area[0][1] - located_elevations.extent[2]))
+    lowe_ind = len(located_elevations[0][:, 0]) - math.ceil(
+        y_pixpdeg * (canvas_area[1][1] - located_elevations.extent[2]))
+    uppe_ind = len(located_elevations[0][:, 0]) - math.ceil(
+        y_pixpdeg * (canvas_area[0][1] - located_elevations.extent[2]))
 
     # Rückgabe ganzer SRTM Tiles, macht Bildcanvas so gross wie unsichtbare SRTM Fläche
     # return LocatedImage(scaled_elevations, located_elevations.extent)
@@ -581,7 +582,7 @@ def get_tick_positions(lower, upper, n_ticks):
     return tick_list
 
 
-def get_legend_str(layer_str):      # '$\mathbf{Secchi\/depth\/[m]}$'
+def get_legend_str(layer_str):  # '$\mathbf{Secchi\/depth\/[m]}$'
     if layer_str in ['lswt']:
         legend_str = '$\mathbf{[deg.\/K]}$'
         title_str = '$\mathbf{LSWT}$'
@@ -625,34 +626,34 @@ def get_legend_str(layer_str):      # '$\mathbf{Secchi\/depth\/[m]}$'
     elif layer_str == 'mph':
         legend_str = '$\mathbf{[dl]}$'
         title_str = '$\mathbf{MPH}$'
-        log = False    
+        log = False
     elif layer_str == 'iop_bwit':
-        legend_str = '$\mathbf{[m^{-1}]}$' 
+        legend_str = '$\mathbf{[m^{-1}]}$'
         title_str = '$\mathbf{C2RCC\/b_{wit}}$'
-        log = False  
+        log = False
     elif layer_str == 'bbs':
-        legend_str = '$\mathbf{[m^{-1}]}$' 
+        legend_str = '$\mathbf{[m^{-1}]}$'
         title_str = '$\mathbf{Polymer\/b_{b_{s}}}$'
-        log = False     
-#     elif layer_str  == 'Rw665':
-#         legend_str = '$\mathbf{[dl]}$'
-#         title_str = '$\mathbf{Polymer\/\/R_w(665)}$'
-#         log = False
+        log = False
+    #     elif layer_str  == 'Rw665':
+    #         legend_str = '$\mathbf{[dl]}$'
+    #         title_str = '$\mathbf{Polymer\/\/R_w(665)}$'
+    #         log = False
     elif 'Rw' in layer_str:
         lstr = re.findall('\d{3}', layer_str)[0]
         legend_str = '$\mathbf{[dl]}$'
-        title_str = '$\mathbf{Polymer\/\/R_w('+lstr+')}$'
+        title_str = '$\mathbf{Polymer\/\/R_w(' + lstr + ')}$'
         log = False
     elif 'rhow' in layer_str and 'rhown' not in layer_str:
         lstr = re.findall('\d*$', layer_str)[0]
         legend_str = '$\mathbf{[dl]}$'
-        title_str = '$\mathbf{C2RCC\/\/R_w('+lstr+')}$'
+        title_str = '$\mathbf{C2RCC\/\/R_w(' + lstr + ')}$'
         log = False
     elif 'rhown' in layer_str:
         lstr = re.findall('\d*$', layer_str)[0]
         legend_str = '$\mathbf{[dl]}$'
-        title_str = '$\mathbf{C2RCC\/\/R_{w,n}('+lstr+')}$'
-        log = False    
+        title_str = '$\mathbf{C2RCC\/\/R_{w,n}(' + lstr + ')}$'
+        log = False
     elif layer_str == 'logchl':
         legend_str = '$\mathbf{[mg/m^3]}$'
         title_str = '$\mathbf{Polymer\/\/CHL}$'
@@ -662,4 +663,3 @@ def get_legend_str(layer_str):      # '$\mathbf{Secchi\/depth\/[m]}$'
         title_str = layer_str
         log = False
     return title_str, legend_str, log
-
