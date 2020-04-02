@@ -44,7 +44,8 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
     poly_tmp_file = "{}.tmp".format(output)
     if sensor == "MSI":
         gsw = GSW(directory=gsw_path)
-        l1 = Level1_MSI(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, resolution=resolution)
+        ppp = msi_product_path_for_polymer(product_path)
+        l1 = Level1(ppp, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, kwargs={'resolution': resolution})
         l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['sza'])
         run_atm_corr(l1, l2)
     else:
@@ -88,3 +89,8 @@ def create_quicklooks(out_path, product_name, wkt, bands, bandmaxs):
         plot_map(product, ql_file, band, basemap="srtm_hillshade", grid=True, wkt=wkt, param_range=bandmax)
         print("Plot for band {} finished.".format(band))
     product.closeIO()
+
+
+def msi_product_path_for_polymer(product_path):
+    granule_path = os.path.join(product_path, "GRANULE")
+    return os.path.join(granule_path, os.listdir(granule_path)[0])
