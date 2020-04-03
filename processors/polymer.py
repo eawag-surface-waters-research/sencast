@@ -1,6 +1,8 @@
 import os
 import subprocess
+import urllib.request
 
+from http.cookiejar import CookieJar
 from snappy import ProductIO
 
 from packages.product_fun import get_corner_pixels_roi
@@ -20,14 +22,15 @@ GPT_XML_FILENAME = "polymer.xml"
 
 def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, sensor, resolution, params, gsw_path):
     """ This processor applies polymer to the source product and stores the result. """
+    print("Applying POLYMER...")
+
+    authenticate(username='nouchi', password='EOdatap4s')
 
     # These imports are here (and not at the top of the file) to make the rest of sentinel-hindcast work on systems without polymer installed
     from polymer.main import run_atm_corr, Level1, Level2
     from polymer.level1_msi import Level1_MSI
     from polymer.gsw import GSW
     from polymer.level2 import default_datasets
-
-    print("Applying POLYMER...")
 
     output = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
     if os.path.isfile(output):
@@ -45,7 +48,7 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
     if sensor == "MSI":
         gsw = GSW(directory=gsw_path)
         ppp = msi_product_path_for_polymer(product_path)
-        l1 = Level1_MSI(ppp, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw)
+        l1 = Level1_MSI(ppp, landmask=gsw)
         l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['sza'])
         run_atm_corr(l1, l2)
     else:
@@ -94,3 +97,31 @@ def create_quicklooks(out_path, product_name, wkt, bands, bandmaxs):
 def msi_product_path_for_polymer(product_path):
     granule_path = os.path.join(product_path, "GRANULE")
     return os.path.join(granule_path, os.listdir(granule_path)[0])
+
+
+def authenticate(username, password):
+    # See discussion https://github.com/SciTools/cartopy/issues/789#issuecomment-245789751
+    # And the solution on https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+Python
+
+    # Create a password manager to deal with the 401 reponse that is returned from
+    # Earthdata Login
+
+    password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+    password_manager.add_password("", "https://urs.earthdata.nasa.gov", username, password)
+
+    # Create a cookie jar for storing cookies. This is used to store and return
+    # the session cookie given to use by the data server (otherwise it will just
+    # keep sending us back to Earthdata Login to authenticate).  Ideally, we
+    # should use a file based cookie jar to preserve cookies between runs. This
+    # will make it much more efficient.
+
+    cookie_jar = CookieJar()
+
+    # Install all the handlers.
+
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPBasicAuthHandler(password_manager),
+        # urllib2.HTTPHandler(debuglevel=1),    # Uncomment these two lines to see
+        # urllib2.HTTPSHandler(debuglevel=1),   # details of the requests/responses
+        urllib.request.HTTPCookieProcessor(cookie_jar))
+    urllib.request.install_opener(opener)

@@ -24,13 +24,10 @@ from cartopy.io import PostprocessedRasterSource, LocatedImage
 from snappy import GPF, HashMap, ProductUtils, Mask
 from PIL import Image
 from haversine import haversine
-from packages.ancillary import authenticate
 from packages.product_fun import get_lons_lats
 
 plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')
-
-authenticate(username='nouchi', password='EOdatap4s')
 
 
 def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
