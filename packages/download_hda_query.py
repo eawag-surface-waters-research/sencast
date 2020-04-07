@@ -9,7 +9,7 @@ from packages import hda_api
 from packages.product_fun import get_lons_lats
 
 
-def start_download_threads(env, params, wkt, max_parallel_downloads=2):
+def start_download_threads(env, params, wkt, max_parallel_downloads=1):
     print("Step-1")
     access_token = hda_api.get_access_token(env['HDA']['username'], env['HDA']['password'])
     start, end = params['General']['start'], params['General']['end']
@@ -21,18 +21,16 @@ def start_download_threads(env, params, wkt, max_parallel_downloads=2):
     os.makedirs(l1_path, exist_ok=True)
 
     # Spawn download threads for products which are not yet available (locally)
-    product_paths_available, product_paths_to_download = [], []
-    semaphore, download_threads = Semaphore(max_parallel_downloads), []
+    product_paths, download_threads, semaphore = [], [], Semaphore(max_parallel_downloads)
     for uri, product_name in zip(uris, product_names):
-        product_path = os.path.join(l1_path, product_name)
-        if os.path.exists(product_path):
-            product_paths_available.append(product_path)
+        product_paths.append(os.path.join(l1_path, product_name))
+        if os.path.exists(product_paths[-1]):
+            download_threads.append(Thread())
         else:
-            product_paths_to_download.append(product_path)
-            download_threads.append(Thread(target=do_download, args=(access_token, job_id, uri, product_path, semaphore)))
-            download_threads[-1].start()
+            download_threads.append(Thread(target=do_download, args=(access_token, job_id, uri, product_paths[-1], semaphore)))
+        download_threads[-1].start()
 
-    return product_paths_available, product_paths_to_download, download_threads
+    return product_paths, download_threads
 
 
 def find_products_to_download(access_token, wkt, start, end, sensor, resolution):
@@ -62,7 +60,8 @@ def find_products_to_download(access_token, wkt, start, end, sensor, resolution)
     return job_id, hda_api.get_datarequest_results(access_token, job_id)
 
 
-def do_download(access_token, job_id, uri, product_path):
-    order_id = hda_api.post_dataorder(access_token, job_id, uri)
-    hda_api.wait_for_dataorder_to_complete(access_token, order_id)
-    hda_api.dataorder_download(access_token, order_id, product_path)
+def do_download(access_token, job_id, uri, product_path, semaphore):
+    with semaphore:
+        order_id = hda_api.post_dataorder(access_token, job_id, uri)
+        hda_api.wait_for_dataorder_to_complete(access_token, order_id)
+        hda_api.dataorder_download(access_token, order_id, product_path)

@@ -70,6 +70,8 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
 
     create_quicklooks(out_path, product_name, wkt, params['bands'].split(","), params['bandmaxs'].split(","))
 
+    return output
+
 
 def rewrite_xml(gpt_xml_path, gpt_xml_file):
     with open(os.path.join(gpt_xml_path, GPT_XML_FILENAME), "r") as f:
