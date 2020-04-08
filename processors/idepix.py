@@ -13,7 +13,7 @@ from packages.ql_mapping import plot_pic
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L1P"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-FILENAME1, FILENAME2 = "merge_reproj_L1P_subset_{}.nc", "L1P_reproj_{}.nc"
+FILENAME = "merge_reproj_L1P_subset_{}.nc"
 # A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
 QL_OUT_DIR = "L1P-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
@@ -28,27 +28,24 @@ def process(gpt, gpt_xml_path, wkt, source, product_name, out_path, sensor, reso
 
     print("Applying IDEPIX...")
 
-    output1 = os.path.join(out_path, OUT_DIR, FILENAME1.format(product_name))
-    output2 = os.path.join(out_path, OUT_DIR, FILENAME2.format(product_name))
-    if os.path.isfile(output1) and os.path.isfile(output2):
-        print("Skipping IDEPIX, targets already exist: {}, {}".format(os.path.basename(output1), os.path.basename(output2)))
-        return output1, output2
-    os.makedirs(os.path.dirname(output1), exist_ok=True)
-    os.makedirs(os.path.dirname(output2), exist_ok=True)
+    output = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
+    if os.path.isfile(output):
+        print("Skipping IDEPIX, targets already exist: {}".format(os.path.basename(output)))
+        return output
+    os.makedirs(os.path.dirname(output), exist_ok=True)
 
     gpt_xml_file = rewrite_xml(gpt_xml_path, out_path, wkt, sensor, resolution)
 
     args = [gpt, gpt_xml_file,
             "-Ssource={}".format(source),
-            "-Poutput1={}".format(output1),
-            "-Poutput2={}".format(output2)]
+            "-Poutput={}".format(output)]
     subprocess.call(args)
 
     rgb_bands = params['rgb_bands'].split(",")
     fc_bands = params['fc_bands'].split(",")
     create_quicklooks(out_path, product_name, wkt, sensor, rgb_bands, fc_bands)
 
-    return output1, output2
+    return output
 
 
 def rewrite_xml(gpt_xml_path, out_path, wkt, sensor, resolution):
@@ -91,7 +88,7 @@ def create_quicklooks(out_path, product_name, wkt, sensor, rgb_bands, fc_bands):
         rgb_bands = [bn.replace('radiance', 'reflectance') for bn in rgb_bands]
         fc_bands = [bn.replace('radiance', 'reflectance') for bn in fc_bands]
 
-    product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, FILENAME1.format(product_name)))
+    product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, FILENAME.format(product_name)))
     ql_file = os.path.join(out_path, QL_OUT_DIR.format("rgb"), QL_FILENAME.format(product_name, "rgb"))
     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
     plot_pic(product, ql_file, rgb_layers=rgb_bands, grid=True, max_val=0.16, wkt=wkt)

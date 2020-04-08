@@ -83,8 +83,8 @@ def hindcast_product(env, params, wkt, download_method, auth, download_request, 
         l2_product_path = {}
         if "IDEPIX" in params['General']['preprocessor'].split(","):
             from processors import idepix
-            l1m, l1p = idepix.process(gpt, gpt_xml_path, wkt, l1_product_path, product_name, l2_path, sensor, resolution, params['IDEPIX'])
-            l2_product_path['l1m'], l2_product_path['l1p'] = l1m, l1p
+            l1m = idepix.process(gpt, gpt_xml_path, wkt, l1_product_path, product_name, l2_path, sensor, resolution, params['IDEPIX'])
+            l2_product_path['l1m'] = l1m
         if "C2RCC" in params['General']['processors'].split(","):
             from processors import c2rcc
             l2c2rcc = c2rcc.process(gpt, gpt_xml_path, wkt, l1m, product_name, l2_path, sensor, params['C2RCC'])
@@ -92,7 +92,7 @@ def hindcast_product(env, params, wkt, download_method, auth, download_request, 
         if "POLYMER" in params['General']['processors'].split(","):
             from processors import polymer
             gsw_path = os.path.join(env['DIAS']['dias_path'], "data_landmask_gsw")
-            l2poly = polymer.process(gpt, gpt_xml_path, wkt, l1_product_path, l1p, product_name, l2_path, sensor, resolution, params['POLY'], gsw_path)
+            l2poly = polymer.process(gpt, gpt_xml_path, wkt, l1_product_path, l1m, product_name, l2_path, sensor, resolution, params['POLY'], gsw_path)
             l2_product_path['l2poly'] = l2poly
         if "MPH" in params['General']['processors'].split(","):
             from processors import mph
