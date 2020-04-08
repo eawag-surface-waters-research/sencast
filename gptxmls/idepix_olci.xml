@@ -26,7 +26,7 @@
 		<operator>Merge</operator>
 		<sources>
 			<masterProduct>subsetNode</masterProduct>
-			<sourceProducts>idepixNode1</sourceProducts>
+			<sourceProducts>idepixNode</sourceProducts>
 		</sources>
 	</node>
 	<node id="reprojectNode">
@@ -54,7 +54,7 @@
 			<source>reprojectNode</source>
 		</sources>
 		<parameters>
-			<file>${output1}</file>
+			<file>${output}</file>
 			<formatName>NetCDF-BEAM</formatName>
 		</parameters>
 	</node>
