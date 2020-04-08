@@ -15,7 +15,7 @@ def apply(env, region, date, input_file):
     os.makedirs(out_path, exist_ok=True)
 
     chl_file = os.path.join(out_path, "chl.json")
-    nc_to_json(input_file, chl_file, "conc_chl", lambda v: round(float(v), 6))
+    nc_to_json(input_file, chl_file, "logchl", lambda v: round(float(v), 6))
 
     qf_file = os.path.join(out_path, "quality_flags.json")
     nc_to_json(input_file, qf_file, "quality_flags", lambda v: int(v))

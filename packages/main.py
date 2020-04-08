@@ -102,5 +102,5 @@ def hindcast_product(env, params, wkt, download_method, auth, download_request, 
     # apply adapters
     if "datalakes" in params['General']['adapters'].split(","):
         from adapters import datalakes
-        date = re.findall(r"\d{8}T\d{6}", os.path.basename(l2_product_path['l2c2rcc']))[0]
-        datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2_product_path['l2c2rcc'])
+        date = re.findall(r"\d{8}T\d{6}", os.path.basename(l2_product_path['l2poly']))[0]
+        datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2_product_path['l2poly'])

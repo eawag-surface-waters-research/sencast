@@ -5,6 +5,7 @@ import os
 import subprocess
 import urllib.request
 
+from haversine import haversine
 from http.cookiejar import CookieJar
 from polymer.main import run_atm_corr, Level1, Level2
 from polymer.level1_msi import Level1_MSI
@@ -12,7 +13,7 @@ from polymer.gsw import GSW
 from polymer.level2 import default_datasets
 from snappy import ProductIO
 
-from packages.product_fun import get_corner_pixels_roi
+from packages.product_fun import get_corner_pixels_roi, get_lons_lats
 from packages.ql_mapping import plot_map
 
 # The name of the folder to which the output product will be saved
@@ -59,7 +60,7 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
         run_atm_corr(l1, l2)
 
     gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
-    rewrite_xml(gpt_xml_path, gpt_xml_file)
+    rewrite_xml(gpt_xml_path, gpt_xml_file, wkt, resolution)
 
     args = [gpt, gpt_xml_file,
             "-Ssource1={}".format(l1p),
@@ -74,12 +75,34 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
     return output
 
 
-def rewrite_xml(gpt_xml_path, gpt_xml_file):
+def rewrite_xml(gpt_xml_path, gpt_xml_file, wkt, resolution):
     with open(os.path.join(gpt_xml_path, GPT_XML_FILENAME), "r") as f:
         xml = f.read()
 
+    reproject_params = create_reproject_parameters_from_wkt(wkt, resolution)
+    xml = xml.replace("${wkt}", wkt)
+    xml = xml.replace("${easting}", reproject_params['easting'])
+    xml = xml.replace("${northing}", reproject_params['northing'])
+    xml = xml.replace("${pixelSizeX}", reproject_params['pixelSizeX'])
+    xml = xml.replace("${pixelSizeY}", reproject_params['pixelSizeY'])
+    xml = xml.replace("${width}", reproject_params['width'])
+    xml = xml.replace("${height}", reproject_params['height'])
+
     with open(gpt_xml_file, "wb") as f:
         f.write(xml.encode())
+
+
+def create_reproject_parameters_from_wkt(wkt, resolution):
+    lons, lats = get_lons_lats(wkt)
+    x_dist = haversine((min(lats), min(lons)), (min(lats), max(lons)))
+    y_dist = haversine((min(lats), min(lons)), (max(lats), min(lons)))
+    x_pix = int(round(x_dist / (int(resolution) / 1000)))
+    y_pix = int(round(y_dist / (int(resolution) / 1000)))
+    x_pixsize = (max(lons) - min(lons)) / x_pix
+    y_pixsize = (max(lats) - min(lats)) / y_pix
+
+    return {'easting': str(min(lons)), 'northing': str(max(lats)), 'pixelSizeX': str(x_pixsize),
+            'pixelSizeY': str(y_pixsize), 'width': str(x_pix), 'height': str(y_pix)}
 
 
 def create_quicklooks(out_path, product_name, wkt, bands, bandmaxs):
