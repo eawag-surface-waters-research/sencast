@@ -24,6 +24,8 @@ from cartopy.io import PostprocessedRasterSource, LocatedImage
 from snappy import GPF, HashMap, ProductUtils, Mask
 from PIL import Image
 from haversine import haversine
+
+from packages.earthdata_api import authenticate
 from packages.product_fun import get_lons_lats
 
 plt.switch_backend('agg')
@@ -38,6 +40,9 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
 
     # mpl.rc('font', family='Times New Roman')
     # mpl.rc('text', usetex=True)
+
+    # Authenticate for NASA's earth data api
+    authenticate("nouchi", "EOdatap4s")
 
     all_bns = product.getBandNames()
     if layer_str not in all_bns:

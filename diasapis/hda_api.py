@@ -1,14 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import json
 import os
-from zipfile import ZipFile
 import requests
-from requests.auth import HTTPBasicAuth
+import time
+
 from requests.status_codes import codes
 from requests.utils import requote_uri
-import json
-import time
+from zipfile import ZipFile
+
+from packages.product_fun import get_lons_lats
 
 
 # HDA-API endpoint address
@@ -33,10 +35,43 @@ dataorder_status_address = api_endpoint + "/databroker/dataorder/status/{}"
 dataorder_download_address = api_endpoint + "/databroker/dataorder/download/{}"
 
 
-def get_access_token(username, password):
+def get_download_requests(auth, wkt, start, end, sensor, resolution):
+    lons, lats = get_lons_lats(wkt)
+    datarequest = {
+        'datasetId': get_dataset_id(sensor, resolution),
+        'boundingBoxValues': [{'name': "bbox", 'bbox': [min(lons), max(lats), max(lons), min(lats)]}],
+        'dateRangeSelectValues': [{'name': "dtrange", 'start': start, 'end': end}],
+        'stringChoiceValues': []
+    }
+
+    access_token = get_access_token(auth)
+    accept_tc_if_required(access_token)
+    job_id = post_datarequest(access_token, datarequest)
+    wait_for_datarequest_to_complete(access_token, job_id)
+    uris, product_names = get_datarequest_results(access_token, job_id)
+
+    return [(job_id, uri) for uri in uris], product_names
+
+
+def do_download(auth, download_request, product_path):
+    access_token = get_access_token(auth)
+    order_id = post_dataorder(access_token, download_request['job_id'], download_request['uri'])
+    wait_for_dataorder_to_complete(access_token, order_id)
+    dataorder_download(access_token, order_id, product_path)
+
+
+def get_dataset_id(sensor, resolution):
+    if sensor == "OLCI" and resolution < 1000:
+        return "EO:EUM:DAT:SENTINEL-3:OL_1_EFR___"
+    elif sensor == "OLCI" and resolution >= 1000:
+        return "EO:EUM:DAT:SENTINEL-3:OL_1_ERR___"
+    else:
+        raise RuntimeError("HDA API is not yet implemented for sensor: {}".format(sensor))
+
+
+def get_access_token(auth):
     print("Getting an access token for user {}. This token is valid for one hour only. URL: {}"
-          .format(username, access_token_address))
-    auth = HTTPBasicAuth(username, password)
+          .format(auth.username, access_token_address))
     response = requests.get(access_token_address, auth=auth)
     if response.status_code == codes.OK:
         access_token = json.loads(response.text)['access_token']

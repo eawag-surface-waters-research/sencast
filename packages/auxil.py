@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# coding: utf8
+# -*- coding: utf-8 -*-
 
 import configparser
 import getpass
@@ -19,25 +19,27 @@ def init_hindcast(env_file, params_file, wkt_file):
     params_name, wkt_name = os.path.basename(os.path.splitext(params_file)[0]), params['General']['wkt'].split(".")[0]
     start, end = params['General']['start'][:10], params['General']['end'][:10]
     l2_path = env['DIAS']['l2_path'].format(params['General']['sensor'])
-    out_path = os.path.join(l2_path, "{}_{}_{}_{}".format(params_name, wkt_name, start, end))
+    l2_path = os.path.join(l2_path, "{}_{}_{}_{}".format(params_name, wkt_name, start, end))
 
-    if os.path.isdir(out_path) and os.listdir(out_path):
+    if os.path.isdir(l2_path) and os.listdir(l2_path):
         # Reload params and wkt from existing output folder
-        params, params_file = load_params(os.path.join(out_path, os.path.basename(params_file)))
-        wkt, wkt_file = load_wkt(os.path.join(out_path, params['General']['wkt']))
+        params, params_file = load_params(os.path.join(l2_path, os.path.basename(params_file)))
+        wkt, wkt_file = load_wkt(os.path.join(l2_path, params['General']['wkt']))
     else:
         # Copy params file and wkt file to new output folder
-        os.makedirs(out_path, exist_ok=True)
+        os.makedirs(l2_path, exist_ok=True)
         with open(params_file, "r") as f:
             params_content = f.read()
-        with open(os.path.join(out_path, os.path.basename(params_file)), "wb") as f:
+        with open(os.path.join(l2_path, os.path.basename(params_file)), "wb") as f:
             f.write(params_content.encode())
         with open(wkt_file, "r") as f:
             wkt_content = f.read()
-        with open(os.path.join(out_path, params['General']['wkt']), "wb") as f:
+        with open(os.path.join(l2_path, params['General']['wkt']), "wb") as f:
             f.write(wkt_content.encode())
 
-    return env, params, wkt, out_path
+    l1_path = env['DIAS']['l1_path'].format(params['General']['sensor'])
+
+    return env, params, wkt, l1_path, l2_path
 
 
 def load_environment(env_file=None, env_path="environments"):

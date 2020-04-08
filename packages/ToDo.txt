@@ -1,4 +1,3 @@
 - Mosaicking for S2
 - OZA, VZA, SZA, SAA missing in Polymer products!
-- Install in new wekeo server
 - the collocation step for polymer is quite slow
