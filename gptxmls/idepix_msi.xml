@@ -1,45 +1,18 @@
 <graph id="idepix">
 	<version>1.0</version>
-	<node id="resamplingNode">
-		<operator>S2Resampling</operator>
-		<sources>
-			<sourceProduct>${source}</sourceProduct>
-		</sources>
-		<parameters>
-			<resolution>${resolution}</resolution>
-			<resampleOnPyramidLevels>true</resampleOnPyramidLevels>
-		</parameters>
-    </node>
 	<node id="subsetNode">
 		<operator>Subset</operator>
 		<sources>
-			<sourceProduct>resamplingNode</sourceProduct>
+			<sourceProduct>${source}</sourceProduct>
 		</sources>
 		<parameters>
 			<geoRegion>${wkt}</geoRegion>
 		</parameters>
 	</node>
-	<node id="idepixNode">
-		<operator>idepix.s2</operator>
-		<sources>
-			<sourceProduct>subsetNode</sourceProduct>
-		</sources>
-		<parameters>
-			<computeCloudBuffer>true</computeCloudBuffer>
-			<cloudBufferWidth>5</cloudBufferWidth>
-		</parameters>
-	</node>
-	<node id="mergeNode">
-		<operator>Merge</operator>
-		<sources>
-			<masterProduct>subsetNode</masterProduct>
-			<sourceProducts>idepixNode</sourceProducts>
-		</sources>
-	</node>
 	<node id="reprojectNode">
 		<operator>Reproject</operator>
 		<sources>
-			<source>mergeNode</source>
+			<source>subsetNode</source>
 		</sources>
 		<parameters>
 			<crs>EPSG:4326</crs>
@@ -55,10 +28,27 @@
 			<noDataValue>NaN</noDataValue>
 		</parameters>
 	</node>
+	<node id="idepixNode">
+		<operator>idepix.s2</operator>
+		<sources>
+			<sourceProduct>reprojectNode</sourceProduct>
+		</sources>
+		<parameters>
+			<computeCloudBuffer>true</computeCloudBuffer>
+			<cloudBufferWidth>5</cloudBufferWidth>
+		</parameters>
+	</node>
+	<node id="mergeNode">
+		<operator>Merge</operator>
+		<sources>
+			<masterProduct>reprojectNode</masterProduct>
+			<sourceProducts>idepixNode</sourceProducts>
+		</sources>
+	</node>
 	<node id="writeNode">
 		<operator>Write</operator>
 		<sources>
-			<source>reprojectNode</source>
+			<source>mergeNode</source>
 		</sources>
 		<parameters>
 			<file>${output}</file>
