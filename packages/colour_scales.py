@@ -226,3 +226,15 @@ def extent_true():
                   (1.00,  0.30, 0.30)]}
 
     return colors.LinearSegmentedColormap('ExtentTrue', cdict)
+
+
+def cloud_color():
+    return
+
+
+def shadow_color():
+    return
+
+
+def suspect_color():
+    return

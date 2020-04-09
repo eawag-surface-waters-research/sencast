@@ -283,7 +283,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
                 color_vals = [[0.8, 0.8, 0.8, 1], [1.0, 1.0, 1.0, 1]]
                 shade_grey = colors.LinearSegmentedColormap.from_list("ShadeGrey", color_vals)
                 base_cols = shade_grey
-            elif basemap == 'srtm_elevation':
+            else:  # elif basemap == 'srtm_elevation':
                 print('   preparing SRTM elevation basemap')
                 srtm_raster = PostprocessedRasterSource(source(max_nx=6, max_ny=6), elevate)
                 color_vals = [[0.7, 0.7, 0.7, 1], [0.90, 0.90, 0.90, 1], [0.97, 0.97, 0.97, 1], [1.0, 1.0, 1.0, 1]]
