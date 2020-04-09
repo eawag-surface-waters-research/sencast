@@ -91,7 +91,7 @@ def hindcast_product(env, params, wkt, download_method, auth, download_request, 
             l2_product_path['l2c2rcc'] = l2c2rcc
         if "POLYMER" in params['General']['processors'].split(","):
             from processors import polymer
-            gsw_path = os.path.join(env['DIAS']['dias_path'], "data_landmask_gsw")
+            gsw_path = os.path.join(env['GSW']['gsw_path'])
             l2poly = polymer.process(gpt, gpt_xml_path, wkt, l1_product_path, l1m, product_name, l2_path, sensor, resolution, params['POLY'], gsw_path)
             l2_product_path['l2poly'] = l2poly
         if "MPH" in params['General']['processors'].split(","):
