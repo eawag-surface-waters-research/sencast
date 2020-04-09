@@ -23,6 +23,7 @@ def init_hindcast(env_file, params_file, wkt_file):
 
     if os.path.isdir(l2_path) and os.listdir(l2_path):
         # Reload params and wkt from existing output folder
+        print("Output folder for this run already exists. Reading params from there to ensure comparable results.")
         params, params_file = load_params(os.path.join(l2_path, os.path.basename(params_file)))
         wkt, wkt_file = load_wkt(os.path.join(l2_path, params['General']['wkt']))
     else:

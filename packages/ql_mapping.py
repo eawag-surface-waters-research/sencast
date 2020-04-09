@@ -38,11 +38,11 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
              grid=True, shadow_layer=None, aspect_balance=None):
     # basemap options are srtm_hillshade, srtm_elevation, quadtree_rgb, nobasemap
 
-    # mpl.rc('font', family='Times New Roman')
-    # mpl.rc('text', usetex=True)
-
     # Authenticate for NASA's earth data api
     authenticate("nouchi", "EOdatap4s")
+
+    # mpl.rc('font', family='Times New Roman')
+    # mpl.rc('text', usetex=True)
 
     all_bns = product.getBandNames()
     if layer_str not in all_bns:
