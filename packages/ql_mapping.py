@@ -6,8 +6,6 @@ __author__ = 'Daniel'
 import os
 import sys
 import math
-import snappy
-import jpy
 import re
 
 import numpy as np
@@ -19,9 +17,10 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 from cartopy.io import PostprocessedRasterSource, LocatedImage
-from snappy import GPF, HashMap, ProductUtils, Mask
+from snappy import GPF, HashMap, jpy, Mask, PixelPos, ProductUtils
 from PIL import Image
 from haversine import haversine
 
@@ -30,6 +29,7 @@ from packages.product_fun import get_lons_lats
 
 plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')
+canvas_area = None
 
 
 def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
@@ -106,6 +106,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         return
 
     # load flag bands if requested
+    masked_cloud_arr = None
     if cloud_layer:
         if sub_product.getBand(cloud_layer[0]) is None:
             cloud_mask = sub_product.getMaskGroup().get(cloud_layer[0])
@@ -119,6 +120,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         cloud_arr[cloud_ind] = 100
         masked_cloud_arr = np.ma.masked_where(cloud_arr != 100, cloud_arr)
 
+    masked_shadow_arr = None
     if shadow_layer:
         if sub_product.getBand(shadow_layer[0]) is None:
             shadow_mask = sub_product.getMaskGroup().get(shadow_layer[0])
@@ -132,6 +134,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         shadow_arr[shadow_ind] = 100
         masked_shadow_arr = np.ma.masked_where(shadow_arr != 100, shadow_arr)
 
+    masked_suspect_arr = None
     if suspect_layer:
         if sub_product.getBand(suspect_layer[0]) is None:
             suspect_mask = sub_product.getMaskGroup().get(suspect_layer[0])
@@ -161,8 +164,8 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
         masked_param_arr = np.ma.masked_where(land_arr != 0, masked_param_arr)
 
     geocoding = sub_product.getSceneGeoCoding()
-    lowlef = geocoding.getGeoPos(snappy.PixelPos(0, height - 1), None)
-    upprig = geocoding.getGeoPos(snappy.PixelPos(width - 1, 0), None)
+    lowlef = geocoding.getGeoPos(PixelPos(0, height - 1), None)
+    upprig = geocoding.getGeoPos(PixelPos(width - 1, 0), None)
     prod_max_lat = upprig.lat
     prod_min_lat = lowlef.lat
     prod_max_lon = upprig.lon
@@ -258,10 +261,10 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
 
     # Initialize plot
     fig = plt.figure(figsize=((aspect_ratio * 3) + (2 * legend_extension), 3))
-    map = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.PlateCarree()) ccrs.Mercator())
+    subplot_axes = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.PlateCarree()) ccrs.Mercator())
 
     if wkt:
-        map.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
+        subplot_axes.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
 
     ##############################
     # ### SRTM plot version ######
@@ -291,7 +294,7 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
                 base_cols = elev_grey
 
             # Plot the background
-            map.add_raster(srtm_raster, cmap=base_cols)
+            subplot_axes.add_raster(srtm_raster, cmap=base_cols)
 
         else:
             print('   no SRTM data outside 55 deg N/S, proceeding without basemap')
@@ -318,43 +321,43 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
             # crs = maps.QuadtreeTiles().crs
 
             # Add background
-            map.add_image(background, 10)
+            subplot_axes.add_image(background, 10)
 
     ##############################
     # ### both plot versions #####
     ##############################
 
     # Plot parameter
-    parameter = map.imshow(masked_param_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
-                           transform=ccrs.PlateCarree(), origin='upper', cmap=color_type, interpolation='none',
-                           vmin=param_range[0], vmax=param_range[1], zorder=10)
+    parameter = subplot_axes.imshow(masked_param_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
+                                    transform=ccrs.PlateCarree(), origin='upper', cmap=color_type, interpolation='none',
+                                    vmin=param_range[0], vmax=param_range[1], zorder=10)
 
     # Plot flags
     if cloud_layer:
         cloud_colmap = colscales.cloud_color()
         cloud_colmap.set_bad('w', 0)
-        cloud = plt.imshow(masked_cloud_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
-                           transform=ccrs.PlateCarree(), origin='upper', cmap=cloud_colmap, interpolation='none',
-                           zorder=20)
+        _ = plt.imshow(masked_cloud_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
+                       transform=ccrs.PlateCarree(), origin='upper', cmap=cloud_colmap, interpolation='none',
+                       zorder=20)
 
     if shadow_layer:
         shadow_colmap = colscales.shadow_color()
         shadow_colmap.set_bad('w', 0)
-        shadow = plt.imshow(masked_shadow_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
-                            transform=ccrs.PlateCarree(), origin='upper', cmap=shadow_colmap, interpolation='none',
-                            zorder=20)
+        _ = plt.imshow(masked_shadow_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
+                       transform=ccrs.PlateCarree(), origin='upper', cmap=shadow_colmap, interpolation='none',
+                       zorder=20)
 
     if suspect_layer:
         suspect_colmap = colscales.suspect_color()
         suspect_colmap.set_bad('w', 0)
-        suspect = plt.imshow(masked_suspect_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
-                             transform=ccrs.PlateCarree(), origin='upper', cmap=suspect_colmap, interpolation='none',
-                             zorder=20)
+        _ = plt.imshow(masked_suspect_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
+                       transform=ccrs.PlateCarree(), origin='upper', cmap=suspect_colmap, interpolation='none',
+                       zorder=20)
 
     # Add gridlines
     if grid:
-        gridlines = map.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
-                                  linestyle=':', zorder=23)  # , n_steps=3)
+        gridlines = subplot_axes.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
+                                           linestyle=':', zorder=23)  # , n_steps=3)
         if orientation == 'square':
             x_n_ticks = 4
             y_n_ticks = 4
@@ -406,24 +409,24 @@ def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, gri
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
 
-    red_band = product.getBand(rgb_layers[0])
-    red_dt = red_band.getDataType()
+    # red_band = product.getBand(rgb_layers[0])
+    # red_dt = red_band.getDataType()
 
     # ToDo: somehow rad2refl writes a float band but names it int16, therefore reading the data_type fails
     red_dt = 30
 
     if red_dt <= 12:
         data_type = np.int32
-        d_type = 'int32'
+        # d_type = 'int32'
     elif red_dt == 21:
         data_type = np.float64
-        d_type = 'float64'
+        # d_type = 'float64'
     elif red_dt == 30:
         data_type = np.float32
-        d_type = 'float32'
+        # d_type = 'float32'
     elif red_dt == 31:
         data_type = np.float64
-        d_type = 'float64'
+        # d_type = 'float64'
     else:
         raise ValueError('Cannot handle band of data_sh type \'' + str(red_dt) + '\'')
 
@@ -444,8 +447,8 @@ def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, gri
 
     # read lat and lon information
     geocoding = product.getSceneGeoCoding()
-    lowlef = geocoding.getGeoPos(snappy.PixelPos(0, height - 1), None)
-    upprig = geocoding.getGeoPos(snappy.PixelPos(width - 1, 0), None)
+    lowlef = geocoding.getGeoPos(PixelPos(0, height - 1), None)
+    upprig = geocoding.getGeoPos(PixelPos(width - 1, 0), None)
 
     # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
     if crop_ext:
@@ -469,7 +472,7 @@ def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, gri
 
     # Initialize plot
     fig = plt.figure()
-    map = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.Mercator())
+    subplot_axes = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.Mercator())
 
     # adjust image brightness scaling (empirical...)
     rgb_array = np.zeros((height, width, 3), 'float32')  # uint8
@@ -490,20 +493,21 @@ def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, gri
 
     img = Image.fromarray(rgb_array.astype(np.uint8))
 
+    global canvas_area
     if wkt:
         lons, lats = get_lons_lats(wkt)
         canvas_area = [[min(lons), min(lats)], [max(lons), max(lats)]]
     else:
         canvas_area = product_area
-    map.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
+    subplot_axes.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
 
-    rgb_image = map.imshow(img, extent=[product_area[0][0], product_area[1][0], product_area[0][1], product_area[1][1]],
-                           transform=ccrs.PlateCarree(), origin='upper', interpolation='nearest', zorder=1)
+    subplot_axes.imshow(img, extent=[product_area[0][0], product_area[1][0], product_area[0][1], product_area[1][1]],
+                        transform=ccrs.PlateCarree(), origin='upper', interpolation='nearest', zorder=1)
 
     # Add gridlines
     if grid:
-        gridlines = map.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
-                                  linestyle=':', zorder=2)  # , n_steps=3)
+        gridlines = subplot_axes.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
+                                           linestyle=':', zorder=2)  # , n_steps=3)
         if orientation == 'square':
             x_n_ticks = 4
             y_n_ticks = 4
@@ -576,6 +580,8 @@ def get_tick_positions(lower, upper, n_ticks):
         grid_step_round = 20 / decimal
     elif grid_step < 100:
         grid_step_round = 50 / decimal
+    else:
+        grid_step_round = 50 / decimal
     tick_list = [lower_floored]
     current = lower_floored + grid_step_round
     while tick_list[-1] < upper_ceiled:
@@ -586,79 +592,79 @@ def get_tick_positions(lower, upper, n_ticks):
 
 def get_legend_str(layer_str):  # '$\mathbf{Secchi\/depth\/[m]}$'
     if layer_str in ['lswt']:
-        legend_str = '$\mathbf{[deg.\/K]}$'
-        title_str = '$\mathbf{LSWT}$'
+        legend_str = r'$\mathbf{[deg.\/K]}$'
+        title_str = r'$\mathbf{LSWT}$'
         log = False
     elif layer_str in ['NDCI', 'CHL_ndci']:
-        legend_str = '$\mathbf{[dl]}$'
-        title_str = '$\mathbf{NDCI}$'
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{NDCI}$'
         log = False
     elif layer_str in ['kdmin']:
-        legend_str = '$\mathbf{[m^-1]}$'
-        title_str = '$\mathbf{C2RCC\/K_{d}}$'
+        legend_str = r'$\mathbf{[m^-1]}$'
+        title_str = r'$\mathbf{C2RCC\/K_{d}}$'
         log = False
     elif layer_str in ['IVI_shadow-masked', 'IVI_shadow-allowed', 'IVI_SWIR-masked']:
-        legend_str = '$\mathbf{[dl]}$'
-        title_str = '$\mathbf{IVI}$'
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{IVI}$'
         log = False
     elif layer_str in ['MCI', 'CHL_mci', 'MCI_shadow-masked', 'MCI_shadow-allowed', 'MCI_SWIR-masked']:
-        legend_str = '$\mathbf{[dl]}$'
-        title_str = '$\mathbf{MCI}$'
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{MCI}$'
         log = False
     elif layer_str == 'Turbidity':
-        legend_str = '$\mathbf{[FNU]}$'
-        title_str = '$\mathbf{Nechad\/865\/nm\/Turbidity}$'
+        legend_str = r'$\mathbf{[FNU]}$'
+        title_str = r'$\mathbf{Nechad\/865\/nm\/Turbidity}$'
         log = False
     elif layer_str in ['band_5', 'rhow_B5', 'SPM']:
-        legend_str = '$\mathbf{[g/m^3]}$'
-        title_str = '$\mathbf{Nechad\/865\/nm\/TSM}$'
+        legend_str = r'$\mathbf{[g/m^3]}$'
+        title_str = r'$\mathbf{Nechad\/865\/nm\/TSM}$'
         log = False
     elif layer_str in ['conc_tsm', 'conc_tsm_S', 'unc_tsm']:
-        legend_str = '$\mathbf{[g/m^3]}$'
-        title_str = '$\mathbf{C2RCC\/TSM}$'
+        legend_str = r'$\mathbf{[g/m^3]}$'
+        title_str = r'$\mathbf{C2RCC\/TSM}$'
         log = False
     elif layer_str in ['conc_chl', 'conc_chl_S', 'unc_chl']:
-        legend_str = '$\mathbf{[mg/m^3]}$'
-        title_str = '$\mathbf{C2RCC\/CHL}$'
+        legend_str = r'$\mathbf{[mg/m^3]}$'
+        title_str = r'$\mathbf{C2RCC\/CHL}$'
         log = False
     elif layer_str == 'chl':
-        legend_str = '$\mathbf{[mg/m^3]}$'
-        title_str = '$\mathbf{MPH\/CHL}$'
+        legend_str = r'$\mathbf{[mg/m^3]}$'
+        title_str = r'$\mathbf{MPH\/CHL}$'
         log = False
     elif layer_str == 'mph':
-        legend_str = '$\mathbf{[dl]}$'
-        title_str = '$\mathbf{MPH}$'
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{MPH}$'
         log = False
     elif layer_str == 'iop_bwit':
-        legend_str = '$\mathbf{[m^{-1}]}$'
-        title_str = '$\mathbf{C2RCC\/b_{wit}}$'
+        legend_str = r'$\mathbf{[m^{-1}]}$'
+        title_str = r'$\mathbf{C2RCC\/b_{wit}}$'
         log = False
     elif layer_str == 'bbs':
-        legend_str = '$\mathbf{[m^{-1}]}$'
-        title_str = '$\mathbf{Polymer\/b_{b_{s}}}$'
+        legend_str = r'$\mathbf{[m^{-1}]}$'
+        title_str = r'$\mathbf{Polymer\/b_{b_{s}}}$'
         log = False
     #     elif layer_str  == 'Rw665':
-    #         legend_str = '$\mathbf{[dl]}$'
-    #         title_str = '$\mathbf{Polymer\/\/R_w(665)}$'
+    #         legend_str = r'$\mathbf{[dl]}$'
+    #         title_str = r'$\mathbf{Polymer\/\/R_w(665)}$'
     #         log = False
     elif 'Rw' in layer_str:
-        lstr = re.findall('\d{3}', layer_str)[0]
-        legend_str = '$\mathbf{[dl]}$'
-        title_str = '$\mathbf{Polymer\/\/R_w(' + lstr + ')}$'
+        lstr = re.findall(r'\d{3}', layer_str)[0]
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{Polymer\/\/R_w(' + lstr + ')}$'
         log = False
     elif 'rhow' in layer_str and 'rhown' not in layer_str:
-        lstr = re.findall('\d*$', layer_str)[0]
-        legend_str = '$\mathbf{[dl]}$'
-        title_str = '$\mathbf{C2RCC\/\/R_w(' + lstr + ')}$'
+        lstr = re.findall(r'\d*$', layer_str)[0]
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{C2RCC\/\/R_w(' + lstr + ')}$'
         log = False
     elif 'rhown' in layer_str:
-        lstr = re.findall('\d*$', layer_str)[0]
-        legend_str = '$\mathbf{[dl]}$'
-        title_str = '$\mathbf{C2RCC\/\/R_{w,n}(' + lstr + ')}$'
+        lstr = re.findall(r'\d*$', layer_str)[0]
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{C2RCC\/\/R_{w,n}(' + lstr + ')}$'
         log = False
     elif layer_str == 'logchl':
-        legend_str = '$\mathbf{[mg/m^3]}$'
-        title_str = '$\mathbf{Polymer\/\/CHL}$'
+        legend_str = r'$\mathbf{[mg/m^3]}$'
+        title_str = r'$\mathbf{Polymer\/\/CHL}$'
         log = True
     else:
         legend_str = 'ND'
