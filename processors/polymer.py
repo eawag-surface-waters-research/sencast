@@ -42,17 +42,18 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
     scol = min(UL[1], UR[1])
     ecol = max(LL[1], LR[1])
 
+    ancillary = Ancillary_ERA5(directory=ancillary_path)
     if sensor == "MSI":
         product_path = msi_product_path_for_polymer(product_path)
         gsw = GSW(directory=gsw_path)
-        additinoal_ds = ['sza']
+        l1 = Level1(product_path, landmask=gsw, ancillary=ancillary)
+        additional_ds = ['sza']
     else:
         gsw = GSW(directory=gsw_path, agg=8)
-        additinoal_ds = ['vaa', 'vza', 'saa', 'sza']
-    ancillary = Ancillary_ERA5(directory=ancillary_path)
-    l1 = Level1(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, ancillary=ancillary)
+        l1 = Level1(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, ancillary=ancillary)
+        additional_ds = ['vaa', 'vza', 'saa', 'sza']
     poly_tmp_file = "{}.tmp".format(output)
-    l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additinoal_ds)
+    l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
     run_atm_corr(l1, l2)
 
     gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
