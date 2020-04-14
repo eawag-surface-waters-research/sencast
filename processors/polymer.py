@@ -5,13 +5,13 @@ import os
 import subprocess
 
 from haversine import haversine
-from polymer.main import run_atm_corr, Level1, Level2
-from polymer.level1_msi import Level1_MSI
+from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.gsw import GSW
+from polymer.level1_msi import Level1_MSI
 from polymer.level2 import default_datasets
+from polymer.main import run_atm_corr, Level1, Level2
 from snappy import ProductIO
 
-from packages.earthdata_api import authenticate
 from packages.product_fun import get_corner_pixels_roi, get_lons_lats
 from packages.ql_mapping import plot_map
 
@@ -31,8 +31,6 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
     """ This processor applies polymer to the source product and stores the result. """
     print("Applying POLYMER...")
 
-    authenticate(username='nouchi', password='EOdatap4s')
-
     output = os.path.join(out_path, OUT_DIR, FILENAME.format(product_name))
     if os.path.isfile(output):
         print("Skipping POLYMER, target already exists: {}".format(FILENAME.format(product_name)))
@@ -49,12 +47,12 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
     if sensor == "MSI":
         gsw = GSW(directory=gsw_path)
         ppp = msi_product_path_for_polymer(product_path)
-        l1 = Level1_MSI(ppp, landmask=gsw)
+        l1 = Level1_MSI(ppp, landmask=gsw, ancillary=Ancillary_ERA5())
         l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['sza'])
         run_atm_corr(l1, l2)
     else:
         gsw = GSW(directory=gsw_path, agg=8)
-        l1 = Level1(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw)
+        l1 = Level1(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, kwargs={'ancillary': Ancillary_ERA5()})
         l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['vaa', 'vza', 'saa', 'sza'])
         run_atm_corr(l1, l2)
 
