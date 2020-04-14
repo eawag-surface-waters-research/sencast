@@ -9,4 +9,4 @@ import netCDF4
 
 from packages.main import hindcast
 
-hindcast("parameters_wdoc_S3.ini")
+hindcast("datalakes_sui_S3.ini")

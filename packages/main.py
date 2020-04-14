@@ -93,7 +93,7 @@ def hindcast_product(env, params, wkt, download_method, auth, download_request, 
         if "POLYMER" in params['General']['processors'].split(","):
             from processors import polymer
             l2poly = polymer.process(gpt, gpt_xml_path, wkt, l1_product_path, l1p, product_name, l2_path, sensor,
-                                     resolution, params['POLY'], env['GSW']['root_path'], env['CDS']['root_path'])
+                                     resolution, params['POLYMER'], env['GSW']['root_path'], env['CDS']['root_path'])
         if "MPH" in params['General']['processors'].split(","):
             from processors import mph
             l2mph = mph.process(gpt, gpt_xml_path, wkt, l1p, product_name, l2_path, sensor, params['MPH'])
