@@ -36,12 +36,6 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
         return output
     os.makedirs(os.path.dirname(output), exist_ok=True)
 
-    UL, UR, LR, LL = get_corner_pixels_roi(ProductIO.readProduct(product_path), wkt)
-    sline = min(UL[0], UR[0])
-    eline = max(LL[0], LR[0])
-    scol = min(UL[1], UR[1])
-    ecol = max(LL[1], LR[1])
-
     ancillary = Ancillary_ERA5(directory=ancillary_path)
     if sensor == "MSI":
         product_path = msi_product_path_for_polymer(product_path)
@@ -49,6 +43,8 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
         l1 = Level1(product_path, landmask=gsw, ancillary=ancillary)
         additional_ds = ['sza']
     else:
+        UL, UR, LR, LL = get_corner_pixels_roi(ProductIO.readProduct(product_path), wkt)
+        sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]), max(LL[1], LR[1])
         gsw = GSW(directory=gsw_path, agg=8)
         l1 = Level1(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
