@@ -10,6 +10,7 @@ from snappy import ProductIO
 from threading import Semaphore, Thread
 
 from packages.auxil import init_hindcast
+from packages.earthdata_api import authenticate
 
 # download apis, processors, and adapters are imported dynamically to make hindcast also work on systems,
 # where some of them might not be available
@@ -19,15 +20,14 @@ def hindcast(params_file, env_file=None, wkt_file=None, max_parallel_downloads=1
     # read env, params, and wkt file and copy files for reproducibility to l2_path
     env, params, wkt, l1_path, l2_path = init_hindcast(env_file, params_file, wkt_file)
 
-    # do_hindcast(env, params, wkt, l2_path)
-    do_hindcast2(env, params, wkt, l1_path, l2_path, max_parallel_downloads, max_parallel_processing)
+    do_hindcast(env, params, wkt, l1_path, l2_path, max_parallel_downloads, max_parallel_processing)
 
 
-def do_hindcast2(env, params, wkt, l1_path, l2_path, max_parallel_downloads=1, max_parallel_processing=1):
+def do_hindcast(env, params, wkt, l1_path, l2_path, max_parallel_downloads=1, max_parallel_processing=1):
     # decide which API to use
-    if env['General']['API'] == "COAH":
+    if env['DIAS']['API'] == "COAH":
         from diasapis.coah_api import get_download_requests, do_download
-    elif env['General']['API'] == "HDA":
+    elif env['DIAS']['API'] == "HDA":
         from diasapis.hda_api import get_download_requests, do_download
     else:
         raise RuntimeError("Unknown API: {} (possible options are 'HDA' or 'COAH').".format(env['General']['API']))
@@ -47,6 +47,9 @@ def do_hindcast2(env, params, wkt, l1_path, l2_path, max_parallel_downloads=1, m
     actual_downloads = len([0 for l1_product_path in l1_product_paths if not os.path.exists(l1_product_path)])
     print("{} products are already available.".format(len(l1_product_paths) - actual_downloads))
     print("{} products must be downloaded first.".format(actual_downloads))
+
+    # Authenticate for earth data api
+    authenticate(env['Earthdata']['username'], env['Earthdata']['password'])
 
     # do hindcast for every product
     hindcast_threads = []
@@ -80,27 +83,30 @@ def hindcast_product(env, params, wkt, download_method, auth, download_request, 
         gpt, gpt_xml_path = env['General']['gpt_path'], env['General']['gpt_xml_path']
         product_name = os.path.basename(l1_product_path)
         sensor, resolution = params['General']['sensor'], params['General']['resolution']
-        l2_product_path = {}
         if "IDEPIX" in params['General']['preprocessor'].split(","):
             from processors import idepix
-            l1m = idepix.process(gpt, gpt_xml_path, wkt, l1_product_path, product_name, l2_path, sensor, resolution, params['IDEPIX'])
-            l2_product_path['l1m'] = l1m
+            l1p = idepix.process(gpt, gpt_xml_path, wkt, l1_product_path, product_name, l2_path, sensor, resolution,
+                                 params['IDEPIX'])
         if "C2RCC" in params['General']['processors'].split(","):
             from processors import c2rcc
-            l2c2rcc = c2rcc.process(gpt, gpt_xml_path, wkt, l1m, product_name, l2_path, sensor, params['C2RCC'])
-            l2_product_path['l2c2rcc'] = l2c2rcc
+            l2c2rcc = c2rcc.process(gpt, gpt_xml_path, wkt, l1p, product_name, l2_path, sensor, params['C2RCC'])
         if "POLYMER" in params['General']['processors'].split(","):
             from processors import polymer
-            gsw_path = os.path.join(env['GSW']['gsw_path'])
-            l2poly = polymer.process(gpt, gpt_xml_path, wkt, l1_product_path, l1m, product_name, l2_path, sensor, resolution, params['POLY'], gsw_path)
-            l2_product_path['l2poly'] = l2poly
+            l2poly = polymer.process(gpt, gpt_xml_path, wkt, l1_product_path, l1p, product_name, l2_path, sensor,
+                                     resolution, params['POLY'], env['GSW']['root_path'], env['ERA5']['root_path'])
         if "MPH" in params['General']['processors'].split(","):
             from processors import mph
-            l2mph = mph.process(gpt, gpt_xml_path, wkt, l1m, product_name, l2_path, sensor, params['MPH'])
-            l2_product_path['l2mph'] = l2mph
+            l2mph = mph.process(gpt, gpt_xml_path, wkt, l1p, product_name, l2_path, sensor, params['MPH'])
 
     # apply adapters
     if "datalakes" in params['General']['adapters'].split(","):
         from adapters import datalakes
-        date = re.findall(r"\d{8}T\d{6}", os.path.basename(l2_product_path['l2poly']))[0]
-        datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2_product_path['l2poly'])
+        if "C2RCC" == params['Datalakes']['input_processor']:
+            date = re.findall(r"\d{8}T\d{6}", os.path.basename(l2c2rcc))[0]
+            datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2c2rcc, params['Datalakes'])
+        if "POLYMER" == params['Datalakes']['input_processor']:
+            date = re.findall(r"\d{8}T\d{6}", os.path.basename(l2poly))[0]
+            datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2poly, params['Datalakes'])
+        if "MPH" == params['Datalakes']['input_processor']:
+            date = re.findall(r"\d{8}T\d{6}", os.path.basename(l2mph))[0]
+            datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2mph, params['Datalakes'])

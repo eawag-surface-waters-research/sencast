@@ -13,7 +13,7 @@ def init_hindcast(env_file, params_file, wkt_file):
     params, params_file = load_params(params_file, env['General']['params_path'])
     if not wkt_file:
         wkt_file = params['General']['wkt']
-    wkt, wkt_file = load_wkt(wkt_file, env['DIAS']['wkt_path'])
+    wkt, wkt_file = load_wkt(wkt_file, env['General']['wkt_path'])
 
     # Create output path, if it does not exist yet
     params_name, wkt_name = os.path.basename(os.path.splitext(params_file)[0]), params['General']['wkt'].split(".")[0]

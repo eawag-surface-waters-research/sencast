@@ -7,7 +7,6 @@ import subprocess
 from haversine import haversine
 from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.gsw import GSW
-from polymer.level1_msi import Level1_MSI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level1, Level2
 from snappy import ProductIO
@@ -27,7 +26,7 @@ QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
 GPT_XML_FILENAME = "polymer.xml"
 
 
-def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, sensor, resolution, params, gsw_path):
+def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, sensor, resolution, params, gsw_path, ancillary_path):
     """ This processor applies polymer to the source product and stores the result. """
     print("Applying POLYMER...")
 
@@ -43,18 +42,18 @@ def process(gpt, gpt_xml_path, wkt, product_path, l1p, product_name, out_path, s
     scol = min(UL[1], UR[1])
     ecol = max(LL[1], LR[1])
 
-    poly_tmp_file = "{}.tmp".format(output)
     if sensor == "MSI":
+        product_path = msi_product_path_for_polymer(product_path)
         gsw = GSW(directory=gsw_path)
-        ppp = msi_product_path_for_polymer(product_path)
-        l1 = Level1_MSI(ppp, landmask=gsw, ancillary=Ancillary_ERA5())
-        l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['sza'])
-        run_atm_corr(l1, l2)
+        additinoal_ds = ['sza']
     else:
         gsw = GSW(directory=gsw_path, agg=8)
-        l1 = Level1(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, kwargs={'ancillary': Ancillary_ERA5()})
-        l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + ['vaa', 'vza', 'saa', 'sza'])
-        run_atm_corr(l1, l2)
+        additinoal_ds = ['vaa', 'vza', 'saa', 'sza']
+    l1_kwargs = {'ancillary': Ancillary_ERA5(directory=ancillary_path)}
+    l1 = Level1(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, kwargs=l1_kwargs)
+    poly_tmp_file = "{}.tmp".format(output)
+    l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additinoal_ds)
+    run_atm_corr(l1, l2)
 
     gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
     rewrite_xml(gpt_xml_path, gpt_xml_file, wkt, resolution)
