@@ -38,7 +38,9 @@ def process(gpt, wkt, source, product_name, out_path, sensor, resolution, params
     args = [gpt, gpt_xml_file,
             "-Ssource={}".format(source),
             "-Poutput={}".format(output)]
-    subprocess.call(args)
+
+    if subprocess.call(args):
+        raise RuntimeError("GPT Failed.")
 
     rgb_bands = params['rgb_bands'].split(",")
     fc_bands = params['fc_bands'].split(",")
@@ -51,7 +53,7 @@ def rewrite_xml(out_path, wkt, sensor, resolution):
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor.lower())), "r") as f:
         xml = f.read()
 
-    reproject_params = create_reproject_parameters_from_wkt(wkt, resolution)
+    reproject_params = get_reproject_params_from_wkt(wkt, resolution)
     xml = xml.replace("${wkt}", wkt)
     xml = xml.replace("${resolution}", resolution)
     xml = xml.replace("${easting}", reproject_params['easting'])
@@ -69,7 +71,7 @@ def rewrite_xml(out_path, wkt, sensor, resolution):
     return gpt_xml_file
 
 
-def create_reproject_parameters_from_wkt(wkt, resolution):
+def get_reproject_params_from_wkt(wkt, resolution):
     lons, lats = get_lons_lats(wkt)
     x_dist = haversine((min(lats), min(lons)), (min(lats), max(lons)))
     y_dist = haversine((min(lats), min(lons)), (max(lats), min(lons)))

@@ -59,7 +59,9 @@ def process(gpt, wkt, product_path, l1p, product_name, out_path, sensor, resolut
             "-Ssource1={}".format(l1p),
             "-Ssource2={}".format(poly_tmp_file),
             "-Poutput={}".format(output)]
-    subprocess.call(args)
+
+    if subprocess.call(args):
+        raise RuntimeError("GPT Failed.")
 
     os.remove(poly_tmp_file)
 

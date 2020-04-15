@@ -37,7 +37,9 @@ def process(gpt, wkt, source, product_name, out_path, sensor, params):
     args = [gpt, gpt_xml_file,
             "-Ssource={}".format(source),
             "-Poutput={}".format(output)]
-    subprocess.call(args)
+
+    if subprocess.call(args):
+        raise RuntimeError("GPT Failed.")
 
     create_quicklooks(out_path, product_name, wkt, params['bands'].split(","), params['bandmaxs'].split(","))
 
