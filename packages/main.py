@@ -80,23 +80,21 @@ def hindcast_product(env, params, wkt, download_method, auth, download_request, 
             product.closeIO()
 
         # process the products
-        gpt, gpt_xml_path = env['General']['gpt_path'], env['General']['gpt_xml_path']
-        product_name = os.path.basename(l1_product_path)
+        gpt, product_name = env['General']['gpt_path'], os.path.basename(l1_product_path)
         sensor, resolution = params['General']['sensor'], params['General']['resolution']
         if "IDEPIX" in params['General']['preprocessor'].split(","):
-            from processors import idepix
-            l1p = idepix.process(gpt, gpt_xml_path, wkt, l1_product_path, product_name, l2_path, sensor, resolution,
-                                 params['IDEPIX'])
+            from processors.idepix import idepix
+            l1p = idepix.process(gpt, wkt, l1_product_path, product_name, l2_path, sensor, resolution, params['IDEPIX'])
         if "C2RCC" in params['General']['processors'].split(","):
-            from processors import c2rcc
-            l2c2rcc = c2rcc.process(gpt, gpt_xml_path, wkt, l1p, product_name, l2_path, sensor, params['C2RCC'])
+            from processors.c2rcc import c2rcc
+            l2c2rcc = c2rcc.process(gpt, wkt, l1p, product_name, l2_path, sensor, params['C2RCC'])
         if "POLYMER" in params['General']['processors'].split(","):
-            from processors import polymer
-            l2poly = polymer.process(gpt, gpt_xml_path, wkt, l1_product_path, l1p, product_name, l2_path, sensor,
-                                     resolution, params['POLYMER'], env['GSW']['root_path'], env['CDS']['root_path'])
+            from processors.polymer import polymer
+            l2poly = polymer.process(gpt, wkt, l1_product_path, l1p, product_name, l2_path, sensor, resolution,
+                                     params['POLYMER'], env['GSW']['root_path'], env['CDS']['root_path'])
         if "MPH" in params['General']['processors'].split(","):
-            from processors import mph
-            l2mph = mph.process(gpt, gpt_xml_path, wkt, l1p, product_name, l2_path, sensor, params['MPH'])
+            from processors.mph import mph
+            l2mph = mph.process(gpt, wkt, l1p, product_name, l2_path, sensor, params['MPH'])
 
     # apply adapters
     if "datalakes" in params['General']['adapters'].split(","):
