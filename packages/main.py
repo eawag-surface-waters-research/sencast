@@ -84,27 +84,27 @@ def hindcast_product(env, params, wkt, download_method, auth, download_request, 
         sensor, resolution = params['General']['sensor'], params['General']['resolution']
         if "IDEPIX" in params['General']['preprocessor'].split(","):
             from processors.idepix import idepix
-            l1p = idepix.process(gpt, wkt, l1_product_path, product_name, l2_path, sensor, resolution, params['IDEPIX'])
+            l1p = idepix.process(gpt, wkt, l1_product_path, product_name, l2_path, sensor, resolution, params)
         if "C2RCC" in params['General']['processors'].split(","):
             from processors.c2rcc import c2rcc
-            l2c2rcc = c2rcc.process(gpt, wkt, l1p, product_name, l2_path, sensor, params['C2RCC'])
+            l2c2rcc = c2rcc.process(gpt, wkt, l1p, product_name, l2_path, sensor, params)
         if "POLYMER" in params['General']['processors'].split(","):
             from processors.polymer import polymer
-            l2poly = polymer.process(gpt, wkt, l1_product_path, l1p, product_name, l2_path, sensor, resolution,
-                                     params['POLYMER'], env['GSW']['root_path'], env['CDS']['root_path'])
+            l2poly = polymer.process(gpt, wkt, l1_product_path, l1p, product_name, l2_path, sensor, resolution, params,
+                                     env['GSW']['root_path'], env['CDS']['root_path'])
         if "MPH" in params['General']['processors'].split(","):
             from processors.mph import mph
-            l2mph = mph.process(gpt, wkt, l1p, product_name, l2_path, sensor, params['MPH'])
+            l2mph = mph.process(gpt, wkt, l1p, product_name, l2_path, sensor, params)
 
     # apply adapters
     if "DATALAKES" in params['General']['adapters'].split(","):
         from adapters import datalakes
         if "C2RCC" == params['DATALAKES']['input_processor']:
             date = re.findall(r"\d{8}T\d{6}", os.path.basename(l2c2rcc))[0]
-            datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2c2rcc, params['DATALAKES'])
+            datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2c2rcc, params)
         if "POLYMER" == params['DATALAKES']['input_processor']:
             date = re.findall(r"\d{8}T\d{6}", os.path.basename(l2poly))[0]
-            datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2poly, params['DATALAKES'])
+            datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2poly, params)
         if "MPH" == params['DATALAKES']['input_processor']:
             date = re.findall(r"\d{8}T\d{6}", os.path.basename(l2mph))[0]
-            datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2mph, params['DATALAKES'])
+            datalakes.apply(env, params['General']['wkt'].split('.')[0], date, l2mph, params)

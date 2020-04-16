@@ -8,6 +8,8 @@ from snappy import ProductIO
 
 from packages.ql_mapping import plot_map
 
+# Key of the params section for this processor
+PARAMS_SECTION = "MPH"
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L2MPH"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
@@ -20,33 +22,34 @@ QL_FILENAME = "L2MPH_L1P_reproj_{}_{}.png"
 GPT_XML_FILENAME = "mph.xml"
 
 
-def process(gpt, wkt, source, product_name, out_path, sensor, params):
+def process(gpt, wkt, source_file, product_name, out_path, sensor, params):
     """ This processor applies mph to the source product and stores the result. """
     print("Applying MPH...")
 
     if sensor != "OLCI":
         return
 
-    output = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
-    if os.path.isfile(output):
+    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
+    if os.path.isfile(output_file):
         print("Skipping MPH, target already exists: {}".format(OUT_FILENAME.format(product_name)))
-        return output
-    os.makedirs(os.path.dirname(output), exist_ok=True)
+        return output_file
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, params['validexpression'])
+        rewrite_xml(gpt_xml_file, params[PARAMS_SECTION]['validexpression'])
 
     args = [gpt, gpt_xml_file,
-            "-Ssource={}".format(source),
-            "-Poutput={}".format(output)]
+            "-SsourceFile={}".format(source_file),
+            "-PoutputFile={}".format(output_file)]
 
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 
-    create_quicklooks(out_path, product_name, wkt, params['bands'].split(","), params['bandmaxs'].split(","))
+    create_quicklooks(out_path, product_name, wkt, params[PARAMS_SECTION]['bands'].split(","),
+                      params[PARAMS_SECTION]['bandmaxs'].split(","))
 
-    return output
+    return output_file
 
 
 def rewrite_xml(gpt_xml_file, validexpression):

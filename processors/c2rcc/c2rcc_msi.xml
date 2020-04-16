@@ -3,7 +3,7 @@
 	<node id="c2rccNode">
 		<operator>c2rcc.msi</operator>
 		<sources>
-			<sourceProduct>${source}</sourceProduct>
+			<sourceProduct>${sourceFile}</sourceProduct>
 		</sources>
 		<parameters>
 			<validPixelExpression>${validPixelExpression}</validPixelExpression>
@@ -27,7 +27,7 @@
 			<source>c2rccNode</source>
 		</sources>
 		<parameters>
-			<file>${output}</file>
+			<file>${outputFile}</file>
 			<formatName>NetCDF-BEAM</formatName>
 		</parameters>
 	</node>

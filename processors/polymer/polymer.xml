@@ -3,7 +3,7 @@
 	<node id="subsetNode">
 		<operator>Subset</operator>
 		<sources>
-			<sourceProduct>${source2}</sourceProduct>
+			<source>${sourceFile2}</source>
 		</sources>
 		<parameters>
 			<geoRegion>${wkt}</geoRegion>
@@ -31,8 +31,8 @@
 	<node id="mergeNode">
 		<operator>Merge</operator>
 		<sources>
-			<masterProduct>${source1}</masterProduct>
-			<sourceProducts>reprojectNode</sourceProducts>
+			<masterProduct>${sourceFile1}</masterProduct>
+			<reprojectedProduct>reprojectNode</reprojectedProduct>
 		</sources>
 	</node>
     <node id="writeNode">
@@ -41,7 +41,7 @@
 			<source>mergeNode</source>
 		</sources>
 		<parameters>
-			<file>${output}</file>
+			<file>${outputFile}</file>
 			<formatName>NetCDF-BEAM</formatName>
 		</parameters>
     </node>

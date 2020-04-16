@@ -8,6 +8,8 @@ from snappy import ProductIO
 
 from packages.ql_mapping import plot_map
 
+# Key of the params section for this processor
+PARAMS_SECTION = "C2RCC"
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L2C2RCC"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
@@ -20,30 +22,32 @@ QL_FILENAME = "L2C2RCC_{}_{}.png"
 GPT_XML_FILENAME = "c2rcc_{}.xml"
 
 
-def process(gpt, wkt, source, product_name, out_path, sensor, params):
+def process(gpt, wkt, source_file, product_name, out_path, sensor, params):
     """ This processor applies c2rcc to the source product and stores the result. """
     print("Applying C2RCC...")
 
-    output = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
-    if os.path.isfile(output):
+    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
+    if os.path.isfile(output_file):
         print("Skipping C2RCC, target already exists: {}".format(OUT_FILENAME.format(product_name)))
-        return output
-    os.makedirs(os.path.dirname(output), exist_ok=True)
+        return output_file
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME.format(sensor.lower()))
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, sensor, params['validexpression'], params['altnn'], params)
+        rewrite_xml(gpt_xml_file, sensor, params[PARAMS_SECTION]['validexpression'], params[PARAMS_SECTION]['altnn'],
+                    params)
 
     args = [gpt, gpt_xml_file,
-            "-Ssource={}".format(source),
-            "-Poutput={}".format(output)]
+            "-SsourceFile={}".format(source_file),
+            "-PoutputFile={}".format(output_file)]
 
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 
-    create_quicklooks(out_path, product_name, wkt, params['bands'].split(","), params['bandmaxs'].split(","))
+    create_quicklooks(out_path, product_name, wkt, params[PARAMS_SECTION]['bands'].split(","),
+                      params[PARAMS_SECTION]['bandmaxs'].split(","))
 
-    return output
+    return output_file
 
 
 def rewrite_xml(gpt_xml_file, sensor, validexpression, altnn, params):
@@ -64,11 +68,13 @@ def rewrite_xml(gpt_xml_file, sensor, validexpression, altnn, params):
     xml = xml.replace("${thresholdCloudTDown865}", str(0.955))
     xml = xml.replace("${alternativeNNPath}", altnn)
 
-    if params['vicarious_properties_filename']:
-        vicarious_file = os.path.join(os.path.dirname(__file__), "vicarious", params['vicarious_properties_filename'])
-        vicarious_params = load_properties(vicarious_file)
-        for key in vicarious_params.keys():
-            xml = xml.replace("${" + key + "}", vicarious_params[key])
+    if params.has_option(PARAMS_SECTION, 'vicar_properties_filename'):
+        vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
+        if vicar_properties_filename:
+            vicar_properties_file = os.path.join(os.path.dirname(__file__), "vicarious", vicar_properties_filename)
+            vicar_params = load_properties(vicar_properties_file)
+            for key in vicar_params.keys():
+                xml = xml.replace("${" + key + "}", vicar_params[key])
 
     with open(gpt_xml_file, "wb") as f:
         f.write(xml.encode())

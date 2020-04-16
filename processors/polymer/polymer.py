@@ -14,6 +14,8 @@ from snappy import ProductIO
 from packages.product_fun import get_corner_pixels_roi, get_lons_lats
 from packages.ql_mapping import plot_map
 
+# Key of the params section for this processor
+PARAMS_SECTION = "POLYMER"
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L2POLY"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
@@ -26,15 +28,16 @@ QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
 GPT_XML_FILENAME = "polymer.xml"
 
 
-def process(gpt, wkt, product_path, l1p, product_name, out_path, sensor, resolution, params, gsw_path, ancillary_path):
+def process(gpt, wkt, product_path, source_file, product_name, out_path, sensor, resolution, params, gsw_path,
+            ancillary_path):
     """ This processor applies polymer to the source product and stores the result. """
     print("Applying POLYMER...")
 
-    output = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
-    if os.path.isfile(output):
+    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
+    if os.path.isfile(output_file):
         print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(product_name)))
-        return output
-    os.makedirs(os.path.dirname(output), exist_ok=True)
+        return output_file
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     ancillary = Ancillary_ERA5(directory=ancillary_path)
     if sensor == "MSI":
@@ -48,26 +51,28 @@ def process(gpt, wkt, product_path, l1p, product_name, out_path, sensor, resolut
         gsw = GSW(directory=gsw_path, agg=8)
         l1 = Level1(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
-    poly_tmp_file = "{}.tmp".format(output)
+    poly_tmp_file = "{}.tmp".format(output_file)
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
     run_atm_corr(l1, l2)
 
     gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
-    rewrite_xml(gpt_xml_file, wkt, resolution)
+    if not os.path.isfile(gpt_xml_file):
+        rewrite_xml(gpt_xml_file, wkt, resolution)
 
     args = [gpt, gpt_xml_file,
-            "-Ssource1={}".format(l1p),
-            "-Ssource2={}".format(poly_tmp_file),
-            "-Poutput={}".format(output)]
+            "-SsourceFile1={}".format(source_file),
+            "-SsourceFile2={}".format(poly_tmp_file),
+            "-PoutputFile={}".format(output_file)]
 
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 
     os.remove(poly_tmp_file)
 
-    create_quicklooks(out_path, product_name, wkt, params['bands'].split(","), params['bandmaxs'].split(","))
+    create_quicklooks(out_path, product_name, wkt, params[PARAMS_SECTION]['bands'].split(","),
+                      params[PARAMS_SECTION]['bandmaxs'].split(","))
 
-    return output
+    return output_file
 
 
 def rewrite_xml(gpt_xml_file, wkt, resolution):

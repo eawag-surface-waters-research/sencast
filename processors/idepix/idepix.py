@@ -10,46 +10,50 @@ from snappy import ProductIO
 from packages.product_fun import get_lons_lats
 from packages.ql_mapping import plot_pic
 
+# Key of the params section for this processor
+PARAMS_SECTION = "IDEPIX"
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L1P"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = "merge_reproj_L1P_subset_{}.nc"
+OUT_FILENAME = "reproj_idepix_subset_{}.nc"
 # A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
 QL_DIR = "L1P-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
-QL_FILENAME = "reproj_L1P_subset_{}_{}.png"
+QL_FILENAME = "reproj_idepix_subset_{}_{}.png"
 # The name of the xml file for gpt
 GPT_XML_FILENAME = "idepix_{}.xml"
 
 
-def process(gpt, wkt, source, product_name, out_path, sensor, resolution, params):
-    """ This processor applies subset, idepix, merge and reprojection to the source product and stores the result.
-    It returns the location of the output product. """
+def process(gpt, wkt, source_file, product_name, out_path, sensor, resolution, params):
+    """ This processor applies subset, idepix, merge and reprojection to the source product and
+    writes the result to disk. It returns the location of the output product. """
     print("Applying IDEPIX...")
 
-    output = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
-    if os.path.isfile(output):
-        print("Skipping IDEPIX, targets already exist: {}".format(os.path.basename(output)))
-        return output
-    os.makedirs(os.path.dirname(output), exist_ok=True)
+    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
+    if os.path.isfile(output_file):
+        print("Skipping IDEPIX, targets already exist: {}".format(os.path.basename(output_file)))
+        return output_file
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    gpt_xml_file = rewrite_xml(out_path, wkt, sensor, resolution)
+    gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME.format(sensor.lower()))
+    if not os.path.isfile(gpt_xml_file):
+        rewrite_xml(gpt_xml_file, wkt, sensor, resolution)
 
     args = [gpt, gpt_xml_file,
-            "-Ssource={}".format(source),
-            "-Poutput={}".format(output)]
+            "-SsourceFile={}".format(source_file),
+            "-PoutputFile={}".format(output_file)]
 
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 
-    rgb_bands = params['rgb_bands'].split(",")
-    fc_bands = params['fc_bands'].split(",")
+    rgb_bands = params[PARAMS_SECTION]['rgb_bands'].split(",")
+    fc_bands = params[PARAMS_SECTION]['fc_bands'].split(",")
     create_quicklooks(out_path, product_name, wkt, sensor, rgb_bands, fc_bands)
 
-    return output
+    return output_file
 
 
-def rewrite_xml(out_path, wkt, sensor, resolution):
+def rewrite_xml(gpt_xml_file, wkt, sensor, resolution):
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor.lower())), "r") as f:
         xml = f.read()
 
@@ -63,12 +67,8 @@ def rewrite_xml(out_path, wkt, sensor, resolution):
     xml = xml.replace("${width}", reproject_params['width'])
     xml = xml.replace("${height}", reproject_params['height'])
 
-    gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME.format(sensor.lower()))
     with open(gpt_xml_file, "wb") as f:
-        f.truncate()
         f.write(xml.encode())
-
-    return gpt_xml_file
 
 
 def get_reproject_params_from_wkt(wkt, resolution):
