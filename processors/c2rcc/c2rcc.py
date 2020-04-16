@@ -22,9 +22,12 @@ QL_FILENAME = "L2C2RCC_{}_{}.png"
 GPT_XML_FILENAME = "c2rcc_{}.xml"
 
 
-def process(gpt, wkt, source_file, product_name, out_path, sensor, params):
+def process(env, params, wkt, l1_product_path, source_file, out_path):
     """ This processor applies c2rcc to the source product and stores the result. """
+
     print("Applying C2RCC...")
+    gpt, product_name = env['General']['gpt_path'], os.path.basename(l1_product_path)
+    sensor, resolution = params['General']['sensor'], params['General']['resolution']
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):

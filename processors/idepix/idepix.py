@@ -24,10 +24,13 @@ QL_FILENAME = "reproj_idepix_subset_{}_{}.png"
 GPT_XML_FILENAME = "idepix_{}.xml"
 
 
-def process(gpt, wkt, source_file, product_name, out_path, sensor, resolution, params):
+def process(env, params, wkt, l1_product_path, source_file, out_path):
     """ This processor applies subset, idepix, merge and reprojection to the source product and
     writes the result to disk. It returns the location of the output product. """
+
     print("Applying IDEPIX...")
+    gpt, product_name = env['General']['gpt_path'], os.path.basename(l1_product_path)
+    sensor, resolution = params['General']['sensor'], params['General']['resolution']
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):

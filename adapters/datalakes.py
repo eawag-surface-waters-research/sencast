@@ -2,20 +2,26 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 
 from json import dump
 from netCDF4 import Dataset
 
 
-def apply(env, region, date, input_file, params):
+# Key of the params section for this adapter
+PARAMS_SECTION = "DATALAKES"
+
+
+def apply(env, region, input_file, params):
     if not env.has_section("Datalakes"):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
 
+    date = re.findall(r"\d{8}T\d{6}", os.path.basename(input_file))[0]
     out_path = os.path.join(env['Datalakes']['root_path'], region, date)
     os.makedirs(out_path, exist_ok=True)
 
     chl_file = os.path.join(out_path, "chl.json")
-    nc_to_json(input_file, chl_file, params['chl_band'], lambda v: round(float(v), 6))
+    nc_to_json(input_file, chl_file, params[PARAMS_SECTION]['chl_band'], lambda v: round(float(v), 6))
 
     qf_file = os.path.join(out_path, "quality_flags.json")
     nc_to_json(input_file, qf_file, "quality_flags", lambda v: int(v))

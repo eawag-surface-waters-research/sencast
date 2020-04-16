@@ -28,10 +28,13 @@ QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
 GPT_XML_FILENAME = "polymer.xml"
 
 
-def process(gpt, wkt, product_path, source_file, product_name, out_path, sensor, resolution, params, gsw_path,
-            ancillary_path):
+def process(env, params, wkt, l1_product_path, source_file, out_path):
     """ This processor applies polymer to the source product and stores the result. """
+
     print("Applying POLYMER...")
+    gpt, product_name = env['General']['gpt_path'], os.path.basename(l1_product_path)
+    sensor, resolution = params['General']['sensor'], params['General']['resolution']
+    gsw_path, ancillary_path = env['GSW']['root_path'], env['ERA5']['root_path']
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
@@ -41,15 +44,15 @@ def process(gpt, wkt, product_path, source_file, product_name, out_path, sensor,
 
     ancillary = Ancillary_ERA5(directory=ancillary_path)
     if sensor == "MSI":
-        product_path = msi_product_path_for_polymer(product_path)
+        product_path = msi_product_path_for_polymer(l1_product_path)
         gsw = GSW(directory=gsw_path)
         l1 = Level1(product_path, landmask=gsw, ancillary=ancillary)
         additional_ds = ['sza']
     else:
-        UL, UR, LR, LL = get_corner_pixels_roi(ProductIO.readProduct(product_path), wkt)
+        UL, UR, LR, LL = get_corner_pixels_roi(ProductIO.readProduct(l1_product_path), wkt)
         sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]), max(LL[1], LR[1])
         gsw = GSW(directory=gsw_path, agg=8)
-        l1 = Level1(product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, ancillary=ancillary)
+        l1 = Level1(l1_product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
     poly_tmp_file = "{}.tmp".format(output_file)
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
