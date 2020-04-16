@@ -35,6 +35,8 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1_product_path)
     sensor, resolution = params['General']['sensor'], params['General']['resolution']
     gsw_path, ancillary_path = env['GSW']['root_path'], env['CDS']['root_path']
+    os.makedirs(gsw_path, exist_ok=True)
+    os.makedirs(ancillary_path, exist_ok=True)
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
