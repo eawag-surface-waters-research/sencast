@@ -34,7 +34,7 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
     print("Applying POLYMER...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1_product_path)
     sensor, resolution = params['General']['sensor'], params['General']['resolution']
-    gsw_path, ancillary_path = env['GSW']['root_path'], env['ERA5']['root_path']
+    gsw_path, ancillary_path = env['GSW']['root_path'], env['CDS']['root_path']
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
