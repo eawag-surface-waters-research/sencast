@@ -11,13 +11,13 @@ from packages.ql_mapping import plot_map
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L2C2RCC"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = "L2C2RCC_L1P_reproj_{}.nc"
+OUT_FILENAME = "L2C2RCC_{}.nc"
 # A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
 QL_DIR = "L2C2RCC-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
-QL_FILENAME = "L2C2RCC_L1P_reproj_{}_{}.png"
+QL_FILENAME = "L2C2RCC_{}_{}.png"
 # The name of the xml file for gpt
-GPT_XML_FILENAME = "c2rcc.xml"
+GPT_XML_FILENAME = "c2rcc_{}.xml"
 
 
 def process(gpt, wkt, source, product_name, out_path, sensor, params):
@@ -30,9 +30,9 @@ def process(gpt, wkt, source, product_name, out_path, sensor, params):
         return output
     os.makedirs(os.path.dirname(output), exist_ok=True)
 
-    gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
+    gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME.format(sensor.lower()))
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, sensor, params['validexpression'], params['altnn'])
+        rewrite_xml(gpt_xml_file, sensor, params['validexpression'], params['altnn'], params)
 
     args = [gpt, gpt_xml_file,
             "-Ssource={}".format(source),
@@ -46,11 +46,10 @@ def process(gpt, wkt, source, product_name, out_path, sensor, params):
     return output
 
 
-def rewrite_xml(gpt_xml_file, sensor, validexpression, altnn):
-    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME), "r") as f:
+def rewrite_xml(gpt_xml_file, sensor, validexpression, altnn, params):
+    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor.lower())), "r") as f:
         xml = f.read()
 
-    xml = xml.replace("${c2rccOperator}", "c2rcc.olci" if sensor == "OLCI" else "c2rcc.msi")
     xml = xml.replace("${validPixelExpression}", validexpression)
     xml = xml.replace("${salinity}", str(0.05))
     xml = xml.replace("${temperature}", str(15.0))
@@ -64,6 +63,12 @@ def rewrite_xml(gpt_xml_file, sensor, validexpression, altnn):
     xml = xml.replace("${thresholdAcReflecOos}", str(0.1))
     xml = xml.replace("${thresholdCloudTDown865}", str(0.955))
     xml = xml.replace("${alternativeNNPath}", altnn)
+
+    if params['vicarious_properties_filename']:
+        vicarious_file = os.path.join(os.path.dirname(__file__), "vicarious", params['vicarious_properties_filename'])
+        vicarious_params = load_properties(vicarious_file)
+        for key in vicarious_params.keys():
+            xml = xml.replace("${" + key + "}", vicarious_params[key])
 
     with open(gpt_xml_file, "wb") as f:
         f.write(xml.encode())
@@ -82,3 +87,17 @@ def create_quicklooks(out_path, product_name, wkt, bands, bandmaxs):
         plot_map(product, ql_file, band, basemap="srtm_hillshade", grid=True, wkt=wkt, param_range=bandmax)
         print("Plot for band {} finished.".format(band))
     product.closeIO()
+
+
+def load_properties(properties_file, separator_char='=', comment_char='#'):
+    """ Read a properties file into a dict. """
+    properties_dict = {}
+    with open(properties_file, "rt") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith(comment_char):
+                key_value = line.split(separator_char)
+                key = key_value[0].strip()
+                value = separator_char.join(key_value[1:]).strip().strip('"')
+                properties_dict[key] = value
+    return properties_dict

@@ -1,7 +1,7 @@
 <graph id="idepix">
 	<version>1.0</version>
 	<node id="c2rccNode">
-		<operator>${c2rccOperator}</operator>
+		<operator>c2rcc.msi</operator>
 		<sources>
 			<sourceProduct>${source}</sourceProduct>
 		</sources>
