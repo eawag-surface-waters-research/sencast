@@ -37,8 +37,7 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
 
     gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME.format(sensor.lower()))
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, sensor, params[PARAMS_SECTION]['validexpression'], params[PARAMS_SECTION]['altnn'],
-                    params)
+        rewrite_xml(gpt_xml_file, params)
 
     args = [gpt, gpt_xml_file,
             "-SsourceFile={}".format(source_file),
@@ -53,11 +52,16 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
     return output_file
 
 
-def rewrite_xml(gpt_xml_file, sensor, validexpression, altnn, params):
+def rewrite_xml(gpt_xml_file, params):
+    sensor = params['General']['sensor']
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor.lower())), "r") as f:
         xml = f.read()
 
-    xml = xml.replace("${validPixelExpression}", validexpression)
+    altnn_path = params[PARAMS_SECTION]['altnn']
+    if altnn_path:
+        altnn_path = os.path.join(os.path.dirname(__file__), "altnn", altnn_path)
+
+    xml = xml.replace("${validPixelExpression}", params[PARAMS_SECTION]['validexpression'])
     xml = xml.replace("${salinity}", str(0.05))
     xml = xml.replace("${temperature}", str(15.0))
     xml = xml.replace("${ozone}", str(330.0))  # str(product_parameters.get('ozone'))
@@ -69,15 +73,14 @@ def rewrite_xml(gpt_xml_file, sensor, validexpression, altnn, params):
     xml = xml.replace("${thresholdRtosaOOS}", str(0.05))
     xml = xml.replace("${thresholdAcReflecOos}", str(0.1))
     xml = xml.replace("${thresholdCloudTDown865}", str(0.955))
-    xml = xml.replace("${alternativeNNPath}", altnn)
+    xml = xml.replace("${alternativeNNPath}", altnn_path)
 
-    if params.has_option(PARAMS_SECTION, 'vicar_properties_filename'):
-        vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
-        if vicar_properties_filename:
-            vicar_properties_file = os.path.join(os.path.dirname(__file__), "vicarious", vicar_properties_filename)
-            vicar_params = load_properties(vicar_properties_file)
-            for key in vicar_params.keys():
-                xml = xml.replace("${" + key + "}", vicar_params[key])
+    vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
+    if vicar_properties_filename:
+        vicar_properties_file = os.path.join(os.path.dirname(__file__), "vicarious", vicar_properties_filename)
+        vicar_params = load_properties(vicar_properties_file)
+        for key in vicar_params.keys():
+            xml = xml.replace("${" + key + "}", vicar_params[key])
 
     with open(gpt_xml_file, "wb") as f:
         f.write(xml.encode())
