@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from snappy import GeoPos
 import re
+
+from haversine import haversine
+from snappy import GeoPos
 
 
 def get_corner_pixels_roi(product, wkt):
@@ -98,3 +100,16 @@ def get_lons_lats(wkt):
     lons = [float(corner) for corner in corners[::2]]
     lats = [float(corner) for corner in corners[1::2]]
     return lons, lats
+
+
+def get_reproject_params_from_wkt(wkt, resolution):
+    lons, lats = get_lons_lats(wkt)
+    x_dist = haversine((min(lats), min(lons)), (min(lats), max(lons)))
+    y_dist = haversine((min(lats), min(lons)), (max(lats), min(lons)))
+    x_pix = int(round(x_dist / (int(resolution) / 1000)))
+    y_pix = int(round(y_dist / (int(resolution) / 1000)))
+    x_pixsize = (max(lons) - min(lons)) / x_pix
+    y_pixsize = (max(lats) - min(lats)) / y_pix
+
+    return {'easting': str(min(lons)), 'northing': str(max(lats)), 'pixelSizeX': str(x_pixsize),
+            'pixelSizeY': str(y_pixsize), 'width': str(x_pix), 'height': str(y_pix)}

@@ -86,3 +86,17 @@ def load_wkt(wkt_file, wkt_path=None):
         raise RuntimeError("The wkt file could not be found: {}".format(wkt_file))
     with open(wkt_file, "r") as file:
         return file.read(), wkt_file
+
+
+def load_properties(properties_file, separator_char='=', comment_char='#'):
+    """ Read a properties file into a dict. """
+    properties_dict = {}
+    with open(properties_file, "rt") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith(comment_char):
+                key_value = line.split(separator_char)
+                key = key_value[0].strip()
+                value = separator_char.join(key_value[1:]).strip().strip('"')
+                properties_dict[key] = value
+    return properties_dict

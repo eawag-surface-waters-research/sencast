@@ -4,8 +4,7 @@
 import os
 import subprocess
 
-from snappy import ProductIO
-
+from packages.auxil import load_properties
 from packages.ql_mapping import plot_map
 
 # Key of the params section for this processor
@@ -39,15 +38,11 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, params)
 
-    args = [gpt, gpt_xml_file,
-            "-SsourceFile={}".format(source_file),
-            "-PoutputFile={}".format(output_file)]
-
+    args = [gpt, gpt_xml_file, "-SsourceFile={}".format(source_file), "-PoutputFile={}".format(output_file)]
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 
-    create_quicklooks(out_path, product_name, wkt, params[PARAMS_SECTION]['bands'].split(","),
-                      params[PARAMS_SECTION]['bandmaxs'].split(","))
+    create_quicklooks(params, output_file, product_name, out_path, wkt)
 
     return output_file
 
@@ -86,30 +81,11 @@ def rewrite_xml(gpt_xml_file, params):
         f.write(xml.encode())
 
 
-def create_quicklooks(out_path, product_name, wkt, bands, bandmaxs):
+def create_quicklooks(params, product_file, product_name, out_path, wkt):
+    bands, bandmaxs = params[PARAMS_SECTION]['bands'].split(","), params[PARAMS_SECTION]['bandmaxs'].split(",")
     print("Creating quicklooks for C2RCC for bands: {}".format(bands))
-    product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name)))
     for band, bandmax in zip(bands, bandmaxs):
-        if int(bandmax) == 0:
-            bandmax = False
-        else:
-            bandmax = range(0, int(bandmax))
+        bandmax = False if int(bandmax) == 0 else range(0, int(bandmax))
         ql_file = os.path.join(out_path, QL_DIR.format(band), QL_FILENAME.format(product_name, band))
         os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-        plot_map(product, ql_file, band, basemap="srtm_hillshade", grid=True, wkt=wkt, param_range=bandmax)
-        print("Plot for band {} finished.".format(band))
-    product.closeIO()
-
-
-def load_properties(properties_file, separator_char='=', comment_char='#'):
-    """ Read a properties file into a dict. """
-    properties_dict = {}
-    with open(properties_file, "rt") as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith(comment_char):
-                key_value = line.split(separator_char)
-                key = key_value[0].strip()
-                value = separator_char.join(key_value[1:]).strip().strip('"')
-                properties_dict[key] = value
-    return properties_dict
+        plot_map(product_file, ql_file, band, wkt, basemap="srtm_hillshade", param_range=bandmax)

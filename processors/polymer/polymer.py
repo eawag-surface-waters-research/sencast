@@ -4,14 +4,13 @@
 import os
 import subprocess
 
-from haversine import haversine
 from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.gsw import GSW
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level1, Level2
 from snappy import ProductIO
 
-from packages.product_fun import get_corner_pixels_roi, get_lons_lats
+from packages.product_fun import get_corner_pixels_roi, get_reproject_params_from_wkt
 from packages.ql_mapping import plot_map
 
 # Key of the params section for this processor
@@ -46,9 +45,10 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
 
     ancillary = Ancillary_ERA5(directory=ancillary_path)
     if sensor == "MSI":
-        product_path = msi_product_path_for_polymer(l1_product_path)
+        granule_path = os.path.join(l1_product_path, "GRANULE")
+        msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
         gsw = GSW(directory=gsw_path)
-        l1 = Level1(product_path, landmask=gsw, ancillary=ancillary)
+        l1 = Level1(msi_product_path, landmask=gsw, ancillary=ancillary)
         additional_ds = ['sza']
     else:
         UL, UR, LR, LL = get_corner_pixels_roi(ProductIO.readProduct(l1_product_path), wkt)
@@ -74,8 +74,7 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
 
     os.remove(poly_tmp_file)
 
-    create_quicklooks(out_path, product_name, wkt, params[PARAMS_SECTION]['bands'].split(","),
-                      params[PARAMS_SECTION]['bandmaxs'].split(","))
+    create_quicklooks(params, output_file, product_name, out_path, wkt)
 
     return output_file
 
@@ -84,7 +83,7 @@ def rewrite_xml(gpt_xml_file, wkt, resolution):
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME), "r") as f:
         xml = f.read()
 
-    reproject_params = create_reproject_parameters_from_wkt(wkt, resolution)
+    reproject_params = get_reproject_params_from_wkt(wkt, resolution)
     xml = xml.replace("${wkt}", wkt)
     xml = xml.replace("${easting}", reproject_params['easting'])
     xml = xml.replace("${northing}", reproject_params['northing'])
@@ -97,34 +96,11 @@ def rewrite_xml(gpt_xml_file, wkt, resolution):
         f.write(xml.encode())
 
 
-def create_reproject_parameters_from_wkt(wkt, resolution):
-    lons, lats = get_lons_lats(wkt)
-    x_dist = haversine((min(lats), min(lons)), (min(lats), max(lons)))
-    y_dist = haversine((min(lats), min(lons)), (max(lats), min(lons)))
-    x_pix = int(round(x_dist / (int(resolution) / 1000)))
-    y_pix = int(round(y_dist / (int(resolution) / 1000)))
-    x_pixsize = (max(lons) - min(lons)) / x_pix
-    y_pixsize = (max(lats) - min(lats)) / y_pix
-
-    return {'easting': str(min(lons)), 'northing': str(max(lats)), 'pixelSizeX': str(x_pixsize),
-            'pixelSizeY': str(y_pixsize), 'width': str(x_pix), 'height': str(y_pix)}
-
-
-def create_quicklooks(out_path, product_name, wkt, bands, bandmaxs):
+def create_quicklooks(params, product_file, product_name, out_path, wkt):
+    bands, bandmaxs = params[PARAMS_SECTION]['bands'].split(","), params[PARAMS_SECTION]['bandmaxs'].split(",")
     print("Creating quicklooks for POLYMER for bands: {}".format(bands))
-    product = ProductIO.readProduct(os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name)))
     for band, bandmax in zip(bands, bandmaxs):
-        if int(bandmax) == 0:
-            bandmax = False
-        else:
-            bandmax = range(0, int(bandmax))
+        bandmax = False if int(bandmax) == 0 else range(0, int(bandmax))
         ql_file = os.path.join(out_path, QL_DIR.format(band), QL_FILENAME.format(product_name, band))
         os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-        plot_map(product, ql_file, band, basemap="srtm_hillshade", grid=True, wkt=wkt, param_range=bandmax)
-        print("Plot for band {} finished.".format(band))
-    product.closeIO()
-
-
-def msi_product_path_for_polymer(product_path):
-    granule_path = os.path.join(product_path, "GRANULE")
-    return os.path.join(granule_path, os.listdir(granule_path)[0])
+        plot_map(product_file, ql_file, band, wkt, basemap="srtm_hillshade", param_range=bandmax)

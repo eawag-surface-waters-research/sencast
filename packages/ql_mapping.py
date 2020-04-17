@@ -4,7 +4,6 @@
 __author__ = 'Daniel'
 
 import os
-import sys
 import math
 import re
 
@@ -20,34 +19,30 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 from cartopy.io import PostprocessedRasterSource, LocatedImage
-from snappy import GPF, HashMap, jpy, Mask, PixelPos, ProductUtils
+from snappy import GPF, HashMap, jpy, Mask, PixelPos, ProductUtils, ProductIO
 from PIL import Image
 from haversine import haversine
 
-from packages.earthdata_api import authenticate
 from packages.product_fun import get_lons_lats
 
 plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')
-canvas_area = None
+canvas_area = []
 
 
-def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
-             crop_ext=None, wkt=None, param_range=None,
-             cloud_layer=None, suspect_layer=None, water_layer=None,
-             grid=True, shadow_layer=None, aspect_balance=None):
-    # basemap options are srtm_hillshade, srtm_elevation, quadtree_rgb, nobasemap
+def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevation', crop_ext=None,
+             param_range=None, cloud_layer=None, suspect_layer=None, water_layer=None, grid=True, shadow_layer=None,
+             aspect_balance=None):
+    """ basemap options are srtm_hillshade, srtm_elevation, quadtree_rgb, nobasemap """
 
-    # Authenticate for NASA's earth data api
-    authenticate("nouchi", "EOdatap4s")
+    product = ProductIO.readProduct(input_file)
 
     # mpl.rc('font', family='Times New Roman')
     # mpl.rc('text', usetex=True)
 
     all_bns = product.getBandNames()
     if layer_str not in all_bns:
-        print('{} not in product bands. Edit the parameter file.\nExiting.'.format(layer_str))
-        sys.exit()
+        raise RuntimeError('{} not in product bands. Edit the parameter file.'.format(layer_str))
 
     legend_extension = 1
     bar_orientation = 'vertical'
@@ -393,17 +388,19 @@ def plot_map(product, output_file, layer_str, basemap='srtm_elevation',
     plt.savefig(output_file, bbox_inches='tight', dpi=300)
     plt.close()
     sub_product.closeIO()
+    product.closeIO()
 
 
-def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, grid=True, max_val=0.10):
+def plot_pic(input_file, output_file, wkt=None, crop_ext=None, rgb_layers=None, grid=True, max_val=0.10):
     linewidth = 0.8
     gridlabel_size = 6
+
+    product = ProductIO.readProduct(input_file)
 
     all_bns = product.getBandNames()
     for rgbls in rgb_layers:
         if rgbls not in all_bns:
-            print('{} not in product bands. Edit the parameter file.\nExiting.'.format(rgbls))
-            sys.exit()
+            raise RuntimeError('{} not in product bands. Edit the parameter file.'.format(rgbls))
 
     # Create a new product With RGB bands only
     width = product.getSceneRasterWidth()
@@ -530,6 +527,7 @@ def plot_pic(product, output_file, wkt=None, crop_ext=None, rgb_layers=None, gri
     print('Saving image {}'.format(os.path.basename(output_file)))
     plt.savefig(output_file, box_inches='tight', dpi=300)
     plt.close()
+    product.closeIO()
 
 
 def elevate(located_elevations):

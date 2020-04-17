@@ -26,13 +26,14 @@ def do_hindcast(env, params, wkt, l1_path, l2_path, max_parallel_downloads=1, ma
     # decide which API to use
     if env['DIAS']['API'] == "COAH":
         from diasapis.coah_api import get_download_requests, do_download
+        auth = HTTPBasicAuth(env['COAH']['username'], env['COAH']['password'])
     elif env['DIAS']['API'] == "HDA":
         from diasapis.hda_api import get_download_requests, do_download
+        auth = HTTPBasicAuth(env['HDA']['username'], env['HDA']['password'])
     else:
         raise RuntimeError("Unknown API: {} (possible options are 'HDA' or 'COAH').".format(env['General']['API']))
 
     # find products which match the criterias from params
-    auth = HTTPBasicAuth(env['COAH']['username'], env['COAH']['password'])
     start, end = params['General']['start'], params['General']['end']
     sensor, resolution = params['General']['sensor'], int(params['General']['resolution'])
     download_requests, product_names = get_download_requests(auth, wkt, start, end, sensor, resolution)
