@@ -40,17 +40,13 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     # mpl.rc('font', family='Times New Roman')
     # mpl.rc('text', usetex=True)
 
-    all_bns = product.getBandNames()
-    if layer_str not in all_bns:
+    if layer_str not in product.getBandNames():
         raise RuntimeError('{} not in product bands. Edit the parameter file.'.format(layer_str))
 
     legend_extension = 1
     bar_orientation = 'vertical'
     linewidth = 0.8
     gridlabel_size = 6
-    if layer_str not in product.getBandNames():
-        print('\nBand {} not in the product, skipping.\n')
-        return
 
     # Create a new product With the band to plot only
     width = product.getSceneRasterWidth()
@@ -400,17 +396,14 @@ def plot_pic(input_file, output_file, wkt=None, crop_ext=None, rgb_layers=None, 
     all_bns = product.getBandNames()
     for rgbls in rgb_layers:
         if rgbls not in all_bns:
-            raise RuntimeError('{} not in product bands. Edit the parameter file.'.format(rgbls))
+            raise RuntimeError("{} not in product bands. Edit the parameter file.".format(rgbls))
 
     # Create a new product With RGB bands only
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
 
-    # red_band = product.getBand(rgb_layers[0])
-    # red_dt = red_band.getDataType()
-
-    # ToDo: somehow rad2refl writes a float band but names it int16, therefore reading the data_type fails
-    red_dt = 30
+    red_band = product.getBand(rgb_layers[0])
+    red_dt = red_band.getDataType()
 
     if red_dt <= 12:
         data_type = np.int32
@@ -425,7 +418,7 @@ def plot_pic(input_file, output_file, wkt=None, crop_ext=None, rgb_layers=None, 
         data_type = np.float64
         # d_type = 'float64'
     else:
-        raise ValueError('Cannot handle band of data_sh type \'' + str(red_dt) + '\'')
+        raise ValueError("Cannot handle band of data_sh type '{}'".format(str(red_dt)))
 
     red_band = product.getBand(rgb_layers[0])
     green_band = product.getBand(rgb_layers[1])
