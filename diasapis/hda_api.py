@@ -35,7 +35,7 @@ dataorder_status_address = api_endpoint + "/databroker/dataorder/status/{}"
 dataorder_download_address = api_endpoint + "/databroker/dataorder/download/{}"
 
 
-def get_download_requests(auth, wkt, start, end, sensor, resolution):
+def get_download_requests(auth, start, end, sensor, resolution, wkt):
     lons, lats = get_lons_lats(wkt)
     datarequest = {
         'datasetId': get_dataset_id(sensor, resolution),

@@ -17,7 +17,7 @@ search_address = api_endpoint + "/search?q={}&start={}&rows={}"
 download_address = api_endpoint + "/odata/v1/Products('{}')/$value"
 
 
-def get_download_requests(auth, wkt, start, end, sensor, resolution):
+def get_download_requests(auth, start, end, sensor, resolution, wkt):
     if sensor == "OLCI":
         query = "instrumentshortname:{}+AND+producttype:{}+AND+beginPosition:[{}+TO+{}]+AND+footprint:\"Contains({})\""
     else:
@@ -33,9 +33,9 @@ def do_download(auth, download_request, product_path):
 
 
 def get_dataset_id(sensor, resolution):
-    if sensor == 'OLCI' and resolution < 1000:
+    if sensor == 'OLCI' and int(resolution) < 1000:
         return 'OL_1_EFR___'
-    elif sensor == 'OLCI' and resolution >= 1000:
+    elif sensor == 'OLCI' and int(resolution) >= 1000:
         return 'OL_1_ERR___'
     elif sensor == 'MSI':
         return 'S2MSI1C'

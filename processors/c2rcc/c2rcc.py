@@ -21,12 +21,14 @@ QL_FILENAME = "L2C2RCC_{}_{}.png"
 GPT_XML_FILENAME = "c2rcc_{}.xml"
 
 
-def process(env, params, wkt, l1_product_path, source_file, out_path):
+def process(env, params, l1_product_path, source_file, out_path):
     """ This processor applies c2rcc to the source product and stores the result. """
 
     print("Applying C2RCC...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1_product_path)
-    sensor, resolution = params['General']['sensor'], params['General']['resolution']
+    sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
+    altnn, validexpression = params[PARAMS_SECTION]['altnn'], params[PARAMS_SECTION]['validexpression']
+    vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
@@ -36,7 +38,7 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
 
     gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME.format(sensor.lower()))
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, params)
+        rewrite_xml(gpt_xml_file, sensor, altnn, validexpression, vicar_properties_filename)
 
     args = [gpt, gpt_xml_file, "-SsourceFile={}".format(source_file), "-PoutputFile={}".format(output_file)]
     if subprocess.call(args):
@@ -47,16 +49,13 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
     return output_file
 
 
-def rewrite_xml(gpt_xml_file, params):
-    sensor = params['General']['sensor']
+def rewrite_xml(gpt_xml_file, sensor, altnn, validexpression, vicar_properties_filename):
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor.lower())), "r") as f:
         xml = f.read()
 
-    altnn_path = params[PARAMS_SECTION]['altnn']
-    if altnn_path:
-        altnn_path = os.path.join(os.path.dirname(__file__), "altnn", altnn_path)
+    altnn_path = os.path.join(os.path.dirname(__file__), "altnn", altnn) if altnn else ""
 
-    xml = xml.replace("${validPixelExpression}", params[PARAMS_SECTION]['validexpression'])
+    xml = xml.replace("${validPixelExpression}", validexpression)
     xml = xml.replace("${salinity}", str(0.05))
     xml = xml.replace("${temperature}", str(15.0))
     xml = xml.replace("${ozone}", str(330.0))  # str(product_parameters.get('ozone'))
@@ -70,15 +69,14 @@ def rewrite_xml(gpt_xml_file, params):
     xml = xml.replace("${thresholdCloudTDown865}", str(0.955))
     xml = xml.replace("${alternativeNNPath}", altnn_path)
 
-    vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
     if vicar_properties_filename:
         vicar_properties_file = os.path.join(os.path.dirname(__file__), "vicarious", vicar_properties_filename)
         vicar_params = load_properties(vicar_properties_file)
         for key in vicar_params.keys():
             xml = xml.replace("${" + key + "}", vicar_params[key])
 
-    with open(gpt_xml_file, "wb") as f:
-        f.write(xml.encode())
+    with open(gpt_xml_file, "w") as f:
+        f.write(xml)
 
 
 def create_quicklooks(params, product_file, product_name, out_path, wkt):

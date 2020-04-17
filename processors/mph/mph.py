@@ -20,12 +20,13 @@ QL_FILENAME = "L2MPH_L1P_reproj_{}_{}.png"
 GPT_XML_FILENAME = "mph.xml"
 
 
-def process(env, params, wkt, l1_product_path, source_file, out_path):
+def process(env, params, l1_product_path, source_file, out_path):
     """ This processor applies mph to the source product and stores the result. """
 
     print("Applying MPH...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1_product_path)
-    sensor, resolution = params['General']['sensor'], params['General']['resolution']
+    sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
+    validexpression = params[PARAMS_SECTION]['validexpression']
 
     if sensor != "OLCI":
         return
@@ -38,7 +39,7 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
 
     gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, params[PARAMS_SECTION]['validexpression'])
+        rewrite_xml(gpt_xml_file, validexpression)
 
     args = [gpt, gpt_xml_file, "-SsourceFile={}".format(source_file), "-PoutputFile={}".format(output_file)]
     if subprocess.call(args):

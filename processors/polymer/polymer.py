@@ -27,12 +27,12 @@ QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
 GPT_XML_FILENAME = "polymer.xml"
 
 
-def process(env, params, wkt, l1_product_path, source_file, out_path):
+def process(env, params, l1_product_path, source_file, out_path):
     """ This processor applies polymer to the source product and stores the result. """
 
     print("Applying POLYMER...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1_product_path)
-    sensor, resolution = params['General']['sensor'], params['General']['resolution']
+    sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     gsw_path, ancillary_path = env['GSW']['root_path'], env['CDS']['root_path']
     os.makedirs(gsw_path, exist_ok=True)
     os.makedirs(ancillary_path, exist_ok=True)
@@ -62,7 +62,7 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
 
     gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, wkt, resolution)
+        rewrite_xml(gpt_xml_file, resolution, wkt)
 
     args = [gpt, gpt_xml_file,
             "-SsourceFile1={}".format(source_file),
@@ -79,7 +79,7 @@ def process(env, params, wkt, l1_product_path, source_file, out_path):
     return output_file
 
 
-def rewrite_xml(gpt_xml_file, wkt, resolution):
+def rewrite_xml(gpt_xml_file, resolution, wkt):
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME), "r") as f:
         xml = f.read()
 

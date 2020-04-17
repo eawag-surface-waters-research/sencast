@@ -12,12 +12,12 @@ from netCDF4 import Dataset
 PARAMS_SECTION = "DATALAKES"
 
 
-def apply(env, region, input_file, params):
+def apply(env, params, input_file):
     if not env.has_section("Datalakes"):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
 
     date = re.findall(r"\d{8}T\d{6}", os.path.basename(input_file))[0]
-    out_path = os.path.join(env['Datalakes']['root_path'], region, date)
+    out_path = os.path.join(env['Datalakes']['root_path'], params['General']['wkt_name'], date)
     os.makedirs(out_path, exist_ok=True)
 
     chl_file = os.path.join(out_path, "chl.json")
