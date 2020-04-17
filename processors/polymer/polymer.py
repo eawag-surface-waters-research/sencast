@@ -3,12 +3,14 @@
 
 import os
 import subprocess
+from math import ceil, floor
 
 from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.gsw import GSW
+from polymer.level1_msi import Level1_MSI
+from polymer.level1_olci import Level1_OLCI
 from polymer.level2 import default_datasets
-from polymer.main import run_atm_corr, Level1, Level2
-from snappy import ProductIO
+from polymer.main import run_atm_corr, Level2
 
 from packages.product_fun import get_corner_pixels_roi, get_reproject_params_from_wkt
 from packages.ql_mapping import plot_map
@@ -48,13 +50,21 @@ def process(env, params, l1_product_path, source_file, out_path):
         granule_path = os.path.join(l1_product_path, "GRANULE")
         msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
         gsw = GSW(directory=gsw_path)
-        l1 = Level1(msi_product_path, landmask=gsw, ancillary=ancillary)
+        UL, UR, LR, LL = get_corner_pixels_roi(msi_product_path, wkt)
+        sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]), max(LL[1], LR[1])
+        # Normalize to correct resolution
+        target_divisor = 60 / (int(resolution))
+        sline, scol = [int(floor(i / target_divisor)) * target_divisor for i in [sline, scol, eline, ecol]]
+        eline, ecol = [int(ceil(i / target_divisor)) * target_divisor for i in [sline, scol, eline, ecol]]
+        l1 = Level1_MSI(msi_product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw,
+                        ancillary=ancillary, resolution=resolution)
         additional_ds = ['sza']
     else:
-        UL, UR, LR, LL = get_corner_pixels_roi(ProductIO.readProduct(l1_product_path), wkt)
+        UL, UR, LR, LL = get_corner_pixels_roi(l1_product_path, wkt)
         sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]), max(LL[1], LR[1])
         gsw = GSW(directory=gsw_path, agg=8)
-        l1 = Level1(l1_product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw, ancillary=ancillary)
+        l1 = Level1_OLCI(l1_product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw,
+                         ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
     poly_tmp_file = "{}.tmp".format(output_file)
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
