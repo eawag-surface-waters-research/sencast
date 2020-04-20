@@ -32,10 +32,12 @@ def init_hindcast(env_file, params_file):
         with open(os.path.join(l2_path, os.path.basename(params_file)), "w") as f:
             params.write(f)
 
-    os.makedirs(env['CDS']['root_path'], exist_ok=True)
-    os.makedirs(env['Earthdata']['root_path'], exist_ok=True)
-    os.makedirs(env['GSW']['root_path'], exist_ok=True)
-    os.makedirs(env['Datalakes']['root_path'], exist_ok=True)
+    if env.has_section("CDS"):
+        os.makedirs(env['CDS']['root_path'], exist_ok=True)
+    if env.has_section("Earthdata"):
+        os.makedirs(env['Earthdata']['root_path'], exist_ok=True)
+    if env.has_section("GSW"):
+        os.makedirs(env['GSW']['root_path'], exist_ok=True)
 
     l1_path = env['DIAS']['l1_path'].format(params['General']['sensor'])
     return env, params, l1_path, l2_path
