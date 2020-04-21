@@ -1,18 +1,48 @@
 <graph id="idepix">
 	<version>1.0</version>
+	<node id="resampleNode">
+		<operator>resample</operator>
+		<sources>
+			<sourceProduct>${sourceFile}</sourceProduct>
+		</sources>
+		<parameters>
+			<targetResolution>${resolution}</targetResolution>
+			<upsampling>Nearest</upsampling>
+			<downsampling>Median</downsampling>
+			<flagDownsampling>First</flagDownsampling>
+			<resampleOnPyramidLevels>false</resampleOnPyramidLevels>
+		</parameters>
+	</node>
 	<node id="subsetNode">
 		<operator>Subset</operator>
 		<sources>
-			<source>${sourceFile}</source>
+			<source>resampleNode</source>
 		</sources>
 		<parameters>
 			<geoRegion>${wkt}</geoRegion>
 		</parameters>
 	</node>
+	<node id="idepixNode">
+		<operator>idepix.s2</operator>
+		<sources>
+			<sourceProduct>subsetNode</sourceProduct>
+		</sources>
+		<parameters>
+			<computeCloudBuffer>true</computeCloudBuffer>
+			<cloudBufferWidth>5</cloudBufferWidth>
+		</parameters>
+	</node>
+	<node id="mergeNode">
+		<operator>Merge</operator>
+		<sources>
+			<masterProduct>subsetNode</masterProduct>
+			<idepixProduct>idepixNode</idepixProduct>
+		</sources>
+	</node>
 	<node id="reprojectNode">
 		<operator>Reproject</operator>
 		<sources>
-			<source>subsetNode</source>
+			<source>mergeNode</source>
 		</sources>
 		<parameters>
 			<crs>EPSG:4326</crs>
@@ -28,27 +58,10 @@
 			<noDataValue>NaN</noDataValue>
 		</parameters>
 	</node>
-	<node id="idepixNode">
-		<operator>idepix.s2</operator>
-		<sources>
-			<sourceProduct>reprojectNode</sourceProduct>
-		</sources>
-		<parameters>
-			<computeCloudBuffer>true</computeCloudBuffer>
-			<cloudBufferWidth>5</cloudBufferWidth>
-		</parameters>
-	</node>
-	<node id="mergeNode">
-		<operator>Merge</operator>
-		<sources>
-			<masterProduct>reprojectNode</masterProduct>
-			<idepixProduct>idepixNode</idepixProduct>
-		</sources>
-	</node>
 	<node id="writeNode">
 		<operator>Write</operator>
 		<sources>
-			<source>mergeNode</source>
+			<source>reprojectNode</source>
 		</sources>
 		<parameters>
 			<file>${outputFile}</file>
