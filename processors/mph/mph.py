@@ -37,7 +37,7 @@ def process(env, params, l1_product_path, source_file, out_path):
         return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
+    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME)
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, validexpression)
 
@@ -60,8 +60,9 @@ def rewrite_xml(gpt_xml_file, validexpression):
     xml = xml.replace("${exportMph}", "true")
     xml = xml.replace("${applyLowPassFilter}", "false")
 
-    with open(gpt_xml_file, "wb") as f:
-        f.write(xml.encode())
+    os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
+    with open(gpt_xml_file, "w") as f:
+        f.write(xml)
 
 
 def create_quicklooks(params, product_file, product_name, out_path, wkt):

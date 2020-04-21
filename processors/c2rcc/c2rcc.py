@@ -33,7 +33,7 @@ def process(env, params, l1_product_path, source_file, out_path):
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     altnn, validexpression = params[PARAMS_SECTION]['altnn'], params[PARAMS_SECTION]['validexpression']
     vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
-    date_str = re.findall(r"\d{8}T\d{6}", product_name)[0]
+    date_str = re.findall(r"\d{8}T\d{6}", product_name)[-1]
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
@@ -41,7 +41,7 @@ def process(env, params, l1_product_path, source_file, out_path):
         return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME.format(sensor.lower(), date_str))
+    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt)
 
@@ -55,7 +55,7 @@ def process(env, params, l1_product_path, source_file, out_path):
 
 
 def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt):
-    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor.lower(), "")), "r") as f:
+    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor, "")), "r") as f:
         xml = f.read()
 
     altnn_path = os.path.join(os.path.dirname(__file__), "altnn", altnn) if altnn else ""
@@ -87,6 +87,7 @@ def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_pr
         for key in vicar_params.keys():
             xml = xml.replace("${" + key + "}", vicar_params[key])
 
+    os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
     with open(gpt_xml_file, "w") as f:
         f.write(xml)
 

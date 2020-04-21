@@ -35,7 +35,7 @@ def process(env, params, l1_product_path, source_file, out_path):
         return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME.format(sensor.lower()))
+    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor))
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, sensor, resolution, wkt)
 
@@ -54,7 +54,7 @@ def process(env, params, l1_product_path, source_file, out_path):
 
 
 def rewrite_xml(gpt_xml_file, sensor, resolution, wkt):
-    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor.lower())), "r") as f:
+    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor)), "r") as f:
         xml = f.read()
 
     reproject_params = get_reproject_params_from_wkt(wkt, resolution)
@@ -67,8 +67,9 @@ def rewrite_xml(gpt_xml_file, sensor, resolution, wkt):
     xml = xml.replace("${width}", reproject_params['width'])
     xml = xml.replace("${height}", reproject_params['height'])
 
-    with open(gpt_xml_file, "wb") as f:
-        f.write(xml.encode())
+    os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
+    with open(gpt_xml_file, "w") as f:
+        f.write(xml)
 
 
 def create_quicklooks(product_file, product_name, out_path, wkt, rgb_bands, fc_bands):

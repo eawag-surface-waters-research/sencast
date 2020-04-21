@@ -49,28 +49,29 @@ def process(env, params, l1_product_path, source_file, out_path):
     if sensor == "MSI":
         granule_path = os.path.join(l1_product_path, "GRANULE")
         msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
-        gsw = GSW(directory=gsw_path)
         UL, UR, LR, LL = get_corner_pixels_roi(msi_product_path, wkt)
         sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]), max(LL[1], LR[1])
         # Normalize to correct resolution
         target_divisor = 60 / (int(resolution))
-        sline, scol = [int(floor(i / target_divisor)) * target_divisor for i in [sline, scol, eline, ecol]]
-        eline, ecol = [int(ceil(i / target_divisor)) * target_divisor for i in [sline, scol, eline, ecol]]
-        l1 = Level1_MSI(msi_product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw,
+        sline, scol = [int(floor(i / target_divisor)) * target_divisor for i in [sline, scol]]
+        eline, ecol = [int(ceil(i / target_divisor)) * target_divisor for i in [eline, ecol]]
+        gsw = GSW(directory=gsw_path)
+        l1 = Level1_MSI(msi_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw,
                         ancillary=ancillary, resolution=resolution)
         additional_ds = ['sza']
     else:
         UL, UR, LR, LL = get_corner_pixels_roi(l1_product_path, wkt)
         sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]), max(LL[1], LR[1])
         gsw = GSW(directory=gsw_path, agg=8)
-        l1 = Level1_OLCI(l1_product_path, sline=sline, scol=scol, eline=eline, ecol=ecol, landmask=gsw,
+        l1 = Level1_OLCI(l1_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw,
                          ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
-    poly_tmp_file = "{}.tmp".format(output_file)
+    poly_tmp_file = os.path.join(out_path, OUT_DIR, "_reproducibility",
+                                 "{}.tmp".format(OUT_FILENAME.format(product_name)))
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
     run_atm_corr(l1, l2)
 
-    gpt_xml_file = os.path.join(out_path, GPT_XML_FILENAME)
+    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME)
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, resolution, wkt)
 
@@ -81,8 +82,6 @@ def process(env, params, l1_product_path, source_file, out_path):
 
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
-
-    os.remove(poly_tmp_file)
 
     create_quicklooks(params, output_file, product_name, out_path, wkt)
 
@@ -102,8 +101,9 @@ def rewrite_xml(gpt_xml_file, resolution, wkt):
     xml = xml.replace("${width}", reproject_params['width'])
     xml = xml.replace("${height}", reproject_params['height'])
 
-    with open(gpt_xml_file, "wb") as f:
-        f.write(xml.encode())
+    os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
+    with open(gpt_xml_file, "w") as f:
+        f.write(xml)
 
 
 def create_quicklooks(params, product_file, product_name, out_path, wkt):

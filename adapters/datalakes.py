@@ -22,7 +22,7 @@ def apply(env, params, input_file):
     if not env.has_section("Datalakes"):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
 
-    date = re.findall(r"\d{8}T\d{6}", os.path.basename(input_file))[0]
+    date = re.findall(r"\d{8}T\d{6}", os.path.basename(input_file))[-1]
     out_path = os.path.join(env['Datalakes']['root_path'], params['General']['wkt_name'], date)
     os.makedirs(out_path, exist_ok=True)
 
