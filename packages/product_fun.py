@@ -11,8 +11,7 @@ from snappy import GeoPos, ProductIO
 def get_corner_pixels_roi(product_path, wkt):
     product = ProductIO.readProduct(product_path)
 
-    h = product.getSceneRasterHeight()
-    w = product.getSceneRasterWidth()
+    h, w = product.getSceneRasterHeight(), product.getSceneRasterWidth()
 
     lons, lats = get_lons_lats(wkt)
     ul, ur, ll, lr = [min(lons), max(lats)], [max(lons), max(lats)], [min(lons), min(lats)], [max(lons), min(lats)]
@@ -36,43 +35,31 @@ def get_corner_pixels_roi(product_path, wkt):
     if not ul_bool and not ur_bool:
         # and too west (only LR covered)
         if not ll_bool:
-            UL = [1, 1]
-            UR = [1, LR[1]]
-            LL = [LR[0], 1]
+            UL, UR, LL = [1, 1], [1, LR[1]], [LR[0], 1]
         # and too east (only LL covered)
         elif not lr_bool:
-            UL = [1, LL[1]]
-            UR = [1, w]
-            LR = [LL[0], w]
+            UL, UR, LR = [1, LL[1]], [1, w], [LL[0], w]
         else:
-            UL = [1, LL[1]]
-            UR = [1, LR[1]]
+            UL, UR = [1, LL[1]], [1, LR[1]]
 
     # perimeter partly too south
     elif not ll_bool and not lr_bool:
         # and too west (only UR covered)
         if not ul_bool:
-            UL = [UR[0], 1]
-            LR = [h, UR[1]]
-            LL = [h, 1]
+            UL, LR, LL = [UR[0], 1], [h, UR[1]], [h, 1]
         # and too east (only UL covered)
         elif not ur_bool:
-            LL = [h, UL[1]]
-            UR = [UL[0], w]
-            LR = [h, w]
+            LL, UR, LR = [h, UL[1]], [UL[0], w], [h, w]
         else:
-            LL = [h, UL[1]]
-            LR = [h, UR[1]]
+            LL, LR = [h, UL[1]], [h, UR[1]]
 
     # perimeter partly too east
     elif not ur_bool and not lr_bool:
-        UR = [UL[0], w]
-        LR = [LL[0], w]
+        UR, LR = [UL[0], w], [LL[0], w]
 
     # perimeter partly too west
     elif not ul_bool and not ll_bool:
-        UL = [UR[0], 1]
-        LL = [LR[0], 1]
+        UL, LL = [UR[0], 1], [LR[0], 1]
 
     # single missing corners
     elif not ul_bool:
@@ -86,6 +73,52 @@ def get_corner_pixels_roi(product_path, wkt):
 
     product.closeIO()
     return UL, UR, LR, LL
+
+
+def minimal_subset_of_products(product_paths, wkt):
+    # ensure that all products are overlapping
+    if len(product_paths) not in [1, 2, 4]:
+        print("Warning: Only sets of 1, 2, or 4 producst can be compared!")
+        return product_paths
+    # ToDo: ensure that all products are overlapping
+
+    # check which corners are covered by which products
+    ul_key, ur_key, ll_key, lr_key = 0, 1, 2, 3
+    product_corner_coverages = {}
+    for product_path in product_paths:
+        product = ProductIO.readProduct(product_path)
+        lons, lats = get_lons_lats(wkt)
+        ul, ur, ll, lr = [min(lons), max(lats)], [max(lons), max(lats)], [min(lons), min(lats)], [max(lons), min(lats)]
+        ul_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(ul[1], ul[0]), None)
+        ur_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(ur[1], ur[0]), None)
+        ll_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(ll[1], ll[0]), None)
+        lr_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(lr[1], lr[0]), None)
+        product_corner_coverages[product_path] = {}
+        product_corner_coverages[product_path][ul_key] = ul_pos.x > 0 and ul_pos.y > 0
+        product_corner_coverages[product_path][ur_key] = ur_pos.x > 0 and ur_pos.y > 0
+        product_corner_coverages[product_path][ll_key] = ll_pos.x > 0 and ll_pos.y > 0
+        product_corner_coverages[product_path][lr_key] = lr_pos.x > 0 and lr_pos.y > 0
+        product.closeIO()
+
+    # create superset of product_paths
+    subsets = [[]]
+    for product_path in product_paths:
+        subsets = subsets + [subset + [product_path] for subset in subsets]
+
+    # for all subsets of product_paths (beginning from smallest) try if they cover all corners
+    subsets.sort(key=len)
+    for subset in subsets:
+        combined_coverage = [
+            any([product_corner_coverages[product_path][ul_key] for product_path in subset]),
+            any([product_corner_coverages[product_path][ur_key] for product_path in subset]),
+            any([product_corner_coverages[product_path][ll_key] for product_path in subset]),
+            any([product_corner_coverages[product_path][lr_key] for product_path in subset])
+        ]
+        if all(combined_coverage):
+            return subset, True
+
+    print("Warning: Could not find a subset of the delivered products, which fully covers the whole perimeter.")
+    return product_paths, False
 
 
 def get_coordinates(wkt):
