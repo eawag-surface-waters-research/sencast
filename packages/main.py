@@ -48,7 +48,7 @@ def do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads=1, max_par
     print("{} products are already available.".format(len(l1_product_paths) - actual_downloads))
     print("{} products must be downloaded first.".format(actual_downloads))
 
-    # Authenticate for earth data api
+    # authenticate for earth data api
     authenticate(env['Earthdata']['username'], env['Earthdata']['password'])
 
     # do hindcast for every product
