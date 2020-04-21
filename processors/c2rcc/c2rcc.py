@@ -33,7 +33,7 @@ def process(env, params, l1_product_path, source_file, out_path):
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     altnn, validexpression = params[PARAMS_SECTION]['altnn'], params[PARAMS_SECTION]['validexpression']
     vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
-    date_str = re.findall(r"\d{8}T\d{6}", product_name)[-1]
+    date_str = re.findall(r"\d{8}T\d{6}", product_name)[0]
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
