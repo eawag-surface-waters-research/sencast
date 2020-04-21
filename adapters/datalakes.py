@@ -5,15 +5,14 @@ import os
 import re
 import requests
 
-from json import dump, dumps
+from json import dump
 from netCDF4 import Dataset
 
 
-# ToDo: define API_URL and POST_URL
 # the url of the datalakes api
-API_URL = ""
+API_URL = "https://api.datalakesapi.ch/externaldata"
 # the url to post new data notification to
-POST_URL = API_URL + "/"
+NOTIFY_URL = API_URL + "/sync/remotesensing"
 # key of the params section for this adapter
 PARAMS_SECTION = "DATALAKES"
 
@@ -41,8 +40,7 @@ def apply(env, params, input_file):
     with open(os.path.join(out_path, os.path.basename(input_file)), "wb") as f:
         f.write(nc_bytes)
 
-    # ToDo: uncomment
-    # post_new_data_notification(env['Datalakes']['api_key'], params['General']['wkt_name'], date)
+    notify_datalakes(env['Datalakes']['api_key'])
 
 
 def nc_to_json(input_file, output_file, variable_name, value_read_expression):
@@ -64,13 +62,7 @@ def nc_to_json(input_file, output_file, variable_name, value_read_expression):
         dump({'lonres': lonres, 'latres': latres, 'lon': lons, 'lat': lats, 'v': values}, f)
 
 
-def post_new_data_notification(api_key, wkt_name, date):
-    # ToDo: add required data
-    data_dict = {
-        'region': wkt_name,
-        'date': date
-    }
-    data_json = dumps(data_dict)
-    response = requests.post(POST_URL, json=data_json, auth=api_key)
+def notify_datalakes(api_key):
+    response = requests.get(NOTIFY_URL, auth=api_key)
     if response.status_code != requests.codes.OK:
-        print("Unexpected response from Datalakes: {}".format(response.text))
+        print("Could not notify Datalakes about new data. Unexpected response: {}".format(response.text))
