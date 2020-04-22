@@ -43,6 +43,7 @@ def init_hindcast(env_file, params_file):
         os.makedirs(env['GSW']['root_path'], exist_ok=True)
 
     l1_path = env['DIAS']['l1_path'].format(params['General']['sensor'])
+    os.makedirs(l1_path, exist_ok=True)
     return env, params, l1_path, l2_path
 
 
