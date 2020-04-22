@@ -1,22 +1,9 @@
 <graph id="idepix">
 	<version>1.0</version>
-	<node id="resampleNode">
-		<operator>resample</operator>
-		<sources>
-			<sourceProduct>${sourceFile}</sourceProduct>
-		</sources>
-		<parameters>
-			<targetResolution>${resolution}</targetResolution>
-			<upsampling>Nearest</upsampling>
-			<downsampling>Median</downsampling>
-			<flagDownsampling>First</flagDownsampling>
-			<resampleOnPyramidLevels>false</resampleOnPyramidLevels>
-		</parameters>
-	</node>
 	<node id="subsetNode">
 		<operator>Subset</operator>
 		<sources>
-			<source>resampleNode</source>
+			<source>${sourceFile}</source>
 		</sources>
 		<parameters>
 			<geoRegion>${wkt}</geoRegion>

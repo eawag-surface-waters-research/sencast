@@ -10,19 +10,21 @@ from threading import Semaphore, Thread
 
 from packages.auxil import init_hindcast
 from packages.earthdata_api import authenticate
+from processors.idepix import idepix
 
 # download apis, processors, and adapters are imported dynamically to make hindcast also work on systems,
 # where some of them might not be available
 
 
-def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processing=1):
+def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
     # read env and params file and copy the params file to l2_path for reproducibility
     env, params, l1_path, l2_path = init_hindcast(env_file, params_file)
 
-    do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads, max_parallel_processing)
+    do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads, max_parallel_processors, max_parallel_adapters)
 
 
-def do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads=1, max_parallel_processing=1):
+def do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads=1, max_parallel_processors=1,
+                max_parallel_adapters=1):
     # decide which API to use
     if env['DIAS']['API'] == "COAH":
         from diasapis.coah_api import get_download_requests, do_download
@@ -41,7 +43,11 @@ def do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads=1, max_par
 
     # set up inputs for product hindcast
     l1_product_paths = [os.path.join(l1_path, product_name) for product_name in product_names]
-    semaphores = {'download': Semaphore(max_parallel_downloads), 'processing': Semaphore(max_parallel_processing)}
+    semaphores = {
+        'download': Semaphore(max_parallel_downloads),
+        'process': Semaphore(max_parallel_processors),
+        'adapt': Semaphore(max_parallel_adapters)
+    }
 
     # print information about available products
     actual_downloads = len([0 for l1_product_path in l1_product_paths if not os.path.exists(l1_product_path)])
@@ -66,12 +72,12 @@ def do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads=1, max_par
 
 
 def hindcast_product(env, params, download_method, auth, download_request, l1_product_path, l2_path, semaphores):
-    # download products, which are not yet available
+    # download the product, in case it is not yet available
     if not os.path.exists(l1_product_path):
         with semaphores['download']:
             download_method(auth, download_request, l1_product_path)
 
-    with semaphores['processing']:
+    with semaphores['process']:
         # FOR S3 MAKE SURE THE NON-DEFAULT S3TBX SETTING IS SELECTED IN THE SNAP PREFERENCES!
         if "OLCI" == params['General']['sensor']:
             product = ProductIO.readProduct(l1_product_path)
@@ -79,26 +85,23 @@ def hindcast_product(env, params, download_method, auth, download_request, l1_pr
                 raise RuntimeError("Pixelwise geocoding is not activated for S3TBX, please check the settings in SNAP!")
             product.closeIO()
 
+        # preprocess the products
+        l1p_product_path = idepix.process(env, params, l1_product_path, l1_product_path, l2_path)
+
         # process the products
-        if "IDEPIX" in params['General']['preprocessor'].split(","):
-            from processors.idepix import idepix
-            l1p = idepix.process(env, params, l1_product_path, l1_product_path, l2_path)
+        l2_product_paths = {}
         if "C2RCC" in params['General']['processors'].split(","):
             from processors.c2rcc import c2rcc
-            l2c2rcc = c2rcc.process(env, params, l1_product_path, l1p, l2_path)
+            l2_product_paths['C2RCC'] = c2rcc.process(env, params, l1_product_path, l1p_product_path, l2_path)
         if "POLYMER" in params['General']['processors'].split(","):
             from processors.polymer import polymer
-            l2poly = polymer.process(env, params, l1_product_path, l1p, l2_path)
+            l2_product_paths['POLYMER'] = polymer.process(env, params, l1_product_path, l1p_product_path, l2_path)
         if "MPH" in params['General']['processors'].split(","):
             from processors.mph import mph
-            l2mph = mph.process(env, params, l1_product_path, l1p, l2_path)
+            l2_product_paths['MPH'] = mph.process(env, params, l1_product_path, l1p_product_path, l2_path)
 
-    # apply adapters
-    if "DATALAKES" in params['General']['adapters'].split(","):
-        from adapters import datalakes
-        if "C2RCC" == params['DATALAKES']['input_processor']:
-            datalakes.apply(env, params, l2c2rcc)
-        if "POLYMER" == params['DATALAKES']['input_processor']:
-            datalakes.apply(env, params, l2poly)
-        if "MPH" == params['DATALAKES']['input_processor']:
-            datalakes.apply(env, params, l2mph)
+    with semaphores['adapt']:
+        # apply adapters
+        if "DATALAKES" in params['General']['adapters'].split(","):
+            from adapters.datalakes import datalakes
+            datalakes.apply(env, params, l2_product_paths[params['DATALAKES']['input_processor']])
