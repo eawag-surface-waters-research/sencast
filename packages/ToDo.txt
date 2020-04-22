@@ -1,3 +1,2 @@
 - Mosaicking for S2
 - OZA, VZA, SZA, SAA missing in Polymer products!
-- the collocation step for polymer is quite slow
