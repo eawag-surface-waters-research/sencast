@@ -61,9 +61,9 @@ def do_download(auth, download_request, product_path):
 
 
 def get_dataset_id(sensor, resolution):
-    if sensor == "OLCI" and resolution < 1000:
+    if sensor == "OLCI" and int(resolution) < 1000:
         return "EO:EUM:DAT:SENTINEL-3:OL_1_EFR___"
-    elif sensor == "OLCI" and resolution >= 1000:
+    elif sensor == "OLCI" and int(resolution) >= 1000:
         return "EO:EUM:DAT:SENTINEL-3:OL_1_ERR___"
     else:
         raise RuntimeError("HDA API is not yet implemented for sensor: {}".format(sensor))
@@ -86,7 +86,7 @@ def accept_tc_if_required(access_token):
     headers = {'authorization': access_token}
     response = requests.get(accept_tc_address, headers=headers)
     isTandCAccepted = json.loads(response.text)['accepted']
-    if isTandCAccepted is 'False':
+    if not isTandCAccepted:
         print("Accepting Terms and Conditions of Copernicus_General_License: {}".format(accept_tc_address))
         response = requests.put(accept_tc_address, headers=headers)
         if response.status_code == codes.OK:
