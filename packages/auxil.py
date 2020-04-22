@@ -7,6 +7,9 @@ import os
 import socket
 
 
+project_path = os.path.dirname(os.path.dirname(__file__))
+
+
 def init_hindcast(env_file, params_file):
     # load environment and params from file
     env, env_file = load_environment(env_file)
@@ -23,12 +26,12 @@ def init_hindcast(env_file, params_file):
         print("Output folder for this run already exists. Reading params from there to ensure comparable results.")
         params, params_file = load_params(os.path.join(l2_path, os.path.basename(params_file)))
         if not params['General']['wkt']:
-            params['General']['wkt'] = load_wkt(wkt_name, env['General']['wkt_path'])
+            params['General']['wkt'], _ = load_wkt("{}.wkt".format(wkt_name), env['General']['wkt_path'])
     else:
         # copy params file to new output folder
         os.makedirs(l2_path, exist_ok=True)
         if not params['General']['wkt']:
-            params['General']['wkt'] = load_wkt(wkt_name, env['General']['wkt_path'])
+            params['General']['wkt'], _ = load_wkt("{}.wkt".format(wkt_name), env['General']['wkt_path'])
         with open(os.path.join(l2_path, os.path.basename(params_file)), "w") as f:
             params.write(f)
 
@@ -43,12 +46,13 @@ def init_hindcast(env_file, params_file):
     return env, params, l1_path, l2_path
 
 
-def load_environment(env_file=None, env_path="environments"):
+def load_environment(env_file=None, env_path=os.path.join(project_path, "environments")):
     env = configparser.ConfigParser()
 
     # Try to use provided env file
-    if env_file and not os.path.isabs(env_file):
-        env_file = os.path.join(env_path, env_file)
+    if env_file:
+        if not os.path.isabs(env_file) and env_path:
+            env_file = os.path.join(env_path, env_file)
         if not os.path.isfile(env_file):
             raise RuntimeError("The evironment file could not be found: {}".format(env_file))
         env.read(env_file)
@@ -70,8 +74,8 @@ def load_environment(env_file=None, env_path="environments"):
                        host_env_file))
 
 
-def load_params(params_file, params_path=None):
-    if params_path and not os.path.isabs(params_file):
+def load_params(params_file, params_path=os.path.join(project_path, "parameters")):
+    if not os.path.isabs(params_file) and params_path:
         params_file = os.path.join(params_path, params_file)
     if not os.path.isfile(params_file):
         raise RuntimeError("The parameter file could not be found: {}".format(params_file))
@@ -80,12 +84,13 @@ def load_params(params_file, params_path=None):
     return params, params_file
 
 
-def load_wkt(wkt_name, wkt_path):
-    wkt_file = os.path.join(wkt_path, "{}.wkt".format(wkt_name))
+def load_wkt(wkt_file, wkt_path=os.path.join(project_path, "wkt")):
+    if not os.path.isabs(wkt_file) and wkt_path:
+        wkt_file = os.path.join(wkt_path, wkt_file)
     if not os.path.isfile(wkt_file):
         raise RuntimeError("The wkt file could not be found: {}".format(wkt_file))
     with open(wkt_file, "r") as file:
-        return file.read()
+        return file.read(), wkt_file
 
 
 def load_properties(properties_file, separator_char='=', comment_char='#'):
