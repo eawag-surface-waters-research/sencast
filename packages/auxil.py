@@ -57,18 +57,21 @@ def load_environment(env_file=None, env_path=os.path.join(project_path, "environ
         if not os.path.isfile(env_file):
             raise RuntimeError("The evironment file could not be found: {}".format(env_file))
         env.read(env_file)
+        set_gpt_cache_size(env)
         return env, env_file
 
     # Try to use host and user specific env file
     host_user_env_file = os.path.join(env_path, "{}.{}.ini".format(socket.gethostname(), getpass.getuser()))
     if os.path.isfile(host_user_env_file):
         env.read(host_user_env_file)
+        set_gpt_cache_size(env)
         return env, host_user_env_file
 
     # Try to use host specific env file
     host_env_file = os.path.join(env_path, "{}.ini".format(socket.gethostname()))
     if os.path.isfile(host_env_file):
         env.read(host_env_file)
+        set_gpt_cache_size(env)
         return env, host_env_file
 
     raise RuntimeError("Could not load any of the following evironments:\n{}\n{}".format(host_user_env_file,
@@ -92,6 +95,20 @@ def load_wkt(wkt_file, wkt_path=os.path.join(project_path, "wkt")):
         raise RuntimeError("The wkt file could not be found: {}".format(wkt_file))
     with open(wkt_file, "r") as file:
         return file.read(), wkt_file
+
+
+def set_gpt_cache_size(env):
+    if not env['General']['gpt_cache_size']:
+        heap_size = ""
+        with open(os.path.join(os.path.dirname(env['General']['gpt_path']), "gpt.vmoptions"), "rt") as f:
+            for line in f:
+                if line.startswith(r"-Xmx"):
+                    heap_size = line.replace(r"-Xmx", "")
+        if not heap_size:
+            raise RuntimeError("Could not read heap size from GPT vmoptions. Set it in your env file!")
+        cache_size = str(int(round(int(heap_size.replace(r"G", "")) * 0.7, 0,))) + "G"
+        print("Setting GPT cache size to {}".format(cache_size))
+        env['General']['gpt_cache_size'] = cache_size
 
 
 def load_properties(properties_file, separator_char='=', comment_char='#'):
