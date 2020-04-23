@@ -15,30 +15,44 @@ API_URL = "https://api.datalakesapi.ch/externaldata"
 NOTIFY_URL = API_URL + "/sync/remotesensing"
 # key of the params section for this adapter
 PARAMS_SECTION = "DATALAKES"
+# the file name pattern for json output files
+JSON_FILENAME = "{}_{}.json"
 
 
-def apply(env, params, input_file):
+def apply(env, params, l1_product_path, l1p_product_file, l2_product_files):
     if not env.has_section("Datalakes"):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
 
-    date = re.findall(r"\d{8}T\d{6}", os.path.basename(input_file))[0]
+    date = re.findall(r"\d{8}T\d{6}", os.path.basename(l1_product_path))[0]
     out_path = os.path.join(env['Datalakes']['root_path'], params['General']['wkt_name'], date)
     os.makedirs(out_path, exist_ok=True)
 
-    chl_file = os.path.join(out_path, "chl.json")
-    nc_to_json(input_file, chl_file, params[PARAMS_SECTION]['chl_band'], lambda v: round(float(v), 6))
+    for band in params[PARAMS_SECTION]['idepix_bands'].split(","):
+        output_file = os.path.join(out_path, JSON_FILENAME.format("IDEPIX", band))
+        nc_to_json(l1p_product_file, output_file, band, lambda v: round(float(v), 6))
 
-    qf_file = os.path.join(out_path, "quality_flags.json")
-    nc_to_json(input_file, qf_file, "quality_flags", lambda v: int(v))
+    for band in params[PARAMS_SECTION]['c2rcc_bands'].split(","):
+        output_file = os.path.join(out_path, JSON_FILENAME.format("C2RCC", band))
+        nc_to_json(l2_product_files['C2RCC'], output_file, band, lambda v: round(float(v), 6))
 
-    pcf_file = os.path.join(out_path, "pixel_classif_flags.json")
-    nc_to_json(input_file, pcf_file, "pixel_classif_flags", lambda v: int(v))
+    for band in params[PARAMS_SECTION]['polymer_bands'].split(","):
+        output_file = os.path.join(out_path, JSON_FILENAME.format("POLYMER", band))
+        nc_to_json(l2_product_files['POLYMER'], output_file, band, lambda v: round(float(v), 6))
 
-    with open(input_file, "rb") as f:
+    for band in params[PARAMS_SECTION]['mph_bands'].split(","):
+        output_file = os.path.join(out_path, JSON_FILENAME.format("MPH", band))
+        nc_to_json(l2_product_files['MPH'], output_file, band, lambda v: round(float(v), 6))
+
+    with open(l1p_product_file, "rb") as f:
         nc_bytes = f.read()
-
-    with open(os.path.join(out_path, os.path.basename(input_file)), "wb") as f:
+    with open(os.path.join(out_path, os.path.basename(l1p_product_file)), "wb") as f:
         f.write(nc_bytes)
+
+    for l2_product_file in l2_product_files:
+        with open(l2_product_file, "rb") as f:
+            nc_bytes = f.read()
+        with open(os.path.join(out_path, os.path.basename(l2_product_file)), "wb") as f:
+            f.write(nc_bytes)
 
     notify_datalakes(env['Datalakes']['api_key'])
 

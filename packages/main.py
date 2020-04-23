@@ -104,4 +104,4 @@ def hindcast_product(env, params, download_method, auth, download_request, l1_pr
         # apply adapters
         if "DATALAKES" in params['General']['adapters'].split(","):
             from adapters.datalakes import datalakes
-            datalakes.apply(env, params, l2_product_paths[params['DATALAKES']['input_processor']])
+            datalakes.apply(env, params, l1_product_path, l1p_product_path, l2_product_paths)
