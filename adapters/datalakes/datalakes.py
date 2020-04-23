@@ -22,6 +22,7 @@ JSON_FILENAME = "{}_{}.json"
 def apply(env, params, l1_product_path, l1p_product_file, l2_product_files):
     if not env.has_section("Datalakes"):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
+    print("Applying datalakes...")
 
     date = re.findall(r"\d{8}T\d{6}", os.path.basename(l1_product_path))[0]
     out_path = os.path.join(env['Datalakes']['root_path'], params['General']['wkt_name'], date)
@@ -48,7 +49,7 @@ def apply(env, params, l1_product_path, l1p_product_file, l2_product_files):
     with open(os.path.join(out_path, os.path.basename(l1p_product_file)), "wb") as f:
         f.write(nc_bytes)
 
-    for l2_product_file in l2_product_files:
+    for _, l2_product_file in l2_product_files.items():
         with open(l2_product_file, "rb") as f:
             nc_bytes = f.read()
         with open(os.path.join(out_path, os.path.basename(l2_product_file)), "wb") as f:
