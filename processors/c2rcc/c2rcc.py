@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import datetime
 import os
 import re
@@ -93,7 +94,7 @@ def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_pr
 
 
 def create_quicklooks(params, product_file, product_name, out_path, wkt):
-    bands, bandmaxs = params[PARAMS_SECTION]['bands'].split(","), params[PARAMS_SECTION]['bandmaxs'].split(",")
+    bands, bandmaxs = [list(filter(None, params[PARAMS_SECTION][key].split(","))) for key in ['band', 'bandmaxs']]
     print("Creating quicklooks for C2RCC for bands: {}".format(bands))
     for band, bandmax in zip(bands, bandmaxs):
         bandmax = False if int(bandmax) == 0 else range(0, int(bandmax))
