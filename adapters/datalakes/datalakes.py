@@ -27,19 +27,19 @@ def apply(env, params, l1_product_path, l1p_product_file, l2_product_files):
     out_path = os.path.join(env['Datalakes']['root_path'], params['General']['wkt_name'], date)
     os.makedirs(out_path, exist_ok=True)
 
-    for band in params[PARAMS_SECTION]['idepix_bands'].split(","):
+    for band in list(filter(None, params[PARAMS_SECTION]['idepix_bands'].split(","))):
         output_file = os.path.join(out_path, JSON_FILENAME.format("IDEPIX", band))
         nc_to_json(l1p_product_file, output_file, band, lambda v: round(float(v), 6))
 
-    for band in params[PARAMS_SECTION]['c2rcc_bands'].split(","):
+    for band in list(filter(None, params[PARAMS_SECTION]['c2rcc_bands'].split(","))):
         output_file = os.path.join(out_path, JSON_FILENAME.format("C2RCC", band))
         nc_to_json(l2_product_files['C2RCC'], output_file, band, lambda v: round(float(v), 6))
 
-    for band in params[PARAMS_SECTION]['polymer_bands'].split(","):
+    for band in list(filter(None, params[PARAMS_SECTION]['polymer_bands'].split(","))):
         output_file = os.path.join(out_path, JSON_FILENAME.format("POLYMER", band))
         nc_to_json(l2_product_files['POLYMER'], output_file, band, lambda v: round(float(v), 6))
 
-    for band in params[PARAMS_SECTION]['mph_bands'].split(","):
+    for band in list(filter(None, params[PARAMS_SECTION]['mph_bands'].split(","))):
         output_file = os.path.join(out_path, JSON_FILENAME.format("MPH", band))
         nc_to_json(l2_product_files['MPH'], output_file, band, lambda v: round(float(v), 6))
 
