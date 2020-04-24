@@ -4,10 +4,11 @@
 import configparser
 import getpass
 import os
+import re
 import socket
 
 
-project_path = os.path.dirname(os.path.dirname(__file__))
+project_path = os.path.dirname(__file__)
 
 
 def init_hindcast(env_file, params_file):
@@ -123,3 +124,7 @@ def load_properties(properties_file, separator_char='=', comment_char='#'):
                 value = separator_char.join(key_value[1:]).strip().strip('"')
                 properties_dict[key] = value
     return properties_dict
+
+
+def get_sensing_date_from_prodcut_name(product_name):
+    return re.findall(r"\d{8}T\d{6}", product_name)[0]

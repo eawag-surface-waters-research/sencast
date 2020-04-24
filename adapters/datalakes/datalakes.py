@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re
 import requests
 
 from json import dump
 from netCDF4 import Dataset
+
+from auxil import get_sensing_date_from_prodcut_name
 
 
 # the url of the datalakes api
@@ -19,35 +20,20 @@ PARAMS_SECTION = "DATALAKES"
 JSON_FILENAME = "{}_{}.json"
 
 
-def apply(env, params, l1_product_path, l1p_product_file, l2_product_files):
+def apply(env, params, l2_product_files):
     if not env.has_section("Datalakes"):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
     print("Applying datalakes...")
 
-    date = re.findall(r"\d{8}T\d{6}", os.path.basename(l1_product_path))[0]
-    out_path = os.path.join(env['Datalakes']['root_path'], params['General']['wkt_name'], date)
+    date = get_sensing_date_from_prodcut_name(os.path.basename(l2_product_files['IDEPIX']))
+    out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'], date)
     os.makedirs(out_path, exist_ok=True)
 
-    for band in list(filter(None, params[PARAMS_SECTION]['idepix_bands'].split(","))):
-        output_file = os.path.join(out_path, JSON_FILENAME.format("IDEPIX", band))
-        nc_to_json(l1p_product_file, output_file, band, lambda v: round(float(v), 6))
-
-    for band in list(filter(None, params[PARAMS_SECTION]['c2rcc_bands'].split(","))):
-        output_file = os.path.join(out_path, JSON_FILENAME.format("C2RCC", band))
-        nc_to_json(l2_product_files['C2RCC'], output_file, band, lambda v: round(float(v), 6))
-
-    for band in list(filter(None, params[PARAMS_SECTION]['polymer_bands'].split(","))):
-        output_file = os.path.join(out_path, JSON_FILENAME.format("POLYMER", band))
-        nc_to_json(l2_product_files['POLYMER'], output_file, band, lambda v: round(float(v), 6))
-
-    for band in list(filter(None, params[PARAMS_SECTION]['mph_bands'].split(","))):
-        output_file = os.path.join(out_path, JSON_FILENAME.format("MPH", band))
-        nc_to_json(l2_product_files['MPH'], output_file, band, lambda v: round(float(v), 6))
-
-    with open(l1p_product_file, "rb") as f:
-        nc_bytes = f.read()
-    with open(os.path.join(out_path, os.path.basename(l1p_product_file)), "wb") as f:
-        f.write(nc_bytes)
+    for key in params[PARAMS_SECTION].keys():
+        processor = key[0:key.find("_")]
+        for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
+            output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
+            nc_to_json(l2_product_files[processor], output_file, band, lambda v: round(float(v), 6))
 
     for _, l2_product_file in l2_product_files.items():
         with open(l2_product_file, "rb") as f:
@@ -55,7 +41,7 @@ def apply(env, params, l1_product_path, l1p_product_file, l2_product_files):
         with open(os.path.join(out_path, os.path.basename(l2_product_file)), "wb") as f:
             f.write(nc_bytes)
 
-    notify_datalakes(env['Datalakes']['api_key'])
+    notify_datalakes(env['DATALAKES']['api_key'])
 
 
 def nc_to_json(input_file, output_file, variable_name, value_read_expression):

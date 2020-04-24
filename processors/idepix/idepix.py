@@ -4,8 +4,7 @@
 import os
 import subprocess
 
-from packages.product_fun import get_reproject_params_from_wkt
-from packages.ql_mapping import plot_pic
+from product_fun import get_reproject_params_from_wkt
 
 # Key of the params section for this processor
 PARAMS_SECTION = "IDEPIX"
@@ -44,13 +43,6 @@ def process(env, params, l1_product_path, source_file, out_path):
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 
-    rgb_bands = params[PARAMS_SECTION]['rgb_bands'].split(",")
-    fc_bands = params[PARAMS_SECTION]['fc_bands'].split(",")
-    if params['General']['sensor'] == "OLCI":
-        rgb_bands = [bn.replace('radiance', 'reflectance') for bn in rgb_bands]
-        fc_bands = [bn.replace('radiance', 'reflectance') for bn in fc_bands]
-    create_quicklooks(output_file, product_name, out_path, wkt, rgb_bands, fc_bands)
-
     return output_file
 
 
@@ -71,13 +63,3 @@ def rewrite_xml(gpt_xml_file, sensor, resolution, wkt):
     os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
     with open(gpt_xml_file, "w") as f:
         f.write(xml)
-
-
-def create_quicklooks(product_file, product_name, out_path, wkt, rgb_bands, fc_bands):
-    print("Creating quicklooks for IDEPIX")
-    ql_file = os.path.join(out_path, QL_DIR.format("rgb"), QL_FILENAME.format(product_name, "rgb"))
-    os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-    plot_pic(product_file, ql_file, wkt=wkt, rgb_layers=rgb_bands, max_val=0.16)
-    ql_file = os.path.join(out_path, QL_DIR.format("fc"), QL_FILENAME.format(product_name, "fc"))
-    os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-    plot_pic(product_file, ql_file, wkt=wkt, rgb_layers=fc_bands, max_val=0.3)

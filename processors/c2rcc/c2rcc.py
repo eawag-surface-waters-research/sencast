@@ -6,11 +6,11 @@ import os
 import re
 import subprocess
 
+# from polymer.ancillary_era import Ancillary_ERA
 from polymer.ancillary_era5 import Ancillary_ERA5
 
-from packages.auxil import load_properties
-from packages.product_fun import get_lons_lats
-from packages.ql_mapping import plot_map
+from auxil import load_properties
+from product_fun import get_lons_lats
 
 # Key of the params section for this processor
 PARAMS_SECTION = "C2RCC"
@@ -51,8 +51,6 @@ def process(env, params, l1_product_path, source_file, out_path):
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 
-    create_quicklooks(params, output_file, product_name, out_path, wkt)
-
     return output_file
 
 
@@ -62,6 +60,7 @@ def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_pr
 
     altnn_path = os.path.join(os.path.dirname(__file__), "altnn", altnn) if altnn else ""
 
+    # ancillary = Ancillary_ERA()
     ancillary = Ancillary_ERA5()
     date = datetime.datetime.strptime(date_str, "%Y%m%dT%H%M%S")
     lons, lats = get_lons_lats(wkt)
@@ -92,13 +91,3 @@ def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_pr
     os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
     with open(gpt_xml_file, "w") as f:
         f.write(xml)
-
-
-def create_quicklooks(params, product_file, product_name, out_path, wkt):
-    bands, bandmaxs = [list(filter(None, params[PARAMS_SECTION][key].split(","))) for key in ['bands', 'bandmaxs']]
-    print("Creating quicklooks for C2RCC for bands: {}".format(bands))
-    for band, bandmax in zip(bands, bandmaxs):
-        bandmax = False if int(bandmax) == 0 else range(0, int(bandmax))
-        ql_file = os.path.join(out_path, QL_DIR.format(band), QL_FILENAME.format(product_name, band))
-        os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-        plot_map(product_file, ql_file, band, wkt, basemap="srtm_hillshade", param_range=bandmax)

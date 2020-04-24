@@ -10,7 +10,7 @@ from requests.status_codes import codes
 from requests.utils import requote_uri
 from zipfile import ZipFile
 
-from packages.product_fun import get_lons_lats
+from product_fun import get_lons_lats
 
 
 # HDA-API endpoint address

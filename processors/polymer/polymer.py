@@ -12,8 +12,7 @@ from polymer.level1_olci import Level1_OLCI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
-from packages.product_fun import get_corner_pixels_roi, get_reproject_params_from_wkt
-from packages.ql_mapping import plot_map
+from product_fun import get_corner_pixels_roi, get_reproject_params_from_wkt
 
 # Key of the params section for this processor
 PARAMS_SECTION = "POLYMER"
@@ -50,7 +49,7 @@ def process(env, params, l1_product_path, source_file, out_path):
         granule_path = os.path.join(l1_product_path, "GRANULE")
         msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
         UL, UR, LR, LL = get_corner_pixels_roi(msi_product_path, wkt)
-        sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]), max(LL[1], LR[1])
+        sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]) + 1, max(LL[1], LR[1]) + 1
         # Normalize to correct resolution
         target_divisor = 60 / (int(resolution))
         sline, scol = [int(floor(i / target_divisor)) * target_divisor for i in [sline, scol]]
@@ -81,8 +80,6 @@ def process(env, params, l1_product_path, source_file, out_path):
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 
-    create_quicklooks(params, output_file, product_name, out_path, wkt)
-
     return output_file
 
 
@@ -102,13 +99,3 @@ def rewrite_xml(gpt_xml_file, resolution, wkt):
     os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
     with open(gpt_xml_file, "w") as f:
         f.write(xml)
-
-
-def create_quicklooks(params, product_file, product_name, out_path, wkt):
-    bands, bandmaxs = [list(filter(None, params[PARAMS_SECTION][key].split(","))) for key in ['bands', 'bandmaxs']]
-    print("Creating quicklooks for POLYMER for bands: {}".format(bands))
-    for band, bandmax in zip(bands, bandmaxs):
-        bandmax = False if int(bandmax) == 0 else range(0, int(bandmax))
-        ql_file = os.path.join(out_path, QL_DIR.format(band), QL_FILENAME.format(product_name, band))
-        os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-        plot_map(product_file, ql_file, band, wkt, basemap="srtm_hillshade", param_range=bandmax)

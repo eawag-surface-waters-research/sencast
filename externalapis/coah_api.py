@@ -18,10 +18,7 @@ download_address = api_endpoint + "/odata/v1/Products('{}')/$value"
 
 
 def get_download_requests(auth, start, end, sensor, resolution, wkt):
-    if sensor == "OLCI":
-        query = "instrumentshortname:{}+AND+producttype:{}+AND+beginPosition:[{}+TO+{}]+AND+footprint:\"Contains({})\""
-    else:
-        query = "instrumentshortname:{}+AND+producttype:{}+AND+beginPosition:[{}+TO+{}]+AND+footprint:\"Intersects({})\""
+    query = "instrumentshortname:{}+AND+producttype:{}+AND+beginPosition:[{}+TO+{}]+AND+footprint:\"Intersects({})\""
     datatype = get_dataset_id(sensor, resolution)
     query = query.format(sensor.lower(), datatype, start, end, wkt)
     uuids, product_names = search(auth, query)

@@ -1,3 +1,0 @@
-- Mosaicking for S2
-- OZA, VZA, SZA, SAA missing in Polymer products!
-- Merge output into single NC file
