@@ -31,7 +31,7 @@ def process(env, params, l1_product_path, source_file, out_path):
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
-        print("Skipping IDEPIX, targets already exist: {}".format(os.path.basename(output_file)))
+        print("Skipping IDEPIX, target already exists: {}".format(os.path.basename(output_file)))
         return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
