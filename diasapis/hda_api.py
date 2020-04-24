@@ -50,7 +50,7 @@ def get_download_requests(auth, start, end, sensor, resolution, wkt):
     wait_for_datarequest_to_complete(access_token, job_id)
     uris, product_names = get_datarequest_results(access_token, job_id)
 
-    return [(job_id, uri) for uri in uris], product_names
+    return [{'job_id': job_id, 'uri': uri} for uri in uris], product_names
 
 
 def do_download(auth, download_request, product_path):
