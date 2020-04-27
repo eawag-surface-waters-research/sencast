@@ -23,7 +23,7 @@
 		</parameters>
 	</node>
 	<node id="writeNode">
-		<operator>Write</operator>
+		<operator>write</operator>
 		<sources>
 			<source>mosaicNode</source>
 		</sources>

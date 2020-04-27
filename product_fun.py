@@ -29,8 +29,8 @@ def get_corner_pixels_roi(product_path, wkt):
 
 def minimal_subset_of_products(product_paths, wkt):
     # ensure that all products are overlapping
-    if len(product_paths) not in [1, 2, 4]:
-        print("Warning: Only sets of 1, 2, or 4 producst can be compared!")
+    if len(product_paths) not in [2, 4]:
+        print("Warning: Only sets of 2 or 4 products can be compared!")
         return product_paths
     # ToDo: ensure that all products are overlapping
 

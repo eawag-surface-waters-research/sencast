@@ -20,12 +20,12 @@ QL_FILENAME = "reproj_idepix_subset_{}_{}.png"
 GPT_XML_FILENAME = "idepix_{}.xml"
 
 
-def process(env, params, l1_product_path, source_file, out_path):
+def process(env, params, l1product_path, _, out_path):
     """ This processor applies subset, idepix, merge and reprojection to the source product and
     writes the result to disk. It returns the location of the output product. """
 
     print("Applying IDEPIX...")
-    gpt, product_name = env['General']['gpt_path'], os.path.basename(l1_product_path)
+    gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
@@ -38,7 +38,7 @@ def process(env, params, l1_product_path, source_file, out_path):
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, sensor, resolution, wkt)
 
-    args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(source_file),
+    args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(l1product_path),
             "-PoutputFile={}".format(output_file)]
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")

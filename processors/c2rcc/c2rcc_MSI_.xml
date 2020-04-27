@@ -22,7 +22,7 @@
 		</parameters>
 	</node>
 	<node id="writeNode">
-		<operator>Write</operator>
+		<operator>write</operator>
 		<sources>
 			<source>c2rccNode</source>
 		</sources>

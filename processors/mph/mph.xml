@@ -1,7 +1,7 @@
 <graph id="idepix">
 	<version>1.0</version>
 	<node id="mphNode">
-		<operator>MphChl</operator>
+		<operator>mphchl</operator>
 		<sources>
 			<sourceProduct>${sourceFile}</sourceProduct>
 		</sources>
@@ -14,7 +14,7 @@
 		</parameters>
 	</node>
 	<node id="writeNode">
-		<operator>Write</operator>
+		<operator>write</operator>
 		<sources>
 			<source>mphNode</source>
 		</sources>

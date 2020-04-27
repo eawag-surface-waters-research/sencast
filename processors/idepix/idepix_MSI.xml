@@ -14,7 +14,7 @@
 		</parameters>
 	</node>
 	<node id="subsetNode">
-		<operator>Subset</operator>
+		<operator>subset</operator>
 		<sources>
 			<source>resampleNode</source>
 		</sources>
@@ -33,14 +33,14 @@
 		</parameters>
 	</node>
 	<node id="mergeNode">
-		<operator>Merge</operator>
+		<operator>merge</operator>
 		<sources>
 			<masterProduct>subsetNode</masterProduct>
 			<idepixProduct>idepixNode</idepixProduct>
 		</sources>
 	</node>
 	<node id="reprojectNode">
-		<operator>Reproject</operator>
+		<operator>reproject</operator>
 		<sources>
 			<source>mergeNode</source>
 		</sources>
@@ -59,7 +59,7 @@
 		</parameters>
 	</node>
 	<node id="writeNode">
-		<operator>Write</operator>
+		<operator>write</operator>
 		<sources>
 			<source>reprojectNode</source>
 		</sources>

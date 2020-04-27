@@ -26,11 +26,11 @@ QL_FILENAME = "L2C2RCC_{}_{}.png"
 GPT_XML_FILENAME = "c2rcc_{}_{}.xml"
 
 
-def process(env, params, l1_product_path, source_file, out_path):
+def process(env, params, l1product_path, l2product_files, out_path):
     """ This processor applies c2rcc to the source product and stores the result. """
 
     print("Applying C2RCC...")
-    gpt, product_name = env['General']['gpt_path'], os.path.basename(l1_product_path)
+    gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     altnn, validexpression = params[PARAMS_SECTION]['altnn'], params[PARAMS_SECTION]['validexpression']
     vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
@@ -46,8 +46,8 @@ def process(env, params, l1_product_path, source_file, out_path):
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt)
 
-    args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(source_file),
-            "-PoutputFile={}".format(output_file)]
+    args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
+            "-SsourceFile={}".format(l2product_files['IDEPIX']), "-PoutputFile={}".format(output_file)]
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 

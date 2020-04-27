@@ -1,7 +1,7 @@
 <graph id="c2rcc">
 	<version>1.0</version>
 	<node id="vicariousCalibrationNode">
-        <operator>BandMaths</operator>
+        <operator>bandmaths</operator>
         <sources>
             <source>${sourceFile}</source>
         </sources>
@@ -221,7 +221,7 @@
         </parameters>
 	</node>
 	<node id="mergeCalibrationNode">
-		<operator>Merge</operator>
+		<operator>merge</operator>
 		<sources>
 			<masterProduct>${sourceFile}</masterProduct>
 			<calibratedProduct>vicariousCalibrationNode</calibratedProduct>
@@ -257,7 +257,7 @@
 		</parameters>
 	</node>
 	<node id="writeNode">
-		<operator>Write</operator>
+		<operator>write</operator>
 		<sources>
 			<source>c2rccNode</source>
 		</sources>

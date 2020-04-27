@@ -20,12 +20,12 @@ PARAMS_SECTION = "DATALAKES"
 JSON_FILENAME = "{}_{}.json"
 
 
-def apply(env, params, l2_product_files):
-    if not env.has_section("Datalakes"):
+def apply(env, params, l2product_files):
+    if not env.has_section("DATALAKES"):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
     print("Applying datalakes...")
 
-    date = get_sensing_date_from_prodcut_name(os.path.basename(l2_product_files['IDEPIX']))
+    date = get_sensing_date_from_prodcut_name(os.path.basename(l2product_files['IDEPIX']))
     out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'], date)
     os.makedirs(out_path, exist_ok=True)
 
@@ -33,12 +33,12 @@ def apply(env, params, l2_product_files):
         processor = key[0:key.find("_")]
         for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
             output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
-            nc_to_json(l2_product_files[processor], output_file, band, lambda v: round(float(v), 6))
+            nc_to_json(l2product_files[processor], output_file, band, lambda v: round(float(v), 6))
 
-    for _, l2_product_file in l2_product_files.items():
-        with open(l2_product_file, "rb") as f:
+    for _, l2product_file in l2product_files.items():
+        with open(l2product_file, "rb") as f:
             nc_bytes = f.read()
-        with open(os.path.join(out_path, os.path.basename(l2_product_file)), "wb") as f:
+        with open(os.path.join(out_path, os.path.basename(l2product_file)), "wb") as f:
             f.write(nc_bytes)
 
     notify_datalakes(env['DATALAKES']['api_key'])

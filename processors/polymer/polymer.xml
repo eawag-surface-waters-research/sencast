@@ -1,7 +1,7 @@
 <graph id="polymer">
     <version>1.0</version>
 	<node id="subsetNode">
-		<operator>Subset</operator>
+		<operator>subset</operator>
 		<sources>
 			<source>${sourceFile2}</source>
 		</sources>
@@ -10,7 +10,7 @@
 		</parameters>
 	</node>
 	<node id="reprojectNode">
-		<operator>Reproject</operator>
+		<operator>reproject</operator>
 		<sources>
 			<source>subsetNode</source>
 		</sources>
@@ -29,14 +29,14 @@
 		</parameters>
 	</node>
 	<node id="mergeNode">
-		<operator>Merge</operator>
+		<operator>merge</operator>
 		<sources>
 			<masterProduct>${sourceFile1}</masterProduct>
 			<reprojectedProduct>reprojectNode</reprojectedProduct>
 		</sources>
 	</node>
     <node id="writeNode">
-        <operator>Write</operator>
+        <operator>write</operator>
 		<sources>
 			<source>mergeNode</source>
 		</sources>
