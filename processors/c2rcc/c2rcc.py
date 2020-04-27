@@ -5,7 +5,6 @@ import datetime
 import os
 import subprocess
 
-# from polymer.ancillary_era import Ancillary_ERA
 from polymer.ancillary_era5 import Ancillary_ERA5
 
 from auxil import load_properties, get_sensing_datetime_from_prodcut_name
@@ -43,7 +42,10 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt)
+        ancillary_path = env['CDS']['era5_path']
+        os.makedirs(ancillary_path, exist_ok=True)
+        ancillary = Ancillary_ERA5(ancillary_path)
+        rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary)
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(l2product_files['IDEPIX']), "-PoutputFile={}".format(output_file)]
@@ -53,25 +55,26 @@ def process(env, params, l1product_path, l2product_files, out_path):
     return output_file
 
 
-def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt):
+def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary):
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor, "")), "r") as f:
         xml = f.read()
 
     altnn_path = os.path.join(os.path.dirname(__file__), "altnn", altnn) if altnn else ""
 
-    # ancillary = Ancillary_ERA()
-    ancillary = Ancillary_ERA5()
     date = datetime.datetime.strptime(date_str, "%Y%m%dT%H%M%S")
     lons, lats = get_lons_lats(wkt)
     coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
-    ozone = round(ancillary.get("ozone", date)[coords])
-    surf_press = round(ancillary.get("surf_press", date)[coords])
+    try:
+        ozone = round(ancillary.get("ozone", date)[coords])
+        xml = xml.replace("${ozone}", str(ozone))
+        surf_press = round(ancillary.get("surf_press", date)[coords])
+        xml = xml.replace("${press}", str(surf_press))
+    except:
+        pass
 
     xml = xml.replace("${validPixelExpression}", validexpression)
     xml = xml.replace("${salinity}", str(0.05))
     xml = xml.replace("${temperature}", str(15.0))
-    xml = xml.replace("${ozone}", str(ozone))
-    xml = xml.replace("${press}", str(surf_press))
     xml = xml.replace("${TSMfakBpart}", str(1.72))
     xml = xml.replace("${TSMfakBwit}", str(3.1))
     xml = xml.replace("${CHLexp}", str(1.04))

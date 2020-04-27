@@ -34,7 +34,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     print("Applying POLYMER...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
-    gsw_path, ancillary_path = env['GSW']['root_path'], env['CDS']['root_path']
+    gsw_path, ancillary_path = env['GSW']['root_path'], env['CDS']['era5_path']
     os.makedirs(gsw_path, exist_ok=True)
     os.makedirs(ancillary_path, exist_ok=True)
 

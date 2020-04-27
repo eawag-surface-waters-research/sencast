@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import datetime
 import sys
+
+from datetime import datetime, timedelta
 
 sys.path.append("/prj/sentinel-hindcast")
 
@@ -14,7 +15,7 @@ params, params_file = load_params("/prj/datalakes/datalakes_sui_S3.ini")
 if not params['General']['wkt']:
     params['General']['wkt'], _ = load_wkt("{}.wkt".format(params['General']['wkt_name']), env['General']['wkt_path'])
 params['General']['start'] = params['General']['end']
-params['General']['end'] = datetime.datetime.now().strftime(r"%Y-%m-%dT%H:%M:%SZ")
+params['General']['end'] = (datetime.now() - timedelta(weeks=1)).strftime(r"%Y-%m-%dT%H:%M:%SZ")
 with open(params_file, "w") as f:
     params.write(f)
 
