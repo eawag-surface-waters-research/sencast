@@ -8,4 +8,4 @@ import netCDF4
 
 from main import hindcast
 
-hindcast("parameters_alpinewells_S2.ini")
+hindcast("parameters_wdoc_S3.ini")
