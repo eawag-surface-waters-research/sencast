@@ -24,19 +24,20 @@ canvas_area = []
 
 def apply(_, params, l2product_files):
     wkt = params['General']['wkt']
-    for ql_key in list(filter(None, params[PARAMS_SECTION]["qls"].split(","))):
-        processor = ql_key[0:ql_key.find("_")]
-        ql_name = ql_key.replace("{}_".format(processor), "")
-        print("Creating {} quicklooks for {}".format(ql_name, processor))
-        bands = list(filter(None, params[PARAMS_SECTION][ql_key].split(",")))
-        max_value = float(params[PARAMS_SECTION]["{}_max".format(ql_key)])
-        if params['General']['sensor'] == "OLCI":
-            bands = [band.replace('radiance', 'reflectance') for band in bands]
-        ql_path = os.path.dirname(l2product_files[processor]) + "-" + ql_name
-        product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
-        ql_file = os.path.join(ql_path, "{}-{}.png".format(product_name, ql_name))
-        os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-        plot_pic(l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=max_value)
+    for key in params[PARAMS_SECTION].keys():
+        processor = key[0:key.find("_")].upper()
+        if processor in l2product_files.keys():
+            ql_name = key[key.find("_") + 1:]
+            print("Creating {} quicklooks for {}".format(ql_name, processor))
+            bands = list(filter(None, params[PARAMS_SECTION][key].split(",")))[0:-1]
+            bandmax = list(filter(None, params[PARAMS_SECTION][key].split(",")))[-1]
+            if params['General']['sensor'] == "OLCI":
+                bands = [band.replace('radiance', 'reflectance') for band in bands]
+            ql_path = os.path.dirname(l2product_files[processor]) + "-" + ql_name
+            product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
+            ql_file = os.path.join(ql_path, "{}-{}.png".format(product_name, ql_name))
+            os.makedirs(os.path.dirname(ql_file), exist_ok=True)
+            plot_pic(l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
 
 
 def plot_pic(input_file, output_file, wkt=None, crop_ext=None, rgb_layers=None, grid=True, max_val=0.10):

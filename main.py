@@ -95,7 +95,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
     # ensure all products have been downloaded
     for l1product_path in l1product_paths:
         if not os.path.exists(l1product_path):
-            raise RuntimeError("Download or mosaicing of product was not successfull: {}".format(l1product_path))
+            raise RuntimeError("Download of product was not successfull: {}".format(l1product_path))
 
     # FOR S3 MAKE SURE THE NON-DEFAULT S3TBX SETTING IS SELECTED IN THE SNAP PREFERENCES!
     if "OLCI" == params['General']['sensor']:

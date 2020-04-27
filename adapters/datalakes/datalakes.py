@@ -30,10 +30,11 @@ def apply(env, params, l2product_files):
     os.makedirs(out_path, exist_ok=True)
 
     for key in params[PARAMS_SECTION].keys():
-        processor = key[0:key.find("_")]
-        for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
-            output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
-            nc_to_json(l2product_files[processor], output_file, band, lambda v: round(float(v), 6))
+        processor = key[0:key.find("_")].upper()
+        if processor in l2product_files.keys():
+            for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
+                output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
+                nc_to_json(l2product_files[processor], output_file, band, lambda v: round(float(v), 6))
 
     for _, l2product_file in l2product_files.items():
         with open(l2product_file, "rb") as f:

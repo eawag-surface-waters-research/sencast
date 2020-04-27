@@ -33,17 +33,19 @@ PARAMS_SECTION = "QLSINGLEBAND"
 
 def apply(_, params, l2product_files):
     wkt = params['General']['wkt']
-    for ql_key in list(filter(None, params[PARAMS_SECTION]["qls"].split(","))):
-        processor = ql_key
-        print("Creating quicklooks for {}".format(processor))
-        bands, bandmaxs = [list(filter(None, params[PARAMS_SECTION][k].split(","))) for k in [ql_key, ql_key + "_maxs"]]
-        product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
-        for band, bandmax in zip(bands, bandmaxs):
-            ql_path = os.path.dirname(l2product_files[processor]) + "-" + band
-            ql_file = os.path.join(ql_path, "{}-{}.png".format(product_name, band))
-            param_range = None if int(bandmax) == 0 else range(0, int(bandmax))
-            os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-            plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade", param_range=param_range)
+    for key in params[PARAMS_SECTION].keys():
+        processor = key.upper()
+        if processor in l2product_files.keys():
+            print("Creating quicklooks for {}".format(processor))
+            bands = list(filter(None, params[PARAMS_SECTION][key].split(",")))[::2]
+            bandmaxs = list(filter(None, params[PARAMS_SECTION][key].split(",")))[1::2]
+            product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
+            for band, bandmax in zip(bands, bandmaxs):
+                ql_path = os.path.dirname(l2product_files[processor]) + "-" + band
+                ql_file = os.path.join(ql_path, "{}-{}.png".format(product_name, band))
+                param_range = None if float(bandmax) == 0 else [0, float(bandmax)]
+                os.makedirs(os.path.dirname(ql_file), exist_ok=True)
+                plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade", param_range=param_range)
 
 
 def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevation', crop_ext=None,
