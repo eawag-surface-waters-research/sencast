@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import datetime
 import os
 import subprocess
 
+from datetime import datetime
 from polymer.ancillary_era5 import Ancillary_ERA5
 
 from auxil import load_properties, get_sensing_datetime_from_prodcut_name
@@ -61,7 +61,7 @@ def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_pr
 
     altnn_path = os.path.join(os.path.dirname(__file__), "altnn", altnn) if altnn else ""
 
-    date = datetime.datetime.strptime(date_str, "%Y%m%dT%H%M%S")
+    date = datetime.strptime(date_str, "%Y%m%dT%H%M%S")
     lons, lats = get_lons_lats(wkt)
     coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
     try:

@@ -6,6 +6,6 @@
 import cartopy.crs
 import netCDF4
 
-from packages.main import hindcast
+from main import hindcast
 
-hindcast("parameters_wdoc_S3.ini")
+hindcast("parameters_alpinewells_S2.ini")
