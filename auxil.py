@@ -37,9 +37,9 @@ def init_hindcast(env_file, params_file):
             params.write(f)
 
     if env.has_section("CDS"):
-        os.makedirs(env['CDS']['root_path'], exist_ok=True)
-    if env.has_section("Earthdata"):
-        os.makedirs(env['Earthdata']['root_path'], exist_ok=True)
+        os.makedirs(env['CDS']['era5_path'], exist_ok=True)
+    if env.has_section("EARTHDATA"):
+        os.makedirs(env['EARTHDATA']['root_path'], exist_ok=True)
     if env.has_section("GSW"):
         os.makedirs(env['GSW']['root_path'], exist_ok=True)
 
