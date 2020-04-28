@@ -133,7 +133,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 try:
                     l2product_files[l1product_path][processor] =\
                         process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
-                except RuntimeError:
+                except Exception:
                     print("An error occured while applying {} to product: {}".format(processor, l1product_path))
 
         # mosaic outputs
@@ -152,21 +152,17 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
 
     # apply adapters
     with semaphores['adapt']:
-        if "QLRGB" in params['General']['adapters'].split(","):
-            from adapters.qlrgb.qlrgb import apply
+        for adapter in list(filter(None, params['General']['adapters'].split(","))):
+            if adapter == "QLRGB":
+                from adapters.qlrgb.qlrgb import apply
+            elif adapter == "QLSINGLEBAND":
+                from adapters.qlsingleband.qlsingleband import apply
+            elif adapter == "DATALAKES":
+                from adapters.datalakes.datalakes import apply
+            else:
+                raise RuntimeError("Unknown adapter: {}".format(adapter))
+
             try:
                 apply(env, params, l2product_files)
-            except RuntimeError:
-                print("An error occured while applying QLRGB to product: {}".format(l1product_path))
-        if "QLSINGLEBAND" in params['General']['adapters'].split(","):
-            from adapters.qlsingleband.qlsingleband import apply
-            try:
-                apply(env, params, l2product_files)
-            except RuntimeError:
-                print("An error occured while applying QLSINGLEBAND to product: {}".format(l1product_path))
-        if "DATALAKES" in params['General']['adapters'].split(","):
-            from adapters.datalakes.datalakes import apply
-            try:
-                apply(env, params, l2product_files)
-            except RuntimeError:
-                print("An error occured while applying DATALAKES to product: {}".format(l1product_path))
+            except Exception:
+                print("An error occured while applying {} to product: {}".format(adapter, l1product_path))
