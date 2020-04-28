@@ -65,9 +65,9 @@ def process(env, params, l1product_path, l2product_files, out_path):
         l1 = Level1_OLCI(l1product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw,
                          ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
-    poly_tmp_file = os.path.join(out_path, OUT_DIR, "_reproducibility",
-                                 "{}.tmp".format(OUT_FILENAME.format(product_name)))
+    poly_tmp_file = os.path.join(out_path, OUT_DIR, "_reproducibility", OUT_FILENAME.format(product_name) + ".tmp")
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
+    os.makedirs(os.path.dirname(poly_tmp_file), exist_ok=True)
     run_atm_corr(l1, l2)
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME)
