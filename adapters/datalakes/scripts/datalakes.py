@@ -21,6 +21,6 @@ with open(params_file, "w") as f:
 
 l1_path = env['DIAS']['l1_path'].format(params['General']['sensor'])
 
-l2_path = "/prj/datalakes/OLCI_L2"
+l2_path = "/prj/DIAS/output_data/OLCI_L2/datalakes_sui_S3"
 
 do_hindcast(env, params, l1_path, l2_path, 1, 1, 1)
