@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 import sys
 
 from datetime import datetime, timedelta
@@ -20,7 +21,9 @@ with open(params_file, "w") as f:
     params.write(f)
 
 l1_path = env['DIAS']['l1_path'].format(params['General']['sensor'])
+os.makedirs(l1_path, exist_ok=True)
 
-l2_path = "/prj/DIAS/output_data/OLCI_L2/datalakes_sui_S3"
+l2_path = os.path.join(env['DIAS']['l2_path'].format(params['General']['sensor']), "datalakes_sui_S3")
+os.makedirs(l2_path, exist_ok=True)
 
 do_hindcast(env, params, l1_path, l2_path, 1, 1, 1)
