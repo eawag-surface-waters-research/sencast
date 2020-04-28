@@ -28,7 +28,7 @@ QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
 GPT_XML_FILENAME = "polymer.xml"
 
 
-def process(env, params, l1product_path, l2product_files, out_path):
+def process(env, params, l1product_path, _, out_path):
     """ This processor applies polymer to the source product and stores the result. """
 
     print("Applying POLYMER...")
@@ -74,8 +74,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, resolution, wkt)
 
-    args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
-            "-SsourceFile1={}".format(l2product_files['IDEPIX']), "-SsourceFile2={}".format(poly_tmp_file),
+    args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(poly_tmp_file),
             "-PoutputFile={}".format(output_file)]
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")

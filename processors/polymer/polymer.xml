@@ -1,18 +1,9 @@
 <graph id="polymer">
     <version>1.0</version>
-	<node id="subsetNode">
-		<operator>subset</operator>
-		<sources>
-			<source>${sourceFile2}</source>
-		</sources>
-		<parameters>
-			<geoRegion>${wkt}</geoRegion>
-		</parameters>
-	</node>
 	<node id="reprojectNode">
 		<operator>reproject</operator>
 		<sources>
-			<source>subsetNode</source>
+			<source>${sourceFile}</source>
 		</sources>
 		<parameters>
 			<crs>EPSG:4326</crs>
@@ -28,17 +19,10 @@
 			<noDataValue>NaN</noDataValue>
 		</parameters>
 	</node>
-	<node id="mergeNode">
-		<operator>merge</operator>
-		<sources>
-			<masterProduct>${sourceFile1}</masterProduct>
-			<reprojectedProduct>reprojectNode</reprojectedProduct>
-		</sources>
-	</node>
     <node id="writeNode">
         <operator>write</operator>
 		<sources>
-			<source>mergeNode</source>
+			<source>reprojectNode</source>
 		</sources>
 		<parameters>
 			<file>${outputFile}</file>
