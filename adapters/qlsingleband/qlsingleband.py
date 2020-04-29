@@ -43,9 +43,12 @@ def apply(_, params, l2product_files):
             for band, bandmax in zip(bands, bandmaxs):
                 ql_path = os.path.dirname(l2product_files[processor]) + "-" + band
                 ql_file = os.path.join(ql_path, "{}-{}.png".format(product_name, band))
-                param_range = None if float(bandmax) == 0 else [0, float(bandmax)]
-                os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-                plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade", param_range=param_range)
+                if os.path.exists(ql_file):
+                    print("Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
+                else:
+                    param_range = None if float(bandmax) == 0 else [0, float(bandmax)]
+                    os.makedirs(os.path.dirname(ql_file), exist_ok=True)
+                    plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade", param_range=param_range)
 
 
 def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevation', crop_ext=None,

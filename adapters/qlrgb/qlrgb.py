@@ -36,8 +36,11 @@ def apply(_, params, l2product_files):
             ql_path = os.path.dirname(l2product_files[processor]) + "-" + ql_name
             product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
             ql_file = os.path.join(ql_path, "{}-{}.png".format(product_name, ql_name))
-            os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-            plot_pic(l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
+            if os.path.exists(ql_file):
+                print("Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)))
+            else:
+                os.makedirs(os.path.dirname(ql_file), exist_ok=True)
+                plot_pic(l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
 
 
 def plot_pic(input_file, output_file, wkt=None, crop_ext=None, rgb_layers=None, grid=True, max_val=0.10):
