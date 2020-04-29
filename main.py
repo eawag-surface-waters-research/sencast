@@ -9,7 +9,7 @@ from requests.auth import HTTPBasicAuth
 from snappy import ProductIO
 from threading import Semaphore, Thread
 
-from auxil import get_sensing_date_from_prodcut_name, init_hindcast
+from auxil import get_sensing_date_from_product_name, init_hindcast
 from externalapis.earthdata_api import authenticate
 from product_fun import minimal_subset_of_products
 
@@ -61,7 +61,7 @@ def do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads=1, max_par
     # group download requests and product paths by date and sort them by group size and sensing date
     download_groups, l1product_path_groups = {}, {}
     for download_request, l1product_path in zip(download_requests, l1product_paths):
-        date = get_sensing_date_from_prodcut_name(os.path.basename(l1product_path))
+        date = get_sensing_date_from_product_name(os.path.basename(l1product_path))
         if date not in download_groups.keys():
             download_groups[date], l1product_path_groups[date] = [], []
         download_groups[date].append(download_request)

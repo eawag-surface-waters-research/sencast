@@ -7,7 +7,7 @@ import subprocess
 from datetime import datetime
 from polymer.ancillary_era5 import Ancillary_ERA5
 
-from auxil import load_properties, get_sensing_datetime_from_prodcut_name
+from auxil import load_properties, get_sensing_datetime_from_product_name
 from product_fun import get_lons_lats
 
 # Key of the params section for this processor
@@ -32,7 +32,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     altnn, validexpression = params[PARAMS_SECTION]['altnn'], params[PARAMS_SECTION]['validexpression']
     vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
-    date_str = get_sensing_datetime_from_prodcut_name(product_name)
+    date_str = get_sensing_datetime_from_product_name(product_name)
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):

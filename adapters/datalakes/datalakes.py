@@ -7,7 +7,7 @@ import requests
 from json import dump
 from netCDF4 import Dataset
 
-from auxil import get_sensing_date_from_prodcut_name
+from auxil import get_sensing_date_from_product_name
 
 
 # the url of the datalakes api
@@ -29,7 +29,7 @@ def apply(env, params, l2product_files):
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
             l2product_file = l2product_files[processor]
-            date = get_sensing_date_from_prodcut_name(os.path.basename(l2product_file))
+            date = get_sensing_date_from_product_name(os.path.basename(l2product_file))
             out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'], date)
             os.makedirs(out_path, exist_ok=True)
             for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):

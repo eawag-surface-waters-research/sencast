@@ -126,9 +126,9 @@ def load_properties(properties_file, separator_char='=', comment_char='#'):
     return properties_dict
 
 
-def get_sensing_date_from_prodcut_name(product_name):
+def get_sensing_date_from_product_name(product_name):
     return re.findall(r"\d{8}T\d{6}", product_name)[0][0:8]
 
 
-def get_sensing_datetime_from_prodcut_name(product_name):
+def get_sensing_datetime_from_product_name(product_name):
     return re.findall(r"\d{8}T\d{6}", product_name)[0]
