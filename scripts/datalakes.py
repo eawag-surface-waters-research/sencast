@@ -12,7 +12,7 @@ from main import hindcast
 
 params, params_file = load_params("/prj/datalakes/datalakes_sui_S3.ini")
 params['General']['start'] = params['General']['end']
-params['General']['end'] = (date.today() - timedelta(weeks=1)).strftime(r"%Y-%m-%dT%H:%M:%SZ")
+params['General']['end'] = (date.today() - timedelta(days=5)).strftime(r"%Y-%m-%dT%H:%M:%SZ")
 with open(params_file, "w") as f:
     params.write(f)
 
