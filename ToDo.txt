@@ -5,3 +5,4 @@
 - Console independent logger
 - Thread specific logger
 - MPH not working for partial products (OLCI)
+- use CreoDIAS' own eodata as source instead of downloading them from COAH
