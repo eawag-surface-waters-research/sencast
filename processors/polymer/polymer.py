@@ -49,11 +49,12 @@ def process(env, params, l1product_path, _, out_path):
         granule_path = os.path.join(l1product_path, "GRANULE")
         msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
         UL, UR, LR, LL = get_corner_pixels_roi(msi_product_path, wkt)
-        sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]) + 1, max(LL[1], LR[1]) + 1
+        sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]), max(LL[1], LR[1])
         # Normalize to correct resolution
-        target_divisor = 60 / (int(resolution))
-        sline, scol = [int(floor(i / target_divisor)) * target_divisor for i in [sline, scol]]
-        eline, ecol = [int(ceil(i / target_divisor)) * target_divisor for i in [eline, ecol]]
+        target_divisor = 60 / int(resolution)
+        sline, scol, eline, ecol = [(i * 10 / int(resolution)) for i in [sline, scol, eline, ecol]]
+        sline, scol = [int(floor(i / target_divisor) * target_divisor) for i in [sline, scol]]
+        eline, ecol = [int(ceil(i / target_divisor) * target_divisor) for i in [eline, ecol]]
         gsw = GSW(directory=gsw_path)
         l1 = Level1_MSI(msi_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw,
                         ancillary=ancillary, resolution=resolution)
