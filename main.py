@@ -9,7 +9,7 @@ from requests.auth import HTTPBasicAuth
 from snappy import ProductIO
 from threading import Semaphore, Thread
 
-from auxil import get_sensing_date_from_product_name, init_hindcast
+from auxil import get_l1product_path, get_sensing_date_from_product_name, init_hindcast
 from externalapis.earthdata_api import authenticate
 from product_fun import minimal_subset_of_products
 
@@ -20,22 +20,22 @@ from product_fun import minimal_subset_of_products
 
 def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
     # read env and params file and copy the params file to l2_path for reproducibility
-    env, params, l1_path, l2_path = init_hindcast(env_file, params_file)
+    env, params, l2_path = init_hindcast(env_file, params_file)
 
-    do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads, max_parallel_processors, max_parallel_adapters)
+    do_hindcast(env, params, l2_path, max_parallel_downloads, max_parallel_processors, max_parallel_adapters)
 
 
-def do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads=1, max_parallel_processors=1,
+def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_processors=1,
                 max_parallel_adapters=1):
     # decide which API to use
-    if env['DIAS']['API'] == "COAH":
+    if env['General']['remote_dias_api'] == "COAH":
         from externalapis.coah_api import get_download_requests, do_download
         auth = HTTPBasicAuth(env['COAH']['username'], env['COAH']['password'])
-    elif env['DIAS']['API'] == "HDA":
+    elif env['General']['remote_dias_api'] == "HDA":
         from externalapis.hda_api import get_download_requests, do_download
         auth = HTTPBasicAuth(env['HDA']['username'], env['HDA']['password'])
     else:
-        raise RuntimeError("Unknown API: {} (possible options are 'HDA' or 'COAH').".format(env['General']['API']))
+        raise RuntimeError("Unknown DIAS API: {} (possible options are 'HDA' or 'COAH').".format(env['General']['API']))
 
     # find products which match the criterias from params
     start, end = params['General']['start'], params['General']['end']
@@ -43,20 +43,26 @@ def do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads=1, max_par
     download_requests, product_names = get_download_requests(auth, start, end, sensor, resolution, wkt)
 
     # set up inputs for product hindcast
-    l1product_paths = [os.path.join(l1_path, product_name) for product_name in product_names]
+    l1product_paths = [get_l1product_path(env, product_name) for product_name in product_names]
     semaphores = {
         'download': Semaphore(max_parallel_downloads),
         'process': Semaphore(max_parallel_processors),
         'adapt': Semaphore(max_parallel_adapters)
     }
 
-    # print information about available products
-    actual_downloads = len([0 for l1product_path in l1product_paths if not os.path.exists(l1product_path)])
-    print("{} products are already available.".format(len(l1product_paths) - actual_downloads))
-    print("{} products must be downloaded first.".format(actual_downloads))
-
-    # authenticate for earth data api
-    authenticate(env['EARTHDATA']['username'], env['EARTHDATA']['password'])
+    # for readonly local dias, remove unavailable products and their download_requests
+    if env['DIAS']['readonly'] == "readonly":
+        print("{} products have been found.".format(len(l1product_paths)))
+        for i in range(len(l1product_paths)):
+            if not os.path.exists(l1product_paths[i]):
+                download_requests[i], l1product_paths[i] = None, None
+        l1product_paths = list(filter(None, l1product_paths))
+        download_requests = list(filter(None, download_requests))
+        print("{} products are avaiable and will be processed.".format(len(l1product_paths)))
+    else:
+        actual_downloads = len([0 for l1product_path in l1product_paths if not os.path.exists(l1product_path)])
+        print("{} products are already locally available.".format(len(l1product_paths) - actual_downloads))
+        print("{} products must be downloaded first.".format(actual_downloads))
 
     # group download requests and product paths by date and sort them by group size and sensing date
     download_groups, l1product_path_groups = {}, {}
@@ -70,6 +76,9 @@ def do_hindcast(env, params, l1_path, l2_path, max_parallel_downloads=1, max_par
     # print information about grouped products
     print("The products have been grouped into {} group(s).".format(len(l1product_path_groups)))
     print("Each group is handled by an individual thread.")
+
+    # authenticate for earth data api
+    authenticate(env['EARTHDATA']['username'], env['EARTHDATA']['password'])
 
     # do hindcast for every product group
     hindcast_threads = []

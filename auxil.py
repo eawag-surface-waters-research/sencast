@@ -7,6 +7,8 @@ import os
 import re
 import socket
 
+from datetime import datetime
+
 
 project_path = os.path.dirname(__file__)
 
@@ -17,23 +19,28 @@ def init_hindcast(env_file, params_file):
     params, params_file = load_params(params_file, env['General']['params_path'])
 
     # create output path, if it does not exist yet
-    params_name, wkt_name = os.path.splitext(os.path.basename(params_file))[0], params['General']['wkt_name']
-    start, end = params['General']['start'][:10], params['General']['end'][:10]
-    l2_path = env['DIAS']['l2_path'].format(params['General']['sensor'])
-    l2_path = os.path.join(l2_path, "{}_{}_{}_{}".format(params_name, wkt_name, start, end))
+    wkt_name = params['General']['wkt_name']
+    kwargs = {
+        'params_name': os.path.splitext(os.path.basename(params_file))[0],
+        'wkt_name': wkt_name,
+        'start': params['General']['start'][:10],
+        'end': params['General']['end'][:10]
 
-    if os.path.isdir(l2_path) and os.listdir(l2_path):
+    }
+    out_path = os.path.join(env['General']['out_path'].format(**kwargs))
+
+    if os.path.isdir(out_path) and os.listdir(out_path):
         # (re)load params and wkt from existing output folder
         print("Output folder for this run already exists. Reading params from there to ensure comparable results.")
-        params, params_file = load_params(os.path.join(l2_path, os.path.basename(params_file)))
+        params, params_file = load_params(os.path.join(out_path, os.path.basename(params_file)))
         if not params['General']['wkt']:
             params['General']['wkt'], _ = load_wkt("{}.wkt".format(wkt_name), env['General']['wkt_path'])
     else:
         # copy params file to new output folder
-        os.makedirs(l2_path, exist_ok=True)
+        os.makedirs(out_path, exist_ok=True)
         if not params['General']['wkt']:
             params['General']['wkt'], _ = load_wkt("{}.wkt".format(wkt_name), env['General']['wkt_path'])
-        with open(os.path.join(l2_path, os.path.basename(params_file)), "w") as f:
+        with open(os.path.join(out_path, os.path.basename(params_file)), "w") as f:
             params.write(f)
 
     if env.has_section("CDS"):
@@ -43,9 +50,7 @@ def init_hindcast(env_file, params_file):
     if env.has_section("GSW"):
         os.makedirs(env['GSW']['root_path'], exist_ok=True)
 
-    l1_path = env['DIAS']['l1_path'].format(params['General']['sensor'])
-    os.makedirs(l1_path, exist_ok=True)
-    return env, params, l1_path, l2_path
+    return env, params, out_path
 
 
 def load_environment(env_file=None, env_path=os.path.join(project_path, "environments")):
@@ -132,3 +137,32 @@ def get_sensing_date_from_product_name(product_name):
 
 def get_sensing_datetime_from_product_name(product_name):
     return re.findall(r"\d{8}T\d{6}", product_name)[0]
+
+
+def get_l1product_path(env, product_name):
+    if product_name.startswith("S3A") or product_name.startswith("S3B"):
+        satellite = "Sentinel-3"
+        sensor = "OLCI"
+        dataset = product_name[4:12]
+        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%dT%H%M%S")
+    elif product_name.startswith("S2A") or product_name.startswith("S2B"):
+        satellite = "Sentinel-2"
+        sensor = "MSI"
+        dataset = product_name[7:10]
+        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%dT%H%M%S")
+    else:
+        raise RuntimeError("Unable to retrieve satellite from product name: {}".format(product_name))
+
+    kwargs = {
+        'product_name': product_name,
+        'satellite': satellite,
+        'sensor': sensor,
+        'dataset': dataset,
+        'year': date.strftime(r"%Y"),
+        'month': date.strftime(r"%m"),
+        'day': date.strftime(r"%d"),
+        'hour': date.strftime(r"%H"),
+        'minute': date.strftime(r"%M"),
+        'second': date.strftime(r"%S"),
+    }
+    return env['DIAS']['l1_path'].format(**kwargs)
