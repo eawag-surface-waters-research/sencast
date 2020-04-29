@@ -105,18 +105,18 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
             raise RuntimeError("Pixelwise geocoding is not activated for S3TBX, please check the settings in SNAP!")
         product.closeIO()
 
-    # only process products, which are really necessary
-    if len(l1product_paths) in [2, 4]:
-        n_group_old = len(l1product_paths)
-        l1product_paths, covered = minimal_subset_of_products(l1product_paths, params['General']['wkt'])
-        n_group_new = len(l1product_paths)
-        if n_group_old != n_group_new:
-            print("Group has been reduced from {} to {} necessary product(s)".format(n_group_old, n_group_new))
-
     with semaphores['process']:
-        # process the products
+        # only process products, which are really necessary
+        if len(l1product_paths) in [2, 4]:
+            n_group_old = len(l1product_paths)
+            l1product_paths, covered = minimal_subset_of_products(l1product_paths, params['General']['wkt'])
+            n_group_new = len(l1product_paths)
+            if n_group_old != n_group_new:
+                print("Group has been reduced from {} to {} necessary product(s)".format(n_group_old, n_group_new))
+
         l2product_files = {}
         for processor in list(filter(None, params['General']['processors'].split(","))):
+            # import processor
             if processor == "IDEPIX":
                 from processors.idepix.idepix import process
             elif processor == "C2RCC":
@@ -128,6 +128,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
             else:
                 raise RuntimeError("Unknown processor: {}".format(processor))
 
+            # apply processor to all products
             for l1product_path in l1product_paths:
                 if l1product_path not in l2product_files.keys():
                     l2product_files[l1product_path] = {}
