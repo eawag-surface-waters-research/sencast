@@ -19,8 +19,8 @@ def mosaic(env, params, product_files):
 
     # determine the output filename
     product_filename = os.path.basename(product_files[0])
-    date = get_sensing_date_from_prodcut_name(product_filename) + "T000000"
-    output_filename = "{}_{}_mosaic.nc".format(product_filename[0:product_filename.find(date)], date)
+    date = get_sensing_date_from_prodcut_name(product_filename)
+    output_filename = "{}_{}_mosaic.nc".format(product_filename[0:product_filename.find(date)], date + "T000000")
     output_file = os.path.join(os.path.dirname(product_files[0]), output_filename)
 
     # check if output already exists
