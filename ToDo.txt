@@ -1,5 +1,6 @@
-- OZA, VZA, SZA, SAA missing in Polymer products!
 - Merge output into single NC file
 - Distinguish between NRT and NTC data (OLCI)
-- Flags for mosaiced products (MSI)
-- Masks for mosaiced products (MSI)
+- Flags for mosaiced products
+- Masks for mosaiced products
+- Console independent logger
+- Thread specific logger
