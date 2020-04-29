@@ -4,3 +4,4 @@
 - Masks for mosaiced products
 - Console independent logger
 - Thread specific logger
+- MPH not working for partial products (OLCI)
