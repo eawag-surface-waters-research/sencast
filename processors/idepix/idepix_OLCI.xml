@@ -55,7 +55,7 @@
 		</sources>
 		<parameters>
 			<file>${outputFile}</file>
-			<formatName>NetCDF-BEAM</formatName>
+			<formatName>NetCDF4-BEAM</formatName>
 		</parameters>
 	</node>
 </graph>
