@@ -149,7 +149,11 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 l2product_files[processor] = tmp[0]
             elif len(tmp) > 1:
                 from processors.mosaic.mosaic import mosaic
-                l2product_files[processor] = mosaic(env, params, tmp)
+                try:
+                    l2product_files[processor] = mosaic(env, params, tmp)
+                except Exception:
+                    print("An error occured while applying MOSAIC to products: {}".format(tmp))
+                    traceback.print_exc()
         for l1product_path in l1product_paths:
             del(l2product_files[l1product_path])
 
