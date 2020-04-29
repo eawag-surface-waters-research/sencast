@@ -67,4 +67,5 @@ def nc_to_json(input_file, output_file, variable_name, value_read_expression):
 def notify_datalakes(api_key):
     response = requests.get(NOTIFY_URL, auth=api_key)
     if response.status_code != requests.codes.OK:
-        print("Could not notify Datalakes about new data. Unexpected response: {}".format(response.text))
+        print("Warning: Could not notify Datalakes about new data. Unexpected response: {}, {}"
+              .format(response.status_code, response.text))
