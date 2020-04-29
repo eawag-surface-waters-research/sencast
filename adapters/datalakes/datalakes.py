@@ -25,15 +25,12 @@ def apply(env, params, l2product_files):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
     print("Applying datalakes...")
 
-    date = get_sensing_date_from_prodcut_name(os.path.basename(l2product_files['IDEPIX']))
-    out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'], date)
-    os.makedirs(out_path, exist_ok=True)
-    if os.listdir(out_path):
-        print("Skipping Datalakes. Target already contains data: {}".format(out_path))
-
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
+            date = get_sensing_date_from_prodcut_name(os.path.basename(l2product_files[processor]))
+            out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'], date)
+            os.makedirs(out_path, exist_ok=True)
             for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
                 output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
                 if os.path.exists(output_file):
