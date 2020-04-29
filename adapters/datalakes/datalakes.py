@@ -28,7 +28,8 @@ def apply(env, params, l2product_files):
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
-            date = get_sensing_date_from_prodcut_name(os.path.basename(l2product_files[processor]))
+            l2product_file = l2product_files[processor]
+            date = get_sensing_date_from_prodcut_name(os.path.basename(l2product_file))
             out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'], date)
             os.makedirs(out_path, exist_ok=True)
             for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
@@ -36,13 +37,11 @@ def apply(env, params, l2product_files):
                 if os.path.exists(output_file):
                     print("Skipping Datalakes. Target already exists: {}".format(output_file))
                 else:
-                    nc_to_json(l2product_files[processor], output_file, band, lambda v: round(float(v), 6))
-
-    for _, l2product_file in l2product_files.items():
-        with open(l2product_file, "rb") as f:
-            nc_bytes = f.read()
-        with open(os.path.join(out_path, os.path.basename(l2product_file)), "wb") as f:
-            f.write(nc_bytes)
+                    nc_to_json(l2product_file, output_file, band, lambda v: round(float(v), 6))
+            with open(l2product_file, "rb") as f:
+                nc_bytes = f.read()
+            with open(os.path.join(out_path, os.path.basename(l2product_file)), "wb") as f:
+                f.write(nc_bytes)
 
     notify_datalakes(env['DATALAKES']['api_key'])
 
