@@ -3,6 +3,7 @@
 
 import os
 import time
+import traceback
 
 from requests.auth import HTTPBasicAuth
 from snappy import ProductIO
@@ -135,6 +136,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                         process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
                 except Exception:
                     print("An error occured while applying {} to product: {}".format(processor, l1product_path))
+                    traceback.print_exc()
 
         # mosaic outputs
         for processor in list(filter(None, params['General']['processors'].split(","))):
@@ -166,3 +168,4 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 apply(env, params, l2product_files)
             except Exception:
                 print("An error occured while applying {} to product: {}".format(adapter, l1product_path))
+                traceback.print_exc()
