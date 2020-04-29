@@ -3,7 +3,7 @@
 
 import sys
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 sys.path.append("/prj/sentinel-hindcast")
 
@@ -12,8 +12,7 @@ from main import hindcast
 
 params, params_file = load_params("/prj/datalakes/datalakes_sui_S3.ini")
 params['General']['start'] = params['General']['end']
-params['General']['end'] = (datetime.combine(date.today(), datetime.min.time()) - timedelta(days=5, seconds=1))\
-    .strftime(r"%Y-%m-%dT%H:%M:%SZ")
+params['General']['end'] = (date.today() - timedelta(days=5)).strftime(r"%Y-%m-%dT%H:%M:%SZ")
 with open(params_file, "w") as f:
     params.write(f)
 
