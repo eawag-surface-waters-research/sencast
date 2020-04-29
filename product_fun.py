@@ -18,10 +18,10 @@ def get_corner_pixels_roi(product_path, wkt):
     ll_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(min(lats), min(lons)), None)
     lr_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(min(lats), max(lons)), None)
 
-    UL = [int(ul_pos.y) if (0 <= ul_pos.x < h) else 0, int(ul_pos.x) if (0 <= ul_pos.x < w) else 0]
-    UR = [int(ul_pos.y) if (0 <= ur_pos.x < h) else 0, int(ul_pos.x) if (0 <= ur_pos.x < w) else w]
-    LL = [int(ul_pos.y) if (0 <= ll_pos.x < h) else h, int(ul_pos.x) if (0 <= ll_pos.x < w) else 0]
-    LR = [int(ul_pos.y) if (0 <= lr_pos.x < h) else h, int(ul_pos.x) if (0 <= lr_pos.x < w) else w]
+    UL = [int(ul_pos.y) if (0 <= ul_pos.y < h) else 0, int(ul_pos.x) if (0 <= ul_pos.x < w) else 0]
+    UR = [int(ur_pos.y) if (0 <= ur_pos.y < h) else 0, int(ur_pos.x) if (0 <= ur_pos.x < w) else w]
+    LL = [int(ll_pos.y) if (0 <= ll_pos.y < h) else h, int(ll_pos.x) if (0 <= ll_pos.x < w) else 0]
+    LR = [int(lr_pos.y) if (0 <= lr_pos.y < h) else h, int(lr_pos.x) if (0 <= lr_pos.x < w) else w]
 
     product.closeIO()
     return UL, UR, LR, LL
