@@ -66,6 +66,7 @@ def search(auth, query):
 
 
 def download(auth, uuid, filename):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     response = requests.get(download_address.format(uuid), auth=auth, stream=True)
     if response.status_code == codes.OK:
         with open(filename + '.zip', 'wb') as down_stream:

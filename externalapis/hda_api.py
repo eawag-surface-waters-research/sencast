@@ -191,6 +191,7 @@ def wait_for_dataorder_to_complete(access_token, order_id):
 
 def dataorder_download(access_token, order_id, filename):
     print("Downloading data from {}".format(dataorder_download_address.format(order_id)))
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     headers = {'authorization': access_token}
     response = requests.get(dataorder_download_address.format(order_id), headers=headers, stream=True)
     if response.status_code == codes.OK:
