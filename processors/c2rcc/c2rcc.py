@@ -70,8 +70,8 @@ def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_pr
         surf_press = round(ancillary.get("surf_press", date)[coords])
         xml = xml.replace("${press}", str(surf_press))
     except Exception:
-        xml = xml.replace("${ozone}", "")
-        xml = xml.replace("${press}", "")
+        xml = xml.replace("${ozone}", "330")
+        xml = xml.replace("${press}", "1000")
 
     xml = xml.replace("${validPixelExpression}", validexpression)
     xml = xml.replace("${salinity}", str(0.05))
