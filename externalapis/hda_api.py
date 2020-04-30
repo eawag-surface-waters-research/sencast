@@ -12,6 +12,8 @@ from zipfile import ZipFile
 
 from product_fun import get_lons_lats
 
+# Documentation for HDA API can be found here:
+# https://wekeo-broker.apps.mercator.dpi.wekeo.eu/databroker/ui/
 
 # HDA-API endpoint address
 api_endpoint = "https://wekeo-broker.apps.mercator.dpi.wekeo.eu"

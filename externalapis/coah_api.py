@@ -8,6 +8,8 @@ from requests.status_codes import codes
 from xml.etree import ElementTree
 from zipfile import ZipFile
 
+# Documentation for COAH API can be found here:
+# https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/BatchScripting?redirectedfrom=SciHubUserGuide.8BatchScripting
 
 # HDA-API endpoint address
 api_endpoint = "https://scihub.copernicus.eu/dhus"
