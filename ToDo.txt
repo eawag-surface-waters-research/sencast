@@ -1,10 +1,10 @@
 - Merge output into single NC file
+- Wavelength metadata for polymer
 - Distinguish between NRT and NTC data (OLCI)
-- Flags for mosaiced products
-- Masks for mosaiced products
-- Console independent logger
-- Thread specific logger
-- MPH not working for partial products (OLCI)
-- use CreoDIAS' own eodata as source instead of downloading them from COAH
+- Flags for mosaiced products are missing -> add some logic to create them
+- Masks for mosaiced products are missing -> add some logic to create them
+- Implement a logger that writes the log to a file (one file per product group)
+- MPH not working for partial products which come from Idepix (date: 2020-04-20, wkt: sui)
+- use CreoDIAS' own eodata as source instead of downloading them from COAH (configure in environment file)
 - MPH immersed_cyanobacteria transparent anstatt dunkelblau bei 0
 - fix strange S2 polymer forms when mosaiced
