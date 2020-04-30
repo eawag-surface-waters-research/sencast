@@ -6,5 +6,7 @@
 - Implement a logger that writes the log to a file (one file per product group)
 - MPH not working for partial products which come from Idepix (date: 2020-04-20, wkt: sui)
 - use CreoDIAS' own eodata as source instead of downloading them from COAH (configure in environment file)
-- MPH immersed_cyanobacteria transparent anstatt dunkelblau bei 0
+- implement CreoDIAS as remote DIAS API (https://creodias.eu/eo-data-finder-api-manual)
+- MPH immersed_cyanobacteria is transparent instead of dark blue at zero values (QL)
+- implement post processing filtering of non-physical/impossible values
 - fix strange S2 polymer forms when mosaiced
