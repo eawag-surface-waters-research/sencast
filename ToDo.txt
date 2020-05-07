@@ -1,5 +1,15 @@
+James:
 - Merge output into single NC file
+
+Jasmin:
+- implement post processing filtering of non-physical/impossible values
+- fix strange S2 polymer forms when mosaicked (check with a few Lake Constance images)
+- add oc-flourescence algorithm
+
+Dani:
 - Wavelength metadata for polymer
+
+TBD:
 - Distinguish between NRT and NTC data (OLCI)
 - Flags for mosaiced products are missing -> add some logic to create them
 - Masks for mosaiced products are missing -> add some logic to create them
@@ -8,5 +18,3 @@
 - use CreoDIAS' own eodata as source instead of downloading them from COAH (configure in environment file)
 - implement CreoDIAS as remote DIAS API (https://creodias.eu/eo-data-finder-api-manual)
 - MPH immersed_cyanobacteria is transparent instead of dark blue at zero values (QL)
-- implement post processing filtering of non-physical/impossible values
-- fix strange S2 polymer forms when mosaiced
