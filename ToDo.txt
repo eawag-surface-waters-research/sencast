@@ -1,20 +1,24 @@
 James:
-- Merge output into single NC file
+CURRENT - Distinguish between NRT and NTC data (OLCI)
+- Merge output into single nc file
+- PP method integration (Soomets et al.)
 
 Jasmin:
-- implement post processing filtering of non-physical/impossible values
+CURRENT - implement post processing filtering of non-physical/impossible values
 - fix strange S2 polymer forms when mosaicked (check with a few Lake Constance images)
-- add oc-flourescence algorithm
 
 Dani:
+CURRENT - Select bands for datalakes adapter & PP algorithm
 - Wavelength metadata for polymer
 
-TBD:
-- Distinguish between NRT and NTC data (OLCI)
+Minor:
 - Flags for mosaiced products are missing -> add some logic to create them
 - Masks for mosaiced products are missing -> add some logic to create them
 - Implement a logger that writes the log to a file (one file per product group)
 - MPH not working for partial products which come from Idepix (date: 2020-04-20, wkt: sui)
-- use CreoDIAS' own eodata as source instead of downloading them from COAH (configure in environment file)
 - implement CreoDIAS as remote DIAS API (https://creodias.eu/eo-data-finder-api-manual)
 - MPH immersed_cyanobacteria is transparent instead of dark blue at zero values (QL)
+
+Newly discovered by Dani:
+- if choosing only 'C2RCC' or 'L-FLUO' as processors, IDEPIX is no longer applied automatically
+- Repeating a job with the same .ini but different processors will execute the previous .ini saved in .reproducibility

@@ -132,6 +132,10 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from processors.c2rcc.c2rcc import process
             elif processor == "POLYMER":
                 from processors.polymer.polymer import process
+            elif processor == "L_FLUO":
+                from processors.fluo.l_fluo import process
+            elif processor == "R_FLUO":
+                from processors.fluo.r_fluo import process
             elif processor == "MPH":
                 from processors.mph.mph import process
             else:

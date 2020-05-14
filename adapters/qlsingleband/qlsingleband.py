@@ -467,7 +467,19 @@ def get_tick_positions(lower, upper, n_ticks):
 
 
 def get_legend_str(layer_str):  # '$\mathbf{Secchi\/depth\/[m]}$'
-    if layer_str in ['lswt']:
+    if layer_str in ['L_CHL']:
+        legend_str = r'$\mathbf{[mg/m^3]}$'
+        title_str = r'$\mathbf{L-Fluo\/CHL}$'
+        log = False
+    elif layer_str in ['L_FPH']:
+        legend_str = r'$\mathbf{[mW\/m^{-2}\/sr^{-1}\/nm^{-1}]}$'
+        title_str = r'$\mathbf{L-Fluo\/phytoplankton\/fluorescence}$'
+        log = False
+    elif layer_str in ['L_APD']:
+        legend_str = r'$\mathbf{[mW\/m^{-2}\/sr^{-1}\/nm^{-1}]}$'
+        title_str = r'$\mathbf{L-Fluo\/phytoplankton\/absorption}$'
+        log = False
+    elif layer_str in ['lswt']:
         legend_str = r'$\mathbf{[deg.\/K]}$'
         title_str = r'$\mathbf{LSWT}$'
         log = False
