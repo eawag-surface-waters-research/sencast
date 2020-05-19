@@ -23,7 +23,8 @@ def get_download_requests(auth, start, end, sensor, resolution, wkt):
     query = "instrumentshortname:{}+AND+producttype:{}+AND+beginPosition:[{}+TO+{}]+AND+footprint:\"Intersects({})\""
     datatype = get_dataset_id(sensor, resolution)
     query = query.format(sensor.lower(), datatype, start, end, wkt)
-    uuids, product_names = search(auth, query)
+    uuids, product_names, timelinesss, beginpositions, endpositions = search(auth, query)
+    uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
 
 
@@ -42,9 +43,37 @@ def get_dataset_id(sensor, resolution):
         raise RuntimeError("COAH API is not yet implemented for sensor: {}".format(sensor))
 
 
+def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions):
+    num_products = len(uuids)
+    uuids_filtered, product_names_filtered, positions, timelinesss_filtered = [], [], [], []
+    for i in range(num_products):
+        curr_pos = (beginpositions[i], endpositions[i])
+        if curr_pos in positions:
+            curr_proj_idx = positions.index(curr_pos)
+            if timelinesss[i] == 'Non Time Critical' and timelinesss_filtered[curr_proj_idx] == 'Near Real Time':
+                timelinesss_filtered[curr_proj_idx] = timelinesss[i]
+                uuids_filtered[curr_proj_idx] = uuids[i]
+                product_names_filtered[curr_proj_idx] = product_names[i]
+                positions[curr_proj_idx] = (beginpositions[i], endpositions[i])
+            elif timelinesss[i] == 'Near Real Time' and timelinesss_filtered[curr_proj_idx] == 'Non Time Critical':
+                continue
+            else:
+                timelinesss_filtered.append(timelinesss[i])
+                uuids_filtered.append(uuids[i])
+                product_names_filtered.append(product_names[i])
+                positions.append((beginpositions[i], endpositions[i]))
+        else:
+            timelinesss_filtered.append(timelinesss[i])
+            uuids_filtered.append(uuids[i])
+            product_names_filtered.append(product_names[i])
+            positions.append((beginpositions[i], endpositions[i]))
+    return uuids_filtered, product_names_filtered
+
+
 def search(auth, query):
     print("Search for products: {}".format(query))
     uuids, filenames = [], []
+    timelinesss, beginpositions, endpositions = [], [], []
     start, rows = 0, 100
     while True:
         response = requests.get(search_address.format(query, start, rows), auth=auth)
@@ -56,13 +85,20 @@ def search(auth, query):
                         uuids.append(str_property.text)
                     elif str_property.attrib['name'] == "filename":
                         filenames.append(str_property.text)
+                    elif str_property.attrib['name'] == "timeliness":
+                        timelinesss.append(str_property.text)
+                for date_property in entry.findall(prepend_ns("date")):
+                    if date_property.attrib['name'] == "beginposition":
+                        beginpositions.append(date_property.text)
+                    elif date_property.attrib['name'] == "endposition":
+                        endpositions.append(date_property.text)
             has_next_page = False
             for link in root.findall(prepend_ns('link')):
                 if link.attrib['rel'] == "next":
                     start = start + rows
                     has_next_page = True
             if not has_next_page:
-                return uuids, filenames
+                return uuids, filenames, timelinesss, beginpositions, endpositions
         else:
             raise RuntimeError("Unexpeted response: {}".format(response.text))
 
