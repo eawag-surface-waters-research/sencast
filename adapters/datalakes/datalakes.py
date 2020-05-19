@@ -32,18 +32,18 @@ def apply(env, params, l2product_files):
             date = get_sensing_date_from_product_name(os.path.basename(l2product_file))
             out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'], date)
             os.makedirs(out_path, exist_ok=True)
-            for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
-                output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
-                if os.path.exists(output_file):
-                    print("Skipping Datalakes. Target already exists: {}".format(output_file))
-                else:
+            if os.path.exists(os.path.join(out_path, os.path.basename(l2product_file))):
+                print("Skipping Datalakes. Target already exists: {}".format(os.path.basename(l2product_file)))
+            else:
+                for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
+                    output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
                     nc_to_json(l2product_file, output_file, band, lambda v: round(float(v), 6))
-            with open(l2product_file, "rb") as f:
-                nc_bytes = f.read()
-            with open(os.path.join(out_path, os.path.basename(l2product_file)), "wb") as f:
-                f.write(nc_bytes)
+                with open(l2product_file, "rb") as f:
+                    nc_bytes = f.read()
+                with open(os.path.join(out_path, os.path.basename(l2product_file)), "wb") as f:
+                    f.write(nc_bytes)
 
-    notify_datalakes(env['DATALAKES']['api_key'])
+        notify_datalakes(env['DATALAKES']['api_key'])
 
 
 def nc_to_json(input_file, output_file, variable_name, value_read_expression):
