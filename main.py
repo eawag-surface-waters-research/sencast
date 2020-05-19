@@ -34,8 +34,11 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     elif env['General']['remote_dias_api'] == "HDA":
         from externalapis.hda_api import get_download_requests, do_download
         auth = HTTPBasicAuth(env['HDA']['username'], env['HDA']['password'])
+    elif env['General']['remote_dias_api'] == "CREODIAS":
+        from externalapis.creodias_api import get_download_requests, do_download
+        auth = [env['CREODIAS']['username'], env['CREODIAS']['password']]
     else:
-        raise RuntimeError("Unknown DIAS API: {} (possible options are 'HDA' or 'COAH').".format(env['General']['API']))
+        raise RuntimeError("Unknown DIAS API: {} (possible options are 'HDA', 'CREODIAS' or 'COAH').".format(env['General']['API']))
 
     # find products which match the criterias from params
     start, end = params['General']['start'], params['General']['end']
