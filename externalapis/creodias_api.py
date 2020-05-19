@@ -13,7 +13,7 @@ from pathlib import Path
 # https://creodias.eu/eo-data-finder-api-manual
 
 # search address
-search_address = "https://finder.creodias.eu/resto/api/collections/Sentinel3/search.json?{}"
+search_address = "https://finder.creodias.eu/resto/api/collections/{}/search.json?{}"  #Sentinel3
 
 # download address
 download_address = "https://zipper.creodias.eu/download/{}?token={}"
@@ -26,9 +26,9 @@ def get_download_requests(auth, startDate, completionDate, sensor, resolution, w
     query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}"
     maxRecords = 100
     geometry = wkt.replace(" ", "", 1).replace(" ", "+")
-    instrument, productType = get_dataset_id(sensor, resolution)
+    satellite, instrument, productType = get_dataset_id(sensor, resolution)
     query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType)
-    uuids, product_names, timelinesss, beginpositions, endpositions = search(query)
+    uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
 
@@ -66,19 +66,21 @@ def do_download(auth, download_request, product_path):
 
 def get_dataset_id(sensor, resolution):
     if sensor == 'OLCI' and int(resolution) < 1000:
-        return 'OL', 'EFR'
+        return 'Sentinel3', 'OL', 'EFR'
     elif sensor == 'OLCI' and int(resolution) >= 1000:
-        return 'OL', 'ERR'
+        return 'Sentinel3', 'OL', 'ERR'
+    elif sensor == 'MSI':
+        return 'Sentinel2', 'MSI', ''
     else:
         raise RuntimeError("CREODIAS API is not yet implemented for sensor: {}".format(sensor))
 
 
-def search(query):
+def search(satellite, query):
     print("Search for products: {}".format(query))
     uuids, filenames = [], []
     timelinesss, beginpositions, endpositions = [], [], []
     while True:
-        response = requests.get(search_address.format(query))
+        response = requests.get(search_address.format(satellite, query))
         if response.status_code == codes.OK:
             root = response.json()
             for feature in root['features']:

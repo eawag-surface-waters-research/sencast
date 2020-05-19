@@ -1,24 +1,29 @@
 James:
-CURRENT - Distinguish between NRT and NTC data (OLCI)
 - Merge output into single nc file
 - PP method integration (Soomets et al.)
 
 Jasmin:
-CURRENT - implement post processing filtering of non-physical/impossible values
-- fix strange S2 polymer forms when mosaicked (check with a few Lake Constance images)
+- C2RCC auxdata doesn't seem to work for S2
+- Review effects of missing auxdata on C2RCC
 
 Dani:
-CURRENT - Select bands for datalakes adapter & PP algorithm
-- Wavelength metadata for polymer
+CURRENT - Select bands for datalakes adapter & PP algorithm (for James until next week)
+CURRENT - implement post processing filtering of non-physical/impossible values
 
-Minor:
+Other:
+- Wavelength metadata for polymer and mosaics
 - Flags for mosaiced products are missing -> add some logic to create them
 - Masks for mosaiced products are missing -> add some logic to create them
 - Implement a logger that writes the log to a file (one file per product group)
 - MPH not working for partial products which come from Idepix (date: 2020-04-20, wkt: sui)
-- implement CreoDIAS as remote DIAS API (https://creodias.eu/eo-data-finder-api-manual)
 - MPH immersed_cyanobacteria is transparent instead of dark blue at zero values (QL)
+- Add Loisel IOP algorithm
 
 Newly discovered by Dani:
 - if choosing only 'C2RCC' or 'L-FLUO' as processors, IDEPIX is no longer applied automatically
 - Repeating a job with the same .ini but different processors will execute the previous .ini saved in .reproducibility
+
+Completed:
+- Distinguish between NRT and NTC data (OLCI)
+- fix strange S2 polymer forms when mosaicked (check with a few Lake Constance images)
+- Enable L1 data access via CreoDIAS API (older Sentinel-2 data)
