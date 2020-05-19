@@ -5,8 +5,9 @@ import os
 import requests
 
 from requests.status_codes import codes
-from xml.etree import ElementTree
+from tqdm import tqdm
 from zipfile import ZipFile
+from pathlib import Path
 
 # Documentation for CREODIAS API can be found here:
 # https://creodias.eu/eo-data-finder-api-manual
@@ -30,6 +31,7 @@ def get_download_requests(auth, startDate, completionDate, sensor, resolution, w
     uuids, product_names, timelinesss, beginpositions, endpositions = search(query)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
+
 
 def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions):
     num_products = len(uuids)
@@ -95,16 +97,26 @@ def download(auth, uuid, filename):
     password = auth[1]
     token = get_token(username, password)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
-    response = requests.get(download_address.format(uuid, token), stream=True)
-    if response.status_code == codes.OK:
-        with open(filename + '.zip', 'wb') as down_stream:
-            for chunk in response.iter_content(chunk_size=65536):
-                down_stream.write(chunk)
-        with ZipFile(filename + '.zip', 'r') as zip_file:
+    url = download_address.format(uuid, token)
+    file_temp = "{}.incomplete".format(filename)
+    try:
+        downloaded_bytes = 0
+        with requests.get(url, stream=True, timeout=100) as req:
+            with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
+                chunk_size = 2 ** 20  # download in 1 MB chunks
+                with open(file_temp, 'wb') as fout:
+                    for chunk in req.iter_content(chunk_size=chunk_size):
+                        if chunk:  # filter out keep-alive new chunks
+                            fout.write(chunk)
+                            progress.update(len(chunk))
+                            downloaded_bytes += len(chunk)
+        with ZipFile(file_temp, 'r') as zip_file:
             zip_file.extractall(os.path.dirname(filename))
-        os.remove(filename + '.zip')
-    else:
-        print("Unexpected response on download request: {}".format(response.text))
+    finally:
+        try:
+            Path(file_temp).unlink()
+        except OSError:
+            pass
 
 
 def get_token(username, password):
