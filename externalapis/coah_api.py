@@ -46,28 +46,31 @@ def get_dataset_id(sensor, resolution):
 def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions):
     num_products = len(uuids)
     uuids_filtered, product_names_filtered, positions, timelinesss_filtered = [], [], [], []
-    for i in range(num_products):
-        curr_pos = (beginpositions[i], endpositions[i])
-        if curr_pos in positions:
-            curr_proj_idx = positions.index(curr_pos)
-            if timelinesss[i] == 'Non Time Critical' and timelinesss_filtered[curr_proj_idx] == 'Near Real Time':
-                timelinesss_filtered[curr_proj_idx] = timelinesss[i]
-                uuids_filtered[curr_proj_idx] = uuids[i]
-                product_names_filtered[curr_proj_idx] = product_names[i]
-                positions[curr_proj_idx] = (beginpositions[i], endpositions[i])
-            elif timelinesss[i] == 'Near Real Time' and timelinesss_filtered[curr_proj_idx] == 'Non Time Critical':
-                continue
+    if len(timelinesss) == num_products:
+        for i in range(num_products):
+            curr_pos = (beginpositions[i], endpositions[i])
+            if curr_pos in positions:
+                curr_proj_idx = positions.index(curr_pos)
+                if timelinesss[i] == 'Non Time Critical' and timelinesss_filtered[curr_proj_idx] == 'Near Real Time':
+                    timelinesss_filtered[curr_proj_idx] = timelinesss[i]
+                    uuids_filtered[curr_proj_idx] = uuids[i]
+                    product_names_filtered[curr_proj_idx] = product_names[i]
+                    positions[curr_proj_idx] = (beginpositions[i], endpositions[i])
+                elif timelinesss[i] == 'Near Real Time' and timelinesss_filtered[curr_proj_idx] == 'Non Time Critical':
+                    continue
+                else:
+                    timelinesss_filtered.append(timelinesss[i])
+                    uuids_filtered.append(uuids[i])
+                    product_names_filtered.append(product_names[i])
+                    positions.append((beginpositions[i], endpositions[i]))
             else:
                 timelinesss_filtered.append(timelinesss[i])
                 uuids_filtered.append(uuids[i])
                 product_names_filtered.append(product_names[i])
                 positions.append((beginpositions[i], endpositions[i]))
-        else:
-            timelinesss_filtered.append(timelinesss[i])
-            uuids_filtered.append(uuids[i])
-            product_names_filtered.append(product_names[i])
-            positions.append((beginpositions[i], endpositions[i]))
-    return uuids_filtered, product_names_filtered
+        return uuids_filtered, product_names_filtered
+    else:
+        return uuids, product_names
 
 
 def search(auth, query):
