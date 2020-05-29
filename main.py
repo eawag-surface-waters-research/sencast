@@ -4,6 +4,7 @@
 import os
 import time
 import traceback
+import sys
 
 from requests.auth import HTTPBasicAuth
 from snappy import ProductIO
@@ -180,6 +181,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from adapters.qlrgb.qlrgb import apply
             elif adapter == "QLSINGLEBAND":
                 from adapters.qlsingleband.qlsingleband import apply
+            elif adapter == "PRIMARYPRODUCTION":
+                from adapters.primaryproduction.primaryproduction import apply
             elif adapter == "DATALAKES":
                 from adapters.datalakes.datalakes import apply
             else:
@@ -188,5 +191,6 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
             try:
                 apply(env, params, l2product_files)
             except Exception:
+                print(sys.exc_info()[0])
                 print("An error occured while applying {} to product: {}".format(adapter, l1product_path))
                 traceback.print_exc()
