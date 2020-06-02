@@ -20,7 +20,7 @@ PARAMS_SECTION = "DATALAKES"
 JSON_FILENAME = "{}_{}.json"
 
 
-def apply(env, params, l2product_files):
+def apply(env, params, l2product_files, date):
     if not env.has_section("DATALAKES"):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
     print("Applying datalakes...")

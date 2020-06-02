@@ -31,7 +31,7 @@ canvas_area = []
 PARAMS_SECTION = "QLSINGLEBAND"
 
 
-def apply(_, params, l2product_files):
+def apply(_, params, l2product_files, date):
     wkt = params['General']['wkt']
     for key in params[PARAMS_SECTION].keys():
         processor = key.upper()
