@@ -6,7 +6,7 @@ this_dir, this_filename = os.path.split(__file__)
 
 # text file with Staehr absorption parametrisation taken from Excel:
 staehr = np.loadtxt(os.path.join(this_dir, 'staehr.csv'), delimiter=',')
-print(staehr)
+print(staehr.shape)
 
 def absorption(Cchl) :
     return staehr[1,:]*(Cchl**(1-staehr[2,:]))
