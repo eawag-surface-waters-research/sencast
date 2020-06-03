@@ -1,6 +1,9 @@
 James:
 - Merge output into single nc file
-- PP method integration (Soomets et al.)
+- PP method integration (Soomets et al.) - In progress
+- Make the notification of failing ERA5 requests more obvious
+- Ensure Datalakes data is reprocessed based on NTC and ERA5 data
+- Investigate requirements for publishing package, and look into containers.
 
 Jasmin:
 - C2RCC auxdata doesn't seem to work for S2
