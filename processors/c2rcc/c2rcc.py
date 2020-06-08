@@ -42,9 +42,16 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))
     if not os.path.isfile(gpt_xml_file):
-        ancillary_path = env['CDS']['era5_path']
-        os.makedirs(ancillary_path, exist_ok=True)
-        ancillary = Ancillary_ERA5(ancillary_path)
+        if params['C2RCC']['ancillary_data'] == 'ERA5':
+            ancillary_path = env['CDS']['era5_path']
+            os.makedirs(ancillary_path, exist_ok=True)
+            ancillary = Ancillary_ERA5(ancillary_path)
+        elif params['C2RCC']['ancillary_data'] == 'EARTHDATA':
+            ancillary_path = env['EARTHDATA']['root_path']
+            os.makedirs(ancillary_path, exist_ok=True)
+            ancillary = ancillary_path
+        else:
+            ancillary = None
         rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary)
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
@@ -69,9 +76,15 @@ def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_pr
         xml = xml.replace("${ozone}", str(ozone))
         surf_press = round(ancillary.get("surf_press", date)[coords])
         xml = xml.replace("${press}", str(surf_press))
+        xml = xml.replace("${useEcmwfAuxData}", "False")
     except Exception:
         xml = xml.replace("${ozone}", "330")
         xml = xml.replace("${press}", "1000")
+        try:
+            ancillary.endswith('METEO')
+            xml = xml.replace("${useEcmwfAuxData}", "True")
+        except Exception:
+            xml = xml.replace("${useEcmwfAuxData}", "False")
 
     xml = xml.replace("${validPixelExpression}", validexpression)
     xml = xml.replace("${salinity}", str(0.05))

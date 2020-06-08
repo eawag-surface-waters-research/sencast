@@ -141,6 +141,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from processors.fluo.r_fluo import process
             elif processor == "MPH":
                 from processors.mph.mph import process
+            elif processor == "SEN2COR":
+                from processors.sen2cor.sen2cor import process
             else:
                 raise RuntimeError("Unknown processor: {}".format(processor))
 

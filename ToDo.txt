@@ -14,6 +14,7 @@ CURRENT - Select bands for datalakes adapter & PP algorithm (for James until nex
 CURRENT - implement post processing filtering of non-physical/impossible values
 
 Other:
+- input_data folders in Creodias are called 'L2' rather than 'L1'
 - Wavelength metadata for polymer and mosaics
 - Flags for mosaiced products are missing -> add some logic to create them
 - Masks for mosaiced products are missing -> add some logic to create them
@@ -24,7 +25,6 @@ Other:
 
 Newly discovered by Dani:
 - if choosing only 'C2RCC' or 'L-FLUO' as processors, IDEPIX is no longer applied automatically
-- Repeating a job with the same .ini but different processors will execute the previous .ini saved in .reproducibility
 
 Completed:
 - Distinguish between NRT and NTC data (OLCI)
