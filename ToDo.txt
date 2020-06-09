@@ -23,6 +23,8 @@ Other:
 - MPH not working for partial products which come from Idepix (date: 2020-04-20, wkt: sui)
 - MPH immersed_cyanobacteria is transparent instead of dark blue at zero values (QL)
 - Add Loisel IOP algorithm
+- RGB output?
+- Moving average smoothing?
 
 Newly discovered by Dani:
 - if choosing only 'C2RCC' or 'L-FLUO' as processors, IDEPIX is no longer applied automatically
