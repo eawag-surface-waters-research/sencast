@@ -1,6 +1,7 @@
 James:
-- Merge output into single nc file
-- PP method integration (Soomets et al.) - In progress
+- Merge output into single nc file - Merge requested
+- PP method integration (Soomets et al.) - Merge requested
+- Implement option to use new paramaeter file even if one exists in output folder - Merge requested
 - Make the notification of failing ERA5 requests more obvious
 - Ensure Datalakes data is reprocessed based on NTC and ERA5 data
 - Investigate requirements for publishing package, and look into containers.
