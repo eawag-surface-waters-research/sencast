@@ -43,6 +43,7 @@ def apply(env, params, l2product_files, date):
     product_name = os.path.basename(product_path)
     product_dir = os.path.join(os.path.dirname(os.path.dirname(product_path)), FILEFOLDER)
     output_file = os.path.join(product_dir, FILENAME.format(product_name))
+    l2product_files["PRIMARYPRODUCTION"] = output_file
     if os.path.isfile(output_file):
         print("Skipping Primary Production, target already exists: {}".format(FILENAME.format(product_name)))
         return output_file
@@ -79,6 +80,9 @@ def apply(env, params, l2product_files, date):
     kd_data = np.zeros(w_kd * h_kd, np.float32)
     kd.readPixels(0, 0, w, h, kd_data)
 
+    if chl_data.shape != kd_data.shape:
+        raise RuntimeError("CHl and KD on different grids. Grid interpolation not yet implemented")
+
     # Create output file
     out_product = Product('PP', 'PP', w, h)
     writer = ProductIO.getProductWriter('NetCDF4-CF')
@@ -91,7 +95,6 @@ def apply(env, params, l2product_files, date):
 
     # Get KdMorel
     KdMorel = 0.0864 + 0.884 * kd_data - 0.00137/kd_data
-    print(KdMorel)
 
     # Calculate primary production
     pp_tni = pp_trapezoidal_numerical_integration(zvals_fine, qpar0, chl_data, KdMorel)

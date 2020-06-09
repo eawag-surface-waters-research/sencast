@@ -6,14 +6,15 @@ import requests
 
 from json import dump
 from netCDF4 import Dataset
+import numpy as np
 
 from auxil import get_sensing_date_from_product_name
 
 
 # the url of the datalakes api
-API_URL = "https://api.datalakesapi.ch/externaldata"
+API_URL = "https://api.datalakes-eawag.ch"
 # the url to post new data notification to
-NOTIFY_URL = API_URL + "/sync/remotesensing"
+NOTIFY_URL = API_URL + "/externaldata/sync/remotesensing"
 # key of the params section for this adapter
 PARAMS_SECTION = "DATALAKES"
 # the file name pattern for json output files
@@ -24,7 +25,6 @@ def apply(env, params, l2product_files, date):
     if not env.has_section("DATALAKES"):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
     print("Applying datalakes...")
-
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
@@ -43,7 +43,7 @@ def apply(env, params, l2product_files, date):
                 with open(os.path.join(out_path, os.path.basename(l2product_file)), "wb") as f:
                     f.write(nc_bytes)
 
-        notify_datalakes(env['DATALAKES']['api_key'])
+    notify_datalakes(env['DATALAKES']['api_key'])
 
 
 def nc_to_json(input_file, output_file, variable_name, value_read_expression):
@@ -55,7 +55,7 @@ def nc_to_json(input_file, output_file, variable_name, value_read_expression):
     lons, lats, values = [], [], []
     for y in range(len(_values)):
         for x in range(len(_values[y])):
-            if _values[y][x]:
+            if _values[y][x] and not np.isnan(_values[y][x]):
                 lons.append(round(float(_lons[x]), 6))
                 lats.append(round(float(_lats[y]), 6))
                 values.append(value_read_expression(_values[y][x]))
@@ -67,4 +67,4 @@ def nc_to_json(input_file, output_file, variable_name, value_read_expression):
 
 def notify_datalakes(api_key):
     print("Notifying Datalakes about new data...")
-    #requests.get(NOTIFY_URL, auth=api_key)
+    requests.get(NOTIFY_URL, auth=api_key)
