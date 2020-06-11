@@ -4,6 +4,7 @@
 import os
 import time
 import traceback
+import sys
 
 from requests.auth import HTTPBasicAuth
 from snappy import ProductIO
@@ -86,7 +87,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     # do hindcast for every product group
     hindcast_threads = []
     for date, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
-        args = (env, params, do_download, auth, download_groups[date], l1product_path_groups[date], l2_path, semaphores)
+        args = (env, params, do_download, auth, download_groups[date], l1product_path_groups[date], l2_path, semaphores, date)
         hindcast_threads.append(Thread(target=hindcast_product_group, args=args))
         hindcast_threads[-1].start()
 
@@ -97,7 +98,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     print("Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
 
 
-def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores):
+def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, date):
     """ hindcast a set of products with the same sensing date """
     # download the products, which are not yet available locally
     for download_request, l1product_path in zip(download_requests, l1product_paths):
@@ -182,13 +183,16 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from adapters.qlrgb.qlrgb import apply
             elif adapter == "QLSINGLEBAND":
                 from adapters.qlsingleband.qlsingleband import apply
+            elif adapter == "PRIMARYPRODUCTION":
+                from adapters.primaryproduction.primaryproduction import apply
             elif adapter == "DATALAKES":
                 from adapters.datalakes.datalakes import apply
             else:
                 raise RuntimeError("Unknown adapter: {}".format(adapter))
 
             try:
-                apply(env, params, l2product_files)
+                apply(env, params, l2product_files, date)
             except Exception:
+                print(sys.exc_info()[0])
                 print("An error occured while applying {} to product: {}".format(adapter, l1product_path))
                 traceback.print_exc()
