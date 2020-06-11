@@ -25,7 +25,7 @@ QL_DIR = "L2POLY-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
 QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
 # The name of the xml file for gpt
-GPT_XML_FILENAME = "polymer.xml"
+GPT_XML_FILENAME = "polymer_{}.xml"
 
 
 def process(env, params, l1product_path, _, out_path):
@@ -71,9 +71,9 @@ def process(env, params, l1product_path, _, out_path):
     os.makedirs(os.path.dirname(poly_tmp_file), exist_ok=True)
     run_atm_corr(l1, l2)
 
-    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME)
+    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor))
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, resolution, wkt)
+        rewrite_xml(gpt_xml_file, sensor, resolution, wkt)
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(poly_tmp_file),
             "-PoutputFile={}".format(output_file)]
@@ -83,8 +83,8 @@ def process(env, params, l1product_path, _, out_path):
     return output_file
 
 
-def rewrite_xml(gpt_xml_file, resolution, wkt):
-    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME), "r") as f:
+def rewrite_xml(gpt_xml_file, sensor, resolution, wkt):
+    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor)), "r") as f:
         xml = f.read()
 
     reproject_params = get_reproject_params_from_wkt(wkt, resolution)

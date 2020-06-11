@@ -253,6 +253,7 @@
 			<thresholdRtosaOOS>${thresholdRtosaOOS}</thresholdRtosaOOS>
 			<thresholdAcReflecOos>${thresholdAcReflecOos}</thresholdAcReflecOos>
 			<thresholdCloudTDown865>${thresholdCloudTDown865}</thresholdCloudTDown865>
+            <useEcmwfAuxData>${useEcmwfAuxData}</useEcmwfAuxData>
 			<alternativeNNPath>${alternativeNNPath}</alternativeNNPath>
 		</parameters>
 	</node>

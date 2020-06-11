@@ -1,6 +1,10 @@
 James:
-- Merge output into single nc file
-- PP method integration (Soomets et al.)
+- Merge output into single nc file - Merge requested
+- PP method integration (Soomets et al.) - Merge requested
+- Implement option to use new paramaeter file even if one exists in output folder - Merge requested
+- Make the notification of failing ERA5 requests more obvious
+- Ensure Datalakes data is reprocessed based on NTC and ERA5 data (will overwite for new input files, need logic for run dates)
+- Investigate requirements for publishing package, and look into containers.
 
 Jasmin:
 - C2RCC auxdata doesn't seem to work for S2
@@ -11,6 +15,7 @@ CURRENT - Select bands for datalakes adapter & PP algorithm (for James until nex
 CURRENT - implement post processing filtering of non-physical/impossible values
 
 Other:
+- input_data folders in Creodias are called 'L2' rather than 'L1'
 - Wavelength metadata for polymer and mosaics
 - Flags for mosaiced products are missing -> add some logic to create them
 - Masks for mosaiced products are missing -> add some logic to create them
@@ -18,10 +23,11 @@ Other:
 - MPH not working for partial products which come from Idepix (date: 2020-04-20, wkt: sui)
 - MPH immersed_cyanobacteria is transparent instead of dark blue at zero values (QL)
 - Add Loisel IOP algorithm
+- RGB output?
+- Moving average smoothing?
 
 Newly discovered by Dani:
 - if choosing only 'C2RCC' or 'L-FLUO' as processors, IDEPIX is no longer applied automatically
-- Repeating a job with the same .ini but different processors will execute the previous .ini saved in .reproducibility
 
 Completed:
 - Distinguish between NRT and NTC data (OLCI)

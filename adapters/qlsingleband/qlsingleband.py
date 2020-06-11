@@ -523,6 +523,10 @@ def get_legend_str(layer_str):  # '$\mathbf{Secchi\/depth\/[m]}$'
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{MPH}$'
         log = False
+    elif layer_str == 'NDVI':
+        legend_str = r'$\mathbf{[dl}$'
+        title_str = r'$\mathbf{NDVI}$'
+        log = False
     elif layer_str == 'iop_bwit':
         legend_str = r'$\mathbf{[m^{-1}]}$'
         title_str = r'$\mathbf{C2RCC\/b_{wit}}$'
