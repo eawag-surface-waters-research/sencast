@@ -22,7 +22,7 @@ PARAMS_SECTION = "POLYMER"
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L2POLY"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = "L2POLY_L1P_reproj_{}.nc"
+OUT_FILENAME = "L2POLY_L1P_reproj_{}_{}.nc"
 # A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
 QL_DIR = "L2POLY-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
@@ -42,22 +42,24 @@ def process(env, params, l1product_path, _, out_path):
     os.makedirs(gsw_path, exist_ok=True)
     os.makedirs(ancillary_path, exist_ok=True)
 
-    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
-    if os.path.isfile(output_file):
-        print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(product_name)))
-        return output_file
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-
     try:
         date = datetime.strptime(date_str, "%Y%m%dT%H%M%S")
         lons, lats = get_lons_lats(wkt)
         coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
         ancillary = Ancillary_ERA5(directory=ancillary_path)
-        ozone = round(ancillary.get("ozone", date)[coords])
+        ozone = round(ancillary.get("ozone", date)[coords])  # Test can retrieve parameters
+        anc_name = "ERA5"
         print("Polymer collected ERA5 ancillary data.")
     except Exception:
         ancillary = None
+        anc_name = "NA"
         print("Polymer failed to collect ERA5 ancillary data.")
+
+    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
+    if os.path.isfile(output_file):
+        print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
+        return output_file
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     if sensor == "MSI":
         granule_path = os.path.join(l1product_path, "GRANULE")
