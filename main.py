@@ -187,6 +187,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from adapters.primaryproduction.primaryproduction import apply
             elif adapter == "DATALAKES":
                 from adapters.datalakes.datalakes import apply
+            elif adapter == "MERGE":
+                from adapters.merge.merge import apply
             else:
                 raise RuntimeError("Unknown adapter: {}".format(adapter))
 
