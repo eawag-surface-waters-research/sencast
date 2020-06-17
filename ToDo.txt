@@ -1,8 +1,6 @@
 James:
 - Merge output into single nc file - Merge requested
-- PP method integration (Soomets et al.) - Merge requested
-- Implement option to use new paramaeter file even if one exists in output folder - Merge requested
-- Make the notification of failing ERA5 requests more obvious
+- Implement option to use new paramaeter file even if one exists in output folder - Ensure all data reprocessed
 - Ensure Datalakes data is reprocessed based on NTC and ERA5 data (will overwite for new input files, need logic for run dates)
 - Investigate requirements for publishing package, and look into containers.
 
@@ -31,5 +29,7 @@ Newly discovered by Dani:
 
 Completed:
 - Distinguish between NRT and NTC data (OLCI)
+- PP method integration (Soomets et al.) 
+- Make the notification of failing ERA5 requests more obvious
 - fix strange S2 polymer forms when mosaicked (check with a few Lake Constance images)
 - Enable L1 data access via CreoDIAS API (older Sentinel-2 data)
