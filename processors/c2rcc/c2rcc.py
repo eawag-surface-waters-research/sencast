@@ -15,7 +15,7 @@ PARAMS_SECTION = "C2RCC"
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L2C2RCC"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = "L2C2RCC_{}.nc"
+OUT_FILENAME = "L2C2RCC_{}_{}.nc"
 # A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
 QL_DIR = "L2C2RCC-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
@@ -34,25 +34,36 @@ def process(env, params, l1product_path, l2product_files, out_path):
     vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
     date_str = get_sensing_datetime_from_product_name(product_name)
 
-    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
+    ancillary_obj = {"ozone": "330", "surf_press": "1000", "useEcmwfAuxData": "False"}
+    anc_name = "NA"
+    if params['C2RCC']['ancillary_data'] == 'ERA5':
+        try:
+            ancillary_path = env['CDS']['era5_path']
+            os.makedirs(ancillary_path, exist_ok=True)
+            ancillary = Ancillary_ERA5(ancillary_path)
+            date = datetime.strptime(date_str, "%Y%m%dT%H%M%S")
+            lons, lats = get_lons_lats(wkt)
+            coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
+            ozone = round(ancillary.get("ozone", date)[coords])
+            surf_press = round(ancillary.get("surf_press", date)[coords])
+            ancillary_obj = {"ozone": ozone, "surf_press": surf_press, "useEcmwfAuxData": "False"}
+            anc_name = "ERA5"
+            print(
+                "C2RCC Ancillary Data successfully retrieved. Ozone: {}, Surface Pressure {}".format(ozone, surf_press))
+        except Exception:
+            print("C2RCC Ancillary Data not retrieved using default values. Ozone: 330, Surface Pressure 1000")
+            if ancillary_path.endwith("METEO"):
+                ancillary_obj["useEcmwfAuxData"] = "True"
+            pass
+
+    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
     if os.path.isfile(output_file):
-        print("Skipping C2RCC, target already exists: {}".format(OUT_FILENAME.format(product_name)))
+        print("Skipping C2RCC, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
         return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))
-    if not os.path.isfile(gpt_xml_file):
-        if params['C2RCC']['ancillary_data'] == 'ERA5':
-            ancillary_path = env['CDS']['era5_path']
-            os.makedirs(ancillary_path, exist_ok=True)
-            ancillary = Ancillary_ERA5(ancillary_path)
-        elif params['C2RCC']['ancillary_data'] == 'EARTHDATA':
-            ancillary_path = env['EARTHDATA']['root_path']
-            os.makedirs(ancillary_path, exist_ok=True)
-            ancillary = ancillary_path
-        else:
-            ancillary = None
-        rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary)
+    rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary_obj)
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(l2product_files['IDEPIX']), "-PoutputFile={}".format(output_file)]
@@ -65,31 +76,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
 def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary):
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor, "")), "r") as f:
         xml = f.read()
-
     altnn_path = os.path.join(os.path.dirname(__file__), "altnn", altnn) if altnn else ""
 
-    date = datetime.strptime(date_str, "%Y%m%dT%H%M%S")
-    lons, lats = get_lons_lats(wkt)
-    coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
-    try:
-        ozone = round(ancillary.get("ozone", date)[coords])
-        xml = xml.replace("${ozone}", str(ozone))
-        surf_press = round(ancillary.get("surf_press", date)[coords])
-        xml = xml.replace("${press}", str(surf_press))
-        xml = xml.replace("${useEcmwfAuxData}", "False")
-        print("C2RCC Ancillary Data successfully retrieved. Ozone: {}, Surface Pressure {}".format(ozone, surf_press))
-    except Exception:
-        xml = xml.replace("${ozone}", "330")
-        xml = xml.replace("${press}", "1000")
-        print("C2RCC Ancillary Data not retrieved using default values. Ozone: 330, Surface Pressure 1000")
-        try:
-            ancillary.endswith('METEO')
-            xml = xml.replace("${useEcmwfAuxData}", "True")
-            print("C2RCC using Ecmwf Aux Data")
-        except Exception:
-            xml = xml.replace("${useEcmwfAuxData}", "False")
-            print("C2RCC not using Ecmwf Aux Data")
-
+    xml = xml.replace("${ozone}", ancillary["ozone"])
+    xml = xml.replace("${press}", ancillary["surf_press"])
+    xml = xml.replace("${useEcmwfAuxData}", ancillary["useEcmwfAuxData"])
     xml = xml.replace("${validPixelExpression}", validexpression)
     xml = xml.replace("${salinity}", str(0.05))
     xml = xml.replace("${temperature}", str(15.0))
