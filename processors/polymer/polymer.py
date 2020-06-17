@@ -4,6 +4,7 @@
 import os
 import subprocess
 from math import ceil, floor
+from datetime import datetime
 
 from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.gsw import GSW
@@ -12,7 +13,9 @@ from polymer.level1_olci import Level1_OLCI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
-from product_fun import get_corner_pixels_roi, get_reproject_params_from_wkt
+from product_fun import get_corner_pixels_roi, get_reproject_params_from_wkt, get_lons_lats
+
+from auxil import load_properties, get_sensing_datetime_from_product_name
 
 # Key of the params section for this processor
 PARAMS_SECTION = "POLYMER"
@@ -33,6 +36,7 @@ def process(env, params, l1product_path, _, out_path):
 
     print("Applying POLYMER...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
+    date_str = get_sensing_datetime_from_product_name(product_name)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     gsw_path, ancillary_path = env['GSW']['root_path'], env['CDS']['era5_path']
     os.makedirs(gsw_path, exist_ok=True)
@@ -44,7 +48,17 @@ def process(env, params, l1product_path, _, out_path):
         return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    ancillary = Ancillary_ERA5(directory=ancillary_path)
+    try:
+        date = datetime.strptime(date_str, "%Y%m%dT%H%M%S")
+        lons, lats = get_lons_lats(wkt)
+        coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
+        ancillary = Ancillary_ERA5(directory=ancillary_path)
+        ozone = round(ancillary.get("ozone", date)[coords])
+        print("Polymer collected ERA5 ancillary data.")
+    except Exception:
+        ancillary = None
+        print("Polymer failed to collect ERA5 ancillary data.")
+
     if sensor == "MSI":
         granule_path = os.path.join(l1product_path, "GRANULE")
         msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
