@@ -22,7 +22,7 @@ mpl.pyplot.switch_backend('agg')
 canvas_area = []
 
 
-def apply(_, params, l2product_files):
+def apply(_, params, l2product_files, date):
     wkt = params['General']['wkt']
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()

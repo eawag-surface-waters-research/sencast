@@ -31,7 +31,7 @@ canvas_area = []
 PARAMS_SECTION = "QLSINGLEBAND"
 
 
-def apply(_, params, l2product_files):
+def apply(_, params, l2product_files, date):
     wkt = params['General']['wkt']
     for key in params[PARAMS_SECTION].keys():
         processor = key.upper()
@@ -522,6 +522,10 @@ def get_legend_str(layer_str):  # '$\mathbf{Secchi\/depth\/[m]}$'
     elif layer_str == 'mph':
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{MPH}$'
+        log = False
+    elif layer_str == 'NDVI':
+        legend_str = r'$\mathbf{[dl}$'
+        title_str = r'$\mathbf{NDVI}$'
         log = False
     elif layer_str == 'iop_bwit':
         legend_str = r'$\mathbf{[m^{-1}]}$'
