@@ -22,7 +22,7 @@ PARAMS_SECTION = "POLYMER"
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L2POLY"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = "L2POLY_L1P_reproj_{}.nc"
+OUT_FILENAME = "L2POLY_L1P_reproj_{}_{}.nc"
 # A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
 QL_DIR = "L2POLY-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
