@@ -77,14 +77,18 @@ def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_pr
         surf_press = round(ancillary.get("surf_press", date)[coords])
         xml = xml.replace("${press}", str(surf_press))
         xml = xml.replace("${useEcmwfAuxData}", "False")
+        print("C2RCC Ancillary Data successfully retrieved. Ozone: {}, Surface Pressure {}".format(ozone, surf_press))
     except Exception:
         xml = xml.replace("${ozone}", "330")
         xml = xml.replace("${press}", "1000")
+        print("C2RCC Ancillary Data not retrieved using default values. Ozone: 330, Surface Pressure 1000")
         try:
             ancillary.endswith('METEO')
             xml = xml.replace("${useEcmwfAuxData}", "True")
+            print("C2RCC using Ecmwf Aux Data")
         except Exception:
             xml = xml.replace("${useEcmwfAuxData}", "False")
+            print("C2RCC not using Ecmwf Aux Data")
 
     xml = xml.replace("${validPixelExpression}", validexpression)
     xml = xml.replace("${salinity}", str(0.05))
