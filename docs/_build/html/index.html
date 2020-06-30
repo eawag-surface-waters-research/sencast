@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Sentinel Hindcast &mdash; Sentinel-Hindcast  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Ubuntu 18" href="ubuntu18_install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home" alt="Documentation Home"> Sentinel-Hindcast
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ubuntu18_install.html">Ubuntu 18</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="environment_config.html">Environment File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters_config.html">Parameter File</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Processors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">c2rcc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo.html">fluo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="idepix.html">Idepix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mosaic.html">Mosaic</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">sentinel-hindcast</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#processors">Processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#adapters">Adapters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#externalapis">externalapis</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Sentinel-Hindcast</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Sentinel Hindcast</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="sentinel-hindcast">
+<h1>Sentinel Hindcast<a class="headerlink" href="#sentinel-hindcast" title="Permalink to this headline">¶</a></h1>
+<a class="reference internal image-reference" href="_images/logo.png"><img alt="Eawag logo" class="align-left" src="_images/logo.png" style="width: 120px;" /></a>
+<p>Sentinel Hindcast is a python toolbox that forms a framework around existing packages for processing
+Sentinel 2 &amp; Sentinel 3 satellite images in order facilitates processing pipelines for deriving water
+quality parameters such as Chlorophyll A, Turbidity, etc.</p>
+<p>It is developed and maintained by the <a class="reference external" href="https://www.eawag.ch/en/department/surf/main-focus/remote-sensing/">SURF Remote Sensing group at Eawag</a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Sentinel hindcast is under active development. The project team are working towards
+the release of a stable v1.0, however for the moment this project remains pre-v1.0.</p>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>To install sentinel-hindcast, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@renkulab</span><span class="o">.</span><span class="n">io</span><span class="p">:</span><span class="n">odermatt</span><span class="o">/</span><span class="n">sentinel</span><span class="o">-</span><span class="n">hindcast</span><span class="o">.</span><span class="n">git</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>Many of the Sentinel-Hindcast processors reply on <a class="reference external" href="http://step.esa.int/main/toolboxes/snap/">SNAP</a> , the SeNtinel Application Platform
+project, funded by the <a class="reference external" href="http://www.esa.int/">European Space Agency</a> (ESA) or other 3rd party packages. In order to have
+access to all of Sentinel Hindcast’s processors follow the installation instructions below in order to
+correctly configure your environment.</p>
+<p>This process will require registering accounts with data providers.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="ubuntu18_install.html#ubuntu18install"><span class="std std-ref">Ubuntu 18</span></a></p></li>
+<li><p><a class="reference internal" href="centos8_install.html#centos8install"><span class="std std-ref">CentOS 8</span></a></p></li>
+<li><p><a class="reference internal" href="windows10_install.html#windows10install"><span class="std std-ref">Windows 10</span></a></p></li>
+</ul>
+<p>For issues with installation, please contact <a class="reference external" href="https://www.eawag.ch/de/ueberuns/portraet/organisation/mitarbeitende/profile/daniel-odermatt/show/">Daniel
+Odermatt</a>.</p>
+</div>
+<div class="section" id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="environment-file">
+<h3>Environment File<a class="headerlink" href="#environment-file" title="Permalink to this headline">¶</a></h3>
+<p>Environment files use the INI format and contain the configuration of
+the machine on which Sentinel Hindcast runs. Refer to <a class="reference internal" href="environment_config.html#environments"><span class="std std-ref">Environment File</span></a>
+for details on how to set up your own environment file.</p>
+<p>You should create your own environment file for every machine you
+install Sentinel Hindcast on.</p>
+</div>
+<div class="section" id="parameter-file">
+<h3>Parameter File<a class="headerlink" href="#parameter-file" title="Permalink to this headline">¶</a></h3>
+<p>Parameter files use the INI format and contain the parameters for one
+execution of Sentinel Hindcast. Refer to <a class="reference internal" href="parameters_config.html#parameters"><span class="std std-ref">Parameter File</span></a>
+for details on how to set up your own parameter file.</p>
+</div>
+<div class="section" id="perimeter-definition">
+<h3>Perimeter Definition<a class="headerlink" href="#perimeter-definition" title="Permalink to this headline">¶</a></h3>
+<p>Perimeter definitions define a geographic area to be processed by
+Sentinel Hndacast. They are stored as polygons in <a class="reference external" href="https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry">WKT</a> files, which
+are referenced from the parameter files. Some example perimeters are stored
+in the wkt folder.</p>
+</div>
+<div class="section" id="data-processing">
+<h3>Data Processing<a class="headerlink" href="#data-processing" title="Permalink to this headline">¶</a></h3>
+<p>Data is preprocessed by a build-in preprocessor which performs
+resampling, subsetting, idepix and reproject operations on the input
+products. Several processors then process the data and save the results
+to disk.</p>
+<p>Sentinel Hindcast offers to interfaces to process data.</p>
+<ul class="simple">
+<li><p>The file-based interface takes a parameter file and an optional
+environment file as input. It reads the file contents and calls the
+object based interface with the read configurations.</p></li>
+<li><p>The object-based interface directly takes an environment and a
+parameters object as well as a path for the L1 (input) products and a
+path for the L2 (output) products.</p></li>
+</ul>
+</div>
+<div class="section" id="adapters">
+<h3>Adapters<a class="headerlink" href="#adapters" title="Permalink to this headline">¶</a></h3>
+<p>Adapters can receive the output of processors and for example send it to
+another service.</p>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ubuntu18_install.html">Ubuntu 18</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windows10_install.html">Windows 10</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="environment_config.html">Environment File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters_config.html">Parameter File</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Processors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">c2rcc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo.html">fluo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="idepix.html">Idepix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mosaic.html">Mosaic</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">sentinel-hindcast</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxil.html">auxil module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#processors">Processors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="idepix_code.html">IDEPIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mph_code.html">MPH</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polymer_code.html">Polymer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c2rcc_code.html">C2RCC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fluo_code.html">FLUO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mosaic_code.html">Mosaic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sen2cor_code.html">Sen2cor</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#adapters">Adapters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="primaryproduction_code.html">Primary Production</a></li>
+<li class="toctree-l2"><a class="reference internal" href="merge_code.html">Merge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datalakes_code.html">Datalakes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qlrgb_code.html">QLRGB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qlsingleband_code.html">QLSingleBand</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#externalapis">externalapis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="coah_api.html">COAH API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="creodias_api.html">CREODIAS API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="earthdata_api.html">Earth Data API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hda_api.html">HDA API</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ubuntu18_install.html" class="btn btn-neutral float-right" title="Ubuntu 18" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Daniel Odermatt, James Runnalls, Rolf Scheuner
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

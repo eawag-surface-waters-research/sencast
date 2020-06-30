@@ -1,0 +1,389 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Windows 10 &mdash; Sentinel-Hindcast  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Environment File" href="environment_config.html" />
+    <link rel="prev" title="CentOS 8" href="centos8_install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sentinel-Hindcast
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ubuntu18_install.html">Ubuntu 18</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="environment_config.html">Environment File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters_config.html">Parameter File</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Processors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">c2rcc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo.html">fluo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="idepix.html">Idepix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mosaic.html">Mosaic</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">sentinel-hindcast</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#processors">Processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#adapters">Adapters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#externalapis">externalapis</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Sentinel-Hindcast</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Windows 10</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/windows10_install.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="windows-10">
+<span id="windows10install"></span><h1>Windows 10<a class="headerlink" href="#windows-10" title="Permalink to this headline">¶</a></h1>
+<p>1.) baramundi Kiosk: <a class="reference external" href="http://soft-prd:10080/Softwarekiosk/default.htm">http://soft-prd:10080/Softwarekiosk/default.htm</a></p>
+<blockquote>
+<div><p>Get following programs from baramundi Kiosk:
+- Git
+- OpenJdk 1.8</p>
+</div></blockquote>
+<p>2.) JAVA_HOME:</p>
+<blockquote>
+<div><p>Set JAVA_HOME to “C:path_to_jdk&quot; (e.g. C:Program FilesAdoptOpenJDKjdk-8.0.242.08-hotspot)</p>
+<p>Add “%JAVA_HOME%bin” to PATH</p>
+<p>Set JDK_HOME to “%JAVA_HOME%”</p>
+</div></blockquote>
+<p>3.) Maven: <a class="reference external" href="http://maven.apache.org/download.cgi">http://maven.apache.org/download.cgi</a></p>
+<blockquote>
+<div><p>Download Maven 3.6.3</p>
+<p>Unzip installation folder and move it to the desired directory (preferred C:Program Files (x86)apache-maven-3.6.3)</p>
+<p>Set MAVEN_HOME to “C:path_to_maven_folder&quot; (e.g. C:Program Files (x86)apache-maven-3.6.3)</p>
+<p>Add “%MAVEN_HOME%bin” to PATH</p>
+<p>Check with: mvn –version</p>
+</div></blockquote>
+<p>4.) Visual C++ Build Tools 2015: <a class="reference external" href="https://go.microsoft.com/fwlink/?LinkId=691126">https://go.microsoft.com/fwlink/?LinkId=691126</a></p>
+<p>5.) Anaconda: <a class="reference external" href="https://www.anaconda.com/distribution/">https://www.anaconda.com/distribution/</a></p>
+<blockquote>
+<div><p>Download Anaconda3</p>
+<p>Install Anaconda3 (prefered to C:Anaconda3)</p>
+<p>Set CONDA_HOME to “C:path_to_anaconda_installation&quot; (e.g. C:Anaconda3)</p>
+<p>Add “%CONDA_HOME%bin” to PATH  (could need to be “%CONDA_HOME%condabin”)</p>
+</div></blockquote>
+<ol class="arabic" start="6">
+<li><p>Anaconda: sentinel-hindcast-37 environment</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Add conda-forge channel to environment:</dt><dd><p>&gt; conda config –add channels conda-forge</p>
+</dd>
+<dt>Create a new environment named “sentinel-hindcast” using Anaconda</dt><dd><p>&gt; conda create –name sentinel-hindcast-37 python=3.7 gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine</p>
+</dd>
+</dl>
+<p>Set CONDA_ENV_HOME to “%CONDA_HOME%envssentinel-hindcast-37”</p>
+</div></blockquote>
+</li>
+</ol>
+<p>6.) Python - jpy: <a class="reference external" href="https://github.com/bcdev/jpy/blob/master/README.md">https://github.com/bcdev/jpy/blob/master/README.md</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>Start a command prompt and do following:</dt><dd><p>&gt; cd “%CONDA_ENV_HOME%Libsite-packages”
+&gt; git clone <a class="reference external" href="https://github.com/bcdev/jpy.git">https://github.com/bcdev/jpy.git</a>
+&gt; cd “jpy”
+&gt; conda activate sentinel-hindcast-37
+&gt; python get-pip.py
+&gt; python setup.py build maven bdist_wheel</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>7.) SNAP: <a class="reference external" href="http://step.esa.int/main/download/">http://step.esa.int/main/download/</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>Uninstall all old versions of SNAP:</dt><dd><ul class="simple">
+<li><p>Uninstall via “Control Panel -&gt; Programs and Features”</p></li>
+<li><p>Choose to delete all user data</p></li>
+<li><p>Check that the SNAP installation folder has been removed completely by uninstalling. Otherwise delete it manually.</p></li>
+<li><p>Delete snappy folder from all your python environments: %PYTHON_HOME%Libsite-packages</p></li>
+<li><p>Delete .snap folder from all user accounts: %USERPROFILE%.snap</p></li>
+<li><p>Delete SNAP Folder from all user accoutns: %USERPROFILE%AppDataRoamingSNAP</p></li>
+</ul>
+</dd>
+</dl>
+<p>Download SNAP</p>
+<p>Install SNAP</p>
+<p>Do not configure SNAP for use with Python yet.</p>
+<p>Run SNAP and install available updates.</p>
+<p>Configure: Tools -&gt; Options -&gt; S3TBX -&gt; Check: Read Sentinel-3 OLCI products with per pixel geo-coding instead of using tie-points</p>
+<p>Configure: Tools -&gt; Plugins -&gt; Available Plugins -&gt; Install all IDEPIX Plugins</p>
+<p>Set SNAP_HOME to “C:path_to_snap_isntallation&quot; (e.g. C:Snap7)</p>
+<p>Close SNAP</p>
+</div></blockquote>
+<p>8.) Python - snappy: <a class="reference external" href="https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md">https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>Start a command prompt and do following:</dt><dd><p>&gt; cd “%SNAP_HOME%bin”
+&gt; xcopy “%CONDA_ENV_HOME%Libsite-packagesjpydist*.whl” “%USERPROFILE%.snapsnap-pythonsnappy&quot;
+&gt; snappy-conf “%CONDA_ENV_HOME%python.exe” “%USERPROFILE%.snapsnap-python”
+&gt; (I had to end the process after about 30 seconds using “Ctrl+C” at this point)
+&gt; cd “%USERPROFILE%.snapsnap-pythonsnappy”
+&gt; conda activate sentinel-hindcast-37
+&gt; python setup.py install
+&gt; xcopy “%USERPROFILE%.snapsnap-pythonsnappytests” “%CONDA_ENV_HOME%Libsite-packagessnappytests&quot;
+&gt; cd “%CONDA_ENV_HOME%Libsite-packagessnappytests”
+&gt; curl –url “<a class="reference external" href="https://raw.githubusercontent.com/bcdev/eo-child-gen/master/child-gen-N1/src/test/resources/com/bc/childgen/MER_RR__1P.N1">https://raw.githubusercontent.com/bcdev/eo-child-gen/master/child-gen-N1/src/test/resources/com/bc/childgen/MER_RR__1P.N1</a>” –output “%CONDA_ENV_HOME%Libsite-packagessnappytestsMER_RR__1P.N1”
+&gt; python test_snappy_mem.py
+&gt; python test_snappy_perf.py
+&gt; python test_snappy_product.py</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>9.) Python - polymer: <a class="reference external" href="https://forum.hygeos.com/viewforum.php?f=5">https://forum.hygeos.com/viewforum.php?f=5</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>Start a command prompt and do following:</dt><dd><p>&gt; cd “%USERPROFILE%AppDataLocalTemp”
+&gt; xcopy “Q:AbteilungsprojekteSurfsurf-DDRSSoftwarePolymerpolymer-v4.13.zip” “%USERPROFILE%AppDataLocalTemp”
+&gt; jar xf “polymer-v4.13.zip”
+&gt; cd “polymer-v4.13”
+&gt; conda activate sentinel-hindcast-37
+&gt; conda install pyhdf pyepr glymur pygrib cdsapi xarray bioconda::ecmwfapi
+&gt; python setup.py build_ext –inplace
+&gt; xcopy “%USERPROFILE%AppDataLocalTemppolymer-v4.13polymer” “%CONDA_ENV_HOME%Libsite-packagespolymer&quot;
+&gt; xcopy “%USERPROFILE%AppDataLocalTemppolymer-v4.13auxdata” “%CONDA_ENV_HOME%Libsite-packagesauxdata&quot;</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>10.) sentinel-hindcast: <a class="reference external" href="https://renkulab.io/gitlab/odermatt/sentinel-hindcast">https://renkulab.io/gitlab/odermatt/sentinel-hindcast</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>Start a command prompt and do following:</dt><dd><p>&gt; cd “C:Projects”
+&gt; mkdir “DIAS”
+&gt; mkdir “datalakes”
+&gt; git clone https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>11.) CDS API: <a class="reference external" href="https://cds.climate.copernicus.eu/api-how-to">https://cds.climate.copernicus.eu/api-how-to</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>Start a command prompt and do following:</dt><dd><p>&gt; echo url: <a class="reference external" href="https://cds.climate.copernicus.eu/api/v2">https://cds.climate.copernicus.eu/api/v2</a> &gt; %USERPROFILE%.cdsapirc
+&gt; echo key: &lt;uid&gt;:&lt;api-key&gt; &gt;&gt; %USERPROFILE%.cdsapirc</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>12.) PyCharm CE: <a class="reference external" href="https://www.jetbrains.com/de-de/pycharm/download/#section=windows">https://www.jetbrains.com/de-de/pycharm/download/#section=windows</a></p>
+<blockquote>
+<div><p>Download PyCharm CE from <a class="reference external" href="https://www.jetbrains.com/de-de/pycharm/download/download-thanks.html?platform=windows&amp;code=PCC">https://www.jetbrains.com/de-de/pycharm/download/download-thanks.html?platform=windows&amp;code=PCC</a></p>
+<p>Install PyCharm CE with default settings</p>
+<p>Launch PyCharm CE</p>
+<p>Open -&gt; C:Projectssentinel-hindcast</p>
+<dl class="simple">
+<dt>Add a Project Interpreter</dt><dd><ul class="simple">
+<li><p>File -&gt; Settings -&gt; Project: sentinel-hindcast -&gt; Gearwheel in the upper right -&gt; Show All…</p></li>
+<li><p>Add (+) -&gt; Conda Environment -&gt; Existing environment -&gt; Interpreter: C:Anaconda3envssentinel-hindcast-37python.exe -&gt; OK -&gt; OK -&gt; OK</p></li>
+<li><p>Give it some time to index files (watch processes in the bottom line to finish)</p></li>
+</ul>
+</dd>
+<dt>Define a running configuration:</dt><dd><ul class="simple">
+<li><p>In the top right “Add Configuration…”</p></li>
+<li><p>In the top left Add (+) -&gt; Python</p></li>
+<li><p>Name: sentinel-hindcast-37</p></li>
+<li><p>Script path: C:Projectssentinel-hindcastsentinel-hindcast.py</p></li>
+<li><p>Python interpreter: Python 3.7 (sentinel-hindcast-37)</p></li>
+<li><p>OK</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<p>You are now set up and ready to start coding as well as running sentinel-hindcast</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="environment_config.html" class="btn btn-neutral float-right" title="Environment File" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="centos8_install.html" class="btn btn-neutral float-left" title="CentOS 8" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Daniel Odermatt, James Runnalls, Rolf Scheuner
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

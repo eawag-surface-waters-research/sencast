@@ -1,0 +1,352 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>sentinelhindcast package &mdash; Sentinel-Hindcast  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sentinel-Hindcast
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ubuntu18_install.html">Ubuntu 18</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="environment_config.html">Environment File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters_config.html">Parameter File</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Processors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">c2rcc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo.html">fluo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="idepix.html">Idepix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mosaic.html">Mosaic</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">sentinel-hindcast</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#processors">Processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#adapters">Adapters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html#externalapis">externalapis</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Sentinel-Hindcast</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>sentinelhindcast package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/sentinelhindcast.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="sentinelhindcast-package">
+<h1>sentinelhindcast package<a class="headerlink" href="#sentinelhindcast-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-externalapis.coah_api">
+<span id="sentinelhindcast-main-module"></span><h2>sentinelhindcast.main module<a class="headerlink" href="#module-externalapis.coah_api" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="externalapis.coah_api.do_download">
+<code class="sig-prename descclassname">externalapis.coah_api.</code><code class="sig-name descname">do_download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">auth</span></em>, <em class="sig-param"><span class="n">download_request</span></em>, <em class="sig-param"><span class="n">product_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#externalapis.coah_api.do_download" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="externalapis.coah_api.download">
+<code class="sig-prename descclassname">externalapis.coah_api.</code><code class="sig-name descname">download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">auth</span></em>, <em class="sig-param"><span class="n">uuid</span></em>, <em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#externalapis.coah_api.download" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="externalapis.coah_api.get_dataset_id">
+<code class="sig-prename descclassname">externalapis.coah_api.</code><code class="sig-name descname">get_dataset_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sensor</span></em>, <em class="sig-param"><span class="n">resolution</span></em><span class="sig-paren">)</span><a class="headerlink" href="#externalapis.coah_api.get_dataset_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="externalapis.coah_api.get_download_requests">
+<code class="sig-prename descclassname">externalapis.coah_api.</code><code class="sig-name descname">get_download_requests</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">auth</span></em>, <em class="sig-param"><span class="n">start</span></em>, <em class="sig-param"><span class="n">end</span></em>, <em class="sig-param"><span class="n">sensor</span></em>, <em class="sig-param"><span class="n">resolution</span></em>, <em class="sig-param"><span class="n">wkt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#externalapis.coah_api.get_download_requests" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="externalapis.coah_api.prepend_ns">
+<code class="sig-prename descclassname">externalapis.coah_api.</code><code class="sig-name descname">prepend_ns</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span></em><span class="sig-paren">)</span><a class="headerlink" href="#externalapis.coah_api.prepend_ns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="externalapis.coah_api.prepend_os">
+<code class="sig-prename descclassname">externalapis.coah_api.</code><code class="sig-name descname">prepend_os</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span></em><span class="sig-paren">)</span><a class="headerlink" href="#externalapis.coah_api.prepend_os" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="externalapis.coah_api.search">
+<code class="sig-prename descclassname">externalapis.coah_api.</code><code class="sig-name descname">search</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">auth</span></em>, <em class="sig-param"><span class="n">query</span></em><span class="sig-paren">)</span><a class="headerlink" href="#externalapis.coah_api.search" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="externalapis.coah_api.timeliness_filter">
+<code class="sig-prename descclassname">externalapis.coah_api.</code><code class="sig-name descname">timeliness_filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">uuids</span></em>, <em class="sig-param"><span class="n">product_names</span></em>, <em class="sig-param"><span class="n">timelinesss</span></em>, <em class="sig-param"><span class="n">beginpositions</span></em>, <em class="sig-param"><span class="n">endpositions</span></em><span class="sig-paren">)</span><a class="headerlink" href="#externalapis.coah_api.timeliness_filter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-auxil">
+<span id="sentinelhindcast-auxil-module"></span><h2>sentinelhindcast.auxil module<a class="headerlink" href="#module-auxil" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="auxil.get_l1product_path">
+<code class="sig-prename descclassname">auxil.</code><code class="sig-name descname">get_l1product_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">product_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#auxil.get_l1product_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="auxil.get_sensing_date_from_product_name">
+<code class="sig-prename descclassname">auxil.</code><code class="sig-name descname">get_sensing_date_from_product_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">product_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#auxil.get_sensing_date_from_product_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="auxil.get_sensing_datetime_from_product_name">
+<code class="sig-prename descclassname">auxil.</code><code class="sig-name descname">get_sensing_datetime_from_product_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">product_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#auxil.get_sensing_datetime_from_product_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="auxil.init_hindcast">
+<code class="sig-prename descclassname">auxil.</code><code class="sig-name descname">init_hindcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env_file</span></em>, <em class="sig-param"><span class="n">params_file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#auxil.init_hindcast" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="auxil.load_environment">
+<code class="sig-prename descclassname">auxil.</code><code class="sig-name descname">load_environment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env_file</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">env_path</span><span class="o">=</span><span class="default_value">'/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast/environments'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#auxil.load_environment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="auxil.load_params">
+<code class="sig-prename descclassname">auxil.</code><code class="sig-name descname">load_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params_file</span></em>, <em class="sig-param"><span class="n">params_path</span><span class="o">=</span><span class="default_value">'/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast/parameters'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#auxil.load_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="auxil.load_properties">
+<code class="sig-prename descclassname">auxil.</code><code class="sig-name descname">load_properties</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">properties_file</span></em>, <em class="sig-param"><span class="n">separator_char</span><span class="o">=</span><span class="default_value">'='</span></em>, <em class="sig-param"><span class="n">comment_char</span><span class="o">=</span><span class="default_value">'#'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#auxil.load_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a properties file into a dict.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="auxil.load_wkt">
+<code class="sig-prename descclassname">auxil.</code><code class="sig-name descname">load_wkt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wkt_file</span></em>, <em class="sig-param"><span class="n">wkt_path</span><span class="o">=</span><span class="default_value">'/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast/wkt'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#auxil.load_wkt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="auxil.set_gpt_cache_size">
+<code class="sig-prename descclassname">auxil.</code><code class="sig-name descname">set_gpt_cache_size</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em><span class="sig-paren">)</span><a class="headerlink" href="#auxil.set_gpt_cache_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="sentinelhindcast-product-fun-module">
+<h2>sentinelhindcast.product_fun module<a class="headerlink" href="#sentinelhindcast-product-fun-module" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-product_fun"></span><dl class="py function">
+<dt id="product_fun.get_coordinates">
+<code class="sig-prename descclassname">product_fun.</code><code class="sig-name descname">get_coordinates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wkt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#product_fun.get_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="product_fun.get_corner_pixels_roi">
+<code class="sig-prename descclassname">product_fun.</code><code class="sig-name descname">get_corner_pixels_roi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">product_path</span></em>, <em class="sig-param"><span class="n">wkt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#product_fun.get_corner_pixels_roi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="product_fun.get_lons_lats">
+<code class="sig-prename descclassname">product_fun.</code><code class="sig-name descname">get_lons_lats</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wkt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#product_fun.get_lons_lats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="product_fun.get_reproject_params_from_wkt">
+<code class="sig-prename descclassname">product_fun.</code><code class="sig-name descname">get_reproject_params_from_wkt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wkt</span></em>, <em class="sig-param"><span class="n">resolution</span></em><span class="sig-paren">)</span><a class="headerlink" href="#product_fun.get_reproject_params_from_wkt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="product_fun.minimal_subset_of_products">
+<code class="sig-prename descclassname">product_fun.</code><code class="sig-name descname">minimal_subset_of_products</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">product_paths</span></em>, <em class="sig-param"><span class="n">wkt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#product_fun.minimal_subset_of_products" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-sentinelhindcast">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-sentinelhindcast" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Daniel Odermatt, James Runnalls, Rolf Scheuner
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

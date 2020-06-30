@@ -1,0 +1,38 @@
+sentinelhindcast package
+========================
+
+Submodules
+----------
+
+sentinelhindcast.main module
+----------------------------
+
+.. automodule:: externalapis.coah_api
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+sentinelhindcast.auxil module
+-----------------------------
+
+.. automodule:: auxil
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+sentinelhindcast.product_fun module
+------------------------------
+
+.. automodule:: product_fun
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: sentinelhindcast
+   :members:
+   :undoc-members:
+   :show-inheritance:
