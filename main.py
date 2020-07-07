@@ -1,9 +1,17 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""The core functions of Sentinel Hindcast
+
+.. note::
+    Download API's, processors, and adapters are imported dynamically to make Sentinel Hindcast also work on systems,
+    where some of them might not be available.
+"""
+
 import os
 import time
 import traceback
+import sys
 
 from requests.auth import HTTPBasicAuth
 from snappy import ProductIO
@@ -14,14 +22,29 @@ from externalapis.earthdata_api import authenticate
 from product_fun import minimal_subset_of_products
 
 
-# download apis, processors, and adapters are imported dynamically to make hindcast also work on systems,
-# where some of them might not be available
-
-
 def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
-    # read env and params file and copy the params file to l2_path for reproducibility
-    env, params, l2_path = init_hindcast(env_file, params_file)
+    """Main function for running Sentinel Hindcast. First initialises the hindcast and then processes input parameters.
 
+    Parameters
+    -------------
+
+    params_file
+        Parameters read from the .ini input file
+    env_file
+        | **Default: None**
+        | Environment settings read from the environment .ini file
+    max_parallel_downloads
+        | **Default: 1**
+        | Maximum number of parallel downloads of satellite images
+    max_parallel_processors
+        | **Default: 1**
+        | Maximum number of processors to run in parallel
+    max_parallel_adapters
+        | **Default: 1**
+        | Maximum number of adapters to run in parallel
+    """
+
+    env, params, l2_path = init_hindcast(env_file, params_file)
     do_hindcast(env, params, l2_path, max_parallel_downloads, max_parallel_processors, max_parallel_adapters)
 
 
@@ -86,7 +109,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     # do hindcast for every product group
     hindcast_threads = []
     for date, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
-        args = (env, params, do_download, auth, download_groups[date], l1product_path_groups[date], l2_path, semaphores)
+        args = (env, params, do_download, auth, download_groups[date], l1product_path_groups[date], l2_path, semaphores, date)
         hindcast_threads.append(Thread(target=hindcast_product_group, args=args))
         hindcast_threads[-1].start()
 
@@ -97,7 +120,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     print("Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
 
 
-def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores):
+def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, date):
     """ hindcast a set of products with the same sensing date """
     # download the products, which are not yet available locally
     for download_request, l1product_path in zip(download_requests, l1product_paths):
@@ -141,6 +164,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from processors.fluo.r_fluo import process
             elif processor == "MPH":
                 from processors.mph.mph import process
+            elif processor == "SEN2COR":
+                from processors.sen2cor.sen2cor import process
             else:
                 raise RuntimeError("Unknown processor: {}".format(processor))
 
@@ -180,13 +205,18 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from adapters.qlrgb.qlrgb import apply
             elif adapter == "QLSINGLEBAND":
                 from adapters.qlsingleband.qlsingleband import apply
+            elif adapter == "PRIMARYPRODUCTION":
+                from adapters.primaryproduction.primaryproduction import apply
             elif adapter == "DATALAKES":
                 from adapters.datalakes.datalakes import apply
+            elif adapter == "MERGE":
+                from adapters.merge.merge import apply
             else:
                 raise RuntimeError("Unknown adapter: {}".format(adapter))
 
             try:
-                apply(env, params, l2product_files)
+                apply(env, params, l2product_files, date)
             except Exception:
+                print(sys.exc_info()[0])
                 print("An error occured while applying {} to product: {}".format(adapter, l1product_path))
                 traceback.print_exc()

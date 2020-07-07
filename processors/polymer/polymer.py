@@ -4,6 +4,7 @@
 import os
 import subprocess
 from math import ceil, floor
+from datetime import datetime
 
 from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.gsw import GSW
@@ -12,20 +13,22 @@ from polymer.level1_olci import Level1_OLCI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
-from product_fun import get_corner_pixels_roi, get_reproject_params_from_wkt
+from product_fun import get_corner_pixels_roi, get_reproject_params_from_wkt, get_lons_lats
+
+from auxil import load_properties, get_sensing_datetime_from_product_name
 
 # Key of the params section for this processor
 PARAMS_SECTION = "POLYMER"
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L2POLY"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = "L2POLY_L1P_reproj_{}.nc"
+OUT_FILENAME = "L2POLY_L1P_reproj_{}_{}.nc"
 # A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
 QL_DIR = "L2POLY-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
 QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
 # The name of the xml file for gpt
-GPT_XML_FILENAME = "polymer.xml"
+GPT_XML_FILENAME = "polymer_{}.xml"
 
 
 def process(env, params, l1product_path, _, out_path):
@@ -33,18 +36,31 @@ def process(env, params, l1product_path, _, out_path):
 
     print("Applying POLYMER...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
+    date_str = get_sensing_datetime_from_product_name(product_name)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     gsw_path, ancillary_path = env['GSW']['root_path'], env['CDS']['era5_path']
     os.makedirs(gsw_path, exist_ok=True)
     os.makedirs(ancillary_path, exist_ok=True)
 
-    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
+    try:
+        date = datetime.strptime(date_str, "%Y%m%dT%H%M%S")
+        lons, lats = get_lons_lats(wkt)
+        coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
+        ancillary = Ancillary_ERA5(directory=ancillary_path)
+        ozone = round(ancillary.get("ozone", date)[coords])  # Test can retrieve parameters
+        anc_name = "ERA5"
+        print("Polymer collected ERA5 ancillary data.")
+    except Exception:
+        ancillary = None
+        anc_name = "NA"
+        print("Polymer failed to collect ERA5 ancillary data.")
+
+    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
     if os.path.isfile(output_file):
-        print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(product_name)))
+        print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
         return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    ancillary = Ancillary_ERA5(directory=ancillary_path)
     if sensor == "MSI":
         granule_path = os.path.join(l1product_path, "GRANULE")
         msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
@@ -66,14 +82,14 @@ def process(env, params, l1product_path, _, out_path):
         l1 = Level1_OLCI(l1product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw,
                          ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
-    poly_tmp_file = os.path.join(out_path, OUT_DIR, "_reproducibility", OUT_FILENAME.format(product_name) + ".tmp")
+    poly_tmp_file = os.path.join(out_path, OUT_DIR, "_reproducibility", OUT_FILENAME.format(anc_name, product_name) + ".tmp")
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
     os.makedirs(os.path.dirname(poly_tmp_file), exist_ok=True)
     run_atm_corr(l1, l2)
 
-    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME)
+    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor))
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, resolution, wkt)
+        rewrite_xml(gpt_xml_file, sensor, resolution, wkt)
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(poly_tmp_file),
             "-PoutputFile={}".format(output_file)]
@@ -83,8 +99,8 @@ def process(env, params, l1product_path, _, out_path):
     return output_file
 
 
-def rewrite_xml(gpt_xml_file, resolution, wkt):
-    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME), "r") as f:
+def rewrite_xml(gpt_xml_file, sensor, resolution, wkt):
+    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor)), "r") as f:
         xml = f.read()
 
     reproject_params = get_reproject_params_from_wkt(wkt, resolution)

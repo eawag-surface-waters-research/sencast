@@ -1,0 +1,70 @@
+<graph id="polymer">
+    <version>1.0</version>
+	<node id="reprojectNode">
+		<operator>reproject</operator>
+		<sources>
+			<source>${sourceFile}</source>
+		</sources>
+		<parameters>
+			<crs>EPSG:4326</crs>
+			<resampling>Nearest</resampling>
+			<referencePixelX>0</referencePixelX>
+			<referencePixelY>0</referencePixelY>
+			<easting>${easting}</easting>
+			<northing>${northing}</northing>
+			<pixelSizeX>${pixelSizeX}</pixelSizeX>
+			<pixelSizeY>${pixelSizeY}</pixelSizeY>
+			<width>${width}</width>
+			<height>${height}</height>
+			<noDataValue>NaN</noDataValue>
+		</parameters>
+	</node>
+		<node id="bandmathsNode">
+		<operator>BandMaths</operator>
+		<sources>
+			<source>reprojectNode</source>
+		</sources>
+		<parameters>
+			<targetBands>
+				<targetBand>
+					<name>tsm_vantrepotte665</name>
+					<type>float32</type>
+					<expression>(((260 * Rw665) / (1 - (Rw665 / 0.142))) + 1.092)</expression>
+					<unit>g/m^3</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>tsm_zhang709</name>
+					<type>float32</type>
+					<expression>pow((362507 * Rw709),  2.3222)</expression>
+					<unit>g/m^3</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>tsm_binding754</name>
+					<type>float32</type>
+					<expression>((((Rw754 / (((0.54 * 128.123) / PI) + 0.48 * Rw754)) / 0.319) * 2.8) / (0.554 * 0.019) - 0.00027)</expression>
+					<unit>g/m^3</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+			</targetBands>
+    	</parameters>
+	</node>
+	<node id="mergeNode">
+		<operator>merge</operator>
+		<sources>
+			<masterProduct>reprojectNode</masterProduct>
+			<bandmathsProduct>bandmathsNode</bandmathsProduct>
+		</sources>
+	</node>
+    <node id="writeNode">
+        <operator>write</operator>
+		<sources>
+			<source>mergeNode</source>
+		</sources>
+		<parameters>
+			<file>${outputFile}</file>
+			<formatName>NetCDF4-BEAM</formatName>
+		</parameters>
+    </node>
+</graph>

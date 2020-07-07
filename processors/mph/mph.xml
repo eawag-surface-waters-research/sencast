@@ -1,4 +1,4 @@
-<graph id="idepix">
+<graph id="mph">
 	<version>1.0</version>
 	<node id="mphNode">
 		<operator>mphchl</operator>

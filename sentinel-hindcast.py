@@ -8,4 +8,4 @@ import netCDF4
 
 from main import hindcast
 
-hindcast("parameters_silsersee_S2.ini")
+hindcast("parameters_wdoc_S2.ini")

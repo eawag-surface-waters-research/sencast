@@ -23,11 +23,11 @@ token_address = 'https://auth.creodias.eu/auth/realms/DIAS/protocol/openid-conne
 
 
 def get_download_requests(auth, startDate, completionDate, sensor, resolution, wkt):
-    query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}"
+    query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}&processingLevel={}"
     maxRecords = 100
     geometry = wkt.replace(" ", "", 1).replace(" ", "+")
-    satellite, instrument, productType = get_dataset_id(sensor, resolution)
-    query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType)
+    satellite, instrument, productType, processingLevel = get_dataset_id(sensor, resolution)
+    query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType, processingLevel)
     uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
@@ -66,11 +66,11 @@ def do_download(auth, download_request, product_path):
 
 def get_dataset_id(sensor, resolution):
     if sensor == 'OLCI' and int(resolution) < 1000:
-        return 'Sentinel3', 'OL', 'EFR'
+        return 'Sentinel3', 'OL', 'EFR', ''
     elif sensor == 'OLCI' and int(resolution) >= 1000:
-        return 'Sentinel3', 'OL', 'ERR'
+        return 'Sentinel3', 'OL', 'ERR', ''
     elif sensor == 'MSI':
-        return 'Sentinel2', 'MSI', ''
+        return 'Sentinel2', 'MSI', '', 'LEVEL1C'
     else:
         raise RuntimeError("CREODIAS API is not yet implemented for sensor: {}".format(sensor))
 

@@ -1,0 +1,7 @@
+sentinel\-hindcast module
+=========================
+
+.. automodule:: sentinel-hindcast
+   :members:
+   :undoc-members:
+   :show-inheritance:
