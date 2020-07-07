@@ -1,12 +1,7 @@
 James:
 - Implement option to use new paramaeter file even if one exists in output folder - Ensure all data reprocessed
 - Ensure Datalakes data is reprocessed based on NTC and ERA5 data (will overwite for new input files, need logic for run dates)
-- Investigate requirements for publishing package, and look into containers.
-  - Ensure environment files are local only.
-  - Build documentation - installing and using
-  - Protected development branch? public master 
-  - Versioning
-  - Clean up code
+- Complete documentation and comment code accordingly (clean up installation process)
 - Prevent mosaicing of S3A and S3B files
 - Remove corrupted files if GPT fails or download is interrupted
 
