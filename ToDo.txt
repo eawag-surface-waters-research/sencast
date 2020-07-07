@@ -2,6 +2,7 @@ James:
 - Implement option to use new paramaeter file even if one exists in output folder - Ensure all data reprocessed
 - Implement rerun logic for datalakes
 - Complete documentation and comment code accordingly (in progress)
+- New adapter for averaging pixels across multiple timesteps (SNAP operator)
 
 Jasmin:
 - C2RCC auxdata doesn't seem to work for S2
