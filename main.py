@@ -24,7 +24,7 @@ from product_fun import minimal_subset_of_products
 
 def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
     """Main function for running Sentinel Hindcast. First initialises the hindcast and then processes input parameters.
-    
+
     Parameters
     -------------
 
