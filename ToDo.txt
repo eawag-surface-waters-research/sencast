@@ -1,5 +1,4 @@
 James:
-- Implement option to use new paramaeter file even if one exists in output folder - Ensure all data reprocessed
 - Implement rerun logic for datalakes
 - Complete documentation and comment code accordingly (in progress)
 - New adapter for averaging pixels across multiple timesteps (SNAP operator)
@@ -36,3 +35,4 @@ Completed:
 - Merge output into single nc file
 - Remove corrupted files if GPT fails or download is interrupted
 - Prevent mosaicing of S3A and S3B files
+- Implement option to use new paramaeter file even if one exists in output folder - Ensure all data reprocessed
