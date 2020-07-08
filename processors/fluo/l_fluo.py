@@ -32,8 +32,12 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
-        print("Skipping L-FLUO, target already exists: {}".format(OUT_FILENAME.format(product_name)))
-        return output_file
+        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+            print("Removing file: ${}".format(output_file))
+            os.remove(output_file)
+        else:
+            print("Skipping L-FLUO, target already exists: {}".format(OUT_FILENAME.format(product_name)))
+            return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))

@@ -45,8 +45,12 @@ def apply(env, params, l2product_files, date):
     output_file = os.path.join(product_dir, FILENAME.format(product_name))
     l2product_files["PRIMARYPRODUCTION"] = output_file
     if os.path.isfile(output_file):
-        print("Skipping Primary Production, target already exists: {}".format(FILENAME.format(product_name)))
-        return output_file
+        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+            print("Removing file: ${}".format(output_file))
+            os.remove(output_file)
+        else:
+            print("Skipping Primary Production, target already exists: {}".format(FILENAME.format(product_name)))
+            return output_file
     os.makedirs(product_dir, exist_ok=True)
 
     # Get depths

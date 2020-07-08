@@ -31,8 +31,9 @@ def init_hindcast(env_file, params_file):
 
     if os.path.isdir(out_path) and os.listdir(out_path):
         print("Output folder for this run already exists.")
-        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "true":
-            # (re)load params and wkt from existing output folder
+        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+            print("Overwriting existing run")
+        else:
             print("Reading params from output folder to ensure comparable results.")
             params, params_file = load_params(os.path.join(out_path, os.path.basename(params_file)))
         if not params['General']['wkt']:

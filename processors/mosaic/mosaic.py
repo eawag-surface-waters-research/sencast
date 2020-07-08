@@ -28,8 +28,12 @@ def mosaic(env, params, product_files):
 
     # check if output already exists
     if os.path.isfile(output_file):
-        print("Skipping MOSAIC, target already exists: {}".format(os.path.basename(output_file)))
-        return output_file
+        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+            print("Removing file: ${}".format(output_file))
+            os.remove(output_file)
+        else:
+            print("Skipping MOSAIC, target already exists: {}".format(os.path.basename(output_file)))
+            return output_file
 
     # rewrite xml file for gpt
     gpt_xml_file = os.path.join(os.path.dirname(output_file), "_reproducibility", GPT_XML_FILENAME.format(date))

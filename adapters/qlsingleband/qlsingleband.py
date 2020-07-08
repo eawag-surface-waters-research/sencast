@@ -44,7 +44,13 @@ def apply(_, params, l2product_files, date):
                 ql_path = os.path.dirname(l2product_files[processor]) + "-" + band
                 ql_file = os.path.join(ql_path, "{}-{}.png".format(product_name, band))
                 if os.path.exists(ql_file):
-                    print("Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
+                    if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+                        print("Removing file: ${}".format(ql_file))
+                        os.remove(ql_file)
+                        param_range = None if float(bandmax) == 0 else [0, float(bandmax)]
+                        plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade", param_range=param_range)
+                    else:
+                        print("Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
                 else:
                     param_range = None if float(bandmax) == 0 else [0, float(bandmax)]
                     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
