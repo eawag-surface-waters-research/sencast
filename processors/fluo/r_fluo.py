@@ -43,11 +43,19 @@ def process(env, params, l1product_path, l2product_files, out_path):
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(l2product_files['POLYMER']), "-PoutputFile={}".format(output_file)]
     if subprocess.call(args):
+        if os.path.exists(output_file):
+            os.remove(output_file)
+        else:
+            print("No file was created.")
         raise RuntimeError("GPT process for POLYMER reflectance failed.")
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(l2product_files['C2RCC']), "-PoutputFile={}".format(output_file)]
     if subprocess.call(args):
+        if os.path.exists(output_file):
+            os.remove(output_file)
+        else:
+            print("No file was created.")
         raise RuntimeError("GPT process for C2RCC reflectance failed.")
 
     return output_file

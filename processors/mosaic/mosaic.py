@@ -42,6 +42,10 @@ def mosaic(env, params, product_files):
         args.append("-SsourceFile{}={}".format(i, product_files[i]))
     args.append("-PoutputFile={}".format(output_file))
     if subprocess.call(args):
+        if os.path.exists(output_file):
+            os.remove(output_file)
+        else:
+            print("No file was created.")
         raise RuntimeError("GPT Failed.")
 
     return output_file
