@@ -37,7 +37,12 @@ def apply(_, params, l2product_files, date):
             product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
             ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, ql_name))
             if os.path.exists(ql_file):
-                print("Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)))
+                if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+                    print("Removing file: ${}".format(ql_file))
+                    os.remove(ql_file)
+                    plot_pic(l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
+                else:
+                    print("Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)))
             else:
                 os.makedirs(os.path.dirname(ql_file), exist_ok=True)
                 plot_pic(l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
