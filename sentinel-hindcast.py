@@ -1,10 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Import libs
-from packages.main import hindcast
+# Import libs, some of them might be unused here, but something magical happens when they are imported
+# which causes geos_c.dll and objectify.pyx errors to disappear in windows.
+import cartopy.crs
+import netCDF4
 
-# Options
-params_filename = 'parameters_silsersee_S2.txt'
+from main import hindcast
 
-hindcast(params_filename)
+hindcast("parameters_wdoc_S2.ini")

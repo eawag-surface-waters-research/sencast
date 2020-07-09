@@ -1,0 +1,270 @@
+<graph id="c2rcc">
+	<version>1.0</version>
+	<node id="vicariousCalibrationNode">
+        <operator>bandmaths</operator>
+        <sources>
+            <source>${sourceFile}</source>
+        </sources>
+        <parameters>
+            <targetBands>
+                <targetBand>
+                    <name>Oa01_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa01_radiance, 913.9812317630276, 1.0e-4) ? NaN : Oa01_radiance / ${Oa01_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>1</spectralBandIndex>
+                    <spectralWavelength>400</spectralWavelength>
+                    <spectralBandwidth>15</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa02_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa02_radiance, 877.334085884504, 1.0e-4) ? NaN : Oa02_radiance / ${Oa02_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>2</spectralBandIndex>
+                    <spectralWavelength>412.5</spectralWavelength>
+                    <spectralBandwidth>10</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa03_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa03_radiance, 796.1270730709657, 1.0e-4) ? NaN : Oa03_radiance / ${Oa03_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>3</spectralBandIndex>
+                    <spectralWavelength>442.5</spectralWavelength>
+                    <spectralBandwidth>10</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa04_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa04_radiance, 754.9514318397269, 1.0e-4) ? NaN : Oa04_radiance / ${Oa04_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>4</spectralBandIndex>
+                    <spectralWavelength>490</spectralWavelength>
+                    <spectralBandwidth>10</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa05_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa05_radiance, 661.5928710484877, 1.0e-4) ? NaN : Oa05_radiance / ${Oa05_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>5</spectralBandIndex>
+                    <spectralWavelength>510</spectralWavelength>
+                    <spectralBandwidth>10</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa06_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa06_radiance, 809.60629854351287, 1.0e-4) ? NaN : Oa06_radiance / ${Oa06_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>6</spectralBandIndex>
+                    <spectralWavelength>560</spectralWavelength>
+                    <spectralBandwidth>10</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa07_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa07_radiance, 576.1581395426765, 1.0e-4) ? NaN : Oa07_radiance / ${Oa07_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>7</spectralBandIndex>
+                    <spectralWavelength>620</spectralWavelength>
+                    <spectralBandwidth>10</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa08_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa08_radiance, 574.4398430082947, 1.0e-4) ? NaN : Oa08_radiance / ${Oa08_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>8</spectralBandIndex>
+                    <spectralWavelength>665</spectralWavelength>
+                    <spectralBandwidth>10</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa09_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa09_radiance, 623.2575185084715, 1.0e-4) ? NaN : Oa09_radiance / ${Oa09_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>9</spectralBandIndex>
+                    <spectralWavelength>673.75</spectralWavelength>
+                    <spectralBandwidth>7.5</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa10_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa10_radiance, 506.83326963800937, 1.0e-4) ? NaN : Oa10_radiance / ${Oa10_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>10</spectralBandIndex>
+                    <spectralWavelength>681.25</spectralWavelength>
+                    <spectralBandwidth>7.5</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa11_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa11_radiance, 442.70399916451424, 1.0e-4) ? NaN : Oa11_radiance / ${Oa11_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>11</spectralBandIndex>
+                    <spectralWavelength>708.75</spectralWavelength>
+                    <spectralBandwidth>10</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa12_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa12_radiance, 471.8257776950486, 1.0e-4) ? NaN : Oa12_radiance / ${Oa12_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>12</spectralBandIndex>
+                    <spectralWavelength>753.75</spectralWavelength>
+                    <spectralBandwidth>7.5</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa13_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa13_radiance, 491.30539988866076, 1.0e-4) ? NaN : Oa13_radiance / ${Oa13_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>13</spectralBandIndex>
+                    <spectralWavelength>761.25</spectralWavelength>
+                    <spectralBandwidth>2.5</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa14_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa14_radiance, 566.9563756557181, 1.0e-4) ? NaN : Oa14_radiance / ${Oa14_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>14</spectralBandIndex>
+                    <spectralWavelength>764.375</spectralWavelength>
+                    <spectralBandwidth>3.75</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa15_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa15_radiance, 345.2246211259626, 1.0e-4) ? NaN : Oa15_radiance / ${Oa15_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>15</spectralBandIndex>
+                    <spectralWavelength>767.5</spectralWavelength>
+                    <spectralBandwidth>2.5</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa16_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa16_radiance, 347.5104749179445, 1.0e-4) ? NaN : Oa16_radiance / ${Oa16_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>16</spectralBandIndex>
+                    <spectralWavelength>778.75</spectralWavelength>
+                    <spectralBandwidth>15.0</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa17_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa17_radiance, 323.09016273356974, 1.0e-4) ? NaN : Oa17_radiance / ${Oa17_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>17</spectralBandIndex>
+                    <spectralWavelength>865</spectralWavelength>
+                    <spectralBandwidth>20.0</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa18_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa18_radiance, 360.4175960831344, 1.0e-4) ? NaN : Oa18_radiance / ${Oa18_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>18</spectralBandIndex>
+                    <spectralWavelength>885</spectralWavelength>
+                    <spectralBandwidth>10.0</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa19_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa19_radiance, 329.54077841481194, 1.0e-4) ? NaN : Oa19_radiance / ${Oa19_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>19</spectralBandIndex>
+                    <spectralWavelength>900</spectralWavelength>
+                    <spectralBandwidth>10.0</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa20_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa20_radiance, 213.89181678649038, 1.0e-4) ? NaN : Oa20_radiance / ${Oa20_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>20</spectralBandIndex>
+                    <spectralWavelength>940</spectralWavelength>
+                    <spectralBandwidth>20.0</spectralBandwidth>
+                </targetBand>
+                <targetBand>
+                    <name>Oa21_radiance</name>
+                    <type>float32</type>
+                    <expression>feq(Oa21_radiance, 212.410729767289, 1.0e-4) ? NaN : Oa21_radiance / ${Oa21_vic}</expression>
+                    <unit>mW.m-2.sr-1.nm-1</unit>
+                    <noDataValue>NaN</noDataValue>
+                    <spectralBandIndex>21</spectralBandIndex>
+                    <spectralWavelength>1020</spectralWavelength>
+                    <spectralBandwidth>40.0</spectralBandwidth>
+                </targetBand>
+            </targetBands>
+        </parameters>
+	</node>
+	<node id="mergeCalibrationNode">
+		<operator>merge</operator>
+		<sources>
+			<masterProduct>${sourceFile}</masterProduct>
+			<calibratedProduct>vicariousCalibrationNode</calibratedProduct>
+		</sources>
+        <parameters>
+            <excludes>
+                <exclude>
+                    <productId>masterProduct</productId>
+                    <namePattern>Oa.*radiance</namePattern>
+                </exclude>
+            </excludes>
+        </parameters>
+	</node>
+	<node id="c2rccNode">
+		<operator>c2rcc.olci</operator>
+		<sources>
+			<sourceProduct>mergeCalibrationNode</sourceProduct>
+		</sources>
+		<parameters>
+			<validPixelExpression>${validPixelExpression}</validPixelExpression>
+			<salinity>${salinity}</salinity>
+			<temperature>${temperature}</temperature>
+			<ozone>${ozone}</ozone>
+			<press>${press}</press>
+			<TSMfakBpart>${TSMfakBpart}</TSMfakBpart>
+			<TSMfakBwit>${TSMfakBwit}</TSMfakBwit>
+			<CHLexp>${CHLexp}</CHLexp>
+			<CHLfak>${CHLfak}</CHLfak>
+			<thresholdRtosaOOS>${thresholdRtosaOOS}</thresholdRtosaOOS>
+			<thresholdAcReflecOos>${thresholdAcReflecOos}</thresholdAcReflecOos>
+			<thresholdCloudTDown865>${thresholdCloudTDown865}</thresholdCloudTDown865>
+            <useEcmwfAuxData>${useEcmwfAuxData}</useEcmwfAuxData>
+			<alternativeNNPath>${alternativeNNPath}</alternativeNNPath>
+		</parameters>
+	</node>
+	<node id="writeNode">
+		<operator>write</operator>
+		<sources>
+			<source>c2rccNode</source>
+		</sources>
+		<parameters>
+			<file>${outputFile}</file>
+			<formatName>NetCDF4-BEAM</formatName>
+		</parameters>
+	</node>
+</graph>

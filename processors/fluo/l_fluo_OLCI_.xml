@@ -1,0 +1,22 @@
+<graph id="l_fluo">
+	<version>1.0</version>
+	<node id="l_fluoNode">
+		<operator>OlciFluo</operator>
+		<sources>
+			<l1Product>${sourceFile}</l1Product>
+		</sources>
+		<parameters>
+			<validExpression>${validPixelExpression}</validExpression>
+		</parameters>
+	</node>
+	<node id="writeNode">
+		<operator>write</operator>
+		<sources>
+			<source>l_fluoNode</source>
+		</sources>
+		<parameters>
+			<file>${outputFile}</file>
+			<formatName>NetCDF4-BEAM</formatName>
+		</parameters>
+	</node>
+</graph>

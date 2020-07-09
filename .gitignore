@@ -1,0 +1,7 @@
+__pycache__
+/.idea
+/ANCILLARY
+/data_landmask_gsw
+/environments/JamesHPubuntu.ini
+/scripts/datalakes_local.py
+/datalakes
