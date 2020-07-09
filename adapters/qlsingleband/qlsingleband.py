@@ -466,7 +466,9 @@ def get_tick_positions(lower, upper, n_ticks):
     return tick_list
 
 
-def get_legend_str(layer_str):  # '$\mathbf{Secchi\/depth\/[m]}$'
+def get_legend_str(layer_str):
+
+    # Fluo products
     if layer_str in ['L_CHL']:
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{L-Fluo\/CHL}$'
@@ -479,42 +481,32 @@ def get_legend_str(layer_str):  # '$\mathbf{Secchi\/depth\/[m]}$'
         legend_str = r'$\mathbf{[mW\/m^{-2}\/sr^{-1}\/nm^{-1}]}$'
         title_str = r'$\mathbf{L-Fluo\/phytoplankton\/absorption}$'
         log = False
-    elif layer_str in ['lswt']:
-        legend_str = r'$\mathbf{[deg.\/K]}$'
-        title_str = r'$\mathbf{LSWT}$'
-        log = False
-    elif layer_str in ['NDCI', 'CHL_ndci']:
+
+    # C2RCC products
+    elif 'rhow' in layer_str and 'rhown' not in layer_str:
+        lstr = re.findall(r'\d*$', layer_str)[0]
         legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{NDCI}$'
+        title_str = r'$\mathbf{C2RCC\/\/R_w(' + lstr + ')}$'
+        log = False
+    elif 'rhown' in layer_str:
+        lstr = re.findall(r'\d*$', layer_str)[0]
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{C2RCC\/\/R_{w,n}(' + lstr + ')}$'
         log = False
     elif layer_str in ['kdmin']:
         legend_str = r'$\mathbf{[m^-1]}$'
         title_str = r'$\mathbf{C2RCC\/K_{d}}$'
         log = False
-    elif layer_str in ['IVI_shadow-masked', 'IVI_shadow-allowed', 'IVI_SWIR-masked']:
-        legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{IVI}$'
-        log = False
-    elif layer_str in ['MCI', 'CHL_mci', 'MCI_shadow-masked', 'MCI_shadow-allowed', 'MCI_SWIR-masked']:
-        legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{MCI}$'
-        log = False
-    elif layer_str == 'Turbidity':
-        legend_str = r'$\mathbf{[FNU]}$'
-        title_str = r'$\mathbf{Nechad\/865\/nm\/Turbidity}$'
-        log = False
-    elif layer_str in ['band_5', 'rhow_B5', 'SPM']:
-        legend_str = r'$\mathbf{[g/m^3]}$'
-        title_str = r'$\mathbf{Nechad\/865\/nm\/TSM}$'
-        log = False
-    elif layer_str in ['conc_tsm', 'conc_tsm_S', 'unc_tsm']:
+    elif layer_str in ['conc_tsm']:
         legend_str = r'$\mathbf{[g/m^3]}$'
         title_str = r'$\mathbf{C2RCC\/TSM}$'
         log = False
-    elif layer_str in ['conc_chl', 'conc_chl_S', 'unc_chl']:
+    elif layer_str in ['conc_chl']:
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{C2RCC\/CHL}$'
         log = False
+
+    # MPH products
     elif layer_str == 'chl':
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{MPH\/CHL}$'
@@ -523,6 +515,8 @@ def get_legend_str(layer_str):  # '$\mathbf{Secchi\/depth\/[m]}$'
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{MPH}$'
         log = False
+
+    # sen2cor products
     elif layer_str == 'NDVI':
         legend_str = r'$\mathbf{[dl}$'
         title_str = r'$\mathbf{NDVI}$'
@@ -535,37 +529,55 @@ def get_legend_str(layer_str):  # '$\mathbf{Secchi\/depth\/[m]}$'
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{McFeeters\/NDWI}$'
         log = False
-    elif layer_str == 'iop_bwit':
-        legend_str = r'$\mathbf{[m^{-1}]}$'
-        title_str = r'$\mathbf{C2RCC\/b_{wit}}$'
-        log = False
-    elif layer_str == 'bbs':
-        legend_str = r'$\mathbf{[m^{-1}]}$'
-        title_str = r'$\mathbf{Polymer\/b_{b_{s}}}$'
-        log = False
-    #     elif layer_str  == 'Rw665':
-    #         legend_str = r'$\mathbf{[dl]}$'
-    #         title_str = r'$\mathbf{Polymer\/\/R_w(665)}$'
-    #         log = False
+
+    # polymer products
     elif 'Rw' in layer_str:
         lstr = re.findall(r'\d{3}', layer_str)[0]
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{Polymer\/\/R_w(' + lstr + ')}$'
         log = False
-    elif 'rhow' in layer_str and 'rhown' not in layer_str:
-        lstr = re.findall(r'\d*$', layer_str)[0]
-        legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{C2RCC\/\/R_w(' + lstr + ')}$'
-        log = False
-    elif 'rhown' in layer_str:
-        lstr = re.findall(r'\d*$', layer_str)[0]
-        legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{C2RCC\/\/R_{w,n}(' + lstr + ')}$'
+    elif layer_str == 'bbs':
+        legend_str = r'$\mathbf{[m^{-1}]}$'
+        title_str = r'$\mathbf{Polymer\/b_{b_{s}}}$'
         log = False
     elif layer_str == 'logchl':
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{Polymer\/\/CHL}$'
         log = True
+    elif layer_str == 'tsm_vantrepotte665':
+        legend_str = r'$\mathbf{[g/m^3]}$'
+        title_str = r'$\mathbf{Vantrepotte\/665\/nm\/TSM}$'
+        log = False
+    elif layer_str == 'tsm_zhang709':
+        legend_str = r'$\mathbf{[g/m^3]}$'
+        title_str = r'$\mathbf{Zhang\/709\/nm\/TSM}$'
+        log = False
+    elif layer_str == 'tsm_binding754':
+        legend_str = r'$\mathbf{[g/m^3]}$'
+        title_str = r'$\mathbf{Binding\/754\/nm\/TSM}$'
+        log = False
+    elif layer_str == 'chl_oc2':
+        legend_str = r'$\mathbf{[mg/m^3]}$'
+        title_str = r'$\mathbf{OC2\/CHL}$'
+        log = False
+    elif layer_str == 'chl_oc3':
+        legend_str = r'$\mathbf{[mg/m^3]}$'
+        title_str = r'$\mathbf{OC3\/CHL}$'
+        log = False
+    elif layer_str == 'chl_2band':
+        legend_str = r'$\mathbf{[mg/m^3]}$'
+        title_str = r'$\mathbf{2-band\/CHL}$'
+        log = False
+    elif layer_str == 'chl_gons':
+        legend_str = r'$\mathbf{[mg/m^3]}$'
+        title_str = r'$\mathbf{Gons\/CHL}$'
+        log = False
+    elif layer_str == 'chl_ndci':
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{NDCI}$'
+        log = False
+
+    # all other products
     else:
         legend_str = 'ND'
         title_str = layer_str
