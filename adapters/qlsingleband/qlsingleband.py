@@ -527,6 +527,14 @@ def get_legend_str(layer_str):  # '$\mathbf{Secchi\/depth\/[m]}$'
         legend_str = r'$\mathbf{[dl}$'
         title_str = r'$\mathbf{NDVI}$'
         log = False
+    elif layer_str == 'GAO_NDWI':
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{Gao\/NDWI}$'
+        log = False
+    elif layer_str == 'MCFEETERS_NDWI':
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{McFeeters\/NDWI}$'
+        log = False
     elif layer_str == 'iop_bwit':
         legend_str = r'$\mathbf{[m^{-1}]}$'
         title_str = r'$\mathbf{C2RCC\/b_{wit}}$'

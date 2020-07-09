@@ -47,6 +47,41 @@
 					<unit>g/m^3</unit>
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
+				<targetBand>
+					<name>chl_oc2</name>
+					<type>float32</type>
+					<expression>pow(10 , 0.2389 - (1.9369 * log10(Rw490 / Rw560)) + (1.7627 * pow(log10(Rw490 / Rw560), 2)) - (3.0777 * pow(log10(Rw490 / Rw560), 3)) - (0.1054 * pow(log10(Rw490 / Rw560), 4)))</expression>
+					<unit>mg/m^3</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>chl_oc3</name>
+					<type>float32</type>
+					<expression>pow(10 , 0.2424 - (2.2146 * log10(max(Rw443,Rw490) / Rw560)) + (1.5193 * pow(log10(max(Rw443,Rw490) / Rw560), 2)) -	(0.7702 * pow(log10(max(Rw443,Rw490) / Rw560), 3)) - (0.4291 * pow(log10(max(Rw443,Rw490) / Rw560), 4)))</expression>
+					<unit>mg/m^3</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>chl_2band</name>
+					<type>float32</type>
+					<expression>(61.324 * (Rw709 / Rw665)) - 37.94</expression>
+					<unit>g/m^3</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>chl_gons</name>
+					<type>float32</type>
+					<expression>((Rw709 / Rw665) * (0.7 + (1.61 * Rw779 / (0.082 - (0.6 * Rw779)))) - 0.4 - pow(1.61 * Rw779 / (0.082 - (0.6 * Rw779)), 1.063)) / 0.016</expression>
+					<unit>g/m^3</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>chl_ndci</name>
+					<type>float32</type>
+					<expression>14.039 + 86.115 * (((Rw709 / PI) - (Rw665 / PI)) / ((Rw709 / PI) + (Rw665 / PI))) + 194.325 * pow((((Rw709 / PI) - (Rw665 / PI)) / ((Rw709 / PI) + (Rw665 / PI))), 2)</expression>
+					<unit>g/m^3</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
 			</targetBands>
     	</parameters>
 	</node>

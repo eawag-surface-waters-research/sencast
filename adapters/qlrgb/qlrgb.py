@@ -35,7 +35,7 @@ def apply(_, params, l2product_files, date):
                 bands = [band.replace('radiance', 'reflectance') for band in bands]
             ql_path = os.path.dirname(l2product_files[processor]) + "-" + ql_name
             product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
-            ql_file = os.path.join(ql_path, "{}-{}.png".format(product_name, ql_name))
+            ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, ql_name))
             if os.path.exists(ql_file):
                 print("Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)))
             else:
