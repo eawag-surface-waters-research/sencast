@@ -49,6 +49,10 @@ def process(env, params, l1product_path, l2product_files, out_path):
             "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
 
     if subprocess.call(args):
+        if os.path.exists(output_file):
+            os.remove(output_file)
+        else:
+            print("No file was created.")
         raise RuntimeError("GPT Failed.")
 
     return output_file
