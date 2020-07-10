@@ -582,6 +582,14 @@ def get_legend_str(layer_str):
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{NDCI}$'
         log = False
+    elif layer_str == 'rgb_tri':
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{RGB\/reflectance\/triangle\/area}$'
+        log = False
+    elif layer_str == 'rgb_int':
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{RGB\/reflectance\/integral\/area}$'
+        log = False
 
     # all other products
     else:

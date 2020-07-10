@@ -27,6 +27,201 @@
 		<parameters>
 			<targetBands>
 				<targetBand>
+					<name>latitude</name>
+					<type>float64</type>
+					<expression>latitude</expression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>longitude</name>
+					<type>float64</type>
+					<expression>longitude</expression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>sza</name>
+					<type>float32</type>
+					<expression>sza</expression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>vza</name>
+					<type>float32</type>
+					<expression>vza</expression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>saa</name>
+					<type>float32</type>
+					<expression>saa</expression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>vaa</name>
+					<type>float32</type>
+					<expression>vaa</expression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>bitmask</name>
+					<type>int16</type>
+					<description>LAND:1, CLOUD_BASE:2, L1_INVALID:4, NEGATIVE_BB:8, OUT_OF_BOUNDS:16, EXCEPTION:32, THICK_AEROSOL:64, HIGH_AIR_MASS:128, EXTERNAL_MASK:512, CASE2:1024, INCONSISTENCY:2048</description>
+					<expression>bitmask</expression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rnir</name>
+					<type>float32</type>
+					<expression>Rnir</expression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rgli</name>
+					<type>float32</type>
+					<expression>Rgli</expression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>logchl</name>
+					<type>float32</type>
+					<expression>logchl</expression>
+					<description>log10 of the chl-a concentration in mg/m3</description>
+					<unit>mg/m3</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>bbs</name>
+					<type>float32</type>
+					<expression>bbs</expression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw400</name>
+					<type>float32</type>
+					<expression>Rw400</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>400</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw412</name>
+					<type>float32</type>
+					<expression>Rw412</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>412</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw443</name>
+					<type>float32</type>
+					<expression>Rw443</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>443</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw490</name>
+					<type>float32</type>
+					<expression>Rw490</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>490</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw510</name>
+					<type>float32</type>
+					<expression>Rw510</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>510</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw560</name>
+					<type>float32</type>
+					<expression>Rw560</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>560</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw620</name>
+					<type>float32</type>
+					<expression>Rw620</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>620</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw665</name>
+					<type>float32</type>
+					<expression>Rw665</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>665</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw681</name>
+					<type>float32</type>
+					<expression>Rw681</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>681</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw709</name>
+					<type>float32</type>
+					<expression>Rw709</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>709</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw754</name>
+					<type>float32</type>
+					<expression>Rw754</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>754</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw779</name>
+					<type>float32</type>
+					<expression>Rw779</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>779</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw865</name>
+					<type>float32</type>
+					<expression>Rw865</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>865</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>Rw1020</name>
+					<type>float32</type>
+					<expression>Rw1020</expression>
+					<description>water reflectance (dimensionless; fully normalized)</description>
+					<unit>dl</unit>
+					<spectralWavelength>1020</spectralWavelength>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
 					<name>tsm_vantrepotte665</name>
 					<type>float32</type>
 					<expression>(((260 * Rw665) / (1 - (Rw665 / 0.142))) + 1.092)</expression>
@@ -82,20 +277,27 @@
 					<unit>g/m^3</unit>
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
+				<targetBand>
+					<name>rgb_int</name>
+					<type>float32</type>
+					<expression>(560 - 490) * ((Rw490 + Rw560) / 2) + (665 - 560) * ((Rw560 + Rw665) / 2)</expression>
+					<unit>dl</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>rgb_tri</name>
+					<type>float32</type>
+					<expression>(560 - 490) * ((Rw490 + Rw560) / 2) + (665 - 560) * ((Rw560 + Rw665) / 2) - (665 - 490) * ((Rw490 + Rw665) / 2)</expression>
+					<unit>dl</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
 			</targetBands>
     	</parameters>
-	</node>
-	<node id="mergeNode">
-		<operator>merge</operator>
-		<sources>
-			<masterProduct>reprojectNode</masterProduct>
-			<bandmathsProduct>bandmathsNode</bandmathsProduct>
-		</sources>
 	</node>
     <node id="writeNode">
         <operator>write</operator>
 		<sources>
-			<source>mergeNode</source>
+			<source>bandmathsNode</source>
 		</sources>
 		<parameters>
 			<file>${outputFile}</file>
