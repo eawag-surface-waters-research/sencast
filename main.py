@@ -17,7 +17,7 @@ from requests.auth import HTTPBasicAuth
 from snappy import ProductIO
 from threading import Semaphore, Thread
 
-from auxil import get_l1product_path, get_sensing_date_from_product_name, init_hindcast
+from auxil import get_l1product_path, get_sensing_date_from_product_name, get_satellite_name_from_product_name, init_hindcast
 from externalapis.earthdata_api import authenticate
 from product_fun import minimal_subset_of_products
 
@@ -94,10 +94,12 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     download_groups, l1product_path_groups = {}, {}
     for download_request, l1product_path in zip(download_requests, l1product_paths):
         date = get_sensing_date_from_product_name(os.path.basename(l1product_path))
-        if date not in download_groups.keys():
-            download_groups[date], l1product_path_groups[date] = [], []
-        download_groups[date].append(download_request)
-        l1product_path_groups[date].append(l1product_path)
+        satellite = get_satellite_name_from_product_name(os.path.basename(l1product_path))
+        group = date + "_" + satellite
+        if group not in download_groups.keys():
+            download_groups[group], l1product_path_groups[group] = [], []
+        download_groups[group].append(download_request)
+        l1product_path_groups[group].append(l1product_path)
 
     # print information about grouped products
     print("The products have been grouped into {} group(s).".format(len(l1product_path_groups)))
@@ -108,8 +110,8 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
 
     # do hindcast for every product group
     hindcast_threads = []
-    for date, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
-        args = (env, params, do_download, auth, download_groups[date], l1product_path_groups[date], l2_path, semaphores, date)
+    for group, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
+        args = (env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path, semaphores, group)
         hindcast_threads.append(Thread(target=hindcast_product_group, args=args))
         hindcast_threads[-1].start()
 
@@ -120,7 +122,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     print("Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
 
 
-def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, date):
+def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, group):
     """ hindcast a set of products with the same sensing date """
     # download the products, which are not yet available locally
     for download_request, l1product_path in zip(download_requests, l1product_paths):
@@ -215,7 +217,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 raise RuntimeError("Unknown adapter: {}".format(adapter))
 
             try:
-                apply(env, params, l2product_files, date)
+                apply(env, params, l2product_files, group)
             except Exception:
                 print(sys.exc_info()[0])
                 print("An error occured while applying {} to product: {}".format(adapter, l1product_path))

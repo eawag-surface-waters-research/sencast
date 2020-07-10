@@ -12,7 +12,7 @@ FILENAME = "L2MERGE_{}"
 FILEFOLDER = "L2MERGE"
 
 
-def apply(env, params, l2product_files):
+def apply(env, params, l2product_files,date):
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("Merge was not configured in parameters.")
     print("Applying Merge...")
