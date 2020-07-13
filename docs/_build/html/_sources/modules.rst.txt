@@ -8,21 +8,6 @@ sentinel-hindcast
    auxil
    product_fun
 
-Processors
-=================
-
-.. toctree::
-   :maxdepth: 4
-
-   idepix_code
-   mph_code
-   polymer_code
-   c2rcc_code
-   fluo_code
-   mosaic_code
-   sen2cor_code
-
-
 Adapters
 =================
 

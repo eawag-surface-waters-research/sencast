@@ -1,6 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""The Case-2 Regional CoastColour (C2RCC) algorithm derives the water constituents and optical properties from
+optically complex waters using Sentinels–3 and 2, MERIS, VIIRS, MODIS, or Landsat-8 images.
+
+For an overview of the processor:
+https://www.brockmann-consult.de/portfolio/water-quality-from-space/
+
+or for more details:
+https://www.brockmann-consult.de/wp-content/uploads/2017/11/sco1_12brockmann.pdf
+"""
+
 import os
 import subprocess
 

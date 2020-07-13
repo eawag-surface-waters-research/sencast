@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Sentinel Hindcast &mdash; Sentinel-Hindcast  documentation</title>
+  <title>Sencast &mdash; Sencast   documentation</title>
   
 
   
@@ -50,7 +50,7 @@
           
 
           
-            <a href="#" class="icon icon-home" alt="Documentation Home"> Sentinel-Hindcast
+            <a href="#" class="icon icon-home" alt="Documentation Home"> Sencast 
           
 
           
@@ -92,22 +92,36 @@
 <li class="toctree-l1"><a class="reference internal" href="environment_config.html">Environment File</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parameters_config.html">Parameter File</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">c2rcc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fluo.html">fluo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="idepix.html">Idepix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">C2RCC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mosaic.html">Mosaic</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Modules</span></p>
+<p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">sentinel-hindcast</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#processors">Processors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#adapters">Adapters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#externalapis">externalapis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="primaryproduction_code.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge_code.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datalakes_code.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlrgb_code.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlsingleband_code.html">QLSingleBand</a></li>
+</ul>
+<p class="caption"><span class="caption-text">External API's</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="coah_api.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creodias_api.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="earthdata_api.html">Earth Data API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hda_api.html">HDA API</a></li>
 </ul>
 
             
@@ -123,7 +137,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">Sentinel-Hindcast</a>
+          <a href="#">Sencast </a>
         
       </nav>
 
@@ -154,7 +168,7 @@
     
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Sentinel Hindcast</li>
+      <li>Sencast</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -173,28 +187,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="sentinel-hindcast">
-<h1>Sentinel Hindcast<a class="headerlink" href="#sentinel-hindcast" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="sencast">
+<h1>Sencast<a class="headerlink" href="#sencast" title="Permalink to this headline">¶</a></h1>
 <a class="reference internal image-reference" href="_images/logo.png"><img alt="Eawag logo" class="align-left" src="_images/logo.png" style="width: 120px;" /></a>
-<p>Sentinel Hindcast is a python toolbox that forms a framework around existing packages for processing
+<p>Sencast is a python toolbox that forms a framework around existing packages for processing
 Sentinel 2 &amp; Sentinel 3 satellite images in order facilitates processing pipelines for deriving water
 quality parameters such as Chlorophyll A, Turbidity, etc.</p>
 <p>It is developed and maintained by the <a class="reference external" href="https://www.eawag.ch/en/department/surf/main-focus/remote-sensing/">SURF Remote Sensing group at Eawag</a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Sentinel hindcast is under active development. The project team are working towards
+<p>Sencast is under active development. The project team are working towards
 the release of a stable v1.0, however for the moment this project remains pre-v1.0.</p>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>To install sentinel-hindcast, run:</p>
+<p>To install sencast, run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@renkulab</span><span class="o">.</span><span class="n">io</span><span class="p">:</span><span class="n">odermatt</span><span class="o">/</span><span class="n">sentinel</span><span class="o">-</span><span class="n">hindcast</span><span class="o">.</span><span class="n">git</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
-<p>Many of the Sentinel-Hindcast processors reply on <a class="reference external" href="http://step.esa.int/main/toolboxes/snap/">SNAP</a> , the SeNtinel Application Platform
+<p>Many of the Sencast’S processors reply on <a class="reference external" href="http://step.esa.int/main/toolboxes/snap/">SNAP</a> , the SeNtinel Application Platform
 project, funded by the <a class="reference external" href="http://www.esa.int/">European Space Agency</a> (ESA) or other 3rd party packages. In order to have
-access to all of Sentinel Hindcast’s processors follow the installation instructions below in order to
+access to all of Sencast’s processors follow the installation instructions below in order to
 correctly configure your environment.</p>
 <p>This process will require registering accounts with data providers.</p>
 <ul class="simple">
@@ -210,15 +224,15 @@ Odermatt</a>.</p>
 <div class="section" id="environment-file">
 <h3>Environment File<a class="headerlink" href="#environment-file" title="Permalink to this headline">¶</a></h3>
 <p>Environment files use the INI format and contain the configuration of
-the machine on which Sentinel Hindcast runs. Refer to <a class="reference internal" href="environment_config.html#environments"><span class="std std-ref">Environment File</span></a>
+the machine on which Sencast runs. Refer to <a class="reference internal" href="environment_config.html#environments"><span class="std std-ref">Environment File</span></a>
 for details on how to set up your own environment file.</p>
 <p>You should create your own environment file for every machine you
-install Sentinel Hindcast on.</p>
+install Sencast on.</p>
 </div>
 <div class="section" id="parameter-file">
 <h3>Parameter File<a class="headerlink" href="#parameter-file" title="Permalink to this headline">¶</a></h3>
 <p>Parameter files use the INI format and contain the parameters for one
-execution of Sentinel Hindcast. Refer to <a class="reference internal" href="parameters_config.html#parameters"><span class="std std-ref">Parameter File</span></a>
+execution of Sencast. Refer to <a class="reference internal" href="parameters_config.html#parameters"><span class="std std-ref">Parameter File</span></a>
 for details on how to set up your own parameter file.</p>
 </div>
 <div class="section" id="perimeter-definition">
@@ -234,7 +248,7 @@ in the wkt folder.</p>
 resampling, subsetting, idepix and reproject operations on the input
 products. Several processors then process the data and save the results
 to disk.</p>
-<p>Sentinel Hindcast offers to interfaces to process data.</p>
+<p>Sencast offers to interfaces to process data.</p>
 <ul class="simple">
 <li><p>The file-based interface takes a parameter file and an optional
 environment file as input. It reads the file contents and calls the
@@ -264,11 +278,19 @@ another service.</p>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">c2rcc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fluo.html">fluo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="idepix.html">Idepix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">C2RCC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mosaic.html">Mosaic</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
@@ -276,41 +298,22 @@ another service.</p>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Adapters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="primaryproduction_code.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge_code.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datalakes_code.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlrgb_code.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlsingleband_code.html">QLSingleBand</a></li>
+</ul>
 </div>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Modules</span></p>
+<p class="caption"><span class="caption-text">External API's</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">sentinel-hindcast</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="main.html">main module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="auxil.html">auxil module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#processors">Processors</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="idepix_code.html">IDEPIX</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mph_code.html">MPH</a></li>
-<li class="toctree-l2"><a class="reference internal" href="polymer_code.html">Polymer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="c2rcc_code.html">C2RCC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="fluo_code.html">FLUO</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mosaic_code.html">Mosaic</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sen2cor_code.html">Sen2cor</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#adapters">Adapters</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="primaryproduction_code.html">Primary Production</a></li>
-<li class="toctree-l2"><a class="reference internal" href="merge_code.html">Merge</a></li>
-<li class="toctree-l2"><a class="reference internal" href="datalakes_code.html">Datalakes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qlrgb_code.html">QLRGB</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qlsingleband_code.html">QLSingleBand</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#externalapis">externalapis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="coah_api.html">COAH API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="creodias_api.html">CREODIAS API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="earthdata_api.html">Earth Data API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hda_api.html">HDA API</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="coah_api.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creodias_api.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="earthdata_api.html">Earth Data API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hda_api.html">HDA API</a></li>
 </ul>
 </div>
 </div>

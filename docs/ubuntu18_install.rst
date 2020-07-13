@@ -5,7 +5,7 @@ Ubuntu 18
 ------------------------------------------------------------------------------------------
 
 
-2.) OpenJdk: https://dzone.com/articles/installing-openjdk-11-on-ubuntu-1804-for-real (if not installed already):
+1.) OpenJdk: https://dzone.com/articles/installing-openjdk-11-on-ubuntu-1804-for-real (if not installed already):
 
 	In shell do following:
 		$ sudo apt-get install default-jdk
@@ -13,7 +13,7 @@ Ubuntu 18
 		$ java -version
 		  Needs to be version 11
 
-3.) Maven: https://www.javahelps.com/2017/10/install-apache-maven-on-linux.html
+2.) Maven: https://www.javahelps.com/2017/10/install-apache-maven-on-linux.html
 
 	In shell do following:
 		$ mkdir -p ~/Downloads
@@ -26,7 +26,7 @@ Ubuntu 18
 		$ sudo reboot
 
 
-4.) Anaconda: https://problemsolvingwithpython.com/01-Orientation/01.05-Installing-Anaconda-on-Linux/
+3.) Anaconda: https://problemsolvingwithpython.com/01-Orientation/01.05-Installing-Anaconda-on-Linux/
 
 	In shell do following:
 		$ curl https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh -o ~/Downloads/Anaconda3-2020.02-Linux-x86_64.sh
@@ -41,7 +41,7 @@ Ubuntu 18
 		$ sudo reboot
 
 
-5. Anaconda: create sentinel-hindcast-37 environment
+4. Anaconda: create sentinel-hindcast-37 environment
 
 	In shell do following:
 		$ conda config --add channels conda-forge
@@ -49,7 +49,7 @@ Ubuntu 18
 			> y
 
 
-6.) SNAP: http://step.esa.int/main/download/
+5.) SNAP: http://step.esa.int/main/download/
 
 	Uninstall all old versions of SNAP and remove associated data
 
@@ -84,7 +84,7 @@ Ubuntu 18
 		$ sudo su -c 'echo "LD_LIBRARY_PATH=." >> /etc/environment'
 
 
-7.) Python - jpy: https://github.com/bcdev/jpy/blob/master/README.md
+6.) Python - jpy: https://github.com/bcdev/jpy/blob/master/README.md
 
 	In shell do following:
 		$ sudo apt-get install python-setuptools
@@ -97,7 +97,7 @@ Ubuntu 18
 		$ python setup.py build maven bdist_wheel
 
 
-8.) Python - snappy: https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md
+7.) Python - snappy: https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md
 
 	In shell do following:
 		a$ sudo ln -s ../../lib64/libnsl.so.2 /usr/lib64/libnsl.so
@@ -116,7 +116,7 @@ Ubuntu 18
 		$ python test_snappy_product.py
 
 
-9.) Python - polymer: https://forum.hygeos.com/viewforum.php?f=5
+8.) Python - polymer: https://forum.hygeos.com/viewforum.php?f=5
 
 	From a computer in the eawag network, copy the polymer zip file to the linux server:
 		> scp -i .ssh\cloudferro.key \\eawag\Abteilungs-Projekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.13.tar.gz eouser@45.130.29.115:/home/eouser/Downloads
@@ -134,7 +134,7 @@ Ubuntu 18
 		$ cp -avr /home/jamesrunnalls/polymer-v4.13/auxdata /home/jamesrunnalls/anaconda3/envs/sentinel-hindcast-37/lib/python3.7/site-packages/auxdata
 
 
-10.) sentinel-hindcast: https://renkulab.io/gitlab/odermatt/sentinel-hindcast
+9.) sentinel-hindcast: https://renkulab.io/gitlab/odermatt/sentinel-hindcast
 
 	In shell do following:
 		$ cd /prj
@@ -146,7 +146,7 @@ Ubuntu 18
 		$ git checkout <branchname> (if not master)
 
 
-11.) CDS API: https://cds.climate.copernicus.eu/api-how-to
+10.) CDS API: https://cds.climate.copernicus.eu/api-how-to
 
 	Have a Copernicus Climate account ready, otherwise create one: https://cds.climate.copernicus.eu/
 
@@ -156,7 +156,7 @@ Ubuntu 18
 		$ chmod 600 ~/.cdsapirc
 
 
-12.) Cronjob for datalakes: https://linux4one.com/how-to-set-up-cron-job-on-centos-8/
+11.) Cronjob for datalakes: https://linux4one.com/how-to-set-up-cron-job-on-centos-8/
 
 	In shell do following:
 		$ mkdir -p /prj/datalakes/log
@@ -165,7 +165,7 @@ Ubuntu 18
 		$ crontab -l | { cat; echo "0 20 * * * nohup /prj/sentinel-hindcast/scripts/datalakes.sh &"; } | crontab -
 
 
-13.) (not done yet) NASA Earthdata API: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget
+12.) (not done yet) NASA Earthdata API: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget
 
 	Have a NASA Earthdata account ready, otherwise create one: https://urs.earthdata.nasa.gov/
 
