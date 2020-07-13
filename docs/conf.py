@@ -28,6 +28,7 @@ author = 'Daniel Odermatt, James Runnalls, Rolf Scheuner'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc']
+master_doc = 'index'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -39,7 +40,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # Explore autodoc imports
 
-autodoc_mock_imports = ["tqdm", "polymer", "cartopy", "matplotlib"]
+autodoc_mock_imports = ["tqdm", "polymer", "cartopy", "matplotlib","haversine","haversine","snappy","numpy"]
 
 
 # -- Options for HTML output -------------------------------------------------
