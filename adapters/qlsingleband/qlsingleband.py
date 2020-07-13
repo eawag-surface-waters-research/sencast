@@ -523,15 +523,15 @@ def get_legend_str(layer_str):
         log = False
 
     # sen2cor products
-    elif layer_str == 'NDVI':
+    elif layer_str == 'ndvi':
         legend_str = r'$\mathbf{[dl}$'
         title_str = r'$\mathbf{NDVI}$'
         log = False
-    elif layer_str == 'GAO_NDWI':
+    elif layer_str == 'ndwi_gao':
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{Gao\/NDWI}$'
         log = False
-    elif layer_str == 'MCFEETERS_NDWI':
+    elif layer_str == 'ndwi_mcfeeters':
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{McFeeters\/NDWI}$'
         log = False
