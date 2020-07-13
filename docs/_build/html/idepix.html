@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Idepix &mdash; Sentinel-Hindcast  documentation</title>
+  <title>IDEPIX &mdash; Sencast   documentation</title>
   
 
   
@@ -37,7 +37,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Mosaic" href="mosaic.html" />
-    <link rel="prev" title="fluo" href="fluo.html" /> 
+    <link rel="prev" title="FLUO" href="fluo.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -51,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sentinel-Hindcast
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast 
           
 
           
@@ -93,22 +93,36 @@
 <li class="toctree-l1"><a class="reference internal" href="environment_config.html">Environment File</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parameters_config.html">Parameter File</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">c2rcc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fluo.html">fluo</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Idepix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">C2RCC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo.html">FLUO</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mosaic.html">Mosaic</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Modules</span></p>
+<p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">sentinel-hindcast</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#processors">Processors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#adapters">Adapters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#externalapis">externalapis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="primaryproduction_code.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge_code.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datalakes_code.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlrgb_code.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlsingleband_code.html">QLSingleBand</a></li>
+</ul>
+<p class="caption"><span class="caption-text">External API's</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="coah_api.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creodias_api.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="earthdata_api.html">Earth Data API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hda_api.html">HDA API</a></li>
 </ul>
 
             
@@ -124,7 +138,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Sentinel-Hindcast</a>
+          <a href="index.html">Sencast </a>
         
       </nav>
 
@@ -155,7 +169,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Idepix</li>
+      <li>IDEPIX</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -174,8 +188,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="idepix">
-<h1>Idepix<a class="headerlink" href="#idepix" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-processors.idepix.idepix">
+<span id="idepix"></span><h1>IDEPIX<a class="headerlink" href="#module-processors.idepix.idepix" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="processors.idepix.idepix.process">
+<code class="sig-prename descclassname">processors.idepix.idepix.</code><code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">l1product_path</span></em>, <em class="sig-param"><span class="n">_</span></em>, <em class="sig-param"><span class="n">out_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.idepix.idepix.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>This processor applies subset, idepix, merge and reprojection to the source product and
+writes the result to disk. It returns the location of the output product.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="processors.idepix.idepix.rewrite_xml">
+<code class="sig-prename descclassname">processors.idepix.idepix.</code><code class="sig-name descname">rewrite_xml</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gpt_xml_file</span></em>, <em class="sig-param"><span class="n">sensor</span></em>, <em class="sig-param"><span class="n">resolution</span></em>, <em class="sig-param"><span class="n">wkt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.idepix.idepix.rewrite_xml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 
 
@@ -189,7 +215,7 @@
         <a href="mosaic.html" class="btn btn-neutral float-right" title="Mosaic" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="fluo.html" class="btn btn-neutral float-left" title="fluo" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="fluo.html" class="btn btn-neutral float-left" title="FLUO" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

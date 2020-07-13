@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Polymer &mdash; Sentinel-Hindcast  documentation</title>
+  <title>Polymer &mdash; Sencast   documentation</title>
   
 
   
@@ -51,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sentinel-Hindcast
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast 
           
 
           
@@ -93,22 +93,36 @@
 <li class="toctree-l1"><a class="reference internal" href="environment_config.html">Environment File</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parameters_config.html">Parameter File</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">c2rcc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fluo.html">fluo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="idepix.html">Idepix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">C2RCC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mosaic.html">Mosaic</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Modules</span></p>
+<p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">sentinel-hindcast</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#processors">Processors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#adapters">Adapters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#externalapis">externalapis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="primaryproduction_code.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge_code.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datalakes_code.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlrgb_code.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlsingleband_code.html">QLSingleBand</a></li>
+</ul>
+<p class="caption"><span class="caption-text">External API's</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="coah_api.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creodias_api.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="earthdata_api.html">Earth Data API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hda_api.html">HDA API</a></li>
 </ul>
 
             
@@ -124,7 +138,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Sentinel-Hindcast</a>
+          <a href="index.html">Sencast </a>
         
       </nav>
 
@@ -174,8 +188,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="polymer">
-<h1>Polymer<a class="headerlink" href="#polymer" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-processors.polymer.polymer">
+<span id="polymer"></span><h1>Polymer<a class="headerlink" href="#module-processors.polymer.polymer" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="processors.polymer.polymer.process">
+<code class="sig-prename descclassname">processors.polymer.polymer.</code><code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">l1product_path</span></em>, <em class="sig-param"><span class="n">_</span></em>, <em class="sig-param"><span class="n">out_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>This processor applies polymer to the source product and stores the result.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="processors.polymer.polymer.rewrite_xml">
+<code class="sig-prename descclassname">processors.polymer.polymer.</code><code class="sig-name descname">rewrite_xml</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gpt_xml_file</span></em>, <em class="sig-param"><span class="n">sensor</span></em>, <em class="sig-param"><span class="n">resolution</span></em>, <em class="sig-param"><span class="n">wkt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.rewrite_xml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 
 

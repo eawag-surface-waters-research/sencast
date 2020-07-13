@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; Sentinel-Hindcast  documentation</title>
+  <title>Index &mdash; Sencast   documentation</title>
   
 
   
@@ -49,7 +49,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sentinel-Hindcast
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast 
           
 
           
@@ -91,22 +91,36 @@
 <li class="toctree-l1"><a class="reference internal" href="environment_config.html">Environment File</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parameters_config.html">Parameter File</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">c2rcc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fluo.html">fluo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="idepix.html">Idepix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">C2RCC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mosaic.html">Mosaic</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Modules</span></p>
+<p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">sentinel-hindcast</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#processors">Processors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#adapters">Adapters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#externalapis">externalapis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="primaryproduction_code.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge_code.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datalakes_code.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlrgb_code.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlsingleband_code.html">QLSingleBand</a></li>
+</ul>
+<p class="caption"><span class="caption-text">External API's</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="coah_api.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creodias_api.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="earthdata_api.html">Earth Data API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hda_api.html">HDA API</a></li>
 </ul>
 
             
@@ -122,7 +136,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Sentinel-Hindcast</a>
+          <a href="index.html">Sencast </a>
         
       </nav>
 
@@ -371,6 +385,8 @@
 </li>
       <li><a href="product_fun.html#product_fun.get_reproject_params_from_wkt">get_reproject_params_from_wkt() (in module product_fun)</a>
 </li>
+      <li><a href="auxil.html#auxil.get_satellite_name_from_product_name">get_satellite_name_from_product_name() (in module auxil)</a>
+</li>
       <li><a href="auxil.html#auxil.get_sensing_date_from_product_name">get_sensing_date_from_product_name() (in module auxil)</a>
 </li>
       <li><a href="auxil.html#auxil.get_sensing_datetime_from_product_name">get_sensing_datetime_from_product_name() (in module auxil)</a>
@@ -464,28 +480,28 @@
 </li>
         <li><a href="main.html#module-main">main</a>
 </li>
-        <li><a href="c2rcc_code.html#module-processors.c2rcc.c2rcc">processors.c2rcc.c2rcc</a>
+        <li><a href="c2rcc.html#module-processors.c2rcc.c2rcc">processors.c2rcc.c2rcc</a>
 </li>
-        <li><a href="fluo_code.html#module-processors.fluo.l_fluo">processors.fluo.l_fluo</a>
+        <li><a href="fluo.html#module-processors.fluo.l_fluo">processors.fluo.l_fluo</a>
 </li>
-        <li><a href="fluo_code.html#module-processors.fluo.r_fluo">processors.fluo.r_fluo</a>
+        <li><a href="fluo.html#module-processors.fluo.r_fluo">processors.fluo.r_fluo</a>
 </li>
-        <li><a href="idepix_code.html#module-processors.idepix.idepix">processors.idepix.idepix</a>
+        <li><a href="idepix.html#module-processors.idepix.idepix">processors.idepix.idepix</a>
 </li>
-        <li><a href="mosaic_code.html#module-processors.mosaic.mosaic">processors.mosaic.mosaic</a>
+        <li><a href="mosaic.html#module-processors.mosaic.mosaic">processors.mosaic.mosaic</a>
 </li>
-        <li><a href="mph_code.html#module-processors.mph.mph">processors.mph.mph</a>
+        <li><a href="mph.html#module-processors.mph.mph">processors.mph.mph</a>
 </li>
-        <li><a href="polymer_code.html#module-processors.polymer.polymer">processors.polymer.polymer</a>
+        <li><a href="polymer.html#module-processors.polymer.polymer">processors.polymer.polymer</a>
 </li>
-        <li><a href="sen2cor_code.html#module-processors.sen2cor.sen2cor">processors.sen2cor.sen2cor</a>
+        <li><a href="sen2cor.html#module-processors.sen2cor.sen2cor">processors.sen2cor.sen2cor</a>
 </li>
         <li><a href="product_fun.html#module-product_fun">product_fun</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="mosaic_code.html#processors.mosaic.mosaic.mosaic">mosaic() (in module processors.mosaic.mosaic)</a>
+      <li><a href="mosaic.html#processors.mosaic.mosaic.mosaic">mosaic() (in module processors.mosaic.mosaic)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -521,27 +537,27 @@
 </li>
       <li><a href="coah_api.html#externalapis.coah_api.prepend_os">prepend_os() (in module externalapis.coah_api)</a>
 </li>
-      <li><a href="c2rcc_code.html#processors.c2rcc.c2rcc.process">process() (in module processors.c2rcc.c2rcc)</a>
+      <li><a href="c2rcc.html#processors.c2rcc.c2rcc.process">process() (in module processors.c2rcc.c2rcc)</a>
 
       <ul>
-        <li><a href="fluo_code.html#processors.fluo.l_fluo.process">(in module processors.fluo.l_fluo)</a>
+        <li><a href="fluo.html#processors.fluo.l_fluo.process">(in module processors.fluo.l_fluo)</a>
 </li>
-        <li><a href="fluo_code.html#processors.fluo.r_fluo.process">(in module processors.fluo.r_fluo)</a>
+        <li><a href="fluo.html#processors.fluo.r_fluo.process">(in module processors.fluo.r_fluo)</a>
 </li>
-        <li><a href="idepix_code.html#processors.idepix.idepix.process">(in module processors.idepix.idepix)</a>
+        <li><a href="idepix.html#processors.idepix.idepix.process">(in module processors.idepix.idepix)</a>
 </li>
-        <li><a href="mph_code.html#processors.mph.mph.process">(in module processors.mph.mph)</a>
+        <li><a href="mph.html#processors.mph.mph.process">(in module processors.mph.mph)</a>
 </li>
-        <li><a href="polymer_code.html#processors.polymer.polymer.process">(in module processors.polymer.polymer)</a>
+        <li><a href="polymer.html#processors.polymer.polymer.process">(in module processors.polymer.polymer)</a>
 </li>
-        <li><a href="sen2cor_code.html#processors.sen2cor.sen2cor.process">(in module processors.sen2cor.sen2cor)</a>
+        <li><a href="sen2cor.html#processors.sen2cor.sen2cor.process">(in module processors.sen2cor.sen2cor)</a>
 </li>
       </ul></li>
       <li>
     processors.c2rcc.c2rcc
 
       <ul>
-        <li><a href="c2rcc_code.html#module-processors.c2rcc.c2rcc">module</a>
+        <li><a href="c2rcc.html#module-processors.c2rcc.c2rcc">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -550,49 +566,49 @@
     processors.fluo.l_fluo
 
       <ul>
-        <li><a href="fluo_code.html#module-processors.fluo.l_fluo">module</a>
+        <li><a href="fluo.html#module-processors.fluo.l_fluo">module</a>
 </li>
       </ul></li>
       <li>
     processors.fluo.r_fluo
 
       <ul>
-        <li><a href="fluo_code.html#module-processors.fluo.r_fluo">module</a>
+        <li><a href="fluo.html#module-processors.fluo.r_fluo">module</a>
 </li>
       </ul></li>
       <li>
     processors.idepix.idepix
 
       <ul>
-        <li><a href="idepix_code.html#module-processors.idepix.idepix">module</a>
+        <li><a href="idepix.html#module-processors.idepix.idepix">module</a>
 </li>
       </ul></li>
       <li>
     processors.mosaic.mosaic
 
       <ul>
-        <li><a href="mosaic_code.html#module-processors.mosaic.mosaic">module</a>
+        <li><a href="mosaic.html#module-processors.mosaic.mosaic">module</a>
 </li>
       </ul></li>
       <li>
     processors.mph.mph
 
       <ul>
-        <li><a href="mph_code.html#module-processors.mph.mph">module</a>
+        <li><a href="mph.html#module-processors.mph.mph">module</a>
 </li>
       </ul></li>
       <li>
     processors.polymer.polymer
 
       <ul>
-        <li><a href="polymer_code.html#module-processors.polymer.polymer">module</a>
+        <li><a href="polymer.html#module-processors.polymer.polymer">module</a>
 </li>
       </ul></li>
       <li>
     processors.sen2cor.sen2cor
 
       <ul>
-        <li><a href="sen2cor_code.html#module-processors.sen2cor.sen2cor">module</a>
+        <li><a href="sen2cor.html#module-processors.sen2cor.sen2cor">module</a>
 </li>
       </ul></li>
       <li>
@@ -624,22 +640,22 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="c2rcc_code.html#processors.c2rcc.c2rcc.rewrite_xml">rewrite_xml() (in module processors.c2rcc.c2rcc)</a>
+      <li><a href="c2rcc.html#processors.c2rcc.c2rcc.rewrite_xml">rewrite_xml() (in module processors.c2rcc.c2rcc)</a>
 
       <ul>
-        <li><a href="fluo_code.html#processors.fluo.l_fluo.rewrite_xml">(in module processors.fluo.l_fluo)</a>
+        <li><a href="fluo.html#processors.fluo.l_fluo.rewrite_xml">(in module processors.fluo.l_fluo)</a>
 </li>
-        <li><a href="fluo_code.html#processors.fluo.r_fluo.rewrite_xml">(in module processors.fluo.r_fluo)</a>
+        <li><a href="fluo.html#processors.fluo.r_fluo.rewrite_xml">(in module processors.fluo.r_fluo)</a>
 </li>
-        <li><a href="idepix_code.html#processors.idepix.idepix.rewrite_xml">(in module processors.idepix.idepix)</a>
+        <li><a href="idepix.html#processors.idepix.idepix.rewrite_xml">(in module processors.idepix.idepix)</a>
 </li>
-        <li><a href="mosaic_code.html#processors.mosaic.mosaic.rewrite_xml">(in module processors.mosaic.mosaic)</a>
+        <li><a href="mosaic.html#processors.mosaic.mosaic.rewrite_xml">(in module processors.mosaic.mosaic)</a>
 </li>
-        <li><a href="mph_code.html#processors.mph.mph.rewrite_xml">(in module processors.mph.mph)</a>
+        <li><a href="mph.html#processors.mph.mph.rewrite_xml">(in module processors.mph.mph)</a>
 </li>
-        <li><a href="polymer_code.html#processors.polymer.polymer.rewrite_xml">(in module processors.polymer.polymer)</a>
+        <li><a href="polymer.html#processors.polymer.polymer.rewrite_xml">(in module processors.polymer.polymer)</a>
 </li>
-        <li><a href="sen2cor_code.html#processors.sen2cor.sen2cor.rewrite_xml">(in module processors.sen2cor.sen2cor)</a>
+        <li><a href="sen2cor.html#processors.sen2cor.sen2cor.rewrite_xml">(in module processors.sen2cor.sen2cor)</a>
 </li>
       </ul></li>
   </ul></td>

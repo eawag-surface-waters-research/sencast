@@ -123,9 +123,25 @@
 		<parameters>
 			<targetBands>
 				<targetBand>
-					<name>NDVI</name>
+					<name>ndwi_gao</name>
 					<type>float32</type>
-					<expression>if (B8-B4)/(B8+B4)> 0.5 then (B8- B4)/(B8+ B4) else NaN</expression>
+					<expression>if ${validPixelExpression} then ((B8 - B11) / (B8 + B11)) else NaN</expression>
+					<unit>dl</unit>
+					<validExpression>${validPixelExpression}</validExpression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>ndwi_mcfeeters</name>
+					<type>float32</type>
+					<expression>if ${validPixelExpression} then ((B3 - B8) / (B3 + B8)) else NaN</expression>
+					<unit>dl</unit>
+					<validExpression>${validPixelExpression}</validExpression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<name>ndvi</name>
+					<type>float32</type>
+					<expression>if ${validPixelExpression} then ((B8 - B4) / (B8 + B4)) else NaN</expression>
 					<unit>dl</unit>
 					<validExpression>${validPixelExpression}</validExpression>
 					<noDataValue>NaN</noDataValue>

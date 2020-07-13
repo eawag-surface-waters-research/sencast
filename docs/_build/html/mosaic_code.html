@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Mosaic &mdash; Sentinel-Hindcast  documentation</title>
+  <title>Mosaic &mdash; Sencast  documentation</title>
   
 
   
@@ -35,9 +35,7 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Sen2cor" href="sen2cor_code.html" />
-    <link rel="prev" title="FLUO" href="fluo_code.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -51,7 +49,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sentinel-Hindcast
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast
           
 
           
@@ -93,9 +91,15 @@
 <li class="toctree-l1"><a class="reference internal" href="environment_config.html">Environment File</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parameters_config.html">Parameter File</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+</ul>
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">c2rcc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">C2RCC</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fluo.html">fluo</a></li>
 <li class="toctree-l1"><a class="reference internal" href="idepix.html">Idepix</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mosaic.html">Mosaic</a></li>
@@ -103,21 +107,20 @@
 <li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Modules</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="modules.html">sentinel-hindcast</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html#processors">Processors</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="idepix_code.html">IDEPIX</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mph_code.html">MPH</a></li>
-<li class="toctree-l2"><a class="reference internal" href="polymer_code.html">Polymer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="c2rcc_code.html">C2RCC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="fluo_code.html">FLUO</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Mosaic</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sen2cor_code.html">Sen2cor</a></li>
+<p class="caption"><span class="caption-text">Adapters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="primaryproduction_code.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge_code.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datalakes_code.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlrgb_code.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qlsingleband_code.html">QLSingleBand</a></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#adapters">Adapters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html#externalapis">externalapis</a></li>
+<p class="caption"><span class="caption-text">External API's</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="coah_api.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creodias_api.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="earthdata_api.html">Earth Data API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hda_api.html">HDA API</a></li>
 </ul>
 
             
@@ -133,7 +136,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Sentinel-Hindcast</a>
+          <a href="index.html">Sencast</a>
         
       </nav>
 
@@ -163,8 +166,6 @@
   <ul class="wy-breadcrumbs">
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="modules.html">sentinel-hindcast</a> &raquo;</li>
         
       <li>Mosaic</li>
     
@@ -204,15 +205,6 @@
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="sen2cor_code.html" class="btn btn-neutral float-right" title="Sen2cor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="fluo_code.html" class="btn btn-neutral float-left" title="FLUO" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

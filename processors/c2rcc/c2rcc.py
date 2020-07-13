@@ -1,6 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""The Case-2 Regional CoastColour (C2RCC) algorithm derives the water constituents and optical properties from
+optically complex waters using Sentinels–3 and 2, MERIS, VIIRS, MODIS, or Landsat-8 images.
+
+For an overview of the processor:
+https://www.brockmann-consult.de/portfolio/water-quality-from-space/
+
+or for more details:
+https://www.brockmann-consult.de/wp-content/uploads/2017/11/sco1_12brockmann.pdf
+"""
+
 import os
 import subprocess
 
@@ -58,8 +68,12 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
     if os.path.isfile(output_file):
-        print("Skipping C2RCC, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
-        return output_file
+        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+            print("Removing file: ${}".format(output_file))
+            os.remove(output_file)
+        else:
+            print("Skipping C2RCC, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
+            return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))

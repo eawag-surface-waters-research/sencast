@@ -1,9 +1,7 @@
 James:
-- Implement option to use new paramaeter file even if one exists in output folder - Ensure all data reprocessed
-- Ensure Datalakes data is reprocessed based on NTC and ERA5 data (will overwite for new input files, need logic for run dates)
-- Complete documentation and comment code accordingly (clean up installation process)
-- Prevent mosaicing of S3A and S3B files
-- Remove corrupted files if GPT fails or download is interrupted
+- Implement rerun logic for datalakes
+- Complete documentation and comment code accordingly (in progress)
+- New adapter for averaging pixels across multiple timesteps (SNAP operator)
 
 Jasmin:
 - C2RCC auxdata doesn't seem to work for S2
@@ -35,3 +33,6 @@ Completed:
 - fix strange S2 polymer forms when mosaicked (check with a few Lake Constance images)
 - Enable L1 data access via CreoDIAS API (older Sentinel-2 data)
 - Merge output into single nc file
+- Remove corrupted files if GPT fails or download is interrupted
+- Prevent mosaicing of S3A and S3B files
+- Implement option to use new paramaeter file even if one exists in output folder - Ensure all data reprocessed
