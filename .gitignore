@@ -5,5 +5,6 @@ __pycache__
 /datalakes
 /environments/*
 /parameters/*
-!/parameters/example.ini
+!/parameters/parameters_template_S2.ini
+!/parameters/parameters_template_S3.ini
 !/environments/example.ini

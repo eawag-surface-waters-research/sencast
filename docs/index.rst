@@ -22,7 +22,7 @@ Installation
 
 To install sencast, run::
 
-  git clone git@renkulab.io:odermatt/sentinel-hindcast.git
+  git clone git@gitlab.com:eawag-rs/sencast.git
   pip install -r requirements.txt
 
 Many of the Sencast'S processors reply on `SNAP`_ , the SeNtinel Application Platform
