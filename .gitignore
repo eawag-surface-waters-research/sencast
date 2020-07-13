@@ -2,8 +2,8 @@ __pycache__
 /.idea
 /ANCILLARY
 /data_landmask_gsw
-/environments
-/parameters
 /datalakes
+/environments/*
+/parameters/*
 !/parameters/example.ini
 !/environments/example.ini
