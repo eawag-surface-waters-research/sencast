@@ -20,7 +20,7 @@ It is developed and maintained by the `SURF Remote Sensing group at Eawag`_.
 Installation
 -------------
 
-To install sencast, run::
+To install Sencast, run::
 
   git clone git@gitlab.com:eawag-rs/sencast.git
   pip install -r requirements.txt

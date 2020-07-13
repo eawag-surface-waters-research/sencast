@@ -52,9 +52,9 @@ def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_
 def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_processors=1,
                 max_parallel_adapters=1):
     """Threading function for running Sentinel Hindcast.
-        1) Calls API to find available data for given query
-        2) Splits the processing into threads based on date and satellite
-        3) Runs the sencast for each thread
+        1. Calls API to find available data for given query
+        2. Splits the processing into threads based on date and satellite
+        3. Runs the sencast for each thread
 
         Parameters
         -------------
@@ -149,10 +149,10 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
 
 def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, group):
     """Run sencast for given thread.
-        1) Downloads required products
-        2) Runs processors
-        3) Runs mosaic
-        4) Runs adapters
+        1. Downloads required products
+        2. Runs processors
+        3. Runs mosaic
+        4. Runs adapters
 
         Parameters
         -------------
