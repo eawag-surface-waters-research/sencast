@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The core functions of Sentinel Hindcast
+"""The core functions of Sencast
 
 .. note::
-    Download API's, processors, and adapters are imported dynamically to make Sentinel Hindcast also work on systems,
+    Download API's, processors, and adapters are imported dynamically to make Sencast also work on systems,
     where some of them might not be available.
 """
 
@@ -23,7 +23,7 @@ from product_fun import minimal_subset_of_products
 
 
 def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
-    """Main function for running Sentinel Hindcast. First initialises the hindcast and then processes input parameters.
+    """Main function for running Sencast. First initialises the sencast and then processes input parameters.
 
     Parameters
     -------------
@@ -32,7 +32,8 @@ def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_
         Parameters read from the .ini input file
     env_file
         | **Default: None**
-        | Environment settings read from the environment .ini file
+        | Environment settings read from the environment .ini file, if None provided Sencast will search for file in
+        environments folder.
     max_parallel_downloads
         | **Default: 1**
         | Maximum number of parallel downloads of satellite images
@@ -50,6 +51,30 @@ def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_
 
 def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_processors=1,
                 max_parallel_adapters=1):
+    """Threading function for running Sentinel Hindcast.
+        1) Calls API to find available data for given query
+        2) Splits the processing into threads based on date and satellite
+        3) Runs the sencast for each thread
+
+        Parameters
+        -------------
+
+        params
+            Dictionary of parameters, loaded from input file
+        env
+            Dictionary of environment parameters, loaded from input file
+        l2_path
+            The output folder in which to save the output files
+        max_parallel_downloads
+            | **Default: 1**
+            | Maximum number of parallel downloads of satellite images
+        max_parallel_processors
+            | **Default: 1**
+            | Maximum number of processors to run in parallel
+        max_parallel_adapters
+            | **Default: 1**
+            | Maximum number of adapters to run in parallel
+        """
     # decide which API to use
     if env['General']['remote_dias_api'] == "COAH":
         from externalapis.coah_api import get_download_requests, do_download
@@ -123,7 +148,35 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
 
 
 def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, group):
-    """ hindcast a set of products with the same sensing date """
+    """Run sencast for given thread.
+        1) Downloads required products
+        2) Runs processors
+        3) Runs mosaic
+        4) Runs adapters
+
+        Parameters
+        -------------
+
+        params
+            Dictionary of parameters, loaded from input file
+        env
+            Dictionary of environment parameters, loaded from input file
+        do_download
+            Download function from the selected API
+            The output folder in which to save the output files
+        auth
+            Auth details for the selected API
+        download_requests
+            Array of uuid's of sentinel products
+        l1product_paths
+            Array of l1 product paths
+        l2_path
+            The output folder in which to save the output files
+        semaphores
+            Dictionary of semaphore objects
+        group
+            Thread group name
+        """
     # download the products, which are not yet available locally
     for download_request, l1product_path in zip(download_requests, l1product_paths):
         if not os.path.exists(l1product_path):

@@ -1,6 +1,17 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""Sen2Cor is a processor for Sentinel-2 Level 2A product generation and formatting; it performs the atmospheric-,
+terrain and cirrus correction of Top-Of- Atmosphere Level 1C input data. Sen2Cor creates Bottom-Of-Atmosphere,
+optionally terrain- and cirrus corrected reflectance images; additional, Aerosol Optical Thickness-, Water Vapor-,
+Scene Classification Maps and Quality Indicators for cloud and snow probabilities. Its output product format is
+equivalent to the Level 1C User Product: JPEG 2000 images, three different resolutions, 60, 20 and 10 m.
+
+For an overview of the processor:
+https://step.esa.int/main/third-party-plugins-2/sen2cor/
+
+"""
+
 import os
 import subprocess
 

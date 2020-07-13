@@ -1,6 +1,16 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""Polymer is an algorithm aimed at recovering the radiance scattered and absorbed by the oceanic waters (also called
+Ocean Colour) from the signal measured by satellite sensors in the visible spectrum.
+
+For an overview of the processor:
+https://www.hygeos.com/polymer
+
+or for more details:
+https://forum.hygeos.com/viewforum.php?f=3
+"""
+
 import os
 import subprocess
 from math import ceil, floor

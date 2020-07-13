@@ -1,4 +1,4 @@
-auxil module
+auxil
 ============
 
 .. automodule:: auxil

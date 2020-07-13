@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'Sencast '
+project = 'Sencast'
 copyright = '2020, Daniel Odermatt, James Runnalls, Rolf Scheuner'
 author = 'Daniel Odermatt, James Runnalls, Rolf Scheuner'
 

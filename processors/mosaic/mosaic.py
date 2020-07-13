@@ -1,6 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""Mosaic is SNAP algorithm to combine multiple overlapping satellite images. Documentation with regards to mosaicing is
+bundled with the SNAP software.
+
+"""
+
 import os
 import subprocess
 

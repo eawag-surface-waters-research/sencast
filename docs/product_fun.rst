@@ -1,4 +1,4 @@
-product\_fun module
+product\_fun
 ===================
 
 .. automodule:: product_fun
