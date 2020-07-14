@@ -24,7 +24,7 @@ token_address = 'https://auth.creodias.eu/auth/realms/DIAS/protocol/openid-conne
 
 def get_download_requests(auth, startDate, completionDate, sensor, resolution, wkt):
     query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}&processingLevel={}"
-    maxRecords = 100
+    maxRecords = 1000
     geometry = wkt.replace(" ", "", 1).replace(" ", "+")
     satellite, instrument, productType, processingLevel = get_dataset_id(sensor, resolution)
     query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType, processingLevel)
