@@ -27,6 +27,46 @@ def get_corner_pixels_roi(product_path, wkt):
     return UL, UR, LR, LL
 
 
+def parse_S3_name(name):
+    if "S3A_" in name or "S3B_" in name:
+        name_list = name.split("_")
+        return name_list[7], name_list[8], name_list[9], name_list[0]
+    else:
+        return False, False, False, False
+
+
+def filter_for_timeliness(download_requests, product_names):
+    s3_products = [];
+    for i in range(len(product_names)):
+        tmp = product_names[i]
+        uuid = download_requests[i]["uuid"]
+        if "S3A_" in tmp or "S3B_" in tmp:
+            sensing_start, sensing_end, product_creation, satellite = parse_S3_name(tmp)
+            s3_products.append({"name": tmp, "uuid": uuid, "sensing_start": sensing_start, "sensing_end": sensing_end,
+                                "product_creation": product_creation, "satellite": satellite})
+        else:
+            s3_products.append({"name": tmp, "uuid": uuid})
+    filtered_download_requests = []
+    filtered_product_names = []
+    for j in range(len(s3_products)):
+        if "S3A_" in s3_products[j]["name"] or "S3B_" in s3_products[j]["name"]:
+            matching_sensing = [f for f in s3_products if f['sensing_start'] == s3_products[j]['sensing_start']
+                                and f['sensing_end'] == s3_products[j]['sensing_end']
+                                and f['satellite'] == s3_products[j]['satellite']]
+            creation = [d['product_creation'] for d in matching_sensing]
+            creation.sort(reverse=True)
+            if s3_products[j]['product_creation'] == creation[0]:
+                filtered_product_names.append(s3_products[j]["name"])
+                filtered_download_requests.append({"uuid": s3_products[j]["uuid"]})
+            else:
+                print("Removed superseded file: {}).".format(s3_products[j]["name"]))
+        else:
+            filtered_product_names.append(s3_products[j]["name"])
+            filtered_download_requests.append({"uuid": s3_products[j]["uuid"]})
+
+    return filtered_download_requests, filtered_product_names
+
+
 def minimal_subset_of_products(product_paths, wkt):
     # ensure that all products are overlapping
     if len(product_paths) not in [2, 4]:
