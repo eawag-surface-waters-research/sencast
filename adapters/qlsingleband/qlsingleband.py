@@ -48,13 +48,15 @@ def apply(_, params, l2product_files, date):
                         print("Removing file: ${}".format(ql_file))
                         os.remove(ql_file)
                         param_range = None if float(bandmax) == 0 else [0, float(bandmax)]
-                        plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade", param_range=param_range)
+                        plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade",
+                                 param_range=param_range)
                     else:
                         print("Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
                 else:
                     param_range = None if float(bandmax) == 0 else [0, float(bandmax)]
                     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-                    plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade", param_range=param_range)
+                    plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade",
+                             param_range=param_range)
 
 
 def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevation', crop_ext=None,
@@ -79,6 +81,14 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
     param_band = product.getBand(layer_str)
+
+    mask_array = np.zeros(shape=(height, width), dtype=np.int32)
+    for x in range(0, width):
+        for y in range(0, height):
+            if param_band.isPixelValid(x, y):
+                mask_array[y, x] = 1
+    invalid_mask = np.where(mask_array == 1, 1, 0)
+
     param_dt = param_band.getDataType()
     if param_dt <= 12:
         data_type = np.int32
@@ -114,9 +124,10 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     param_arr = param_arr.reshape(height, width)
 
     # Pixel zählen
-    masked_param_arr = np.ma.masked_invalid(param_arr)
-    masked_param_arr = np.ma.masked_where(masked_param_arr >= 9999, masked_param_arr)
-    masked_param_arr = np.ma.masked_where(masked_param_arr < 0.000000000001, masked_param_arr)
+    masked_param_arr = np.ma.array(param_arr, fill_value=np.nan) #, mask = invalid_mask
+    masked_param_arr = np.ma.masked_where(invalid_mask == False, masked_param_arr)
+    #masked_param_arr = np.ma.masked_where(masked_param_arr >= 9999, masked_param_arr)
+    #masked_param_arr = np.ma.masked_where(masked_param_arr < 0.000000000001, masked_param_arr)
     print(
         '   applicable values are found in ' + str(masked_param_arr.count()) + ' of ' + str(height * width) + ' pixels')
     if masked_param_arr.count() == 0:
@@ -249,6 +260,7 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
         masked_param_arr = np.exp(masked_param_arr)
 
     color_type = cm.get_cmap(name='viridis')
+    # color_type = colscales.rainbow_king()
     color_type.set_bad(alpha=0)
     if not param_range:
         print('No range provided. Estimating...')
@@ -257,10 +269,10 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
                            0.04, 0.02, 0.01, 0.008, 0.006, 0.004, 0.002,
                            0.001]
         for n_interval in range(2, len(range_intervals)):
-            if np.percentile(masked_param_arr.compressed(), 90) > range_intervals[n_interval]:
+            if np.nanpercentile(masked_param_arr.compressed(), 90) > range_intervals[n_interval]:
                 param_range = [0, range_intervals[n_interval - 2]]
                 break
-            elif np.percentile(masked_param_arr.compressed(), 90) < range_intervals[-1]:
+            elif np.nanpercentile(masked_param_arr.compressed(), 90) < range_intervals[-1]:
                 param_range = [0, range_intervals[-1]]
                 break
     print('Parameters range set to: {}'.format(param_range))

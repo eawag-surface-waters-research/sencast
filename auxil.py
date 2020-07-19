@@ -8,6 +8,7 @@ import re
 import socket
 
 from datetime import datetime
+from snappy import ProductIO, ProductUtils
 
 
 project_path = os.path.dirname(__file__)
@@ -154,6 +155,7 @@ def get_satellite_name_from_product_name(product_name):
     else:
         return "Unknown"
 
+
 def get_l1product_path(env, product_name):
     if product_name.startswith("S3A") or product_name.startswith("S3B"):
         satellite = "Sentinel-3"
@@ -181,3 +183,22 @@ def get_l1product_path(env, product_name):
         'second': date.strftime(r"%S"),
     }
     return env['DIAS']['l1_path'].format(**kwargs)
+
+
+def copy_metadata(source_path, target_path):
+    source_product = ProductIO.readProduct(source_path)
+    target_product = ProductIO.readProduct(target_path)
+    target_bands = target_product.getBandNames()
+    temp_path = os.path.splitext(target_path)[0] + '_temp' + '.nc'
+
+    for band in source_product.getBandNames():
+        if band in target_bands:
+            target_product.getBand(band).setSpectralWavelength(source_product.getBand(band).getSpectralWavelength())
+            target_product.getBand(band).setUnit(source_product.getBand(band).getUnit())
+            target_product.getBand(band).setValidPixelExpression(source_product.getBand(band).getValidPixelExpression())
+
+    ProductIO.writeProduct(target_product, temp_path, 'NetCDF4-BEAM')
+    os.remove(target_path)
+    os.rename(temp_path, target_path)
+
+

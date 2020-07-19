@@ -52,18 +52,21 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rnir</name>
 					<type>float32</type>
 					<expression>Rnir</expression>
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rgli</name>
 					<type>float32</type>
 					<expression>Rgli</expression>
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>logchl</name>
 					<type>float32</type>
 					<expression>logchl</expression>
@@ -72,12 +75,14 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>bbs</name>
 					<type>float32</type>
 					<expression>bbs</expression>
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rw443</name>
 					<type>float32</type>
 					<expression>Rw443</expression>
@@ -87,6 +92,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rw490</name>
 					<type>float32</type>
 					<expression>Rw490</expression>
@@ -96,6 +102,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rw560</name>
 					<type>float32</type>
 					<expression>Rw560</expression>
@@ -105,6 +112,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rw665</name>
 					<type>float32</type>
 					<expression>Rw665</expression>
@@ -114,6 +122,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rw705</name>
 					<type>float32</type>
 					<expression>Rw705</expression>
@@ -123,6 +132,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rw740</name>
 					<type>float32</type>
 					<expression>Rw740</expression>
@@ -132,6 +142,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rw783</name>
 					<type>float32</type>
 					<expression>Rw783</expression>
@@ -141,6 +152,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rw842</name>
 					<type>float32</type>
 					<expression>Rw842</expression>
@@ -150,6 +162,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rw865</name>
 					<type>float32</type>
 					<expression>Rw865</expression>
@@ -159,6 +172,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rw1610</name>
 					<type>float32</type>
 					<expression>Rw1610</expression>
@@ -168,6 +182,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>tsm_vantrepotte665</name>
 					<type>float32</type>
 					<expression>(((260 * Rw665) / (1 - (Rw665 / 0.142))) + 1.092)</expression>
@@ -175,6 +190,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>tsm_zhang705</name>
 					<type>float32</type>
 					<expression>pow((362507 * Rw705),  2.3222)</expression>
@@ -182,6 +198,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>tsm_binding740</name>
 					<type>float32</type>
 					<expression>((((Rw740 / (((0.54 * 128.123) / PI) + 0.48 * Rw740)) / 0.319) * 2.8) / (0.554 * 0.019) - 0.00027)</expression>
@@ -189,6 +206,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>chl_oc2</name>
 					<type>float32</type>
 					<expression>pow(10 , 0.2389 - (1.9369 * log10(Rw490 / Rw560)) + (1.7627 * pow(log10(Rw490 / Rw560), 2)) - (3.0777 * pow(log10(Rw490 / Rw560), 3)) - (0.1054 * pow(log10(Rw490 / Rw560), 4)))</expression>
@@ -196,6 +214,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>chl_oc3</name>
 					<type>float32</type>
 					<expression>pow(10 , 0.2424 - (2.2146 * log10(max(Rw443,Rw490) / Rw560)) + (1.5193 * pow(log10(max(Rw443,Rw490) / Rw560), 2)) -	(0.7702 * pow(log10(max(Rw443,Rw490) / Rw560), 3)) - (0.4291 * pow(log10(max(Rw443,Rw490) / Rw560), 4)))</expression>
@@ -203,6 +222,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>chl_2band</name>
 					<type>float32</type>
 					<expression>(61.324 * (Rw705 / Rw665)) - 37.94</expression>
@@ -210,6 +230,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>chl_gons</name>
 					<type>float32</type>
 					<expression>((Rw705 / Rw665) * (0.7 + (1.61 * Rw783 / (0.082 - (0.6 * Rw783)))) - 0.4 - pow(1.61 * Rw783 / (0.082 - (0.6 * Rw783)), 1.063)) / 0.016</expression>
@@ -217,6 +238,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>chl_ndci</name>
 					<type>float32</type>
 					<expression>14.039 + 86.115 * (((Rw705 / PI) - (Rw665 / PI)) / ((Rw705 / PI) + (Rw665 / PI))) + 194.325 * pow((((Rw705 / PI) - (Rw665 / PI)) / ((Rw705 / PI) + (Rw665 / PI))), 2)</expression>
@@ -224,6 +246,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>rgb_int</name>
 					<type>float32</type>
 					<expression>(560 - 490) * ((Rw490 + Rw560) / 2) + (665 - 560) * ((Rw560 + Rw665) / 2)</expression>
@@ -231,6 +254,7 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>rgb_tri</name>
 					<type>float32</type>
 					<expression>(560 - 490) * ((Rw490 + Rw560) / 2) + (665 - 560) * ((Rw560 + Rw665) / 2) - (665 - 490) * ((Rw490 + Rw665) / 2)</expression>

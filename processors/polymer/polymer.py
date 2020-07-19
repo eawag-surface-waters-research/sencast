@@ -24,6 +24,7 @@ from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
 from product_fun import get_corner_pixels_roi, get_reproject_params_from_wkt, get_lons_lats
+import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
 from auxil import load_properties, get_sensing_datetime_from_product_name
 
@@ -48,6 +49,8 @@ def process(env, params, l1product_path, _, out_path):
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     date_str = get_sensing_datetime_from_product_name(product_name)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
+    water_model, validexpression = params['POLYMER']['water_model'], params['POLYMER']['validexpression']
+    vicar_version = params['POLYMER']['vicar_version']
     gsw_path, ancillary_path = env['GSW']['root_path'], env['CDS']['era5_path']
     os.makedirs(gsw_path, exist_ok=True)
     os.makedirs(ancillary_path, exist_ok=True)
@@ -76,6 +79,7 @@ def process(env, params, l1product_path, _, out_path):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     if sensor == "MSI":
+        calib_gains = polymer_vicarious.msi_vicarious(vicar_version)
         granule_path = os.path.join(l1product_path, "GRANULE")
         msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
         UL, UR, LR, LL = get_corner_pixels_roi(msi_product_path, wkt)
@@ -90,6 +94,7 @@ def process(env, params, l1product_path, _, out_path):
                         ancillary=ancillary, resolution=resolution)
         additional_ds = ['sza']
     else:
+        calib_gains = polymer_vicarious.olci_vicarious(vicar_version)
         UL, UR, LR, LL = get_corner_pixels_roi(l1product_path, wkt)
         sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]), max(LL[1], LR[1])
         gsw = GSW(directory=gsw_path, agg=8)
@@ -99,11 +104,12 @@ def process(env, params, l1product_path, _, out_path):
     poly_tmp_file = os.path.join(out_path, OUT_DIR, "_reproducibility", OUT_FILENAME.format(anc_name, product_name) + ".tmp")
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
     os.makedirs(os.path.dirname(poly_tmp_file), exist_ok=True)
-    run_atm_corr(l1, l2)
+
+    run_atm_corr(l1, l2, water_model=water_model, calib=calib_gains)
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor))
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, sensor, resolution, wkt)
+        rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt)
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(poly_tmp_file),
             "-PoutputFile={}".format(output_file)]
@@ -117,12 +123,13 @@ def process(env, params, l1product_path, _, out_path):
     return output_file
 
 
-def rewrite_xml(gpt_xml_file, sensor, resolution, wkt):
+def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt):
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor)), "r") as f:
         xml = f.read()
 
     reproject_params = get_reproject_params_from_wkt(wkt, resolution)
     xml = xml.replace("${wkt}", wkt)
+    xml = xml.replace("${validPixelExpression}", validexpression)
     xml = xml.replace("${easting}", reproject_params['easting'])
     xml = xml.replace("${northing}", reproject_params['northing'])
     xml = xml.replace("${pixelSizeX}", reproject_params['pixelSizeX'])
