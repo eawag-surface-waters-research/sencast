@@ -13,9 +13,6 @@ CURRENT - implement post processing filtering of non-physical/impossible values
 
 Other:
 - input_data folders in Creodias are called 'L2' rather than 'L1'
-- Wavelength metadata for polymer and mosaics
-- Flags for mosaiced products are missing -> add some logic to create them
-- Masks for mosaiced products are missing -> add some logic to create them
 - Implement a logger that writes the log to a file (one file per product group)
 - MPH not working for partial products which come from Idepix (date: 2020-04-20, wkt: sui)
 - MPH immersed_cyanobacteria is transparent instead of dark blue at zero values (QL)
@@ -36,3 +33,6 @@ Completed:
 - Remove corrupted files if GPT fails or download is interrupted
 - Prevent mosaicing of S3A and S3B files
 - Implement option to use new paramaeter file even if one exists in output folder - Ensure all data reprocessed
+- Flags for mosaiced products are missing -> add some logic to create them
+- Masks for mosaiced products are missing -> add some logic to create them
+- Wavelength metadata for polymer and mosaics

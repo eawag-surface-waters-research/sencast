@@ -185,6 +185,7 @@ def get_l1product_path(env, product_name):
     return env['DIAS']['l1_path'].format(**kwargs)
 
 
+# needed for mosaic output: https://senbox.atlassian.net/browse/SNAP-745
 def copy_metadata(source_path, target_path):
     source_product = ProductIO.readProduct(source_path)
     target_product = ProductIO.readProduct(target_path)

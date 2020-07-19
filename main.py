@@ -250,6 +250,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from processors.mosaic.mosaic import mosaic
                 try:
                     l2product_files[processor] = mosaic(env, params, tmp)
+                    # mosaic output metadata missing: https://senbox.atlassian.net/browse/SNAP-745
                     copy_metadata(tmp[0], l2product_files[processor])
                 except Exception:
                     print("An error occured while applying MOSAIC to products: {}".format(tmp))
