@@ -201,7 +201,7 @@
 					<validExpression>${validPixelExpression}</validExpression>
 					<name>tsm_binding740</name>
 					<type>float32</type>
-					<expression>8.7774259 * Rw740 - 0.00027) / 0.010526</expression>
+					<expression>(8.7774259 * Rw740 - 0.00027) / 0.010526</expression>
 					<unit>g/m^3</unit>
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
