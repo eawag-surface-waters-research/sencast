@@ -37,23 +37,24 @@ def apply(_, params, l2product_files, date):
         processor = key.upper()
         if processor in l2product_files.keys():
             print("Creating quicklooks for {}".format(processor))
-            bands = list(filter(None, params[PARAMS_SECTION][key].split(",")))[::2]
-            bandmaxs = list(filter(None, params[PARAMS_SECTION][key].split(",")))[1::2]
+            bands = list(filter(None, params[PARAMS_SECTION][key].split(",")))[::3]
+            bandmins = list(filter(None, params[PARAMS_SECTION][key].split(",")))[1::3]
+            bandmaxs = list(filter(None, params[PARAMS_SECTION][key].split(",")))[2::3]
             product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
-            for band, bandmax in zip(bands, bandmaxs):
+            for band, bandmin, bandmax in zip(bands, bandmins, bandmaxs):
                 ql_path = os.path.dirname(l2product_files[processor]) + "-" + band
-                ql_file = os.path.join(ql_path, "{}-{}.png".format(product_name, band))
+                ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, band))
                 if os.path.exists(ql_file):
                     if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
                         print("Removing file: ${}".format(ql_file))
                         os.remove(ql_file)
-                        param_range = None if float(bandmax) == 0 else [0, float(bandmax)]
+                        param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin), float(bandmax)]
                         plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade",
                                  param_range=param_range)
                     else:
                         print("Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
                 else:
-                    param_range = None if float(bandmax) == 0 else [0, float(bandmax)]
+                    param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin), float(bandmax)]
                     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
                     plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade",
                              param_range=param_range)
@@ -260,7 +261,8 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
         masked_param_arr = np.exp(masked_param_arr)
 
     color_type = cm.get_cmap(name='viridis')
-    # color_type = colscales.rainbow_king()
+    #color_type = colscales.rainbow_king()
+    #color_type = colscales.red2blue()
     color_type.set_bad(alpha=0)
     if not param_range:
         print('No range provided. Estimating...')
