@@ -259,7 +259,7 @@
 					<validExpression>${validPixelExpression}</validExpression>
 					<name>tsm_binding754</name>
 					<type>float32</type>
-					<expression>((((Rw754 / (((0.54 * 128.123) / PI) + 0.48 * Rw754)) / 0.319) * 2.8) / (0.554 * 0.019) - 0.00027)</expression>
+					<expression>8.7774259 * Rw754 - 0.00027) / 0.010526</expression>
 					<unit>g/m^3</unit>
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
