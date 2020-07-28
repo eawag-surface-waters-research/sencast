@@ -1,5 +1,4 @@
 James:
-- Implement rerun logic for datalakes
 - Complete documentation and comment code accordingly (in progress)
 - New adapter for averaging pixels across multiple timesteps (SNAP operator)
 
@@ -18,7 +17,7 @@ Other:
 - MPH immersed_cyanobacteria is transparent instead of dark blue at zero values (QL)
 - Add Loisel IOP algorithm
 - RGB output?
-- Moving average smoothing?
+
 
 Newly discovered by Dani:
 - if choosing only 'C2RCC' or 'L-FLUO' as processors, IDEPIX is no longer applied automatically
@@ -36,3 +35,5 @@ Completed:
 - Flags for mosaiced products are missing -> add some logic to create them
 - Masks for mosaiced products are missing -> add some logic to create them
 - Wavelength metadata for polymer and mosaics
+- Implement rerun logic for datalakes
+- Moving average smoothing
