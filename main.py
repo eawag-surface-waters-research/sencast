@@ -17,9 +17,9 @@ from requests.auth import HTTPBasicAuth
 from snappy import ProductIO
 from threading import Semaphore, Thread
 
-from auxil import get_l1product_path, get_sensing_date_from_product_name, get_satellite_name_from_product_name, init_hindcast
+from auxil import get_l1product_path, get_sensing_date_from_product_name, get_satellite_name_from_product_name, init_hindcast, copy_metadata
 from externalapis.earthdata_api import authenticate
-from product_fun import minimal_subset_of_products
+from product_fun import minimal_subset_of_products, filter_for_timeliness
 
 
 def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
@@ -92,6 +92,9 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     start, end = params['General']['start'], params['General']['end']
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     download_requests, product_names = get_download_requests(auth, start, end, sensor, resolution, wkt)
+
+    # filter for timeliness
+    download_requests, product_names = filter_for_timeliness(download_requests, product_names)
 
     # set up inputs for product hindcast
     l1product_paths = [get_l1product_path(env, product_name) for product_name in product_names]
@@ -247,9 +250,12 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from processors.mosaic.mosaic import mosaic
                 try:
                     l2product_files[processor] = mosaic(env, params, tmp)
+                    # mosaic output metadata missing: https://senbox.atlassian.net/browse/SNAP-745
+                    copy_metadata(tmp[0], l2product_files[processor])
                 except Exception:
                     print("An error occured while applying MOSAIC to products: {}".format(tmp))
                     traceback.print_exc()
+
         for l1product_path in l1product_paths:
             del(l2product_files[l1product_path])
 
