@@ -24,7 +24,7 @@ token_address = 'https://auth.creodias.eu/auth/realms/DIAS/protocol/openid-conne
 
 def get_download_requests(auth, startDate, completionDate, sensor, resolution, wkt):
     query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}&processingLevel={}"
-    maxRecords = 100
+    maxRecords = 1000
     geometry = wkt.replace(" ", "", 1).replace(" ", "+")
     satellite, instrument, productType, processingLevel = get_dataset_id(sensor, resolution)
     query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType, processingLevel)
@@ -32,6 +32,15 @@ def get_download_requests(auth, startDate, completionDate, sensor, resolution, w
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
 
+def get_updated_files(auth, startDate, completionDate, sensor, resolution, wkt, publishedAfter):
+    query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}&processingLevel={}&publishedAfter={}"
+    maxRecords = 1000
+    geometry = wkt.replace(" ", "", 1).replace(" ", "+")
+    satellite, instrument, productType, processingLevel = get_dataset_id(sensor, resolution)
+    query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType, processingLevel, publishedAfter)
+    uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query)
+    uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
+    return [{'uuid': uuid} for uuid in uuids], product_names
 
 def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions):
     num_products = len(uuids)

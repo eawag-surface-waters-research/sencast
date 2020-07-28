@@ -5,6 +5,7 @@ import re
 
 from haversine import haversine
 from snappy import GeoPos, ProductIO
+from datetime import datetime
 
 
 def get_corner_pixels_roi(product_path, wkt):
@@ -25,6 +26,15 @@ def get_corner_pixels_roi(product_path, wkt):
 
     product.closeIO()
     return UL, UR, LR, LL
+
+
+def parse_date_from_name(name):
+    sensing_time = name.split("_")[7]
+    sensing_year = sensing_time[:4]
+    sensing_month = sensing_time[4:6]
+    sensing_day = sensing_time[6:8]
+    creation_time = datetime.strptime(name.split("_")[9], '%Y%m%dT%H%M%S')
+    return "{}-{}-{}".format(sensing_year, sensing_month, sensing_day), creation_time
 
 
 def minimal_subset_of_products(product_paths, wkt):
