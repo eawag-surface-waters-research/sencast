@@ -1,6 +1,8 @@
 James:
 - Complete documentation and comment code accordingly (in progress)
 - New adapter for averaging pixels across multiple timesteps (SNAP operator)
+- Set up new server
+- Integrate MDN into SenCast
 
 Jasmin:
 - C2RCC auxdata doesn't seem to work for S2
