@@ -1,6 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""The Merge adapter combines multiple L2 products into a single file with multiple bands.
+
+The merge is only valid for files with identical geospatial information, it is not for merging geospatially distinct
+regions.
+"""
+
 import os
 from snappy import ProductIO, HashMap, GPF
 
@@ -13,6 +19,21 @@ FILEFOLDER = "L2MERGE"
 
 
 def apply(env, params, l2product_files,date):
+    """Apply merge adapter.
+                1. Uses snappy to merge multiple L2 files
+
+                Parameters
+                -------------
+
+                params
+                    Dictionary of parameters, loaded from input file
+                env
+                    Dictionary of environment parameters, loaded from input file
+                l2product_files
+                    Dictionary of Level 2 product files created by processors
+                date
+                    Run date
+                """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("Merge was not configured in parameters.")
     print("Applying Merge...")

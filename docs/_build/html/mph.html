@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>MPH &mdash; Sencast   documentation</title>
+  <title>MPH &mdash; Sencast  documentation</title>
   
 
   
@@ -51,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast 
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast
           
 
           
@@ -96,8 +96,8 @@
 <p class="caption"><span class="caption-text">Sencast</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="main.html">main</a></li>
-<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul class="current">
@@ -138,7 +138,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Sencast </a>
+          <a href="index.html">Sencast</a>
         
       </nav>
 
@@ -190,6 +190,9 @@
             
   <div class="section" id="module-processors.mph.mph">
 <span id="mph"></span><h1>MPH<a class="headerlink" href="#module-processors.mph.mph" title="Permalink to this headline">¶</a></h1>
+<p>The MPH Processor calculates chl-a concentrations by means of the Maximum Peak Height and specific arithmetic expressions for different water types. Flags for floating material, eucaryote/cyanobacteria dominance and an adjacency effect indicator are provided for each pixel.  The processor was originally developed for the processing of MERIS products in the BEAM toolbox. This processor has been migrated to SNAP and was extended to support OLCI products, using the same underlying algorithm which has been adapted by just replacing the MERIS bands by the corresponding OLCI bands at the same wavelength.  The algorithm requires as input data either L1b radiances or bottom-of-Rayleigh (BRR) corrected reflectances derived from the OLCI or MERIS spectral bands. A BRR product can be processed using the Rayleigh correction processor available from SNAP Desktop -&gt; Optical –&gt; Preprocessing, or the corresponding GPT processor. If the input is an OLCI or MERIS L1b product, the Rayleigh correction is automatically performed as a preprocessing step within the MPH processor.
+Using the option to export intermediate MPH calculations allows the user to customize arithmetic expressions for calculating chl-a. Documentation with regards to MPH is
+bundled with the SNAP software.</p>
 <dl class="py function">
 <dt id="processors.mph.mph.process">
 <code class="sig-prename descclassname">processors.mph.mph.</code><code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">l1product_path</span></em>, <em class="sig-param"><span class="n">l2product_files</span></em>, <em class="sig-param"><span class="n">out_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.mph.mph.process" title="Permalink to this definition">¶</a></dt>

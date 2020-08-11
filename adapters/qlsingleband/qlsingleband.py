@@ -1,6 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""The QLSingleBand adapter creates single-band quick looks output as .png files.
+
+Individual bands are plotted geospatially using matplotlib and exported to .png
+"""
+
 import math
 import os
 import re
@@ -32,6 +37,20 @@ PARAMS_SECTION = "QLSINGLEBAND"
 
 
 def apply(_, params, l2product_files, date):
+    """Apply QLSingleBand adapter.
+
+                        Parameters
+                        -------------
+
+                        params
+                            Dictionary of parameters, loaded from input file
+                        env
+                            Dictionary of environment parameters, loaded from input file
+                        l2product_files
+                            Dictionary of Level 2 product files created by processors
+                        date
+                            Run date
+                        """
     wkt = params['General']['wkt']
     for key in params[PARAMS_SECTION].keys():
         processor = key.upper()

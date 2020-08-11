@@ -1,6 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""Sencast uses the CREODIAS API to query the image database in order to identify suitable images and also to download images.
+
+Documentation for CREODIAS API can be found `here. <https://creodias.eu/eo-data-finder-api-manual>`_
+"""
+
 import os
 import requests
 

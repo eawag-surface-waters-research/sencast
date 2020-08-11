@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Datalakes &mdash; Sencast   documentation</title>
+  <title>Datalakes &mdash; Sencast  documentation</title>
   
 
   
@@ -51,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast 
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast
           
 
           
@@ -96,8 +96,8 @@
 <p class="caption"><span class="caption-text">Sencast</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="main.html">main</a></li>
-<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul>
@@ -138,7 +138,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Sencast </a>
+          <a href="index.html">Sencast</a>
         
       </nav>
 
@@ -190,10 +190,26 @@
             
   <div class="section" id="module-adapters.datalakes.datalakes">
 <span id="datalakes"></span><h1>Datalakes<a class="headerlink" href="#module-adapters.datalakes.datalakes" title="Permalink to this headline">¶</a></h1>
+<p>The Datalakes adapter is designed to output specified bands to JSON format in order to facilitate web visualisation
+in the Datalakes data portal <a class="reference external" href="https://www.datalakes-eawag.ch/">https://www.datalakes-eawag.ch/</a>.</p>
 <dl class="py function">
 <dt id="adapters.datalakes.datalakes.apply">
 <code class="sig-prename descclassname">adapters.datalakes.datalakes.</code><code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">l2product_files</span></em>, <em class="sig-param"><span class="n">date</span></em><span class="sig-paren">)</span><a class="headerlink" href="#adapters.datalakes.datalakes.apply" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Apply datalakes adapter.
+1. Converts specified band in NetCDF to JSON format
+2. Saves files to S3 storage
+3. Hits Datalakes endpoint to inform server of new data</p>
+<dl class="simple">
+<dt>params</dt><dd><p>Dictionary of parameters, loaded from input file</p>
+</dd>
+<dt>env</dt><dd><p>Dictionary of environment parameters, loaded from input file</p>
+</dd>
+<dt>l2product_files</dt><dd><p>Dictionary of Level 2 product files created by processors</p>
+</dd>
+<dt>date</dt><dd><p>Run date</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="adapters.datalakes.datalakes.nc_to_json">

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Ubuntu 18 &mdash; Sencast   documentation</title>
+  <title>Ubuntu 18 &mdash; Sencast  documentation</title>
   
 
   
@@ -51,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast 
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast
           
 
           
@@ -96,8 +96,8 @@
 <p class="caption"><span class="caption-text">Sencast</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="main.html">main</a></li>
-<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul>
@@ -138,7 +138,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Sencast </a>
+          <a href="index.html">Sencast</a>
         
       </nav>
 
@@ -190,7 +190,7 @@
             
   <div class="section" id="ubuntu-18">
 <span id="ubuntu18install"></span><h1>Ubuntu 18<a class="headerlink" href="#ubuntu-18" title="Permalink to this headline">¶</a></h1>
-<p>2.) OpenJdk: <a class="reference external" href="https://dzone.com/articles/installing-openjdk-11-on-ubuntu-1804-for-real">https://dzone.com/articles/installing-openjdk-11-on-ubuntu-1804-for-real</a> (if not installed already):</p>
+<p>1.) OpenJdk: <a class="reference external" href="https://dzone.com/articles/installing-openjdk-11-on-ubuntu-1804-for-real">https://dzone.com/articles/installing-openjdk-11-on-ubuntu-1804-for-real</a> (if not installed already):</p>
 <blockquote>
 <div><dl class="simple">
 <dt>In shell do following:</dt><dd><dl class="simple">
@@ -202,7 +202,7 @@
 </dd>
 </dl>
 </div></blockquote>
-<p>3.) Maven: <a class="reference external" href="https://www.javahelps.com/2017/10/install-apache-maven-on-linux.html">https://www.javahelps.com/2017/10/install-apache-maven-on-linux.html</a></p>
+<p>2.) Maven: <a class="reference external" href="https://www.javahelps.com/2017/10/install-apache-maven-on-linux.html">https://www.javahelps.com/2017/10/install-apache-maven-on-linux.html</a></p>
 <blockquote>
 <div><dl class="simple">
 <dt>In shell do following:</dt><dd><p>$ mkdir -p ~/Downloads
@@ -216,7 +216,7 @@ $ sudo reboot</p>
 </dd>
 </dl>
 </div></blockquote>
-<p>4.) Anaconda: <a class="reference external" href="https://problemsolvingwithpython.com/01-Orientation/01.05-Installing-Anaconda-on-Linux/">https://problemsolvingwithpython.com/01-Orientation/01.05-Installing-Anaconda-on-Linux/</a></p>
+<p>3.) Anaconda: <a class="reference external" href="https://problemsolvingwithpython.com/01-Orientation/01.05-Installing-Anaconda-on-Linux/">https://problemsolvingwithpython.com/01-Orientation/01.05-Installing-Anaconda-on-Linux/</a></p>
 <blockquote>
 <div><dl>
 <dt>In shell do following:</dt><dd><p>$ curl <a class="reference external" href="https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh">https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh</a> -o ~/Downloads/Anaconda3-2020.02-Linux-x86_64.sh
@@ -234,7 +234,7 @@ $ sudo reboot</p>
 </dd>
 </dl>
 </div></blockquote>
-<ol class="arabic" start="5">
+<ol class="arabic" start="4">
 <li><p>Anaconda: create sentinel-hindcast-37 environment</p>
 <blockquote>
 <div><dl>
@@ -248,7 +248,7 @@ $ conda create –name sentinel-hindcast-37 python=3.7 gdal cartopy netcdf4 cyth
 </div></blockquote>
 </li>
 </ol>
-<p>6.) SNAP: <a class="reference external" href="http://step.esa.int/main/download/">http://step.esa.int/main/download/</a></p>
+<p>5.) SNAP: <a class="reference external" href="http://step.esa.int/main/download/">http://step.esa.int/main/download/</a></p>
 <blockquote>
 <div><p>Uninstall all old versions of SNAP and remove associated data</p>
 <dl>
@@ -284,7 +284,7 @@ $ echo “snap.dataio.netcdf.metadataElementLimit=10000” &gt;&gt; /home/jamesr
 </dd>
 </dl>
 </div></blockquote>
-<p>7.) Python - jpy: <a class="reference external" href="https://github.com/bcdev/jpy/blob/master/README.md">https://github.com/bcdev/jpy/blob/master/README.md</a></p>
+<p>6.) Python - jpy: <a class="reference external" href="https://github.com/bcdev/jpy/blob/master/README.md">https://github.com/bcdev/jpy/blob/master/README.md</a></p>
 <blockquote>
 <div><dl class="simple">
 <dt>In shell do following:</dt><dd><p>$ sudo apt-get install python-setuptools
@@ -298,7 +298,7 @@ $ python setup.py build maven bdist_wheel</p>
 </dd>
 </dl>
 </div></blockquote>
-<p>8.) Python - snappy: <a class="reference external" href="https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md">https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md</a></p>
+<p>7.) Python - snappy: <a class="reference external" href="https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md">https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md</a></p>
 <blockquote>
 <div><dl class="simple">
 <dt>In shell do following:</dt><dd><p>a$ sudo ln -s ../../lib64/libnsl.so.2 /usr/lib64/libnsl.so
@@ -318,7 +318,7 @@ $ python test_snappy_product.py</p>
 </dd>
 </dl>
 </div></blockquote>
-<p>9.) Python - polymer: <a class="reference external" href="https://forum.hygeos.com/viewforum.php?f=5">https://forum.hygeos.com/viewforum.php?f=5</a></p>
+<p>8.) Python - polymer: <a class="reference external" href="https://forum.hygeos.com/viewforum.php?f=5">https://forum.hygeos.com/viewforum.php?f=5</a></p>
 <blockquote>
 <div><dl class="simple">
 <dt>From a computer in the eawag network, copy the polymer zip file to the linux server:</dt><dd><p>&gt; scp -i .sshcloudferro.key \eawagAbteilungs-ProjekteSurfsurf-DDRSSoftwarePolymerpolymer-v4.13.tar.gz <a class="reference external" href="mailto:eouser&#37;&#52;&#48;45&#46;130&#46;29&#46;115">eouser<span>&#64;</span>45<span>&#46;</span>130<span>&#46;</span>29<span>&#46;</span>115</a>:/home/eouser/Downloads</p>
@@ -336,7 +336,7 @@ $ cp -avr /home/jamesrunnalls/polymer-v4.13/auxdata /home/jamesrunnalls/anaconda
 </dd>
 </dl>
 </div></blockquote>
-<p>10.) sentinel-hindcast: <a class="reference external" href="https://renkulab.io/gitlab/odermatt/sentinel-hindcast">https://renkulab.io/gitlab/odermatt/sentinel-hindcast</a></p>
+<p>9.) sentinel-hindcast: <a class="reference external" href="https://renkulab.io/gitlab/odermatt/sentinel-hindcast">https://renkulab.io/gitlab/odermatt/sentinel-hindcast</a></p>
 <blockquote>
 <div><dl class="simple">
 <dt>In shell do following:</dt><dd><p>$ cd /prj
@@ -349,7 +349,7 @@ $ git checkout &lt;branchname&gt; (if not master)</p>
 </dd>
 </dl>
 </div></blockquote>
-<p>11.) CDS API: <a class="reference external" href="https://cds.climate.copernicus.eu/api-how-to">https://cds.climate.copernicus.eu/api-how-to</a></p>
+<p>10.) CDS API: <a class="reference external" href="https://cds.climate.copernicus.eu/api-how-to">https://cds.climate.copernicus.eu/api-how-to</a></p>
 <blockquote>
 <div><p>Have a Copernicus Climate account ready, otherwise create one: <a class="reference external" href="https://cds.climate.copernicus.eu/">https://cds.climate.copernicus.eu/</a></p>
 <dl class="simple">
@@ -359,7 +359,7 @@ $ chmod 600 ~/.cdsapirc</p>
 </dd>
 </dl>
 </div></blockquote>
-<p>12.) Cronjob for datalakes: <a class="reference external" href="https://linux4one.com/how-to-set-up-cron-job-on-centos-8/">https://linux4one.com/how-to-set-up-cron-job-on-centos-8/</a></p>
+<p>11.) Cronjob for datalakes: <a class="reference external" href="https://linux4one.com/how-to-set-up-cron-job-on-centos-8/">https://linux4one.com/how-to-set-up-cron-job-on-centos-8/</a></p>
 <blockquote>
 <div><dl class="simple">
 <dt>In shell do following:</dt><dd><p>$ mkdir -p /prj/datalakes/log
@@ -369,7 +369,7 @@ $ crontab -l | { cat; echo “0 20 * * * nohup /prj/sentinel-hindcast/scripts/da
 </dd>
 </dl>
 </div></blockquote>
-<p>13.) (not done yet) NASA Earthdata API: <a class="reference external" href="https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget">https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget</a></p>
+<p>12.) (not done yet) NASA Earthdata API: <a class="reference external" href="https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget">https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget</a></p>
 <blockquote>
 <div><p>Have a NASA Earthdata account ready, otherwise create one: <a class="reference external" href="https://urs.earthdata.nasa.gov/">https://urs.earthdata.nasa.gov/</a></p>
 <dl class="simple">

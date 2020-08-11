@@ -1,6 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""The Datalakes adapter is designed to output specified bands to JSON format in order to facilitate web visualisation
+in the Datalakes data portal https://www.datalakes-eawag.ch/.
+"""
+
 import os
 import requests
 
@@ -22,6 +26,23 @@ JSON_FILENAME = "{}_{}.json"
 
 
 def apply(env, params, l2product_files, date):
+    """Apply datalakes adapter.
+            1. Converts specified band in NetCDF to JSON format
+            2. Saves files to S3 storage
+            3. Hits Datalakes endpoint to inform server of new data
+
+            Parameters
+            -------------
+
+            params
+                Dictionary of parameters, loaded from input file
+            env
+                Dictionary of environment parameters, loaded from input file
+            l2product_files
+                Dictionary of Level 2 product files created by processors
+            date
+                Run date
+            """
     if not env.has_section("DATALAKES"):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
     print("Applying datalakes...")

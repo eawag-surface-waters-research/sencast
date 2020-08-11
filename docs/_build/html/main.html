@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>main &mdash; Sencast   documentation</title>
+  <title>main &mdash; Sencast  documentation</title>
   
 
   
@@ -36,7 +36,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="auxil module" href="auxil.html" />
+    <link rel="next" title="auxil" href="auxil.html" />
     <link rel="prev" title="Parameter File" href="parameters_config.html" /> 
 </head>
 
@@ -51,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast 
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast
           
 
           
@@ -96,8 +96,8 @@
 <p class="caption"><span class="caption-text">Sencast</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">main</a></li>
-<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul>
@@ -138,7 +138,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Sencast </a>
+          <a href="index.html">Sencast</a>
         
       </nav>
 
@@ -190,28 +190,56 @@
             
   <div class="section" id="module-main">
 <span id="main"></span><h1>main<a class="headerlink" href="#module-main" title="Permalink to this headline">¶</a></h1>
-<p>The core functions of Sentinel Hindcast</p>
+<p>The core functions of Sencast</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Download API’s, processors, and adapters are imported dynamically to make Sentinel Hindcast also work on systems,
+<p>Download API’s, processors, and adapters are imported dynamically to make Sencast also work on systems,
 where some of them might not be available.</p>
 </div>
 <dl class="py function">
 <dt id="main.do_hindcast">
 <code class="sig-prename descclassname">main.</code><code class="sig-name descname">do_hindcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">l2_path</span></em>, <em class="sig-param"><span class="n">max_parallel_downloads</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_parallel_processors</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_parallel_adapters</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.do_hindcast" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Threading function for running Sentinel Hindcast.
+1. Calls API to find available data for given query
+2. Splits the processing into threads based on date and satellite
+3. Runs the sencast for each thread</p>
+<dl>
+<dt>params</dt><dd><p>Dictionary of parameters, loaded from input file</p>
+</dd>
+<dt>env</dt><dd><p>Dictionary of environment parameters, loaded from input file</p>
+</dd>
+<dt>l2_path</dt><dd><p>The output folder in which to save the output files</p>
+</dd>
+<dt>max_parallel_downloads</dt><dd><div class="line-block">
+<div class="line"><strong>Default: 1</strong></div>
+<div class="line">Maximum number of parallel downloads of satellite images</div>
+</div>
+</dd>
+<dt>max_parallel_processors</dt><dd><div class="line-block">
+<div class="line"><strong>Default: 1</strong></div>
+<div class="line">Maximum number of processors to run in parallel</div>
+</div>
+</dd>
+<dt>max_parallel_adapters</dt><dd><div class="line-block">
+<div class="line"><strong>Default: 1</strong></div>
+<div class="line">Maximum number of adapters to run in parallel</div>
+</div>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="main.hindcast">
 <code class="sig-prename descclassname">main.</code><code class="sig-name descname">hindcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params_file</span></em>, <em class="sig-param"><span class="n">env_file</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_parallel_downloads</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_parallel_processors</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_parallel_adapters</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.hindcast" title="Permalink to this definition">¶</a></dt>
-<dd><p>Main function for running Sentinel Hindcast. First initialises the hindcast and then processes input parameters.</p>
+<dd><p>Main function for running Sencast. First initialises the sencast and then processes input parameters.</p>
 <dl>
 <dt>params_file</dt><dd><p>Parameters read from the .ini input file</p>
 </dd>
 <dt>env_file</dt><dd><div class="line-block">
 <div class="line"><strong>Default: None</strong></div>
-<div class="line">Environment settings read from the environment .ini file</div>
+<div class="line">Environment settings read from the environment .ini file, if None provided Sencast will search for file in</div>
 </div>
+<p>environments folder.</p>
 </dd>
 <dt>max_parallel_downloads</dt><dd><div class="line-block">
 <div class="line"><strong>Default: 1</strong></div>
@@ -234,7 +262,32 @@ where some of them might not be available.</p>
 <dl class="py function">
 <dt id="main.hindcast_product_group">
 <code class="sig-prename descclassname">main.</code><code class="sig-name descname">hindcast_product_group</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">do_download</span></em>, <em class="sig-param"><span class="n">auth</span></em>, <em class="sig-param"><span class="n">download_requests</span></em>, <em class="sig-param"><span class="n">l1product_paths</span></em>, <em class="sig-param"><span class="n">l2_path</span></em>, <em class="sig-param"><span class="n">semaphores</span></em>, <em class="sig-param"><span class="n">group</span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.hindcast_product_group" title="Permalink to this definition">¶</a></dt>
-<dd><p>hindcast a set of products with the same sensing date</p>
+<dd><p>Run sencast for given thread.
+1. Downloads required products
+2. Runs processors
+3. Runs mosaic
+4. Runs adapters</p>
+<dl class="simple">
+<dt>params</dt><dd><p>Dictionary of parameters, loaded from input file</p>
+</dd>
+<dt>env</dt><dd><p>Dictionary of environment parameters, loaded from input file</p>
+</dd>
+<dt>do_download</dt><dd><p>Download function from the selected API
+The output folder in which to save the output files</p>
+</dd>
+<dt>auth</dt><dd><p>Auth details for the selected API</p>
+</dd>
+<dt>download_requests</dt><dd><p>Array of uuid’s of sentinel products</p>
+</dd>
+<dt>l1product_paths</dt><dd><p>Array of l1 product paths</p>
+</dd>
+<dt>l2_path</dt><dd><p>The output folder in which to save the output files</p>
+</dd>
+<dt>semaphores</dt><dd><p>Dictionary of semaphore objects</p>
+</dd>
+<dt>group</dt><dd><p>Thread group name</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -247,7 +300,7 @@ where some of them might not be available.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="auxil.html" class="btn btn-neutral float-right" title="auxil module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="auxil.html" class="btn btn-neutral float-right" title="auxil" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="parameters_config.html" class="btn btn-neutral float-left" title="Parameter File" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Polymer &mdash; Sencast   documentation</title>
+  <title>Polymer &mdash; Sencast  documentation</title>
   
 
   
@@ -51,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast 
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast
           
 
           
@@ -96,8 +96,8 @@
 <p class="caption"><span class="caption-text">Sencast</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="main.html">main</a></li>
-<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul class="current">
@@ -138,7 +138,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Sencast </a>
+          <a href="index.html">Sencast</a>
         
       </nav>
 
@@ -190,6 +190,12 @@
             
   <div class="section" id="module-processors.polymer.polymer">
 <span id="polymer"></span><h1>Polymer<a class="headerlink" href="#module-processors.polymer.polymer" title="Permalink to this headline">¶</a></h1>
+<p>Polymer is an algorithm aimed at recovering the radiance scattered and absorbed by the oceanic waters (also called
+Ocean Colour) from the signal measured by satellite sensors in the visible spectrum.</p>
+<p>For an overview of the processor:
+<a class="reference external" href="https://www.hygeos.com/polymer">https://www.hygeos.com/polymer</a></p>
+<p>or for more details:
+<a class="reference external" href="https://forum.hygeos.com/viewforum.php?f=3">https://forum.hygeos.com/viewforum.php?f=3</a></p>
 <dl class="py function">
 <dt id="processors.polymer.polymer.process">
 <code class="sig-prename descclassname">processors.polymer.polymer.</code><code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">l1product_path</span></em>, <em class="sig-param"><span class="n">_</span></em>, <em class="sig-param"><span class="n">out_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.process" title="Permalink to this definition">¶</a></dt>
@@ -198,7 +204,7 @@
 
 <dl class="py function">
 <dt id="processors.polymer.polymer.rewrite_xml">
-<code class="sig-prename descclassname">processors.polymer.polymer.</code><code class="sig-name descname">rewrite_xml</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gpt_xml_file</span></em>, <em class="sig-param"><span class="n">sensor</span></em>, <em class="sig-param"><span class="n">resolution</span></em>, <em class="sig-param"><span class="n">wkt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.rewrite_xml" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">processors.polymer.polymer.</code><code class="sig-name descname">rewrite_xml</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gpt_xml_file</span></em>, <em class="sig-param"><span class="n">sensor</span></em>, <em class="sig-param"><span class="n">validexpression</span></em>, <em class="sig-param"><span class="n">resolution</span></em>, <em class="sig-param"><span class="n">wkt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.rewrite_xml" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>

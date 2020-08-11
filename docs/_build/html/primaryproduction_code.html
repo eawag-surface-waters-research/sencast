@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Primary Production &mdash; Sencast   documentation</title>
+  <title>Primary Production &mdash; Sencast  documentation</title>
   
 
   
@@ -51,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast 
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Sencast
           
 
           
@@ -96,8 +96,8 @@
 <p class="caption"><span class="caption-text">Sencast</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="main.html">main</a></li>
-<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="product_fun.html">product_fun</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Processors</span></p>
 <ul>
@@ -138,7 +138,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Sencast </a>
+          <a href="index.html">Sencast</a>
         
       </nav>
 
@@ -190,6 +190,8 @@
             
   <div class="section" id="module-adapters.primaryproduction.primaryproduction">
 <span id="primary-production"></span><h1>Primary Production<a class="headerlink" href="#module-adapters.primaryproduction.primaryproduction" title="Permalink to this headline">¶</a></h1>
+<p>The Primary Production adapter is an implementation of <a class="reference external" href="https://core.ac.uk/reader/211997910">T.Soomets et al. 2019</a>
+in order to derive primary production from Satellite images.</p>
 <dl class="py function">
 <dt id="adapters.primaryproduction.primaryproduction.Fpar">
 <code class="sig-prename descclassname">adapters.primaryproduction.primaryproduction.</code><code class="sig-name descname">Fpar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">z</span></em>, <em class="sig-param"><span class="n">q0par</span></em>, <em class="sig-param"><span class="n">M</span></em><span class="sig-paren">)</span><a class="headerlink" href="#adapters.primaryproduction.primaryproduction.Fpar" title="Permalink to this definition">¶</a></dt>
@@ -223,7 +225,19 @@
 <dl class="py function">
 <dt id="adapters.primaryproduction.primaryproduction.apply">
 <code class="sig-prename descclassname">adapters.primaryproduction.primaryproduction.</code><code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">l2product_files</span></em>, <em class="sig-param"><span class="n">date</span></em><span class="sig-paren">)</span><a class="headerlink" href="#adapters.primaryproduction.primaryproduction.apply" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Apply Primary Production adapter.
+1. Calculates primary production for Chl and KD</p>
+<dl class="simple">
+<dt>params</dt><dd><p>Dictionary of parameters, loaded from input file</p>
+</dd>
+<dt>env</dt><dd><p>Dictionary of environment parameters, loaded from input file</p>
+</dd>
+<dt>l2product_files</dt><dd><p>Dictionary of Level 2 product files created by processors</p>
+</dd>
+<dt>date</dt><dd><p>Run date</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="adapters.primaryproduction.primaryproduction.datetomonth">

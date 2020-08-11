@@ -1,6 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""Nasa Earth Data API
+
+Documentation for Nasa Earth Data API can be found `here. <https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+Python>`_
+"""
+
 __author__ = 'Daniel'
 
 from http.cookiejar import CookieJar

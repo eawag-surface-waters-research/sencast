@@ -1,6 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""The Primary Production adapter is an implementation of `T.Soomets et al. 2019 <https://core.ac.uk/reader/211997910>`_
+in order to derive primary production from Satellite images.
+"""
+
 import os
 import numpy as np
 from scipy.integrate import trapz
@@ -15,6 +19,21 @@ FILEFOLDER = "L2PP"
 
 
 def apply(env, params, l2product_files, date):
+    """Apply Primary Production adapter.
+                1. Calculates primary production for Chl and KD
+
+                Parameters
+                -------------
+
+                params
+                    Dictionary of parameters, loaded from input file
+                env
+                    Dictionary of environment parameters, loaded from input file
+                l2product_files
+                    Dictionary of Level 2 product files created by processors
+                date
+                    Run date
+                """
     if not env.has_section(PARAMS_SECTION):
         raise RuntimeWarning("Primary Production was not configured in this environment.")
     if not params.has_section(PARAMS_SECTION):
