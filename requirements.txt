@@ -48,7 +48,6 @@ rio-mucho==1.0.0
 rio-rgbify==0.3.2
 scipy==1.4.1
 six==1.14.0
-snappy==7.0.3
 snowballstemmer==2.0.0
 snuggs==1.4.7
 Sphinx==3.1.1
