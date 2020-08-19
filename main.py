@@ -272,6 +272,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from adapters.datalakes.datalakes import apply
             elif adapter == "MERGE":
                 from adapters.merge.merge import apply
+            elif adapter == "SECCHIDEPTH":
+                from adapters.secchidepth.secchidepth import apply
             else:
                 raise RuntimeError("Unknown adapter: {}".format(adapter))
 
