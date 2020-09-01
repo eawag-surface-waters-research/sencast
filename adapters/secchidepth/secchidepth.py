@@ -112,7 +112,7 @@ def apply(env, params, l2product_files, date):
 
     secchis = [secchiProduct.addBand(secchi_name, ProductData.TYPE_FLOAT32) for secchi_name in secchi_names]
 
-    writer = ProductIO.getProductWriter('BEAM-DIMAP')
+    writer = ProductIO.getProductWriter('NetCDF4-CF')
 
     ProductUtils.copyGeoCoding(product, secchiProduct)
 

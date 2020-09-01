@@ -30,7 +30,7 @@ def init_hindcast(env_file, params_file):
     }
     out_path = os.path.join(env['General']['out_path'].format(**kwargs))
 
-    if os.path.isdir(out_path) and os.listdir(out_path):
+    if os.path.isdir(out_path) and os.listdir(out_path) and os.path.isfile(os.path.join(out_path, os.path.basename(params_file))):
         print("Output folder for this run already exists.")
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
             print("Overwriting existing run")

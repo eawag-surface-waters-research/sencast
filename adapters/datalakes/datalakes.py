@@ -59,14 +59,14 @@ def apply(env, params, l2product_files, date):
                     print("Removing file: ${}".format(output_file_main))
                     os.remove(output_file_main)
                     for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
-                        output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
+
                         nc_to_json(l2product_file, output_file, band, lambda v: round(float(v), 6))
                     with open(l2product_file, "rb") as f:
                         nc_bytes = f.read()
                     with open(output_file_main, "wb") as f:
                         f.write(nc_bytes)
                 else:
-                    print("Skipping Datalakes. Target already exists: {}".format(output_file))
+                    print("Skipping Datalakes. Target already exists.")
             else:
                 for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
                     output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
