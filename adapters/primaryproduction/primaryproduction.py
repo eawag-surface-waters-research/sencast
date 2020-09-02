@@ -90,6 +90,13 @@ def apply(env, params, l2product_files, date):
     chl_data = np.zeros(w * h, np.float32)
     chl.readPixels(0, 0, w, h, chl_data)
 
+    print(chl_data, chl_data.shape)
+
+    if "a_ph" in params[PARAMS_SECTION]:
+        chl_data = PhytoplanktonToChlorophyll(chl_data)
+
+    print(chl_data, chl_data.shape)
+
     # Read in KD band
     kd_product_path = l2product_files[chl_processor]
     print("Reading kd values from {}".format(kd_product_path))
@@ -130,6 +137,9 @@ def apply(env, params, l2product_files, date):
     # Close output file
     out_product.closeIO()
 
+def PhytoplanktonToChlorophyll(ph):
+    # a_CHL = 0.054 CHL ** 0.96
+    return (ph / 0.054) ** (1/0.96)
 
 def LatLon_from_XY(product, x, y):
     geoPosType = jpy.get_type('org.esa.snap.core.datamodel.GeoPos')

@@ -66,7 +66,7 @@ def apply(env, params, l2product_files, date):
                     with open(output_file_main, "wb") as f:
                         f.write(nc_bytes)
                 else:
-                    print("Skipping Datalakes. Target already exists: {}")
+                    print("Skipping Datalakes. Target already exists")
             else:
                 for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
                     output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
