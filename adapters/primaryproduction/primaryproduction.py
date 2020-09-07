@@ -90,12 +90,9 @@ def apply(env, params, l2product_files, date):
     chl_data = np.zeros(w * h, np.float32)
     chl.readPixels(0, 0, w, h, chl_data)
 
-    print(chl_data, chl_data.shape)
-
-    if "a_ph" in params[PARAMS_SECTION]:
+    # Convert from PH to CHL if required
+    if "chl_parameter" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["chl_parameter"] == "PH":
         chl_data = PhytoplanktonToChlorophyll(chl_data)
-
-    print(chl_data, chl_data.shape)
 
     # Read in KD band
     kd_product_path = l2product_files[chl_processor]
