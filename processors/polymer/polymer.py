@@ -15,6 +15,8 @@ import os
 import subprocess
 from math import ceil, floor
 from datetime import datetime
+import numpy as np
+from snappy import ProductIO
 
 from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.gsw import GSW
@@ -75,6 +77,15 @@ def process(env, params, l1product_path, _, out_path):
             os.remove(output_file)
         else:
             print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
+            product = ProductIO.readProduct(output_file)
+            band = product.getBand("Rw443")
+            w = band.getRasterWidth()
+            h = band.getRasterHeight()
+            band_data = np.zeros(w * h, np.float32)
+            band.readPixels(0, 0, w, h, band_data)
+            if np.isnan(np.nanmean(band_data)):
+                print("No pixels present in the file.")
+                return False
             return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
@@ -119,6 +130,16 @@ def process(env, params, l1product_path, _, out_path):
         else:
             print("No file was created.")
         raise RuntimeError("GPT Failed.")
+
+    product = ProductIO.readProduct(output_file)
+    band = product.getBand("Rw443")
+    w = band.getRasterWidth()
+    h = band.getRasterHeight()
+    band_data = np.zeros(w * h, np.float32)
+    band.readPixels(0, 0, w, h, band_data)
+    if np.isnan(np.nanmean(band_data)):
+        print("No pixels present in the file.")
+        return False
 
     return output_file
 
