@@ -7,6 +7,7 @@ Adapter authors: Luca Brüderlin, Jasmin Kesselring
 """
 
 import os
+import re
 import numpy as np
 from snappy import ProductIO, ProductData, Product, ProductUtils
 
@@ -15,8 +16,8 @@ from snappy import ProductIO, ProductData, Product, ProductUtils
 PARAMS_SECTION = "SECCHIDEPTH"
 
 # the file name pattern for output file
-FILENAME = "L2SD_{}"
-FILEFOLDER = "L2SD"
+FILENAME = "L2QAA_{}"
+FILEFOLDER = "L2QAA"
 
 
 def apply(env, params, l2product_files, date):
@@ -110,7 +111,18 @@ def apply(env, params, l2product_files, date):
                     'a_gelb443', 'a_dg412', 'a_dg443', 'a_dg490', 'a_dg510', 'a_dg560', 'a_dg620', 'a_dg665', 'a_dg681',
                     'a_ph412', 'a_ph443', 'a_ph490', 'a_ph510', 'a_ph560', 'a_ph620', 'a_ph665', 'a_ph681']
 
-    secchis = [secchiProduct.addBand(secchi_name, ProductData.TYPE_FLOAT32) for secchi_name in secchi_names]
+    secchis = []
+    for secchi_name in secchi_names:
+        temp_band = secchiProduct.addBand(secchi_name, ProductData.TYPE_FLOAT32)
+        if "Z" in secchi_name:
+            temp_band.setUnit("m")
+        elif "a" in secchi_name:
+            temp_band.setUnit("m^-1")
+        temp_band.setNoDataValueUsed(True)
+        temp_band.setNoDataValue(np.NaN)
+        wavelength = re.findall('\d+', secchi_name)[0]
+        temp_band.setSpectralWavelength(float(wavelength))
+        secchis.append(temp_band)
 
     writer = ProductIO.getProductWriter('NetCDF4-CF')
 

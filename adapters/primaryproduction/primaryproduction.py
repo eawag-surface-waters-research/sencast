@@ -7,6 +7,7 @@ in order to derive primary production from Satellite images.
 
 import os
 import numpy as np
+import re
 from scipy.integrate import trapz
 from snappy import ProductIO, PixelPos, jpy, ProductData, Product, ProductUtils
 
@@ -101,7 +102,7 @@ def apply(env, params, l2product_files, date):
     all_bns_kd = kd_product.getBandNames()
     if kd_bandname not in all_bns_kd:
         raise RuntimeError("{} not in product bands. Edit the parameter file.".format(kd_bandname))
-    kd = product.getBand(kd_bandname)
+    kd = kd_product.getBand(kd_bandname)
     w_kd = kd.getRasterWidth()
     h_kd = kd.getRasterHeight()
     kd_data = np.zeros(w_kd * h_kd, np.float32)
@@ -126,10 +127,30 @@ def apply(env, params, l2product_files, date):
     # Calculate primary production
     pp_tni = pp_trapezoidal_numerical_integration(zvals_fine, qpar0, chl_data, KdMorel)
 
-    # Add new band
-    target_band = out_product.addBand('pp', ProductData.TYPE_FLOAT32)
+    # Add new bands
+    pp_band = out_product.addBand('pp_integral', ProductData.TYPE_FLOAT32)
+    pp_band.setUnit('mg C m^-2 h^-1')
+    pp_band.setNoDataValueUsed(True)
+    pp_band.setNoDataValue(np.NaN)
+
+    kd_band = out_product.addBand(kd_bandname, ProductData.TYPE_FLOAT32)
+    kd_band.setUnit(kd.getUnit())
+    kd_band.setNoDataValueUsed(True)
+    kd_band.setNoDataValue(np.NaN)
+    wavelength = re.findall('\d+', kd_bandname)[0]
+    kd_band.setSpectralWavelength(float(wavelength))
+
+    chl_band = out_product.addBand(chl_bandname, ProductData.TYPE_FLOAT32)
+    chl_band.setUnit(chl.getUnit())
+    chl_band.setNoDataValueUsed(True)
+    chl_band.setNoDataValue(np.NaN)
+    wavelength = re.findall('\d+', chl_bandname)[0]
+    chl_band.setSpectralWavelength(float(wavelength))
+
     out_product.writeHeader(output_file)
-    target_band.writePixels(0, 0, w, h, pp_tni)
+    pp_band.writePixels(0, 0, w, h, pp_tni)
+    kd_band.writePixels(0, 0, w, h, kd_data)
+    chl_band.writePixels(0, 0, w, h, chl_data)
 
     # Close output file
     out_product.closeIO()
