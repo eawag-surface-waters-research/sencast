@@ -22,7 +22,10 @@ NOTIFY_URL = API_URL + "/externaldata/sync/remotesensing"
 # key of the params section for this adapter
 PARAMS_SECTION = "DATALAKES"
 # the file name pattern for json output files
-JSON_FILENAME = "{}_{}.json"
+JSON_FILENAME = "{}_{}_{}.json"
+# the file name pattern for json output files
+NC_FILENAME = "{}_{}.nc"
+
 
 
 def apply(env, params, l2product_files, date):
@@ -52,14 +55,14 @@ def apply(env, params, l2product_files, date):
             l2product_file = l2product_files[processor]
             date = get_sensing_date_from_product_name(os.path.basename(l2product_file))
             out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'], date)
-            output_file_main = os.path.join(out_path, os.path.basename(l2product_file))
+            output_file_main = os.path.join(out_path, NC_FILENAME.format(processor, date))
             os.makedirs(out_path, exist_ok=True)
-            if os.path.exists(os.path.join(output_file_main)):
+            if os.path.exists(output_file_main):
                 if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
                     print("Removing file: ${}".format(output_file_main))
                     os.remove(output_file_main)
                     for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
-                        output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
+                        output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band, date))
                         nc_to_json(l2product_file, output_file, band, lambda v: round(float(v), 6))
                     with open(l2product_file, "rb") as f:
                         nc_bytes = f.read()
@@ -69,7 +72,7 @@ def apply(env, params, l2product_files, date):
                     print("Skipping Datalakes. Target already exists")
             else:
                 for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
-                    output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band))
+                    output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band, date))
                     nc_to_json(l2product_file, output_file, band, lambda v: round(float(v), 6))
                 with open(l2product_file, "rb") as f:
                     nc_bytes = f.read()
