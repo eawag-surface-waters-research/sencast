@@ -57,13 +57,17 @@ def apply(env, params, l2product_files, date):
             out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'], date)
             output_file_main = os.path.join(out_path, NC_FILENAME.format(processor, date))
             os.makedirs(out_path, exist_ok=True)
+            bands_list = list(filter(None, params[PARAMS_SECTION][key].split(",")))
+            bands, bands_min, bands_max = parse_bands(bands_list)
+
             if os.path.exists(output_file_main):
                 if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
                     print("Removing file: ${}".format(output_file_main))
                     os.remove(output_file_main)
-                    for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
-                        output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band, date))
-                        nc_to_json(l2product_file, output_file, band, lambda v: round(float(v), 6))
+                    for idx, val in enumerate(bands):
+                        output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, date))
+                        nc_to_json(l2product_file, output_file, val, lambda v: round(float(v), 6), bands_min[idx],
+                                   bands_max[idx])
                     with open(l2product_file, "rb") as f:
                         nc_bytes = f.read()
                     with open(output_file_main, "wb") as f:
@@ -71,9 +75,10 @@ def apply(env, params, l2product_files, date):
                 else:
                     print("Skipping Datalakes. Target already exists")
             else:
-                for band in list(filter(None, params[PARAMS_SECTION][key].split(","))):
-                    output_file = os.path.join(out_path, JSON_FILENAME.format(processor, band, date))
-                    nc_to_json(l2product_file, output_file, band, lambda v: round(float(v), 6))
+                for idx, val in enumerate(bands):
+                    output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, date))
+                    nc_to_json(l2product_file, output_file, val, lambda v: round(float(v), 6), bands_min[idx],
+                               bands_max[idx])
                 with open(l2product_file, "rb") as f:
                     nc_bytes = f.read()
                 with open(output_file_main, "wb") as f:
@@ -82,7 +87,7 @@ def apply(env, params, l2product_files, date):
     notify_datalakes(env['DATALAKES']['api_key'])
 
 
-def nc_to_json(input_file, output_file, variable_name, value_read_expression):
+def nc_to_json(input_file, output_file, variable_name, value_read_expression, band_min, band_max):
     with Dataset(input_file, "r", format="NETCDF4") as nc:
         _lons, _lats, _values = nc.variables['lon'][:], nc.variables['lat'][:], nc.variables[variable_name][:]
 
@@ -92,9 +97,11 @@ def nc_to_json(input_file, output_file, variable_name, value_read_expression):
     for y in range(len(_values)):
         for x in range(len(_values[y])):
             if _values[y][x] and not np.isnan(_values[y][x]):
-                lons.append(round(float(_lons[x]), 6))
-                lats.append(round(float(_lats[y]), 6))
-                values.append(value_read_expression(_values[y][x]))
+                if band_min is None or _values[y][x] >= band_min:
+                    if band_max is None or _values[y][x] <= band_max:
+                        lons.append(round(float(_lons[x]), 6))
+                        lats.append(round(float(_lats[y]), 6))
+                        values.append(value_read_expression(_values[y][x]))
 
     with open(output_file, "w") as f:
         f.truncate()
@@ -104,3 +111,18 @@ def nc_to_json(input_file, output_file, variable_name, value_read_expression):
 def notify_datalakes(api_key):
     print("Notifying Datalakes about new data...")
     requests.get(NOTIFY_URL, auth=api_key)
+
+
+def parse_bands(bands):
+    bands_min = []
+    bands_max = []
+    for i in range(len(bands)):
+        if "[" in bands[i]:
+            sp = bands[i].replace("[", ",").replace(":", ",").replace("]", ",").split(",")
+            bands[i] = sp[0]
+            bands_min.append(float(sp[1]))
+            bands_max.append(float(sp[2]))
+        else:
+            bands_min.append(None)
+            bands_max.append(None)
+    return bands, bands_min, bands_max
