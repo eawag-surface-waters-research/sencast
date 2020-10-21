@@ -104,6 +104,11 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
         'adapt': Semaphore(max_parallel_adapters)
     }
 
+    # if running on creodias server
+    server = False
+    if "server" in env['General'] and env['General']['server'] is not False:
+        server = env['General']['server']
+
     # for readonly local dias, remove unavailable products and their download_requests
     if env['DIAS']['readonly'] == "readonly":
         print("{} products have been found.".format(len(l1product_paths)))
@@ -139,7 +144,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     # do hindcast for every product group
     hindcast_threads = []
     for group, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
-        args = (env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path, semaphores, group)
+        args = (env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path, semaphores, group, server)
         hindcast_threads.append(Thread(target=hindcast_product_group, args=args))
         hindcast_threads[-1].start()
 
@@ -150,7 +155,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     print("Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
 
 
-def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, group):
+def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, group, server):
     """Run sencast for given thread.
         1. Downloads required products
         2. Runs processors
@@ -184,7 +189,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
     for download_request, l1product_path in zip(download_requests, l1product_paths):
         if not os.path.exists(l1product_path):
             with semaphores['download']:
-                do_download(auth, download_request, l1product_path)
+                do_download(auth, download_request, l1product_path, server)
 
     # ensure all products have been downloaded
     for l1product_path in l1product_paths:

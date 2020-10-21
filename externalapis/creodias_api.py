@@ -8,7 +8,7 @@ Documentation for CREODIAS API can be found `here. <https://creodias.eu/eo-data-
 
 import os
 import requests
-
+from shutil import copytree, copyfile
 from requests.status_codes import codes
 from tqdm import tqdm
 from zipfile import ZipFile
@@ -74,8 +74,19 @@ def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endposi
     return uuids_filtered, product_names_filtered
 
 
-def do_download(auth, download_request, product_path):
-    download(auth, download_request['uuid'], product_path)
+def do_download(auth, download_request, product_path, server):
+    if server is not False:
+        try:
+            if local_download(product_path, server) is False:
+                print("Failed to locate file on server, downloading file from API.")
+                download(auth, download_request['uuid'], product_path)
+        except Exception as e:
+            print(e)
+            print("Failed to copy file from server, downloading file from API.")
+            download(auth, download_request['uuid'], product_path)
+    else:
+        download(auth, download_request['uuid'], product_path)
+
 
 
 def get_dataset_id(sensor, resolution):
@@ -134,6 +145,44 @@ def download(auth, uuid, filename):
         except OSError:
             pass
 
+
+def local_download(filepath, server):
+    filename = os.path.basename(filepath)
+    if parse_filename(filename) is False:
+        return False
+    satellite, sensor, product, year, month, day = parse_filename(filename)
+    server_path = os.path.join(server,satellite,sensor,product, year, month, day, filename)
+    if os.path.isfile(server_path):
+        copyfile(server_path, filepath)
+        return True
+    elif os.path.isdir(server_path):
+        copytree(server_path, filepath)
+        return True
+    else:
+        return False
+
+
+def parse_filename(filename):
+    if "S3" in filename:
+        satellite = "Sentinel-3"
+        sensor = "OLCI"
+        product = filename.split("____")[0].split("S3A_")[1]
+        year, month, day = parse_date(filename.split("_")[7])
+    elif "S2" in filename:
+        satellite = "Sentinel-2"
+        sensor = "MSI"
+        product = "L1C"
+        year, month, day = parse_date(filename.split("_")[2])
+    else:
+        return False
+    return satellite, sensor, product, year, month, day
+
+
+def parse_date(date):
+    year = date[0:4]
+    month = date[4:6]
+    day = date[6:8]
+    return year, month, day
 
 def get_token(username, password):
     token_data = {
