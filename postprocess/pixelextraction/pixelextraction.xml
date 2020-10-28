@@ -1,0 +1,26 @@
+<graph id="pixelextraction">
+    <version>1.0</version>
+	<node id="extractpixel">
+		<operator>PixEx</operator>
+        <parameters>
+            <sourceProductPaths>${sourceproductpaths}</sourceProductPaths>
+            <exportBands>true</exportBands>
+            <exportTiePoints>true</exportTiePoints>
+            <exportMasks>true</exportMasks>
+            <coordinates>${coordinates}</coordinates>
+            <timeDifference/>
+            <windowSize>${windowsize)</windowSize>
+            <outputDir>${outputdir}</outputDir>
+            <outputFilePrefix>pixEx</outputFilePrefix>
+            <exportExpressionResult>true</exportExpressionResult>
+            <aggregatorStrategyType>no aggregation</aggregatorStrategyType>
+            <exportSubScenes>false</exportSubScenes>
+            <subSceneBorderSize>0</subSceneBorderSize>
+            <exportKmz>false</exportKmz>
+            <extractTimeFromFilename>true</extractTimeFromFilename>
+            <dateInterpretationPattern>yyyyMMdd</dateInterpretationPattern>
+            <filenameInterpretationPattern>*${startDate}*${endDate}*</filenameInterpretationPattern>
+            <includeOriginalInput>false</includeOriginalInput>
+        </parameters>
+    </node>
+</graph>
