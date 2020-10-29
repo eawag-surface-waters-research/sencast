@@ -33,7 +33,7 @@ def get_download_requests(auth, start, end, sensor, resolution, wkt):
     return [{'uuid': uuid} for uuid in uuids], product_names
 
 
-def do_download(auth, download_request, product_path):
+def do_download(auth, download_request, product_path, server):
     download(auth, download_request['uuid'], product_path)
 
 
