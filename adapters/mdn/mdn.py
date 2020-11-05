@@ -24,20 +24,20 @@ FILEFOLDER = "L2MDN"
 
 def apply(env, params, l2product_files, date):
     """Apply MDN adapter.
-                1. Uses MDN to output CHL-A
+        1. Uses MDN to output CHL-A
 
-                Parameters
-                -------------
+        Parameters
+        -------------
 
-                params
-                    Dictionary of parameters, loaded from input file
-                env
-                    Dictionary of environment parameters, loaded from input file
-                l2product_files
-                    Dictionary of Level 2 product files created by processors
-                date
-                    Run date
-                """
+        params
+            Dictionary of parameters, loaded from input file
+        env
+            Dictionary of environment parameters, loaded from input file
+        l2product_files
+            Dictionary of Level 2 product files created by processors
+        date
+            Run date
+        """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("MDN was not configured in parameters.")
     print("Applying MDN...")
