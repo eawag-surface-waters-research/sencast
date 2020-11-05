@@ -167,4 +167,10 @@ Windows 10
 		- Python interpreter: Python 3.7 (sentinel-hindcast-37)
 		- OK
 
+14.) Optional - required for MDN
+	conda activate sentinel-hindcast-37
+	conda install -c conda-forge tensorflow==1.15.0
+	conda install -c anaconda scikit-learn=0.23.2
+	conda install -c conda-forge tensorflow-probability=0.7
+
 You are now set up and ready to start coding as well as running sentinel-hindcast

@@ -174,3 +174,9 @@ Ubuntu 18
 		$ echo "machine urs.earthdata.nasa.gov login <earthdata user> password <earthdata password>" > ~/.netrc
 		$ chmod 0600 ~/.netrc
 		$ touch ~/.urs_cookies
+
+14.) Optional - required for MDN
+	conda activate sentinel-hindcast-37
+	conda install -c conda-forge tensorflow==1.15.0
+	conda install -c anaconda scikit-learn=0.23.2
+	conda install -c conda-forge tensorflow-probability=0.7
