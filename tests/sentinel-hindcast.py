@@ -8,4 +8,4 @@ import netCDF4
 
 from main import hindcast
 
-hindcast("parameters_geomCH_S2.ini")
+hindcast("S3_titicaca_2020.ini")
