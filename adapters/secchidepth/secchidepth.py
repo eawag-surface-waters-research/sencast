@@ -13,11 +13,11 @@ from snappy import ProductIO, ProductData, Product, ProductUtils
 
 
 # key of the params section for this adapter
-PARAMS_SECTION = "SECCHIDEPTH"
+PARAMS_SECTION = 'SECCHIDEPTH'
 
 # the file name pattern for output file
-FILENAME = "L2QAA_{}"
-FILEFOLDER = "L2QAA"
+FILENAME = 'L2QAA_{}'
+FILEFOLDER = 'L2QAA'
 
 
 def apply(env, params, l2product_files, date):
@@ -37,21 +37,21 @@ def apply(env, params, l2product_files, date):
                     Run date
                 """
     if not env.has_section(PARAMS_SECTION):
-        raise RuntimeWarning("Secchi depth was not configured in this environment.")
+        raise RuntimeWarning('Secchi depth was not configured in this environment.')
     if not params.has_section(PARAMS_SECTION):
-        raise RuntimeWarning("Secchi depth was not configured in parameters.")
+        raise RuntimeWarning('Secchi depth was not configured in parameters.')
     print("Applying Secchi Depth...")
 
     if "processor" not in params[PARAMS_SECTION]:
-        raise RuntimeWarning("processor must be defined in the parameter file.")
+        raise RuntimeWarning('processor must be defined in the parameter file.')
 
-    processor = params[PARAMS_SECTION]["processor"]
-    if processor != "POLYMER":
-        raise RuntimeWarning("Secchi depth adapter only works with Polymer processor output")
+    processor = params[PARAMS_SECTION]['processor']
+    if processor != 'POLYMER':
+        raise RuntimeWarning('Secchi depth adapter only works with Polymer processor output')
 
     # Check for precursor datasets
     if processor not in l2product_files or not os.path.exists(l2product_files[processor]):
-        raise RuntimeWarning("POLYMER precursor file not found ensure POLYMER is run before this adapter.")
+        raise RuntimeWarning('POLYMER precursor file not found ensure POLYMER is run before this adapter.')
 
     # Create folder for file
     product_path = l2product_files[processor]
@@ -61,10 +61,10 @@ def apply(env, params, l2product_files, date):
     l2product_files["SECCHIDEPTH"] = output_file
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print("Removing file: ${}".format(output_file))
+            print('Removing file: ${}'.format(output_file))
             os.remove(output_file)
         else:
-            print("Skipping Secchi Depth, target already exists: {}".format(FILENAME.format(product_name)))
+            print('Skipping Secchi Depth, target already exists: {}'.format(FILENAME.format(product_name)))
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
@@ -88,7 +88,7 @@ def apply(env, params, l2product_files, date):
     m3 = 10.8
     y1 = 0.265
 
-    print("Reading POLYMER output from {}".format(product_path))
+    print('Reading POLYMER output from {}'.format(product_path))
     product = ProductIO.readProduct(product_path)
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
@@ -96,9 +96,9 @@ def apply(env, params, l2product_files, date):
     description = product.getDescription()
     band_names = product.getBandNames()
 
-    print("Product:      {}, {}".format(name, description))
-    print("Raster size: {} x {} pixels".format(width, height))
-    print("Bands:       {}".format(list(band_names)))
+    print('Product:      {}, {}'.format(name, description))
+    print('Raster size: {} x {} pixels'.format(width, height))
+    print('Bands:       {}'.format(list(band_names)))
 
     band_names2 = ['Rw412', 'Rw443', 'Rw490', 'Rw510', 'Rw560', 'Rw620', 'Rw665', 'Rw681']
     bands = [product.getBand(bname) for bname in band_names2]
@@ -119,10 +119,10 @@ def apply(env, params, l2product_files, date):
     secchis = []
     for secchi_name in secchi_names:
         temp_band = secchiProduct.addBand(secchi_name, ProductData.TYPE_FLOAT32)
-        if "Z" in secchi_name:
-            temp_band.setUnit("m")
-        elif "a" in secchi_name:
-            temp_band.setUnit("m^-1")
+        if 'Z' in secchi_name:
+            temp_band.setUnit('m')
+        elif 'a' in secchi_name:
+            temp_band.setUnit('m^-1')
         temp_band.setNoDataValueUsed(True)
         temp_band.setNoDataValue(np.NaN)
         wavelength = re.findall('\d+', secchi_name)[0]
@@ -209,5 +209,9 @@ def apply(env, params, l2product_files, date):
             secchi.writePixels(0, y, width, 1, bds)
 
     secchiProduct.closeIO()
+<<<<<<< HEAD
 
     print("Writing Secchi depth to file: {}".format(output_file))
+=======
+    print('Writing Secchi depth to file: {}'.format(output_file))
+>>>>>>> 9be1973bcfd6822f09b9982d8eda93ca4f5dc939

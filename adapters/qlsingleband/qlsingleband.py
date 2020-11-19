@@ -52,6 +52,7 @@ def apply(_, params, l2product_files, date):
                             Run date
                         """
     wkt = params['General']['wkt']
+
     for key in params[PARAMS_SECTION].keys():
         processor = key.upper()
         if processor in l2product_files.keys():
@@ -61,6 +62,8 @@ def apply(_, params, l2product_files, date):
             bandmaxs = list(filter(None, params[PARAMS_SECTION][key].split(",")))[2::3]
             product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
             for band, bandmin, bandmax in zip(bands, bandmins, bandmaxs):
+                if band in params['QLSINGLEBAND']['secchidepth']:
+                    processor = 'SECCHIDEPTH'
                 ql_path = os.path.dirname(l2product_files[processor]) + "-" + band
                 ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, band))
                 if os.path.exists(ql_file):
@@ -278,10 +281,14 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     if log:
         print('Transforming log data...')
         masked_param_arr = np.exp(masked_param_arr)
-
-    color_type = cm.get_cmap(name='viridis')
+    if 'Secchi' in title_str:
+        color_type = cm.get_cmap(name='viridis_r')
+    else:
+        color_type = cm.get_cmap(name='viridis')
     #color_type = colscales.rainbow_king()
     #color_type = colscales.red2blue()
+    #color_type = cm.get_cmap(name='magma_r')
+
     color_type.set_bad(alpha=0)
     if not param_range:
         print('No range provided. Estimating...')
@@ -428,7 +435,6 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
         gridlines.ylabel_style = {'size': gridlabel_size, 'color': 'black'}
 
     # Create colorbar
-    plt.title(title_str, y=1.1)
     print('   creating colorbar')
     fig = plt.gcf()
     fig.subplots_adjust(top=1, bottom=0, left=0,
@@ -622,6 +628,17 @@ def get_legend_str(layer_str):
     elif layer_str == 'rgb_int':
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{RGB\/reflectance\/integral\/area}$'
+        log = False
+
+    # QAA products
+    elif layer_str.startswith('Z'):
+        lstr = re.findall(r'\d{3}', layer_str)[0]
+        legend_str = r'$\mathbf{[m]}$'
+        title_str = r'$\mathbf{Secchi\/\/depth at ' + lstr + '}$'
+        log = False
+    elif layer_str == 'bbs':
+        legend_str = r'$\mathbf{[m^{-1}]}$'
+        title_str = r'$\mathbf{Polymer\/b_{b_{s}}}$'
         log = False
 
     # all other products
