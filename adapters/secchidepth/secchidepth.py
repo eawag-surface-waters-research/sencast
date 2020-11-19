@@ -111,6 +111,11 @@ def apply(env, params, l2product_files, date):
                     'a_gelb443', 'a_dg412', 'a_dg443', 'a_dg490', 'a_dg510', 'a_dg560', 'a_dg620', 'a_dg665', 'a_dg681',
                     'a_ph412', 'a_ph443', 'a_ph490', 'a_ph510', 'a_ph560', 'a_ph620', 'a_ph665', 'a_ph681']
 
+    valid_pixel_expression = product.getBand('tsm_binding754').getValidPixelExpression()
+    for band_name in band_names:
+        if band_name in valid_pixel_expression:
+            ProductUtils.copyBand(band_name, product, secchiProduct, True)
+
     secchis = []
     for secchi_name in secchi_names:
         temp_band = secchiProduct.addBand(secchi_name, ProductData.TYPE_FLOAT32)
@@ -122,9 +127,10 @@ def apply(env, params, l2product_files, date):
         temp_band.setNoDataValue(np.NaN)
         wavelength = re.findall('\d+', secchi_name)[0]
         temp_band.setSpectralWavelength(float(wavelength))
+        temp_band.setValidPixelExpression(valid_pixel_expression)
         secchis.append(temp_band)
 
-    writer = ProductIO.getProductWriter('NetCDF4-CF')
+    writer = ProductIO.getProductWriter('NetCDF4-BEAM')
 
     ProductUtils.copyGeoCoding(product, secchiProduct)
 
@@ -134,6 +140,13 @@ def apply(env, params, l2product_files, date):
     rs = [np.zeros(width, dtype=np.float32) for _ in range(len(band_names2))]
 
     sza = np.zeros(width, dtype=np.float32)
+
+    # Write valid pixel bands
+    for band_name in band_names:
+        if band_name in valid_pixel_expression:
+            temp_arr = np.zeros(width * height)
+            product.getBand(band_name).readPixels(0, 0, width, height, temp_arr)
+            secchiProduct.getBand(band_name).writePixels(0, 0, width, height, temp_arr)
 
     print("Calculating Secchi depth.")
 
@@ -196,4 +209,5 @@ def apply(env, params, l2product_files, date):
             secchi.writePixels(0, y, width, 1, bds)
 
     secchiProduct.closeIO()
+
     print("Writing Secchi depth to file: {}".format(output_file))

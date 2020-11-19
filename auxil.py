@@ -156,6 +156,14 @@ def get_satellite_name_from_product_name(product_name):
         return "Unknown"
 
 
+def get_satellite_name_from_name(product_name):
+    satellite_names = ["S3A", "S3B", "S2A", "S2B"]
+    for satellite_name in satellite_names:
+        if satellite_name in product_name:
+            return satellite_name
+    return "NA"
+
+
 def get_l1product_path(env, product_name):
     if product_name.startswith("S3A") or product_name.startswith("S3B"):
         satellite = "Sentinel-3"

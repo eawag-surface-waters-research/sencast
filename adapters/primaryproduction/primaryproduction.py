@@ -21,20 +21,20 @@ FILEFOLDER = "L2PP"
 
 def apply(env, params, l2product_files, date):
     """Apply Primary Production adapter.
-                1. Calculates primary production for Chl and KD
+    1. Calculates primary production for Chl and KD
 
-                Parameters
-                -------------
+    Parameters
+    -------------
 
-                params
-                    Dictionary of parameters, loaded from input file
-                env
-                    Dictionary of environment parameters, loaded from input file
-                l2product_files
-                    Dictionary of Level 2 product files created by processors
-                date
-                    Run date
-                """
+    params
+        Dictionary of parameters, loaded from input file
+    env
+        Dictionary of environment parameters, loaded from input file
+    l2product_files
+        Dictionary of Level 2 product files created by processors
+    date
+        Run date
+    """
     if not env.has_section(PARAMS_SECTION):
         raise RuntimeWarning("Primary Production was not configured in this environment.")
     if not params.has_section(PARAMS_SECTION):
@@ -90,13 +90,14 @@ def apply(env, params, l2product_files, date):
     h = chl.getRasterHeight()
     chl_data = np.zeros(w * h, np.float32)
     chl.readPixels(0, 0, w, h, chl_data)
+    chl_valid_pixel_expression = chl.getValidPixelExpression()
 
     # Convert from PH to CHL if required
     if "chl_parameter" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["chl_parameter"] == "PH":
         chl_data = PhytoplanktonToChlorophyll(chl_data)
 
     # Read in KD band
-    kd_product_path = l2product_files[chl_processor]
+    kd_product_path = l2product_files[kd_processor]
     print("Reading kd values from {}".format(kd_product_path))
     kd_product = ProductIO.readProduct(kd_product_path)
     all_bns_kd = kd_product.getBandNames()
@@ -107,15 +108,31 @@ def apply(env, params, l2product_files, date):
     h_kd = kd.getRasterHeight()
     kd_data = np.zeros(w_kd * h_kd, np.float32)
     kd.readPixels(0, 0, w, h, kd_data)
+    kd_valid_pixel_expression = kd.getValidPixelExpression()
 
     if chl_data.shape != kd_data.shape:
         raise RuntimeError("CHl and KD on different grids. Grid interpolation not yet implemented")
 
     # Create output file
     out_product = Product('PP', 'PP', w, h)
-    writer = ProductIO.getProductWriter('NetCDF4-CF')
+    writer = ProductIO.getProductWriter('NetCDF4-BEAM')
     ProductUtils.copyGeoCoding(product, out_product)
     out_product.setProductWriter(writer)
+
+    # Add valid pixel expression bands
+    all_bands = list(dict.fromkeys(list(all_bns) + list(all_bns_kd)))
+    for band_name in all_bands:
+        if band_name in str(chl_valid_pixel_expression):
+            ProductUtils.copyBand(band_name, product, out_product, True)
+        elif band_name in str(kd_valid_pixel_expression):
+            ProductUtils.copyBand(band_name, kd_product, out_product, True)
+    valid_pixel_expression = None
+    if chl_valid_pixel_expression is not None and kd_valid_pixel_expression is not None and chl_valid_pixel_expression != kd_valid_pixel_expression:
+        valid_pixel_expression = chl_valid_pixel_expression + " and " + kd_valid_pixel_expression
+    elif chl_valid_pixel_expression is not None:
+        valid_pixel_expression = chl_valid_pixel_expression
+    elif kd_valid_pixel_expression is not None:
+        valid_pixel_expression = kd_valid_pixel_expression
 
     # Get PAR
     month = datetomonth(date)
@@ -132,22 +149,40 @@ def apply(env, params, l2product_files, date):
     pp_band.setUnit('mg C m^-2 h^-1')
     pp_band.setNoDataValueUsed(True)
     pp_band.setNoDataValue(np.NaN)
+    pp_band.setValidPixelExpression(valid_pixel_expression)
 
     kd_band = out_product.addBand(kd_bandname, ProductData.TYPE_FLOAT32)
     kd_band.setUnit(kd.getUnit())
     kd_band.setNoDataValueUsed(True)
     kd_band.setNoDataValue(np.NaN)
-    wavelength = re.findall('\d+', kd_bandname)[0]
-    kd_band.setSpectralWavelength(float(wavelength))
+    kd_band.setValidPixelExpression(kd_valid_pixel_expression)
+    if len(re.findall('\d+', kd_bandname)) > 0:
+        wavelength = re.findall('\d+', kd_bandname)[0]
+        kd_band.setSpectralWavelength(float(wavelength))
 
     chl_band = out_product.addBand(chl_bandname, ProductData.TYPE_FLOAT32)
     chl_band.setUnit(chl.getUnit())
     chl_band.setNoDataValueUsed(True)
     chl_band.setNoDataValue(np.NaN)
-    wavelength = re.findall('\d+', chl_bandname)[0]
-    chl_band.setSpectralWavelength(float(wavelength))
+    chl_band.setValidPixelExpression(chl_valid_pixel_expression)
+    if len(re.findall('\d+', chl_bandname)) > 0:
+        wavelength = re.findall('\d+', chl_bandname)[0]
+        chl_band.setSpectralWavelength(float(wavelength))
 
     out_product.writeHeader(output_file)
+
+    # Add data to valid pixel expression bands
+    for band_name in all_bands:
+        if band_name in str(chl_valid_pixel_expression):
+            temp_arr = np.zeros(w * h)
+            product.getBand(band_name).readPixels(0, 0, w, h, temp_arr)
+            out_product.getBand(band_name).writePixels(0, 0, w, h, temp_arr)
+        elif band_name in str(kd_valid_pixel_expression):
+            temp_arr = np.zeros(w * h)
+            kd_product.getBand(band_name).readPixels(0, 0, w, h, temp_arr)
+            out_product.getBand(band_name).writePixels(0, 0, w, h, temp_arr)
+
+    # Add other data
     pp_band.writePixels(0, 0, w, h, pp_tni)
     kd_band.writePixels(0, 0, w, h, kd_data)
     chl_band.writePixels(0, 0, w, h, chl_data)
