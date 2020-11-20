@@ -69,7 +69,7 @@ def apply(env, params, l2product_files, date):
                     os.remove(output_file_main)
                     for idx, val in enumerate(bands):
                         output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, datetime))
-                        nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx])
+                        nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, datetime)
                     with open(l2product_file, "rb") as f:
                         nc_bytes = f.read()
                     with open(output_file_main, "wb") as f:
@@ -79,7 +79,7 @@ def apply(env, params, l2product_files, date):
             else:
                 for idx, val in enumerate(bands):
                     output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, datetime))
-                    nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx])
+                    nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, datetime)
                 with open(l2product_file, "rb") as f:
                     nc_bytes = f.read()
                 with open(output_file_main, "wb") as f:
@@ -100,11 +100,15 @@ def convert_valid_pixel_expression(vpe, variables):
     return vpe
 
 
-def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_max):
+def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_max, satellite, datetime):
     print("Converting {} to JSON".format(variable_name))
     nc = Dataset(input_file, "r", format="NETCDF4")
     _lons, _lats, _values = np.array(nc.variables['lon'][:]), np.array(nc.variables['lat'][:]), np.array(nc.variables[variable_name][:])
-    valid_pixel_expression = nc.variables[variable_name].valid_pixel_expression
+    valid_pixel_expression = None
+    try:
+        valid_pixel_expression = nc.variables[variable_name].valid_pixel_expression
+    except:
+        print("No valid pixel expression for {}".format(variable_name))
     variables = nc.variables.keys()
     variables_dict = {}
     for variable in variables:
@@ -120,12 +124,15 @@ def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_
     df = df[df[variable_name] > band_min]
     df = df[df[variable_name] < band_max]
     df = df.astype(float).round(decimals)
-    converted_vpe = convert_valid_pixel_expression(valid_pixel_expression, variables)
-    df["valid_pixels"] = (eval(converted_vpe).astype(int) * -1) + 1
     lonres, latres = float(round(abs(_lons[1] - _lons[0]), 12)), float(round(abs(_lats[1] - _lats[0]), 12))
+    if valid_pixel_expression is not None:
+        converted_vpe = convert_valid_pixel_expression(valid_pixel_expression, variables)
+        df["valid_pixels"] = (eval(converted_vpe).astype(int) * -1) + 1
+    else:
+        df["valid_pixels"] = 0
     with open(output_file, "w") as f:
         f.truncate()
-        dump({'lonres': lonres, 'latres': latres, 'lon': list(df["lons"]), 'lat': list(df["lats"]), 'v': list(df[variable_name]), 'vp': list(df["valid_pixels"])}, f, separators=(',', ':'))
+        dump({'lonres': lonres, 'latres': latres, 'lon': list(df["lons"]), 'lat': list(df["lats"]), 'v': list(df[variable_name]), 'vp': list(df["valid_pixels"]), 'vpe': valid_pixel_expression, 'satellite': satellite, 'datetime': datetime}, f, separators=(',', ':'))
 
 
 def notify_datalakes(api_key):
