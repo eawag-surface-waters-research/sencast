@@ -209,9 +209,5 @@ def apply(env, params, l2product_files, date):
             secchi.writePixels(0, y, width, 1, bds)
 
     secchiProduct.closeIO()
-<<<<<<< HEAD
-
     print("Writing Secchi depth to file: {}".format(output_file))
-=======
-    print('Writing Secchi depth to file: {}'.format(output_file))
->>>>>>> 9be1973bcfd6822f09b9982d8eda93ca4f5dc939
+
