@@ -10,6 +10,7 @@ import os
 import re
 import numpy as np
 from snappy import ProductIO, ProductData, Product, ProductUtils
+from auxil import get_satellite_name_from_name
 
 
 # key of the params section for this adapter
@@ -80,21 +81,56 @@ def apply(env, params, l2product_files, date):
     print('Raster size: {} x {} pixels'.format(width, height))
     print('Bands:       {}'.format(list(band_names)))
 
-    band_names2 = ['Rw443', 'Rw490', 'Rw560', 'Rw665', 'Rw705']
+
+    satellite = get_satellite_name_from_name(product_name)
+    ################## Derivation of the hue angle ##################
+    if satellite == 'Sentinel-2':
+        # see table 1 in Van der Woerd & Wernand (2018): https://www.mdpi.com/2072-4292/10/2/180
+        # let's assume his R440 in S2 MSI-60 m is a typo and should be R400 as for the other sensors
+        wvls = [443, 490, 560, 665, 705]
+        M_x = [11.756, 6.423, 53.696, 32.028, 0.529]
+        M_y = [1.744, 22.289, 65.702, 16.808, 0.192]
+        M_z = [62.696, 31.101, 1.778, 0.0015, 0]
+        # see table 2 in the same paper
+        a5 = -65.74
+        a4 = 477.16
+        a3 = -1279.99
+        a2 = 1524.96
+        a1 = -751.59
+        a0 = 116.56
+    elif satellite == 'Sentinel-3':
+        # see table 3 in Van der Woerd & Wernand (2015): https://www.mdpi.com/1424-8220/15/10/25663/htm
+        # NOTE: BAND 673 IS NOT AVAILABLE FROM POLYMER, THEREFORE I DISTRIBUTED ITS WEIGHT 50:50 TO ADJACENT BANDS
+        wvls = [412, 443, 490, 510, 560, 620, 665, 681, 709, 754]
+        M_x = [2.957, 10.861, 3.744, 3.750, 34.687, 41.853, 7.6185, 0.8445, 0.189, 0.006]
+        M_y = [0.112, 1.711, 5.672, 23.263, 48.791, 23.949, 2.944, 0.307, 0.068, 0.002]
+        M_z = [14.354, 58.356, 28.227, 4.022, 0.318, 0.026, 0, 0, 0, 0]
+        # see table 4 in the same paper
+        a5 = -12.5076
+        a4 = 91.6345
+        a3 = -249.8480
+        a2 = 308.6561
+        a1 = -165.4818
+        a0 = 28.5608
+    else:
+        exit('Forel-Ule adapter not implemented for satellite ' + satellite)
+
+    band_names2 = ['Rw' + str(wvl) for wvl in wvls]
     bands = [product.getBand(bname) for bname in band_names2]
 
     foreluleProduct = Product('Z0', 'Z0', width, height)
-    forelule_names = ['hue_angle']
+    forelule_names = ['hue_angle', 'central_wavelength', 'Forel-Ule']
     forelules = []
     for forelule_name in forelule_names:
         temp_band = foreluleProduct.addBand(forelule_name, ProductData.TYPE_FLOAT32)
         if 'angle' in forelule_name:
-            temp_band.setUnit('deg')
-        elif 'whatever' in forelule_name:
-            temp_band.setUnit('m^-1')
+            temp_band.setUnit('rad')
+        elif 'wavelength' in forelule_name:
+            temp_band.setUnit('nm')
+        else:
+            temp_band.setUnit('dl')
         temp_band.setNoDataValueUsed(True)
         temp_band.setNoDataValue(np.NaN)
-        wavelength = re.findall('\d+', forelule_name)[0]
         forelules.append(temp_band)
 
     writer = ProductIO.getProductWriter('NetCDF4-CF')
@@ -110,17 +146,29 @@ def apply(env, params, l2product_files, date):
         # Reading the different bands per pixel into arrays
         rs = [b.readPixels(0, y, width, 1, r) for (b, r) in zip(bands, rs)]
 
-        ################## Derivation of the hue angle ##################
+        Xs = [sum([M_x * r[band_number] for band_number, band_wvl in enumerate(wvls)]) for r in rs]
+        Ys = [sum([M_y * r[band_number] for band_number, band_wvl in enumerate(wvls)]) for r in rs]
+        Zs = [sum([M_z * r[band_number] for band_number, band_wvl in enumerate(wvls)]) for r in rs]
 
-        x = 8.356 * rs[1] + 12.040 * rs[2] + 53.696 * rs[3] + 32.087 * rs[4] + 0.487 * rs[5]
-        y = 0.993 * rs[1] + 12.040 * rs[2] + 53.696 * rs[3] + 32.087 * rs[4] + 0.177 * rs[5]
-        z = 43.487 * rs[1] + 61.055 * rs[2] + 1.778 * rs[3] + 0.015 * rs[4]
+        xs = [Xs[idx] / (Xs[idx] + Ys[idx] + Zs[idx]) for idx, item in enumerate(Xs)]
+        ys = [Ys[idx] / (Xs[idx] + Ys[idx] + Zs[idx]) for idx, item in enumerate(Xs)]
 
         # test equation
         # print((np.arctan2([1/3 - 1/3], [0.5 - 1/3]) % 2) * 180 / np.pi)
-        hue_angle = np.arctan2([y - 1/3], [x - 1/3]) % 2
+        hue_angles = [np.arctan2([ys[idx] - 1/3], [xs[idx] - 1/3]) % 2 for idx, item in enumerate(xs)]
+        hue_angles_corr = [(a5 * hue_angle/100 ** 5) + (a4 * hue_angle/100 ** 4) + (a3 * hue_angle/100 ** 3) +
+                           (a2 * hue_angle/100 ** 2) + (a1 * hue_angle/100) + a0 for hue_angle in hue_angles]
 
-        output = hue_angle # + etc. bands
+
+
+
+
+
+        #output = hue_angles_corr + central_wavelengths + ForelUle
+
+
+
+
 
         # Mark infinite values as NAN
         for bds in output:
