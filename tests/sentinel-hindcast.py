@@ -8,4 +8,4 @@ import netCDF4
 
 from main import hindcast
 
-hindcast("S3_titicaca_2020.ini")
+hindcast("S3_geneva_2019.ini")
