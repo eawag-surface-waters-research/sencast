@@ -85,30 +85,41 @@ def apply(env, params, l2product_files, date):
 
     mdn_product = Product('Z0', 'Z0', width, height)
 
-    mdn_band_names = [{"name": 'chla', "unit": "mg/m3"}]
+    valid_pixel_expression = product.getBand('tsm_binding754').getValidPixelExpression()
+    for band_name in band_names:
+        if band_name in valid_pixel_expression:
+            ProductUtils.copyBand(band_name, product, mdn_product, True)
 
+    mdn_band_names = [{"name": 'chla', "unit": "mg/m3"}]
     mdn_bands = []
     for mdn_band in mdn_band_names:
         temp_band = mdn_product.addBand(mdn_band["name"], ProductData.TYPE_FLOAT32)
         temp_band.setUnit(mdn_band["unit"])
         temp_band.setNoDataValueUsed(True)
         temp_band.setNoDataValue(np.NaN)
-        #temp_band.setSpectralWavelength(float(wavelength))
+        temp_band.setValidPixelExpression(valid_pixel_expression)
         mdn_bands.append(temp_band)
 
-    writer = ProductIO.getProductWriter('NetCDF4-CF')
+    writer = ProductIO.getProductWriter('NetCDF4-BEAM')
 
     ProductUtils.copyGeoCoding(product, mdn_product)
 
     mdn_product.setProductWriter(writer)
     mdn_product.writeHeader(output_file)
 
+    # Write valid pixel bands
+    for band_name in band_names:
+        if band_name in valid_pixel_expression:
+            temp_arr = np.zeros(width * height)
+            product.getBand(band_name).readPixels(0, 0, width, height, temp_arr)
+            mdn_product.getBand(band_name).writePixels(0, 0, width, height, temp_arr)
+
     sensor = "OLCI-poly"
     for mdn_b in mdn_bands:
         if "poly" in sensor:
-            bands, Rrs = get_tile_data_polymer(product_path, sensor, allow_neg=False)
+            bands, Rrs = get_tile_data_polymer(product_path, sensor, allow_neg=True)
         else:
-            bands, Rrs = get_tile_data(product_path, sensor, allow_neg=False)
+            bands, Rrs = get_tile_data(product_path, sensor, allow_neg=True)
         estimates = image_estimates(Rrs, sensor=sensor)
         band_data = np.asarray(estimates[0])
         mdn_b.writePixels(0, 0, width, height, band_data)
