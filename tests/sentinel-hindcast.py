@@ -5,9 +5,7 @@
 # which causes geos_c.dll and objectify.pyx errors to disappear in windows.
 import cartopy.crs
 import netCDF4
-import sys
-sys.path.append("/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast")
 
 from main import hindcast
 
-hindcast("/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast/parameters/datalakes_sui_S3.ini")
+hindcast("S3_geneva_2019.ini")
