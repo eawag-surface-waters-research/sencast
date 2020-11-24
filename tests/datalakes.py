@@ -15,8 +15,8 @@ from product_fun import parse_date_from_name
 
 # Process New Data
 params, params_file = load_params("/prj/datalakes/datalakes_sui_S3.ini")
-finalStart = params['General']['end']
-finalEnd = date.today().strftime(r"%Y-%m-%dT%H:%M:%SZ")
+finalStart = "{}T00:00:00.000Z".format(date.today().strftime(r"%Y-%m-%d"))
+finalEnd = "{}T23:59:59.999Z".format(date.today().strftime(r"%Y-%m-%d"))
 params['General']['start'] = finalStart
 params['General']['end'] = finalEnd
 with open(params_file, "w") as f:
@@ -40,7 +40,7 @@ for name in product_names:
 
 for run_date in dates:
     params['General']['start'] = "{}T00:00:00.000Z".format(run_date)
-    params['General']['end'] = "{}23:59:59.999Z".format(run_date)
+    params['General']['end'] = "{}T23:59:59.999Z".format(run_date)
     with open(params_file, "w") as f:
         params.write(f)
     hindcast(params_file, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1)
