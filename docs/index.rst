@@ -17,6 +17,13 @@ It is developed and maintained by the `SURF Remote Sensing group at Eawag`_.
   Sencast is under active development. The project team are working towards
   the release of a stable v1.0, however for the moment this project remains pre-v1.0.
 
+Publications
+-------------
+| **SenCast: Copernicus Satellite Data on Demand**
+| *D. Odermatt, J. Runnalls, J. Sturm, A. Damm*
+| `German <https://www.dora.lib4ri.ch/eawag/islandora/object/eawag%3A21549/datastream/PDF4/Odermatt-2020-SenCast-%28accepted_version%29.pdf)>`_
+ `English <https://www.dora.lib4ri.ch/eawag/islandora/object/eawag%3A21549/datastream/PDF3/Odermatt-2020-SenCast-%28unspecified_8a1c1609%29.pdf>`_
+
 Installation
 -------------
 
