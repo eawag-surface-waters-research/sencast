@@ -137,7 +137,7 @@ def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_
 
 def notify_datalakes(api_key):
     print("Notifying Datalakes about new data...")
-    #requests.get(NOTIFY_URL, auth=api_key)
+    requests.get(NOTIFY_URL, auth=api_key)
 
 
 def parse_bands(bands):
