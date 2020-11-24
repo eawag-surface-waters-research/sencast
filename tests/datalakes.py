@@ -14,7 +14,7 @@ from auxil import load_environment, load_wkt
 from product_fun import parse_date_from_name
 
 # Process New Data
-params, params_file = load_params("/prj/sentinel-hincast/parameters/datalakes_sui_S3.ini")
+params, params_file = load_params("/prj/sentinel-hindcast/parameters/datalakes_sui_S3.ini")
 finalStart = "{}T00:00:00.000Z".format(date.today().strftime(r"%Y-%m-%d"))
 finalEnd = "{}T23:59:59.999Z".format(date.today().strftime(r"%Y-%m-%d"))
 params['General']['start'] = finalStart
