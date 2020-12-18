@@ -3,13 +3,14 @@
 
 """The Secchi Depth adapter is an implementation of `Lee et al. 2002 <https://www.osapublishing.org/ao/abstract.cfm?uri=ao-41-27-5755>`_
 in order to derive Secchi depth from Satellite images.
-Adapter authors: Luca Brüderlin, Jasmin Kesselring
+Adapter authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt
 """
 
 import os
 import re
 import numpy as np
 from snappy import ProductIO, ProductData, Product, ProductUtils
+from auxil import get_satellite_name_from_name
 
 
 # key of the params section for this adapter
@@ -36,6 +37,7 @@ def apply(env, params, l2product_files, date):
                 date
                     Run date
                 """
+
     if not env.has_section(PARAMS_SECTION):
         raise RuntimeWarning('Secchi depth was not configured in this environment.')
     if not params.has_section(PARAMS_SECTION):
@@ -68,55 +70,83 @@ def apply(env, params, l2product_files, date):
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
-    # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
-    g0 = 0.08945
-    g1 = 0.1247
-
-    # Pure Water absorption coefficient at 412.5, 442.5, 490, 510, 560, 620, 665, 673.75nm from Pope and Fry (1997)
-    aws = [0.00452, 0.00696, 0.0150, 0.0325, 0.0619, 0.2755, 0.429, 0.448]
-
-    # Pure Water backscattering at 412.5, 442.5, 490, 510, 560, 620, 665, 673.75nm from Morel (1974)
-    bws = [0.00447, 0.00349, 0.00222, 0.00222, 0.00149, 0.00109, 0.00109, 0.00109]
-
-    # Center Wavelenghts
-    wvl = [412.5, 442.5, 490, 510, 560, 620, 665, 681.25]
-
-    # Coefficients for the calculation of the Diffuse attenuation coefficient based on  Lee et al. (2016)
-    m0 = 0.005
-    m1 = 4.259
-    m2 = 0.52
-    m3 = 10.8
-    y1 = 0.265
-
     print('Reading POLYMER output from {}'.format(product_path))
     product = ProductIO.readProduct(product_path)
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
     name = product.getName()
     description = product.getDescription()
-    band_names = product.getBandNames()
+    product_band_names = product.getBandNames()
 
     print('Product:      {}, {}'.format(name, description))
     print('Raster size: {} x {} pixels'.format(width, height))
-    print('Bands:       {}'.format(list(band_names)))
+    print('Bands:       {}'.format(list(product_band_names)))
 
-    band_names2 = ['Rw412', 'Rw443', 'Rw490', 'Rw510', 'Rw560', 'Rw620', 'Rw665', 'Rw681']
-    bands = [product.getBand(bname) for bname in band_names2]
+    satellite = get_satellite_name_from_name(product_name)
 
+    ################## Setup band configuration for Sentinel-2 or Sentinel-3 ##################
+    if satellite in ['S2A', 'S2B']:
+        # ToDo: values for Sentinel-2 are yet to be configured
+        print('')
+        print('QAA Secchi for Sentinel-2 is not quite implemented yet!!')
+        print('')
+        # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
+        g0 = 0
+        g1 = 0
+        # Pure Water absorption coefficient at 443, 490, 560, 665, 705 nm from Pope and Fry (1997)
+        aws = [0, 0, 0, 0, 0]
+        # Pure Water backscattering at 443, 490, 560, 665, 705 nm from Morel (1974)
+        bws = [0, 0, 0, 0, 0]
+        # Center Wavelenghts
+        wvl = [443, 490, 560, 665, 705]
+        # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
+        m0 = 0
+        m1 = 0
+        m2 = 0
+        m3 = 0
+        y1 = 0
+        spectral_band_names = ['Rw443', 'Rw490', 'Rw560', 'Rw665', 'Rw705']
+        tsm_band = 'tsm_binding740'
+        a_gelb_band= ''
+
+    elif satellite in ['S3A', 'S3B']:
+        # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
+        g0 = 0.08945
+        g1 = 0.1247
+        # Pure Water absorption coefficient at 412.5, 442.5, 490, 510, 560, 620, 665, 673.75nm from Pope and Fry (1997)
+        aws = [0.00452, 0.00696, 0.0150, 0.0325, 0.0619, 0.2755, 0.429, 0.448]
+        # Pure Water backscattering at 412.5, 442.5, 490, 510, 560, 620, 665, 673.75nm from Morel (1974)
+        bws = [0.00447, 0.00349, 0.00222, 0.00222, 0.00149, 0.00109, 0.00109, 0.00109]
+        # Center Wavelenghts
+        wvl = [412.5, 442.5, 490, 510, 560, 620, 665, 681.25]
+        # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
+        m0 = 0.005
+        m1 = 4.259
+        m2 = 0.52
+        m3 = 10.8
+        y1 = 0.265
+        spectral_band_names = ['Rw412', 'Rw443', 'Rw490', 'Rw510', 'Rw560', 'Rw620', 'Rw665', 'Rw681']
+        tsm_band = 'tsm_binding754'
+        a_gelb_band= 'a_gelb443'
+
+    else:
+        exit('Secchi adapter not implemented for satellite ' + satellite)
+
+    bands = [product.getBand(bname) for bname in spectral_band_names]
     SZA = product.getBand('sza')
-
     secchiProduct = Product('Z0', 'Z0', width, height)
 
-    secchi_names = ['Z412', 'Z443', 'Z490', 'Z510', 'Z560', 'Z620', 'Z665', 'Z681',
-                    'a_gelb443', 'a_dg412', 'a_dg443', 'a_dg490', 'a_dg510', 'a_dg560', 'a_dg620', 'a_dg665', 'a_dg681',
-                    'a_ph412', 'a_ph443', 'a_ph490', 'a_ph510', 'a_ph560', 'a_ph620', 'a_ph665', 'a_ph681']
+    secchi_names = ['Z' + band_name[2:] for band_name in spectral_band_names] + \
+                   [a_gelb_band] + \
+                   ['a_dg' + band_name[2:] for band_name in spectral_band_names] + \
+                   ['a_ph' + band_name[2:] for band_name in spectral_band_names]
 
-    valid_pixel_expression = product.getBand('tsm_binding754').getValidPixelExpression()
-    for band_name in band_names:
+    valid_pixel_expression = product.getBand(tsm_band).getValidPixelExpression()
+    for band_name in product_band_names:
         if band_name in valid_pixel_expression:
             ProductUtils.copyBand(band_name, product, secchiProduct, True)
 
-    secchis = []
+    secchi_bands = []
     for secchi_name in secchi_names:
         temp_band = secchiProduct.addBand(secchi_name, ProductData.TYPE_FLOAT32)
         if 'Z' in secchi_name:
@@ -128,7 +158,7 @@ def apply(env, params, l2product_files, date):
         wavelength = re.findall('\d+', secchi_name)[0]
         temp_band.setSpectralWavelength(float(wavelength))
         temp_band.setValidPixelExpression(valid_pixel_expression)
-        secchis.append(temp_band)
+        secchi_bands.append(temp_band)
 
     writer = ProductIO.getProductWriter('NetCDF4-BEAM')
 
@@ -137,12 +167,12 @@ def apply(env, params, l2product_files, date):
     secchiProduct.setProductWriter(writer)
     secchiProduct.writeHeader(output_file)
 
-    rs = [np.zeros(width, dtype=np.float32) for _ in range(len(band_names2))]
+    rs = [np.zeros(width, dtype=np.float32) for _ in range(len(spectral_band_names))]
 
     sza = np.zeros(width, dtype=np.float32)
 
     # Write valid pixel bands
-    for band_name in band_names:
+    for band_name in product_band_names:
         if band_name in valid_pixel_expression:
             temp_arr = np.zeros(width * height)
             product.getBand(band_name).readPixels(0, 0, width, height, temp_arr)
@@ -150,15 +180,14 @@ def apply(env, params, l2product_files, date):
 
     print("Calculating Secchi depth.")
 
-    for y in range(height):
+    for n_row in range(height):
         # Reading the different bands per pixel into arrays
-        rs = [b.readPixels(0, y, width, 1, r) for (b, r) in zip(bands, rs)]
+        rs = [b.readPixels(0, n_row, width, 1, r) for (b, r) in zip(bands, rs)]
 
         # Reading the solar zenith angle per pixel
-        sza = SZA.readPixels(0, y, width, 1, sza)
+        sza = SZA.readPixels(0, n_row, width, 1, sza)
 
         ################## Derivation of total absorption and backscattering coefficients ###########
-
         rrs = [r / (0.52 + (1.7 * r)) for r in rs]
         us = [(-g0 + (np.sqrt((g0 ** 2) + (4 * g1) * rr))) / (2 * g1) for rr in rrs]
         ratioChi = rrs[6] / rrs[2]
@@ -168,7 +197,7 @@ def apply(env, params, l2product_files, date):
         # Backscattering suspended particles ref. band:
         bbp0 = ((us[4] * a0) / (1 - us[4])) - bws[4]
         ration = rrs[1] / rrs[4]
-        Y = 2.0 * (1 - 1.2 * np.exp(-0.9 * ration))  # Lee et al.(update)
+        Y = 2.0 * (1 - 1.2 * np.exp(-0.9 * ration))  # Lee et al. (update)
         # Backscattering susp. particles all bands
         bbps = [bbp0 * (wvl[4] / wv) ** Y for wv in wvl]
         # Absorption per band:
@@ -176,7 +205,7 @@ def apply(env, params, l2product_files, date):
         # Total backscatter per band:
         bbs = [bw + bbp for bw, bbp in zip(bws, bbps)]
 
-        ################## Diffuse attenuation coefficient and Secchi Depth retreaval ###############
+        ################## Diffuse attenuation coefficient and Secchi Depth retrieval ###############
         # Kd per band:
         Kds = [(1 + m0 * sza) * a + (1 - y1 * (bw / bb)) * m1 * (1 - m2 * np.exp(-m3 * a)) * bb for (a, bw, bb) in
                zip(a_s, bws, bbs)]
@@ -205,8 +234,8 @@ def apply(env, params, l2product_files, date):
             bds[bds == -np.inf] = np.nan
 
         # Write the secchi depth per band
-        for secchi, bds in zip(secchis, output):
-            secchi.writePixels(0, y, width, 1, bds)
+        for secchi, bds in zip(secchi_bands, output):
+            secchi.writePixels(0, n_row, width, 1, bds)
 
     secchiProduct.closeIO()
     print("Writing Secchi depth to file: {}".format(output_file))

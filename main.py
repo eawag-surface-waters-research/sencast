@@ -282,6 +282,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from adapters.merge.merge import apply
             elif adapter == "SECCHIDEPTH":
                 from adapters.secchidepth.secchidepth import apply
+            elif adapter == "FORELULE":
+                from adapters.forelule.forelule import apply
             elif adapter == "MDN":
                 from adapters.mdn.mdn import apply
             else:

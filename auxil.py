@@ -161,6 +161,9 @@ def get_satellite_name_from_name(product_name):
     for satellite_name in satellite_names:
         if satellite_name in product_name:
             return satellite_name
+    # ToDo: add satellite name to mosaicking
+    if 'Mosaic_' in product_name:
+        return 'S2A'
     return "NA"
 
 

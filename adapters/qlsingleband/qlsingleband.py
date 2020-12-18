@@ -39,18 +39,18 @@ PARAMS_SECTION = "QLSINGLEBAND"
 def apply(_, params, l2product_files, date):
     """Apply QLSingleBand adapter.
 
-                        Parameters
-                        -------------
+    Parameters
+    -------------
 
-                        params
-                            Dictionary of parameters, loaded from input file
-                        env
-                            Dictionary of environment parameters, loaded from input file
-                        l2product_files
-                            Dictionary of Level 2 product files created by processors
-                        date
-                            Run date
-                        """
+    params
+        Dictionary of parameters, loaded from input file
+    env
+        Dictionary of environment parameters, loaded from input file
+    l2product_files
+        Dictionary of Level 2 product files created by processors
+    date
+        Run date
+    """
     wkt = params['General']['wkt']
 
     for key in params[PARAMS_SECTION].keys():
@@ -62,8 +62,10 @@ def apply(_, params, l2product_files, date):
             bandmaxs = list(filter(None, params[PARAMS_SECTION][key].split(",")))[2::3]
             product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
             for band, bandmin, bandmax in zip(bands, bandmins, bandmaxs):
-                if band in params['QLSINGLEBAND']['secchidepth']:
+                if band == 'secchidepth':
                     processor = 'SECCHIDEPTH'
+                elif band == 'forelule':
+                    processor = 'FORELULE'
                 ql_path = os.path.dirname(l2product_files[processor]) + "-" + band
                 ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, band))
                 if os.path.exists(ql_file):
@@ -281,10 +283,28 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     if log:
         print('Transforming log data...')
         masked_param_arr = np.exp(masked_param_arr)
-    if 'Secchi' in title_str:
+
+    if ('hue' in title_str) and ('angle' in title_str):
+        color_type = colscales.hue_angle()
+        param_range = [20, 230]
+        tick_format = '%.0f'
+        ticks = [45, 90, 135, 180, 225]
+    elif ('dominant' in title_str) and ('wavelength' in title_str):
+        color_type = colscales.dominant_wavelength()
+        param_range = [400, 650]
+        tick_format = '%.0f'
+        ticks = [400, 450, 500, 550, 600, 650]
+    elif 'Forel-Ule' in title_str:
+        color_type = colscales.forel_ule()
+        param_range = [1, 21]
+        tick_format = '%.0f'
+        ticks = [i + 1 for i in range(21)]
+    elif 'Secchi' in title_str:
         color_type = cm.get_cmap(name='viridis_r')
+        ticks = False
     else:
         color_type = cm.get_cmap(name='viridis')
+        ticks = False
     #color_type = colscales.rainbow_king()
     #color_type = colscales.red2blue()
     #color_type = cm.get_cmap(name='magma_r')
@@ -304,18 +324,19 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
                 param_range = [0, range_intervals[-1]]
                 break
     print('Parameters range set to: {}'.format(param_range))
-    if param_range[1] >= 10:
-        tick_format = '%.0f'
-    elif param_range[1] >= 1:
-        tick_format = '%.1f'
-    elif param_range[1] >= 0.1:
-        tick_format = '%.2f'
-    elif param_range[1] >= 0.01:
-        tick_format = '%.3f'
-    else:
-        tick_format = '%.4f'
-    rel_ticks = [0.00, 0.2, 0.4, 0.6, 0.8, 1.00]
-    ticks = [rel_tick * (param_range[1] - param_range[0]) + param_range[0] for rel_tick in rel_ticks]
+    if not ticks:
+        if param_range[1] >= 10:
+            tick_format = '%.0f'
+        elif param_range[1] >= 1:
+            tick_format = '%.1f'
+        elif param_range[1] >= 0.1:
+            tick_format = '%.2f'
+        elif param_range[1] >= 0.01:
+            tick_format = '%.3f'
+        else:
+            tick_format = '%.4f'
+        rel_ticks = [0.00, 0.2, 0.4, 0.6, 0.8, 1.00]
+        ticks = [rel_tick * (param_range[1] - param_range[0]) + param_range[0] for rel_tick in rel_ticks]
 
     # Initialize plot
     fig = plt.figure(figsize=((aspect_ratio * 3) + (2 * legend_extension), 3))
@@ -441,7 +462,16 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
                         right=(aspect_ratio * 3) / ((aspect_ratio * 3) + (1.2 * legend_extension)),
                         wspace=0.05, hspace=0.05)
     cax = fig.add_axes([(aspect_ratio * 3) / ((aspect_ratio * 3) + (0.8 * legend_extension)), 0.15, 0.03, 0.7])
-    cbar = fig.colorbar(parameter, cax=cax, ticks=ticks, format=tick_format, orientation=bar_orientation)
+
+    # discrete colorbar option for Forel-Ule classes
+    if parameter == 'forel_ule':
+        bounds = list(range(int(param_range[0]), int(param_range[1]) + 1, 21))
+        boundaries = [int(param_range[0]) - 0.5] + [bound + 0.5 for bound in bounds]
+        norm = mpl.colors.BoundaryNorm(bounds, color_type.N)
+        cbar = fig.colorbar(parameter, cax=cax, orientation=bar_orientation, norm=norm, boundaries=boundaries,
+                            ticks=bounds, format=tick_format)
+    else:
+        cbar = fig.colorbar(parameter, cax=cax, ticks=ticks, format=tick_format, orientation=bar_orientation)
     cbar.ax.tick_params(labelsize=8)
 
     # Save plot
@@ -639,6 +669,20 @@ def get_legend_str(layer_str):
     elif layer_str == 'bbs':
         legend_str = r'$\mathbf{[m^{-1}]}$'
         title_str = r'$\mathbf{Polymer\/b_{b_{s}}}$'
+        log = False
+
+    # Forel-Ule products
+    elif layer_str == 'forel_ule':
+        legend_str = r'$\mathbf{[FU]}$'
+        title_str = r'$\mathbf{Forel-Ule\/type}$'
+        log = False
+    elif layer_str == 'dominant_wavelength':
+        legend_str = r'$\mathbf{[nm]}$'
+        title_str = r'$\mathbf{dominant\/wavelength}$'
+        log = False
+    elif layer_str == 'hue_angle':
+        legend_str = r'$\mathbf{[deg]}$'
+        title_str = r'$\mathbf{hue\/angle}$'
         log = False
 
     # all other products

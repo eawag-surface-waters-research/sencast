@@ -7,8 +7,8 @@ Adapter authors: Daniel Odermatt
 """
 
 import os
-import re
 import numpy as np
+from colour import dominant_wavelength
 from snappy import ProductIO, ProductData, Product, ProductUtils
 from auxil import get_satellite_name_from_name
 
@@ -75,16 +75,16 @@ def apply(env, params, l2product_files, date):
     height = product.getSceneRasterHeight()
     name = product.getName()
     description = product.getDescription()
-    band_names = product.getBandNames()
+    product_band_names = product.getBandNames()
 
     print('Product:      {}, {}'.format(name, description))
     print('Raster size: {} x {} pixels'.format(width, height))
-    print('Bands:       {}'.format(list(band_names)))
-
+    print('Bands:       {}'.format(list(product_band_names)))
 
     satellite = get_satellite_name_from_name(product_name)
+
     ################## Derivation of the hue angle ##################
-    if satellite == 'Sentinel-2':
+    if satellite in ['S2A', 'S2B']:
         # see table 1 in Van der Woerd & Wernand (2018): https://www.mdpi.com/2072-4292/10/2/180
         # let's assume his R440 in S2 MSI-60 m is a typo and should be R400 as for the other sensors
         wvls = [443, 490, 560, 665, 705]
@@ -98,7 +98,8 @@ def apply(env, params, l2product_files, date):
         a2 = 1524.96
         a1 = -751.59
         a0 = 116.56
-    elif satellite == 'Sentinel-3':
+        valid_pixel_expression = product.getBand('tsm_binding740').getValidPixelExpression()
+    elif satellite in ['S3A', 'S3B']:
         # see table 3 in Van der Woerd & Wernand (2015): https://www.mdpi.com/1424-8220/15/10/25663/htm
         # NOTE: BAND 673 IS NOT AVAILABLE FROM POLYMER, THEREFORE I DISTRIBUTED ITS WEIGHT 50:50 TO ADJACENT BANDS
         wvls = [412, 443, 490, 510, 560, 620, 665, 681, 709, 754]
@@ -112,15 +113,21 @@ def apply(env, params, l2product_files, date):
         a2 = 308.6561
         a1 = -165.4818
         a0 = 28.5608
+        valid_pixel_expression = product.getBand('tsm_binding754').getValidPixelExpression()
     else:
         exit('Forel-Ule adapter not implemented for satellite ' + satellite)
 
-    band_names2 = ['Rw' + str(wvl) for wvl in wvls]
-    bands = [product.getBand(bname) for bname in band_names2]
+    spectral_band_names = ['Rw' + str(wvl) for wvl in wvls]
+    bands = [product.getBand(bname) for bname in spectral_band_names]
 
     foreluleProduct = Product('Z0', 'Z0', width, height)
-    forelule_names = ['hue_angle', 'central_wavelength', 'Forel-Ule']
-    forelules = []
+    forelule_names = ['hue_angle', 'dominant_wavelength', 'forel_ule']
+
+    for band_name in product_band_names:
+        if band_name in valid_pixel_expression:
+            ProductUtils.copyBand(band_name, product, foreluleProduct, True)
+
+    forelule_bands = []
     for forelule_name in forelule_names:
         temp_band = foreluleProduct.addBand(forelule_name, ProductData.TYPE_FLOAT32)
         if 'angle' in forelule_name:
@@ -131,53 +138,113 @@ def apply(env, params, l2product_files, date):
             temp_band.setUnit('dl')
         temp_band.setNoDataValueUsed(True)
         temp_band.setNoDataValue(np.NaN)
-        forelules.append(temp_band)
+        temp_band.setValidPixelExpression(valid_pixel_expression)
+        forelule_bands.append(temp_band)
 
     writer = ProductIO.getProductWriter('NetCDF4-CF')
+
     ProductUtils.copyGeoCoding(product, foreluleProduct)
+
     foreluleProduct.setProductWriter(writer)
     foreluleProduct.writeHeader(output_file)
 
-    rs = [np.zeros(width, dtype=np.float32) for _ in range(len(band_names2))]
+    rs_row = [np.zeros(width, dtype=np.float32) for _ in range(len(spectral_band_names))]
 
-    print('Calculating Forel-Ule parameters.')
+    # Write valid pixel bands
+    for band_name in product_band_names:
+        if band_name in valid_pixel_expression:
+            temp_arr = np.zeros(width * height)
+            product.getBand(band_name).readPixels(0, 0, width, height, temp_arr)
+            foreluleProduct.getBand(band_name).writePixels(0, 0, width, height, temp_arr)
 
-    for y in range(height):
+    print("Calculating Forel-Ule parameters.")
+
+    for n_row in range(height):
+        hue_angles_corr = []
+        dom_wvls = []
+        FUs = []
+
         # Reading the different bands per pixel into arrays
-        rs = [b.readPixels(0, y, width, 1, r) for (b, r) in zip(bands, rs)]
+        rs_row = [b.readPixels(0, n_row, width, 1, r) for (b, r) in zip(bands, rs_row)]
 
-        Xs = [sum([M_x * r[band_number] for band_number, band_wvl in enumerate(wvls)]) for r in rs]
-        Ys = [sum([M_y * r[band_number] for band_number, band_wvl in enumerate(wvls)]) for r in rs]
-        Zs = [sum([M_z * r[band_number] for band_number, band_wvl in enumerate(wvls)]) for r in rs]
+        for rs in zip(*rs_row):
 
-        xs = [Xs[idx] / (Xs[idx] + Ys[idx] + Zs[idx]) for idx, item in enumerate(Xs)]
-        ys = [Ys[idx] / (Xs[idx] + Ys[idx] + Zs[idx]) for idx, item in enumerate(Xs)]
+            X = sum([M_x[n_band] * rs[n_band] for n_band in range(len(spectral_band_names))])
+            Y = sum([M_y[n_band] * rs[n_band] for n_band in range(len(spectral_band_names))])
+            Z = sum([M_z[n_band] * rs[n_band] for n_band in range(len(spectral_band_names))])
 
-        # test equation
-        # print((np.arctan2([1/3 - 1/3], [0.5 - 1/3]) % 2) * 180 / np.pi)
-        hue_angles = [np.arctan2([ys[idx] - 1/3], [xs[idx] - 1/3]) % 2 for idx, item in enumerate(xs)]
-        hue_angles_corr = [(a5 * hue_angle/100 ** 5) + (a4 * hue_angle/100 ** 4) + (a3 * hue_angle/100 ** 3) +
-                           (a2 * hue_angle/100 ** 2) + (a1 * hue_angle/100) + a0 for hue_angle in hue_angles]
+            if not np.isnan(X) and not np.isnan(Y) and not np.isnan(Z):
+                x = X / (X + Y + Z)
+                y = Y / (X + Y + Z)
+                z = Z / (X + Y + Z)
 
+            # CALCULATE AND CORRECT HUE ANGLE ACCORDING TO Van der Woerd and Wernand (2018): https://www.mdpi.com/2072-4292/10/2/180
+                hue_angle = get_hue_angle(x, y)
 
+                hue_angle_corr = (a5 * (hue_angle/100) ** 5) + (a4 * (hue_angle/100) ** 4) + (a3 * (hue_angle/100) ** 3) +\
+                                 (a2 * (hue_angle/100) ** 2) + (a1 * (hue_angle/100)) + a0 + hue_angle
 
+            # CALCULATE DOMINANT WAVELENGTH ASSUMING WHITE AT x,y=1/3
+                if np.isnan(x):
+                    dom_wvl = np.nan
+                else:
+                    dom_wvl = dominant_wavelength([x, y], [1/3, 1/3])[0]
 
+            # CALCULATE THE FU CLASS FOR A GIVEN x, y
+                FU = get_FU_class(hue_angle_corr)
 
+                hue_angles_corr.append(np.float32(hue_angle_corr))
+                dom_wvls.append(np.float32(dom_wvl))
+                FUs.append(np.float32(FU))
 
-        #output = hue_angles_corr + central_wavelengths + ForelUle
+            else:
+                hue_angles_corr.append(np.nan)
+                dom_wvls.append(np.nan)
+                FUs.append(np.nan)
 
-
-
-
+        output = [np.array(hue_angles_corr)] + [np.array(dom_wvls)] + [np.array(FUs)]
 
         # Mark infinite values as NAN
-        for bds in output:
-            bds[bds == np.inf] = np.nan
-            bds[bds == -np.inf] = np.nan
+        #for bds in output:
+        #    bds[bds == np.inf] = np.nan
+        #    bds[bds == -np.inf] = np.nan
 
         # Write the Forel-Ule parameters per band
-        for forelule, bds in zip(forelules, output):
-            forelule.writePixels(0, y, width, 1, bds)
+        for forelule, bds in zip(forelule_bands, output):
+            forelule.writePixels(0, n_row, width, 1, bds)
 
     foreluleProduct.closeIO()
     print('Writing Forel-Ule to file: {}'.format(output_file))
+
+def get_hue_angle(x, y):
+    # yields values for FU 1-21:
+    # [229.45, 224.79, 217.12, 203.09, 178.91, 147.64, 118.289, 99.75, 88.37, 78.25, 71.08, 65.06, 59.56, 53.64, 47.89, 42.18, 37.23, 32.63, 28.38, 24.3, 20.98]
+    # see also Table 6 in Novoa et al. (2013): https://www.jeos.org/index.php/jeos_rp/article/view/13057
+    hue_angle = (np.arctan2(x - 1/3, y - 1/3) * 180 / np.pi - 90) * -1
+
+    return hue_angle
+
+
+def get_FU_class(hue_angle):
+
+    FU = False
+    # using the x, y for each FU class given in Novoa et al. (2013): https://www.jeos.org/index.php/jeos_rp/article/view/13057
+    fu_hue_angles = [229.4460181266636, 224.78594453445439, 217.11686068327026, # FU 1-3
+                   203.09011699782403, 178.906701806006, 147.63906244063008,
+                   118.28627616573007, 99.752424941653771, 88.3676604984623,
+                   78.253096073802809, 71.081710836489165, 65.061040636646254,
+                   59.558194784801302, 53.640209130667706, 47.89451269235753,
+                   42.176741925157287, 37.234833981574667, 32.629686435712884,
+                   28.38124615489167, 24.349355340488756, 20.98489783588218]    # FU 18-21
+
+    fu_hue_bounds = [(j + i) / 2 for i, j in zip(fu_hue_angles[:-1], fu_hue_angles[1:])]
+
+    for i in range(21):
+        if hue_angle > fu_hue_bounds[i]:
+            FU = i + 1
+            break
+
+    if not FU:
+        FU = np.nan
+
+    return FU
