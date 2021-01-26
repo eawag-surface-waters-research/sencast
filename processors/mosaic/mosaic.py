@@ -6,7 +6,7 @@ bundled with the SNAP software.
 
 """
 
-import os
+import os, re
 import subprocess
 
 from snappy import ProductIO
@@ -21,14 +21,15 @@ GPT_XML_FILENAME = "mosaic_{}.xml"
 
 def mosaic(env, params, product_files):
     print("Applying MOSAIC...")
-
-    # determine the output filename
     product_filename = os.path.basename(product_files[0])
-    timeliness = "NR"
-    if "_NT_" in product_filename:
-        timeliness = "NT"
     date = get_sensing_date_from_product_name(product_filename)
-    output_filename = "Mosaic_{}_{}.nc".format(date + "T000000", timeliness)
+    name_arr = list(filter(None, re.split('[0-9]{8}', product_filename)[0].split("_")))
+    name_arr.append(date + "T")
+    if "_NT_" in product_filename:
+        name_arr.append("NT")
+    elif "_NR_" in product_filename:
+        name_arr.append("NR")
+    output_filename = "Mosaic_{}.nc".format("_".join(name_arr))
     output_file = os.path.join(os.path.dirname(product_files[0]), output_filename)
 
     # check if output already exists
