@@ -8,4 +8,4 @@ import netCDF4
 
 from main import hindcast
 
-hindcast("S3_secchi_test.ini")
+hindcast("S3_constance-poly4-10.ini")

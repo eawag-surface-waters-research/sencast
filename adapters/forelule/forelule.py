@@ -47,12 +47,12 @@ def apply(env, params, l2product_files, date):
         raise RuntimeWarning('processor must be defined in the parameter file.')
 
     processor = params[PARAMS_SECTION]['processor']
-    if processor != 'POLYMER':
-        raise RuntimeWarning('Forel-Ule adapter only works with Polymer processor output')
+    if processor not in ['POLYMER', 'C2RCC']:
+        raise RuntimeWarning('Forel-Ule adapter only works with Polymer and C2RCC processor output')
 
     # Check for precursor datasets
     if processor not in l2product_files or not os.path.exists(l2product_files[processor]):
-        raise RuntimeWarning('POLYMER precursor file not found ensure POLYMER is run before this adapter.')
+        raise RuntimeWarning('precursor file not found ensure a processor is run before this adapter.')
 
     # Create folder for file
     product_path = l2product_files[processor]
@@ -69,7 +69,7 @@ def apply(env, params, l2product_files, date):
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
-    print('Reading POLYMER output from {}'.format(product_path))
+    print('Reading processor output from {}'.format(product_path))
     product = ProductIO.readProduct(product_path)
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
@@ -88,6 +88,8 @@ def apply(env, params, l2product_files, date):
         # see table 1 in Van der Woerd & Wernand (2018): https://www.mdpi.com/2072-4292/10/2/180
         # let's assume his R440 in S2 MSI-60 m is a typo and should be R400 as for the other sensors
         wvls = [443, 490, 560, 665, 705]
+        spectral_band_names = ['Rw' + str(wvl) for wvl in wvls]
+        band_ns = [1, 2, 3, 4, 5]
         M_x = [11.756, 6.423, 53.696, 32.028, 0.529]
         M_y = [1.744, 22.289, 65.702, 16.808, 0.192]
         M_z = [62.696, 31.101, 1.778, 0.0015, 0]
@@ -98,30 +100,39 @@ def apply(env, params, l2product_files, date):
         a2 = 1524.96
         a1 = -751.59
         a0 = 116.56
-        valid_pixel_expression = product.getBand('tsm_binding740').getValidPixelExpression()
+        sample_band = 'tsm_binding740'
     elif satellite in ['S3A', 'S3B']:
-        # see table 3 in Van der Woerd & Wernand (2015): https://www.mdpi.com/1424-8220/15/10/25663/htm
-        # NOTE: BAND 673 IS NOT AVAILABLE FROM POLYMER, THEREFORE I DISTRIBUTED ITS WEIGHT 50:50 TO ADJACENT BANDS
-        wvls = [412, 443, 490, 510, 560, 620, 665, 681, 709, 754]
-        M_x = [2.957, 10.861, 3.744, 3.750, 34.687, 41.853, 7.6185, 0.8445, 0.189, 0.006]
-        M_y = [0.112, 1.711, 5.672, 23.263, 48.791, 23.949, 2.944, 0.307, 0.068, 0.002]
-        M_z = [14.354, 58.356, 28.227, 4.022, 0.318, 0.026, 0, 0, 0, 0]
-        # see table 4 in the same paper
+        # see table 4 in Van der Woerd & Wernand (2015): https://www.mdpi.com/1424-8220/15/10/25663/htm
         a5 = -12.5076
         a4 = 91.6345
         a3 = -249.8480
         a2 = 308.6561
         a1 = -165.4818
         a0 = 28.5608
-        valid_pixel_expression = product.getBand('tsm_binding754').getValidPixelExpression()
+        if processor == 'POLYMER':
+            # see table 3 in Van der Woerd & Wernand (2015): https://www.mdpi.com/1424-8220/15/10/25663/htm
+            # NOTE: BAND 673 IS NOT AVAILABLE FROM POLYMER, THEREFORE I DISTRIBUTED ITS WEIGHT 50:50 TO ADJACENT BANDS
+            wvls = [412, 443, 490, 510, 560, 620, 665, 681, 709, 754]
+            spectral_band_names = ['Rw' + str(wvl) for wvl in wvls]
+            M_x = [ 2.957, 10.861,  3.744,  3.750, 34.687, 41.853, 7.6185, 0.8445, 0.189, 0.006]
+            M_y = [ 0.112,  1.711,  5.672, 23.263, 48.791, 23.949, 2.944 , 0.307 , 0.068, 0.002]
+            M_z = [14.354, 58.356, 28.227,  4.022,  0.318,  0.026, 0.000 , 0.000 , 0.000, 0.000]
+            sample_band = 'tsm_binding754'
+        elif processor == 'C2RCC':
+            band_ns = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+            spectral_band_names = ['rhow_' + str(band_n) for band_n in band_ns]
+            M_x = [0.154,  2.957, 10.861,  3.744,  3.750, 34.687, 41.853, 7.323, 0.591, 0.549, 0.189, 0.006]
+            M_y = [0.004,  0.112,  1.711,  5.672, 23.263, 48.791, 23.949, 2.836, 0.216, 0.199, 0.068, 0.002]
+            M_z = [0.731, 14.354, 58.356, 28.227,  4.022,  0.618,  0.026, 0.000, 0.000, 0.000, 0.000, 0.000]
+            sample_band = 'conc_tsm'
     else:
         exit('Forel-Ule adapter not implemented for satellite ' + satellite)
 
-    spectral_band_names = ['Rw' + str(wvl) for wvl in wvls]
     bands = [product.getBand(bname) for bname in spectral_band_names]
-
     foreluleProduct = Product('Z0', 'Z0', width, height)
     forelule_names = ['hue_angle', 'dominant_wavelength', 'forel_ule']
+    valid_pixel_expression = product.getBand(sample_band).getValidPixelExpression()
+    nodata_value = bands[0].getNoDataValue()
 
     for band_name in product_band_names:
         if band_name in valid_pixel_expression:
@@ -141,7 +152,7 @@ def apply(env, params, l2product_files, date):
         temp_band.setValidPixelExpression(valid_pixel_expression)
         forelule_bands.append(temp_band)
 
-    writer = ProductIO.getProductWriter('NetCDF4-CF')
+    writer = ProductIO.getProductWriter('NetCDF4-BEAM')
 
     ProductUtils.copyGeoCoding(product, foreluleProduct)
 
@@ -173,7 +184,10 @@ def apply(env, params, l2product_files, date):
             Y = sum([M_y[n_band] * rs[n_band] for n_band in range(len(spectral_band_names))])
             Z = sum([M_z[n_band] * rs[n_band] for n_band in range(len(spectral_band_names))])
 
-            if not np.isnan(X) and not np.isnan(Y) and not np.isnan(Z):
+            # Most products have no data value NaN, but mosaics come with no data zero
+            if (not np.isnan(X) and not np.isnan(Y) and not np.isnan(Z)) and \
+                    (X != nodata_value and Y != nodata_value and Z != nodata_value) and \
+                    (X != 0 and Y != 0 and Z != 0):
                 x = X / (X + Y + Z)
                 y = Y / (X + Y + Z)
                 z = Z / (X + Y + Z)

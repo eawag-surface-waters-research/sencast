@@ -3,7 +3,9 @@
 
 __author__ = 'Daniel'
 
+import numpy as np
 import matplotlib.colors as colors
+import colour as colour_science
 
 
 def rainbow_bright():
@@ -252,72 +254,57 @@ def red2blue():
     return colors.LinearSegmentedColormap('Red2Blue', cdict)
 
 
-def hue_angle():
+def spectral_cie(wvl_min, wvl_max):
+    # from https://colour.readthedocs.io/en/develop/_modules/colour/plotting/colorimetry.html#plot_visible_spectrum
+    # and https://colour.readthedocs.io/en/develop/_modules/colour/plotting/colorimetry.html#plot_single_sd
 
-    cdict = {
-        'red':   [(0.00,  202/255, 202/255),
-                  (0.25,  244/255, 244/255),
-                  (0.50,  247/255, 247/255),
-                  (0.75,  146/255, 146/255),
-                  (1.00,  5/255, 5/255)],
+    cmfs = 'CIE 1931 2 Degree Standard Observer'
+    cmfs = colour_science.utilities.first_item(colour_science.plotting.filter_cmfs(cmfs).values())
 
-        'green': [(0.00,  0.00, 0.00),
-                  (0.25,  165/255, 165/255),
-                  (0.50,  247/255, 247/255),
-                  (0.75,  197/255, 197/255),
-                  (1.00,  113/255, 113/255)],
+    wavelengths = cmfs.wavelengths
 
-        'blue':  [(0.00,  32/255, 32/255),
-                  (0.25,  130/255, 130/255),
-                  (0.50,  247/255, 247/255),
-                  (0.75,  222/255, 222/255),
-                  (1.00,  176/255, 176/255)]}
+    RGB = colour_science.plotting.XYZ_to_plotting_colourspace(
+        colour_science.colorimetry.wavelength_to_XYZ(wavelengths, cmfs),
+        illuminant=colour_science.ILLUMINANTS['CIE 1931 2 Degree Standard Observer']['E'],
+        apply_cctf_encoding=True)
 
-    return colors.LinearSegmentedColormap('HueAngle', cdict)
+    cdict = {'red': [], 'green': [], 'blue': []}
 
+    for i, wvl in enumerate(wavelengths):
+        if wvl >= wvl_min and wvl <= wvl_max:
+            rel_pos = (wvl - wvl_min) / (wvl_max - wvl_min)
+            cdict['red'].append([rel_pos, RGB[i][0], RGB[i][0]])
+            cdict['green'].append([rel_pos, RGB[i][1], RGB[i][1]])
+            cdict['blue'].append([rel_pos, RGB[i][2], RGB[i][2]])
 
-def dominant_wavelength():
-    cdict = {
-        'red': [(0.00, 202 / 255, 202 / 255),
-                (0.25, 244 / 255, 244 / 255),
-                (0.50, 247 / 255, 247 / 255),
-                (0.75, 146 / 255, 146 / 255),
-                (1.00, 5 / 255, 5 / 255)],
-
-        'green': [(0.00, 0.00, 0.00),
-                  (0.25, 165 / 255, 165 / 255),
-                  (0.50, 247 / 255, 247 / 255),
-                  (0.75, 197 / 255, 197 / 255),
-                  (1.00, 113 / 255, 113 / 255)],
-
-        'blue': [(0.00, 32 / 255, 32 / 255),
-                 (0.25, 130 / 255, 130 / 255),
-                 (0.50, 247 / 255, 247 / 255),
-                 (0.75, 222 / 255, 222 / 255),
-                 (1.00, 176 / 255, 176 / 255)]}
-
-    return colors.LinearSegmentedColormap('DominantWavelength', cdict)
+    return colors.LinearSegmentedColormap('SpectralCIE', cdict)
 
 
 def forel_ule():
-    cdict = {
-        'red':   [(0.00,  202/255, 202/255),
-                  (0.25,  244/255, 244/255),
-                  (0.50,  247/255, 247/255),
-                  (0.75,  146/255, 146/255),
-                  (1.00,  5/255, 5/255)],
+    # see https://www.researchgate.net/figure/RGB-values-for-the-reproduction-of-the-FU-legend_tbl2_258687751
 
-        'green': [(0.00,  0.00, 0.00),
-                  (0.25,  165/255, 165/255),
-                  (0.50,  247/255, 247/255),
-                  (0.75,  197/255, 197/255),
-                  (1.00,  113/255, 113/255)],
+    rel_pos =  [i/21 for i in range(1, 21)]
+    cdict = {'red': [], 'green': [], 'blue': []}
 
-        'blue':  [(0.00,  32/255, 32/255),
-                  (0.25,  130/255, 130/255),
-                  (0.50,  247/255, 247/255),
-                  (0.75,  222/255, 222/255),
-                  (1.00,  176/255, 176/255)]}
+    Rs = [ 33,  49,  50,  75,  86, 109, 105, 117, 123, 125, 149, 148, 165, 170, 173, 168, 174, 179, 175, 164, 161]
+    Gs = [ 88, 109, 124, 128, 143, 146, 140, 158, 166, 174, 182, 182, 188, 184, 181, 169, 159, 160, 138, 105,  77]
+    Bs = [188, 197, 187, 160, 150, 152, 134, 114,  84,  56,  69,  96, 118, 109,  95, 101,  92,  83,  68,   5,   4]
+
+    # first anchor; FU 1 color at 0.5
+    cdict['red'].append([0, Rs[0] / 255, Rs[0] / 255])
+    cdict['green'].append([0, Gs[0] / 255, Gs[0] / 255])
+    cdict['blue'].append([0, Bs[0] / 255, Bs[0] / 255])
+
+    # nth anchor
+    for i, pos in enumerate(rel_pos):
+        cdict['red'].append([pos, Rs[i]/255, Rs[i + 1]/255])
+        cdict['green'].append([pos, Gs[i]/255, Gs[i + 1]/255])
+        cdict['blue'].append([pos, Bs[i]/255, Bs[i + 1]/255])
+
+    # last anchor; FU 21 color at 21.5
+    cdict['red'].append([1, Rs[20] / 255, Rs[20] / 255])
+    cdict['green'].append([1, Gs[20] / 255, Gs[20] / 255])
+    cdict['blue'].append([1, Bs[20] / 255, Bs[20] / 255])
 
     return colors.LinearSegmentedColormap('ForelUle', cdict)
 
