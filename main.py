@@ -238,9 +238,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                     l2product_files[l1product_path] = {}
                 try:
                     output_file = process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
-                    if not output_file:
-                        return
-                    l2product_files[l1product_path][processor] = output_file
+                    if output_file != False:
+                        l2product_files[l1product_path][processor] = output_file
 
                 except Exception:
                     print("An error occured while applying {} to product: {}".format(processor, l1product_path))

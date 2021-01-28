@@ -115,7 +115,7 @@
 			<noDataValue>NaN</noDataValue>
 		</parameters>
 	</node>
-	<node id="NDVInode">
+	<node id="indexNode">
 		<operator>BandMaths</operator>
 		<sources>
 			<source>reprojectNode</source>
@@ -139,6 +139,14 @@
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
+					<name>ndmi</name>
+					<type>float32</type>
+					<expression>if ${validPixelExpression} then ((B8 - B11) / (B8 + B11)) else NaN</expression>
+					<unit>dl</unit>
+					<validExpression>${validPixelExpression}</validExpression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
 					<name>ndvi</name>
 					<type>float32</type>
 					<expression>if ${validPixelExpression} then ((B8 - B4) / (B8 + B4)) else NaN</expression>
@@ -153,7 +161,7 @@
 		<operator>merge</operator>
 		<sources>
 			<masterProduct>reprojectNode</masterProduct>
-			<NDVIProduct>NDVInode</NDVIProduct>
+			<indexProduct>indexNode</indexProduct>
 		</sources>
 	</node>
 	<node id="writeNode">

@@ -284,21 +284,24 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
         print('Transforming log data...')
         masked_param_arr = np.exp(masked_param_arr)
 
+    bounds = None
     if ('hue' in title_str) and ('angle' in title_str):
-        color_type = colscales.hue_angle()
+        color_type = cm.get_cmap(name='viridis')
         param_range = [20, 230]
         tick_format = '%.0f'
         ticks = [45, 90, 135, 180, 225]
     elif ('dominant' in title_str) and ('wavelength' in title_str):
-        color_type = colscales.dominant_wavelength()
-        param_range = [400, 650]
+        param_range = [400, 700]
+        color_type = colscales.spectral_cie(wvl_min = param_range[0], wvl_max = param_range[1])
         tick_format = '%.0f'
-        ticks = [400, 450, 500, 550, 600, 650]
+        ticks = [400, 450, 500, 550, 600, 650, 700]
     elif 'Forel-Ule' in title_str:
         color_type = colscales.forel_ule()
-        param_range = [1, 21]
-        tick_format = '%.0f'
+        param_range = [0.5, 21.5]
         ticks = [i + 1 for i in range(21)]
+        boundaries = [fu - 0.5 for fu in range(1, 23, 1)]#[fu + 0.5 for fu in range(1, 21, 1)]
+        norm = mpl.colors.BoundaryNorm(ticks, color_type)
+        tick_format = '%.0f'
     elif 'Secchi' in title_str:
         color_type = cm.get_cmap(name='viridis_r')
         ticks = False
@@ -407,8 +410,10 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     ##############################
 
     # Plot parameter
+    # Fun fact: interpolation='none' causes interpolation if opened in OSX Preview:
+    # https://stackoverflow.com/questions/54250441/pdf-python-plot-is-blurry-image-interpolation
     parameter = subplot_axes.imshow(masked_param_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
-                                    transform=ccrs.PlateCarree(), origin='upper', cmap=color_type, interpolation='none',
+                                    transform=ccrs.PlateCarree(), origin='upper', cmap=color_type, #interpolation='none',
                                     vmin=param_range[0], vmax=param_range[1], zorder=10)
 
     # Plot flags
@@ -461,18 +466,16 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     fig.subplots_adjust(top=1, bottom=0, left=0,
                         right=(aspect_ratio * 3) / ((aspect_ratio * 3) + (1.2 * legend_extension)),
                         wspace=0.05, hspace=0.05)
-    cax = fig.add_axes([(aspect_ratio * 3) / ((aspect_ratio * 3) + (0.8 * legend_extension)), 0.15, 0.03, 0.7])
+    cax = fig.add_axes([(aspect_ratio * 3) / ((aspect_ratio * 3) + (0.6 * legend_extension)), 0.15, 0.03, 0.7])
 
     # discrete colorbar option for Forel-Ule classes
-    if parameter == 'forel_ule':
-        bounds = list(range(int(param_range[0]), int(param_range[1]) + 1, 21))
-        boundaries = [int(param_range[0]) - 0.5] + [bound + 0.5 for bound in bounds]
-        norm = mpl.colors.BoundaryNorm(bounds, color_type.N)
+    if 'Forel-Ule' in title_str:
         cbar = fig.colorbar(parameter, cax=cax, orientation=bar_orientation, norm=norm, boundaries=boundaries,
-                            ticks=bounds, format=tick_format)
+                            ticks=ticks, format=tick_format)
+        cbar.ax.tick_params(labelsize=6)
     else:
         cbar = fig.colorbar(parameter, cax=cax, ticks=ticks, format=tick_format, orientation=bar_orientation)
-    cbar.ax.tick_params(labelsize=8)
+        cbar.ax.tick_params(labelsize=8)
 
     # Save plot
     plt.title(legend_str, y=1.05, fontsize=8)
@@ -595,6 +598,10 @@ def get_legend_str(layer_str):
     elif layer_str == 'ndvi':
         legend_str = r'$\mathbf{[dl}$'
         title_str = r'$\mathbf{NDVI}$'
+        log = False
+    elif layer_str == 'ndmi':
+        legend_str = r'$\mathbf{NDMI\/[dl]}$'
+        title_str = r'$\mathbf{NDMI}$'
         log = False
     elif layer_str == 'ndwi_gao':
         legend_str = r'$\mathbf{[dl]}$'
