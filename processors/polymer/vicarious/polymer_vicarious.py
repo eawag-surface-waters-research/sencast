@@ -18,7 +18,7 @@ def olci_vicarious(vicar_version):
         return vicar_gains
 
     #SVC 01/08/19 (v4.12+, omitting 412 nm band)
-    elif vicar_version == 'olci_svc2019':
+    elif vicar_version == 'olci_svc2019' or vicar_version == 'olci_scv2019':
         vicar_gains = {
             400: 1.000000, 412: 1.000000,
             443: 0.999210, 490: 0.984674,
