@@ -44,7 +44,7 @@ Windows 10
 
 	Set CONDA_HOME to "C:\\path_to_anaconda_installation\\" (e.g. C:\\Anaconda3)
 
-	Add "%CONDA_HOME%\\bin" to PATH  (could need to be "%CONDA_HOME%\\condabin")
+	Add "%CONDA_HOME%\\condabin" to PATH
 
 
 6. Anaconda: sentinel-hindcast-37 environment
@@ -58,7 +58,7 @@ Windows 10
 	Set CONDA_ENV_HOME to "%CONDA_HOME%\\envs\\sentinel-hindcast-37"
 
 
-6.) Python - jpy: https://github.com/bcdev/jpy/blob/master/README.md
+6.) Python - jpy: https://github.com/jpy-consortium/jpy/blob/master/README.md
 
 	Start a command prompt and do following:
 		> cd "%CONDA_ENV_HOME%\\Lib\\site-packages"
