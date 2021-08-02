@@ -13,9 +13,9 @@ Windows 10
 
 2.) JAVA_HOME:
 
-	Set JAVA_HOME to "C:\path_to_jdk\" (e.g. C:\Program Files\AdoptOpenJDK\jdk-8.0.242.08-hotspot)
+	Set JAVA_HOME to "C:\\path_to_jdk\\" (e.g. C:\\Program Files\\AdoptOpenJDK\\jdk-8.0.242.08-hotspot)
 
-	Add "%JAVA_HOME%\bin" to PATH
+	Add "%JAVA_HOME%\\bin" to PATH
 
 	Set JDK_HOME to "%JAVA_HOME%"
 
@@ -24,11 +24,11 @@ Windows 10
 
 	Download Maven 3.6.3
 
-	Unzip installation folder and move it to the desired directory (preferred C:\Program Files (x86)\apache-maven-3.6.3)
+	Unzip installation folder and move it to the desired directory (preferred C:\\Program Files (x86)\\apache-maven-3.6.3)
 
-	Set MAVEN_HOME to "C:\path_to_maven_folder\" (e.g. C:\Program Files (x86)\apache-maven-3.6.3)
+	Set MAVEN_HOME to "C:\\path_to_maven_folder\\" (e.g. C:\\Program Files (x86)\\apache-maven-3.6.3)
 
-	Add "%MAVEN_HOME%\bin" to PATH
+	Add "%MAVEN_HOME%\\bin" to PATH
 
 	Check with: mvn --version
 
@@ -40,11 +40,11 @@ Windows 10
 
 	Download Anaconda3
 
-	Install Anaconda3 (prefered to C:\Anaconda3)
+	Install Anaconda3 (prefered to C:\\Anaconda3)
 
-	Set CONDA_HOME to "C:\path_to_anaconda_installation\" (e.g. C:\Anaconda3)
+	Set CONDA_HOME to "C:\\path_to_anaconda_installation\\" (e.g. C:\\Anaconda3)
 
-	Add "%CONDA_HOME%\bin" to PATH  (could need to be "%CONDA_HOME%\condabin")
+	Add "%CONDA_HOME%\\bin" to PATH  (could need to be "%CONDA_HOME%\\condabin")
 
 
 6. Anaconda: sentinel-hindcast-37 environment
@@ -55,13 +55,13 @@ Windows 10
 	Create a new environment named "sentinel-hindcast" using Anaconda
 		> conda create --name sentinel-hindcast-37 python=3.7 gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine
 
-	Set CONDA_ENV_HOME to "%CONDA_HOME%\envs\sentinel-hindcast-37"
+	Set CONDA_ENV_HOME to "%CONDA_HOME%\\envs\\sentinel-hindcast-37"
 
 
 6.) Python - jpy: https://github.com/bcdev/jpy/blob/master/README.md
 
 	Start a command prompt and do following:
-		> cd "%CONDA_ENV_HOME%\Lib\site-packages"
+		> cd "%CONDA_ENV_HOME%\\Lib\\site-packages"
 		> git clone https://github.com/bcdev/jpy.git
 		> cd "jpy"
 		> conda activate sentinel-hindcast-37
@@ -75,9 +75,9 @@ Windows 10
 		- Uninstall via "Control Panel -> Programs and Features"
 		- Choose to delete all user data
 		- Check that the SNAP installation folder has been removed completely by uninstalling. Otherwise delete it manually.
-		- Delete snappy folder from all your python environments: %PYTHON_HOME%\Lib\site-packages
-		- Delete .snap folder from all user accounts: %USERPROFILE%\.snap
-		- Delete SNAP Folder from all user accoutns: %USERPROFILE%\AppData\Roaming\SNAP
+		- Delete snappy folder from all your python environments: %PYTHON_HOME%\\Lib\\site-packages
+		- Delete .snap folder from all user accounts: %USERPROFILE%\\.snap
+		- Delete SNAP Folder from all user accoutns: %USERPROFILE%\\AppData\\Roaming\\SNAP
 
 	Download SNAP
 
@@ -91,7 +91,7 @@ Windows 10
 
 	Configure: Tools -> Plugins -> Available Plugins -> Install all IDEPIX Plugins
 
-	Set SNAP_HOME to "C:\path_to_snap_isntallation\" (e.g. C:\Snap7)
+	Set SNAP_HOME to "C:\\path_to_snap_isntallation\\" (e.g. C:\\Snap7)
 
 	Close SNAP
 
@@ -99,16 +99,16 @@ Windows 10
 8.) Python - snappy: https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md
 
 	Start a command prompt and do following:
-		> cd "%SNAP_HOME%\bin"
-		> xcopy "%CONDA_ENV_HOME%\Lib\site-packages\jpy\dist\*.whl" "%USERPROFILE%\.snap\snap-python\snappy\"
-		> snappy-conf "%CONDA_ENV_HOME%\python.exe" "%USERPROFILE%\.snap\snap-python"
+		> cd "%SNAP_HOME%\\bin"
+		> xcopy "%CONDA_ENV_HOME%\\Lib\\site-packages\\jpy\\dist\\*.whl" "%USERPROFILE%\\.snap\\snap-python\\snappy\\"
+		> snappy-conf "%CONDA_ENV_HOME%\\python.exe" "%USERPROFILE%\\.snap\\snap-python"
 		> (I had to end the process after about 30 seconds using "Ctrl+C" at this point)
-		> cd "%USERPROFILE%\.snap\snap-python\snappy"
+		> cd "%USERPROFILE%\\.snap\\snap-python\\snappy"
 		> conda activate sentinel-hindcast-37
 		> python setup.py install
-		> xcopy "%USERPROFILE%\.snap\snap-python\snappy\tests" "%CONDA_ENV_HOME%\Lib\site-packages\snappy\tests\"
-		> cd "%CONDA_ENV_HOME%\Lib\site-packages\snappy\tests"
-		> curl --url "https://raw.githubusercontent.com/bcdev/eo-child-gen/master/child-gen-N1/src/test/resources/com/bc/childgen/MER_RR__1P.N1" --output "%CONDA_ENV_HOME%\Lib\site-packages\snappy\tests\MER_RR__1P.N1"
+		> xcopy "%USERPROFILE%\\.snap\\snap-python\\snappy\\tests" "%CONDA_ENV_HOME%\\Lib\\site-packages\\snappy\\tests\\"
+		> cd "%CONDA_ENV_HOME%\\Lib\\site-packages\\snappy\\tests"
+		> curl --url "https://raw.githubusercontent.com/bcdev/eo-child-gen/master/child-gen-N1/src/test/resources/com/bc/childgen/MER_RR__1P.N1" --output "%CONDA_ENV_HOME%\\Lib\\site-packages\\snappy\\tests\\MER_RR__1P.N1"
 		> python test_snappy_mem.py
 		> python test_snappy_perf.py
 		> python test_snappy_product.py
@@ -117,21 +117,21 @@ Windows 10
 9.) Python - polymer: https://forum.hygeos.com/viewforum.php?f=5
 
 	Start a command prompt and do following:
-		> cd "%USERPROFILE%\AppData\Local\Temp"
-		> xcopy "Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.13.zip" "%USERPROFILE%\AppData\Local\Temp"
+		> cd "%USERPROFILE%\\AppData\\Local\\Temp"
+		> xcopy "Q:\\Abteilungsprojekte\\Surf\\surf-DD\\RS\\Software\\Polymer\\polymer-v4.13.zip" "%USERPROFILE%\\AppData\\Local\\Temp"
 		> jar xf "polymer-v4.13.zip"
 		> cd "polymer-v4.13"
 		> conda activate sentinel-hindcast-37
 		> conda install pyhdf pyepr glymur pygrib cdsapi xarray bioconda::ecmwfapi
 		> python setup.py build_ext --inplace
-		> xcopy "%USERPROFILE%\AppData\Local\Temp\polymer-v4.13\polymer" "%CONDA_ENV_HOME%\Lib\site-packages\polymer\"
-		> xcopy "%USERPROFILE%\AppData\Local\Temp\polymer-v4.13\auxdata" "%CONDA_ENV_HOME%\Lib\site-packages\auxdata\"
+		> xcopy "%USERPROFILE%\\AppData\\Local\\Temp\\polymer-v4.13\\polymer" "%CONDA_ENV_HOME%\\Lib\\site-packages\\polymer\\"
+		> xcopy "%USERPROFILE%\\AppData\\Local\\Temp\\polymer-v4.13\\auxdata" "%CONDA_ENV_HOME%\\Lib\\site-packages\\auxdata\\"
 
 
 10.) sentinel-hindcast: https://renkulab.io/gitlab/odermatt/sentinel-hindcast
 
 	Start a command prompt and do following:
-		> cd "C:\Projects"
+		> cd "C:\\Projects"
 		> mkdir "DIAS"
 		> mkdir "datalakes"
 		> git clone https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git
@@ -140,8 +140,8 @@ Windows 10
 11.) CDS API: https://cds.climate.copernicus.eu/api-how-to
 
 	Start a command prompt and do following:
-		> echo url: https://cds.climate.copernicus.eu/api/v2 > %USERPROFILE%\.cdsapirc
-		> echo key: <uid>:<api-key> >> %USERPROFILE%\.cdsapirc
+		> echo url: https://cds.climate.copernicus.eu/api/v2 > %USERPROFILE%\\.cdsapirc
+		> echo key: <uid>:<api-key> >> %USERPROFILE%\\.cdsapirc
 
 
 12.) PyCharm CE: https://www.jetbrains.com/de-de/pycharm/download/#section=windows
@@ -152,18 +152,18 @@ Windows 10
 
 	Launch PyCharm CE
 
-	Open -> C:\Projects\sentinel-hindcast
+	Open -> C:\\Projects\\sentinel-hindcast
 
 	Add a Project Interpreter
 		- File -> Settings -> Project: sentinel-hindcast -> Gearwheel in the upper right -> Show All...
-		- Add (+) -> Conda Environment -> Existing environment -> Interpreter: C:\Anaconda3\envs\sentinel-hindcast-37\python.exe -> OK -> OK -> OK
+		- Add (+) -> Conda Environment -> Existing environment -> Interpreter: C:\\Anaconda3\\envs\\sentinel-hindcast-37\\python.exe -> OK -> OK -> OK
 		- Give it some time to index files (watch processes in the bottom line to finish)
 
 	Define a running configuration:
 		- In the top right "Add Configuration..."
 		- In the top left Add (+) -> Python
 		- Name: sentinel-hindcast-37
-		- Script path: C:\Projects\sentinel-hindcast\sentinel-hindcast.py
+		- Script path: C:\\Projects\\sentinel-hindcast\\sentinel-hindcast.py
 		- Python interpreter: Python 3.7 (sentinel-hindcast-37)
 		- OK
 
