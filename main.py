@@ -196,13 +196,6 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
         if not os.path.exists(l1product_path):
             raise RuntimeError("Download of product was not successfull: {}".format(l1product_path))
 
-    # FOR S3 MAKE SURE THE NON-DEFAULT S3TBX SETTING IS SELECTED IN THE SNAP PREFERENCES!
-    if "OLCI" == params['General']['sensor']:
-        product = ProductIO.readProduct(l1product_paths[0])
-        if 'PixelGeoCoding2' not in str(product.getSceneGeoCoding()):
-            raise RuntimeError("Pixelwise geocoding is not activated for S3TBX, please check the settings in SNAP!")
-        product.closeIO()
-
     with semaphores['process']:
         # only process products, which are really necessary
         if len(l1product_paths) in [2, 4]:
@@ -238,7 +231,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                     l2product_files[l1product_path] = {}
                 try:
                     output_file = process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
-                    if output_file != False:
+                    if output_file:
                         l2product_files[l1product_path][processor] = output_file
 
                 except Exception:

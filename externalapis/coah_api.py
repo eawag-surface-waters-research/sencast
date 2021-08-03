@@ -113,16 +113,17 @@ def search(auth, query):
 
 def download(auth, uuid, filename):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
+    print("Downloading file from {}.".format(download_address.format(uuid)))
     response = requests.get(download_address.format(uuid), auth=auth, stream=True)
     if response.status_code == codes.OK:
         with open(filename + '.zip', 'wb') as down_stream:
-            for chunk in response.iter_content(chunk_size=65536):
+            for chunk in response.iter_content(chunk_size=2**20):
                 down_stream.write(chunk)
         with ZipFile(filename + '.zip', 'r') as zip_file:
             zip_file.extractall(os.path.dirname(filename))
         os.remove(filename + '.zip')
     else:
-        print("Unexpected response on download request: {}".format(response.text))
+        print("Unexpected response (HTTP {}) on download request: {}".format(response.status_code, response.text))
 
 
 def prepend_ns(s):

@@ -52,6 +52,7 @@ def process(env, params, l1product_path, _, out_path):
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(l1product_path),
             "-PoutputFile={}".format(output_file)]
+    print("Calling '{}'".format(args))
     if subprocess.call(args):
         if os.path.exists(output_file):
             os.remove(output_file)
