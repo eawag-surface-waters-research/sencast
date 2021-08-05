@@ -16,7 +16,7 @@ import subprocess
 from math import ceil, floor
 from datetime import datetime
 import numpy as np
-from snappy import ProductIO
+from snappy import ProductIO, GeoPos
 
 from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.gsw import GSW
@@ -25,7 +25,7 @@ from polymer.level1_olci import Level1_OLCI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
-from product_fun import get_corner_pixels_roi, get_reproject_params_from_wkt, get_lons_lats
+from product_fun import get_reproject_params_from_wkt, get_lons_lats
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
 from auxil import load_properties, get_sensing_datetime_from_product_name
@@ -161,3 +161,24 @@ def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt):
     os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
     with open(gpt_xml_file, "w") as f:
         f.write(xml)
+
+
+def get_corner_pixels_roi(product_path, wkt):
+    """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
+    product = ProductIO.readProduct(product_path)
+
+    h, w = product.getSceneRasterHeight(), product.getSceneRasterWidth()
+
+    lons, lats = get_lons_lats(wkt)
+    ul_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(max(lats), min(lons)), None)
+    ur_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(max(lats), max(lons)), None)
+    ll_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(min(lats), min(lons)), None)
+    lr_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(min(lats), max(lons)), None)
+
+    UL = [int(ul_pos.y) if (0 <= ul_pos.y < h) else 0, int(ul_pos.x) if (0 <= ul_pos.x < w) else 0]
+    UR = [int(ur_pos.y) if (0 <= ur_pos.y < h) else 0, int(ur_pos.x) if (0 <= ur_pos.x < w) else w]
+    LL = [int(ll_pos.y) if (0 <= ll_pos.y < h) else h, int(ll_pos.x) if (0 <= ll_pos.x < w) else 0]
+    LR = [int(lr_pos.y) if (0 <= lr_pos.y < h) else h, int(lr_pos.x) if (0 <= lr_pos.x < w) else w]
+
+    product.closeIO()
+    return UL, UR, LR, LL

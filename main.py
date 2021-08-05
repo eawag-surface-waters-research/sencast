@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The core functions of Sencast
-
+"""
+The core functions of Sencast
 .. note::
     Download API's, processors, and adapters are imported dynamically to make Sencast also work on systems,
     where some of them might not be available.
@@ -14,10 +14,9 @@ import traceback
 import sys
 
 from requests.auth import HTTPBasicAuth
-from snappy import ProductIO
 from threading import Semaphore, Thread
 
-from auxil import get_l1product_path, get_sensing_date_from_product_name, get_satellite_name_from_product_name, init_hindcast, copy_metadata
+from auxil import get_l1product_path, get_sensing_date_from_product_name, init_hindcast
 from externalapis.earthdata_api import authenticate
 from product_fun import minimal_subset_of_products, filter_for_timeliness
 
@@ -49,8 +48,7 @@ def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_
     do_hindcast(env, params, l2_path, max_parallel_downloads, max_parallel_processors, max_parallel_adapters)
 
 
-def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_processors=1,
-                max_parallel_adapters=1):
+def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
     """Threading function for running Sentinel Hindcast.
         1. Calls API to find available data for given query
         2. Splits the processing into threads based on date and satellite
@@ -123,12 +121,12 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
         print("{} products are already locally available.".format(len(l1product_paths) - actual_downloads))
         print("{} products must be downloaded first.".format(actual_downloads))
 
-    # group download requests and product paths by date and sort them by group size and sensing date
+    # group download requests and product paths by (date and satelite) and sort them by (group size and sensing date)
     download_groups, l1product_path_groups = {}, {}
     for download_request, l1product_path in zip(download_requests, l1product_paths):
         date = get_sensing_date_from_product_name(os.path.basename(l1product_path))
-        satellite = get_satellite_name_from_product_name(os.path.basename(l1product_path))
-        group = date + "_" + satellite
+        # satellite = get_satellite_name_from_product_name(os.path.basename(l1product_path))
+        group = date
         if group not in download_groups.keys():
             download_groups[group], l1product_path_groups[group] = [], []
         download_groups[group].append(download_request)
@@ -145,7 +143,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     hindcast_threads = []
     for group, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
         args = (env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path, semaphores, group, server)
-        hindcast_threads.append(Thread(target=hindcast_product_group, args=args))
+        hindcast_threads.append(Thread(target=hindcast_product_group, args=args, name="Thread-{}".format(group)))
         hindcast_threads[-1].start()
 
     # wait for all hindcast threads to terminate
@@ -184,6 +182,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
             Dictionary of semaphore objects
         group
             Thread group name
+        server
+            only needed for COAH API
         """
     # download the products, which are not yet available locally
     for download_request, l1product_path in zip(download_requests, l1product_paths):
@@ -233,8 +233,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                     output_file = process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
                     if output_file:
                         l2product_files[l1product_path][processor] = output_file
-
-                except Exception:
+                except RuntimeError:
                     print("An error occured while applying {} to product: {}".format(processor, l1product_path))
                     traceback.print_exc()
 
@@ -250,9 +249,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from processors.mosaic.mosaic import mosaic
                 try:
                     l2product_files[processor] = mosaic(env, params, tmp)
-                    # mosaic output metadata missing: https://senbox.atlassian.net/browse/SNAP-745
-                    copy_metadata(tmp[0], l2product_files[processor])
-                except Exception:
+                except RuntimeError:
                     print("An error occured while applying MOSAIC to products: {}".format(tmp))
                     traceback.print_exc()
 
@@ -283,7 +280,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
 
             try:
                 apply(env, params, l2product_files, group)
-            except Exception:
+            except RuntimeError:
                 print(sys.exc_info()[0])
                 print("An error occured while applying {} to product: {}".format(adapter, l1product_path))
                 traceback.print_exc()

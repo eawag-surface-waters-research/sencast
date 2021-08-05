@@ -1,31 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import re
 
 from haversine import haversine
-from snappy import GeoPos, ProductIO
+from netCDF4 import Dataset
 from datetime import datetime
-
-
-def get_corner_pixels_roi(product_path, wkt):
-    product = ProductIO.readProduct(product_path)
-
-    h, w = product.getSceneRasterHeight(), product.getSceneRasterWidth()
-
-    lons, lats = get_lons_lats(wkt)
-    ul_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(max(lats), min(lons)), None)
-    ur_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(max(lats), max(lons)), None)
-    ll_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(min(lats), min(lons)), None)
-    lr_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(min(lats), max(lons)), None)
-
-    UL = [int(ul_pos.y) if (0 <= ul_pos.y < h) else 0, int(ul_pos.x) if (0 <= ul_pos.x < w) else 0]
-    UR = [int(ur_pos.y) if (0 <= ur_pos.y < h) else 0, int(ur_pos.x) if (0 <= ur_pos.x < w) else w]
-    LL = [int(ll_pos.y) if (0 <= ll_pos.y < h) else h, int(ll_pos.x) if (0 <= ll_pos.x < w) else 0]
-    LR = [int(lr_pos.y) if (0 <= lr_pos.y < h) else h, int(lr_pos.x) if (0 <= lr_pos.x < w) else w]
-
-    product.closeIO()
-    return UL, UR, LR, LL
 
 
 def parse_date_from_name(name):
@@ -37,7 +18,7 @@ def parse_date_from_name(name):
     return "{}-{}-{}".format(sensing_year, sensing_month, sensing_day), creation_time
 
 
-def parse_S3_name(name):
+def parse_s3_name(name):
     if "S3A_" in name or "S3B_" in name:
         name_list = name.split("_")
         return name_list[7], name_list[8], name_list[9], name_list[0]
@@ -46,12 +27,12 @@ def parse_S3_name(name):
 
 
 def filter_for_timeliness(download_requests, product_names):
-    s3_products = [];
+    s3_products = []
     for i in range(len(product_names)):
         tmp = product_names[i]
         uuid = download_requests[i]["uuid"]
         if "S3A_" in tmp or "S3B_" in tmp:
-            sensing_start, sensing_end, product_creation, satellite = parse_S3_name(tmp)
+            sensing_start, sensing_end, product_creation, satellite = parse_s3_name(tmp)
             s3_products.append({"name": tmp, "uuid": uuid, "sensing_start": sensing_start, "sensing_end": sensing_end,
                                 "product_creation": product_creation, "satellite": satellite})
         else:
@@ -80,60 +61,85 @@ def filter_for_timeliness(download_requests, product_names):
 def minimal_subset_of_products(product_paths, wkt):
     # ensure that all products are overlapping
     if len(product_paths) not in [2, 4]:
-        print("Warning: Only sets of 2 or 4 products can be compared!")
+        print("Warning: Only sets of 2 or 4 products can be reduced!")
         return product_paths
     # ToDo: ensure that all products are overlapping
 
     # check which corners are covered by which products
+    lons, lats = get_lons_lats(wkt)
+    vertices = [{'lon': vertex[0], 'lat': vertex[1]} for vertex in zip(lons, lats)]
     product_corner_coverages = {}
     for product_path in product_paths:
-        product = ProductIO.readProduct(product_path)
-        h, w = product.getSceneRasterHeight(), product.getSceneRasterWidth()
-        lons, lats = get_lons_lats(wkt)
-        ul, ur, ll, lr = [min(lons), max(lats)], [max(lons), max(lats)], [min(lons), min(lats)], [max(lons), min(lats)]
-        ul_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(ul[1], ul[0]), None)
-        ur_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(ur[1], ur[0]), None)
-        ll_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(ll[1], ll[0]), None)
-        lr_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(lr[1], lr[0]), None)
-        product_corner_coverages[product_path] = {}
-        product_corner_coverages[product_path]['ul'] = (0 <= ul_pos.x < w) and (0 <= ul_pos.y < h)
-        product_corner_coverages[product_path]['ur'] = (0 <= ur_pos.x < w) and (0 <= ur_pos.y < h)
-        product_corner_coverages[product_path]['ll'] = (0 <= ll_pos.x < w) and (0 <= ll_pos.y < h)
-        product_corner_coverages[product_path]['lr'] = (0 <= lr_pos.x < w) and (0 <= lr_pos.y < h)
-        product.closeIO()
+        nc = read_product(product_path)
+        product_perimeter = get_perimeter_from_product(nc)
+        product_corner_coverages[product_path] = []
+        for vertex in vertices:
+            product_corner_coverages[product_path].append(contains(product_perimeter, vertex))
 
     # create superset of product_paths
     subsets = [[]]
     for product_path in product_paths:
         subsets = subsets + [subset + [product_path] for subset in subsets]
 
-    # for all subsets of product_paths (beginning from smallest) try if they cover all corners
+    # for all subsets of product_paths (beginning from smallest) try if they cover all vertices
     subsets.sort(key=len)
     for subset in subsets:
-        combined_coverage = [
-            any([product_corner_coverages[product_path]['ul'] for product_path in subset]),
-            any([product_corner_coverages[product_path]['ur'] for product_path in subset]),
-            any([product_corner_coverages[product_path]['ll'] for product_path in subset]),
-            any([product_corner_coverages[product_path]['lr'] for product_path in subset])
-        ]
-        if all(combined_coverage):
+        if all([any([product_corner_coverages[product_path][idx] for product_path in subset]) for idx in range(len(vertices))]):
             return subset, True
 
     print("Warning: Could not find a subset of the delivered products, which fully covers the whole perimeter.")
     return product_paths, False
 
 
-def get_coordinates(wkt):
-    return [{'x': lon, 'y': lat} for lon, lat in zip(get_lons_lats(wkt))]
-
-
 def get_lons_lats(wkt):
+    """ Return one array with all longitudes and one array with all latitudes of the perimeter corners. """
     if not wkt.startswith("POLYGON"):
         raise RuntimeError("Provided wkt must be a polygon!")
     corners = [float(c) for c in re.findall(r'[-]?\d+\.\d+', wkt)]
     lons = [float(corner) for corner in corners[::2]]
     lats = [float(corner) for corner in corners[1::2]]
     return lons, lats
+
+
+def contains(perimeter, location):
+    """ Checks if a given convex perimeter[{lon, lat}] conatins a given location{lon, lat} """
+    coverage = [False, False, False, False]
+    for vertex in perimeter:
+        if location['lon'] < vertex['lon'] and location['lat'] < vertex['lat']:
+            coverage[0] = True
+        if location['lon'] < vertex['lon'] and location['lat'] > vertex['lat']:
+            coverage[1] = True
+        if location['lon'] > vertex['lon'] and location['lat'] > vertex['lat']:
+            coverage[2] = True
+        if location['lon'] > vertex['lon'] and location['lat'] < vertex['lat']:
+            coverage[3] = True
+        if all(coverage):
+            return True
+    return False
+
+
+def get_perimeter_from_product(nc):
+    """ Returns the perimeter[{lon, lat}] of a sentinel image. """
+    lats = nc.variables['latitude'][:]
+    lons = nc.variables['longitude'][:]
+    perimeter = []
+    for lon, lat in zip(lons[0], lats[0]):
+        perimeter.append({'lon': lon, 'lat': lat})
+    for lon, lat in zip(lons[1:-1, -1], lats[1:-1, -1]):
+        perimeter.append({'lon': lon, 'lat': lat})
+    for lon, lat in zip(lons[-1], lats[-1]):
+        perimeter.append({'lon': lon, 'lat': lat})
+    for lon, lat in zip(lons[1:-1, 0], lats[1:-1, 0]):
+        perimeter.append({'lon': lon, 'lat': lat})
+    return perimeter
+
+
+def read_product(product_path):
+    if os.path.isdir(product_path):
+        return Dataset(product_path + "\\geo_coordinates.nc")
+    elif os.path.isfile(product_path):
+        return Dataset(product_path)
+    raise RuntimeError("The provided path [{}] does not exist!".format(product_path))
 
 
 def get_reproject_params_from_wkt(wkt, resolution):
@@ -147,3 +153,15 @@ def get_reproject_params_from_wkt(wkt, resolution):
 
     return {'easting': str(min(lons)), 'northing': str(max(lats)), 'pixelSizeX': str(x_pixsize),
             'pixelSizeY': str(y_pixsize), 'width': str(x_pix), 'height': str(y_pix)}
+
+
+def get_band_names(product_path):
+    if os.path.isdir(product_path):
+        band_names = []
+        for nc_file in os.listdir(product_path):
+            if nc_file.endswith(".nc"):
+                band_names.extend(list(Dataset(product_path + "\\" + nc_file).variables.keys()))
+        return set(band_names)
+    elif os.path.isfile(product_path):
+        return set(Dataset(product_path).variables.keys())
+    raise RuntimeError("The provided path [{}] does not exist!".format(product_path))
