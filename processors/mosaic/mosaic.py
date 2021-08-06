@@ -15,7 +15,7 @@ from product_fun import get_lons_lats, get_reproject_params_from_wkt
 
 
 # The name of the xml file for gpt
-GPT_XML_FILENAME = "mosaic_{}.xml"
+GPT_XML_FILENAME = "mosaic_{}_{}.xml"
 
 
 def mosaic(env, params, product_files):
@@ -23,11 +23,11 @@ def mosaic(env, params, product_files):
     product_filename = os.path.basename(product_files[0])
     date = get_sensing_date_from_product_name(product_filename)
     name_arr = list(filter(None, re.split('[0-9]{8}', product_filename)[0].split("_")))
-    name_arr.append(date + "T")
+    name_arr.append(date)
     if "_NT_" in product_filename:
-        name_arr.append("NT")
+        name_arr.append("_NT")
     elif "_NR_" in product_filename:
-        name_arr.append("NR")
+        name_arr.append("_NR")
     output_filename = "Mosaic_{}.nc".format("_".join(name_arr))
     output_file = os.path.join(os.path.dirname(product_files[0]), output_filename)
 
@@ -41,9 +41,9 @@ def mosaic(env, params, product_files):
             return output_file
 
     # rewrite xml file for gpt
-    gpt_xml_file = os.path.join(os.path.dirname(output_file), "_reproducibility", GPT_XML_FILENAME.format(date))
+    gpt_xml_file = os.path.join(os.path.dirname(output_file), "_reproducibility", GPT_XML_FILENAME.format(params['General']['sensor'], date))
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, product_files, params['General']['wkt'], params['General']['resolution'])
+        rewrite_xml(gpt_xml_file, product_files, params['General']['sensor'], params['General']['wkt'], params['General']['resolution'])
 
     # call gpt with args
     args = [env['General']['gpt_path'], gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e"]
@@ -60,8 +60,8 @@ def mosaic(env, params, product_files):
     return output_file
 
 
-def rewrite_xml(gpt_xml_file, product_files, wkt, resolution):
-    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format("")), "r") as f:
+def rewrite_xml(gpt_xml_file, product_files, sensor, wkt, resolution):
+    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor, "")), "r") as f:
         xml = f.read()
 
     sources_str = "\n\t\t\t".join(["<source{}>{}</source{}>".format(i, "${sourceFile" + str(i) + "}", i) for i in range(len(product_files))])

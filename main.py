@@ -198,7 +198,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
 
     with semaphores['process']:
         # only process products, which are really necessary
-        if len(l1product_paths) in [2, 4]:
+        if len(l1product_paths) in [2, 4] and params['General']['sensor'] == "OLCI":
             n_group_old = len(l1product_paths)
             l1product_paths, covered = minimal_subset_of_products(l1product_paths, params['General']['wkt'])
             n_group_new = len(l1product_paths)
