@@ -22,7 +22,7 @@ def authenticate(env):
     # Create a password manager to deal with the 401 reponse that is returned from
     # Earthdata Login
     password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-    password_manager.add_password(None, "https://urs.earthdata.nasa.gov", env['username'], env['password'])
+    password_manager.add_password(None, "https://urs.earthdata.nasa.gov", env['EARTHDATA']['username'], env['EARTHDATA']['password'])
 
     # Create a cookie jar for storing cookies. This is used to store and return
     # the session cookie given to use by the data server (otherwise it will just

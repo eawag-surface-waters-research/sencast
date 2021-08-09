@@ -13,7 +13,7 @@ import time
 import traceback
 import sys
 
-from requests.auth import HTTPBasicAuth
+from utils import earthdata
 from threading import Semaphore, Thread
 
 from utils.auxil import init_hindcast
@@ -131,6 +131,9 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     # print information about grouped products
     print("The products have been grouped into {} group(s).".format(len(l1product_path_groups)))
     print("Each group is handled by an individual thread.")
+
+    # authenticate to earthdata api for anchillary data download anchillary data (used by some processors)
+    earthdata.authenticate(env)
 
     # do hindcast for every product group
     hindcast_threads = []
