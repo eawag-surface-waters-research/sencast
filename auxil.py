@@ -142,30 +142,6 @@ def get_sensing_datetime_from_product_name(product_name):
     return re.findall(r"\d{8}T\d{6}", product_name)[0]
 
 
-def get_satellite_name_from_product_name(product_name):
-    if product_name.startswith("S3A"):
-        return "S3A"
-    elif product_name.startswith("S3B"):
-        return "S3B"
-    elif product_name.startswith("S2A"):
-        return "S2A"
-    elif product_name.startswith("S2B"):
-        return "S2B"
-    else:
-        return "Unknown"
-
-
-def get_satellite_name_from_name(product_name):
-    satellite_names = ["S3A", "S3B", "S2A", "S2B"]
-    for satellite_name in satellite_names:
-        if satellite_name in product_name:
-            return satellite_name
-    # ToDo: add satellite name to mosaicking
-    if 'Mosaic_' in product_name:
-        return 'S2A'
-    return "NA"
-
-
 def get_l1product_path(env, product_name):
     if product_name.startswith("S3A") or product_name.startswith("S3B"):
         satellite = "Sentinel-3"

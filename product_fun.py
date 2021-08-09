@@ -26,6 +26,30 @@ def parse_s3_name(name):
         return False, False, False, False
 
 
+def get_satellite_name_from_product_name(product_name):
+    if product_name.startswith("S3A"):
+        return "S3A"
+    elif product_name.startswith("S3B"):
+        return "S3B"
+    elif product_name.startswith("S2A"):
+        return "S2A"
+    elif product_name.startswith("S2B"):
+        return "S2B"
+    else:
+        return "Unknown"
+
+
+def get_satellite_name_from_name(product_name):
+    satellite_names = ["S3A", "S3B", "S2A", "S2B"]
+    for satellite_name in satellite_names:
+        if satellite_name in product_name:
+            return satellite_name
+    # ToDo: add satellite name to mosaicking
+    if 'Mosaic_' in product_name:
+        return 'S2A'
+    return "NA"
+
+
 def filter_for_timeliness(download_requests, product_names):
     s3_products = []
     for i in range(len(product_names)):
@@ -58,39 +82,6 @@ def filter_for_timeliness(download_requests, product_names):
     return filtered_download_requests, filtered_product_names
 
 
-def minimal_subset_of_products(product_paths, wkt):
-    # ensure that all products are overlapping
-    if len(product_paths) not in [2, 4]:
-        print("Warning: Only sets of 2 or 4 products can be reduced!")
-        return product_paths
-    # ToDo: ensure that all products are overlapping
-
-    # check which corners are covered by which products
-    lons, lats = get_lons_lats(wkt)
-    vertices = [{'lon': vertex[0], 'lat': vertex[1]} for vertex in zip(lons, lats)]
-    product_corner_coverages = {}
-    for product_path in product_paths:
-        nc = read_product(product_path)
-        product_perimeter = get_perimeter_from_product(nc)
-        product_corner_coverages[product_path] = []
-        for vertex in vertices:
-            product_corner_coverages[product_path].append(contains(product_perimeter, vertex))
-
-    # create superset of product_paths
-    subsets = [[]]
-    for product_path in product_paths:
-        subsets = subsets + [subset + [product_path] for subset in subsets]
-
-    # for all subsets of product_paths (beginning from smallest) try if they cover all vertices
-    subsets.sort(key=len)
-    for subset in subsets:
-        if all([any([product_corner_coverages[product_path][idx] for product_path in subset]) for idx in range(len(vertices))]):
-            return subset, True
-
-    print("Warning: Could not find a subset of the delivered products, which fully covers the whole perimeter.")
-    return product_paths, False
-
-
 def get_lons_lats(wkt):
     """ Return one array with all longitudes and one array with all latitudes of the perimeter corners. """
     if not wkt.startswith("POLYGON"):
@@ -99,39 +90,6 @@ def get_lons_lats(wkt):
     lons = [float(corner) for corner in corners[::2]]
     lats = [float(corner) for corner in corners[1::2]]
     return lons, lats
-
-
-def contains(perimeter, location):
-    """ Checks if a given convex perimeter[{lon, lat}] conatins a given location{lon, lat} """
-    coverage = [False, False, False, False]
-    for vertex in perimeter:
-        if location['lon'] < vertex['lon'] and location['lat'] < vertex['lat']:
-            coverage[0] = True
-        if location['lon'] < vertex['lon'] and location['lat'] > vertex['lat']:
-            coverage[1] = True
-        if location['lon'] > vertex['lon'] and location['lat'] > vertex['lat']:
-            coverage[2] = True
-        if location['lon'] > vertex['lon'] and location['lat'] < vertex['lat']:
-            coverage[3] = True
-        if all(coverage):
-            return True
-    return False
-
-
-def get_perimeter_from_product(nc):
-    """ Returns the perimeter[{lon, lat}] of a sentinel image. """
-    lats = nc.variables['latitude'][:]
-    lons = nc.variables['longitude'][:]
-    perimeter = []
-    for lon, lat in zip(lons[0], lats[0]):
-        perimeter.append({'lon': lon, 'lat': lat})
-    for lon, lat in zip(lons[1:-1, -1], lats[1:-1, -1]):
-        perimeter.append({'lon': lon, 'lat': lat})
-    for lon, lat in zip(lons[-1], lats[-1]):
-        perimeter.append({'lon': lon, 'lat': lat})
-    for lon, lat in zip(lons[1:-1, 0], lats[1:-1, 0]):
-        perimeter.append({'lon': lon, 'lat': lat})
-    return perimeter
 
 
 def read_product(product_path):

@@ -7,7 +7,7 @@ The core functions of Sencast
     Download API's, processors, and adapters are imported dynamically to make Sencast also work on systems,
     where some of them might not be available.
 """
-
+import importlib
 import os
 import time
 import traceback
@@ -18,7 +18,7 @@ from threading import Semaphore, Thread
 
 from auxil import get_l1product_path, get_sensing_date_from_product_name, init_hindcast
 from externalapis.earthdata_api import authenticate
-from product_fun import minimal_subset_of_products, filter_for_timeliness
+from product_fun import filter_for_timeliness, get_satellite_name_from_product_name
 
 
 def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
@@ -125,8 +125,8 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     download_groups, l1product_path_groups = {}, {}
     for download_request, l1product_path in zip(download_requests, l1product_paths):
         date = get_sensing_date_from_product_name(os.path.basename(l1product_path))
-        # satellite = get_satellite_name_from_product_name(os.path.basename(l1product_path))
-        group = date
+        satellite = get_satellite_name_from_product_name(os.path.basename(l1product_path))
+        group = satellite + "_" + date
         if group not in download_groups.keys():
             download_groups[group], l1product_path_groups[group] = [], []
         download_groups[group].append(download_request)
@@ -197,33 +197,10 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
             raise RuntimeError("Download of product was not successfull: {}".format(l1product_path))
 
     with semaphores['process']:
-        # only process products, which are really necessary
-        if len(l1product_paths) in [2, 4] and params['General']['sensor'] == "OLCI":
-            n_group_old = len(l1product_paths)
-            l1product_paths, covered = minimal_subset_of_products(l1product_paths, params['General']['wkt'])
-            n_group_new = len(l1product_paths)
-            if n_group_old != n_group_new:
-                print("Group has been reduced from {} to {} necessary product(s)".format(n_group_old, n_group_new))
-
         l2product_files = {}
         for processor in list(filter(None, params['General']['processors'].split(","))):
             # import processor
-            if processor == "IDEPIX":
-                from processors.idepix.idepix import process
-            elif processor == "C2RCC":
-                from processors.c2rcc.c2rcc import process
-            elif processor == "POLYMER":
-                from processors.polymer.polymer import process
-            elif processor == "L_FLUO":
-                from processors.fluo.l_fluo import process
-            elif processor == "R_FLUO":
-                from processors.fluo.r_fluo import process
-            elif processor == "MPH":
-                from processors.mph.mph import process
-            elif processor == "SEN2COR":
-                from processors.sen2cor.sen2cor import process
-            else:
-                raise RuntimeError("Unknown processor: {}".format(processor))
+            process = getattr(importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
 
             # apply processor to all products
             for l1product_path in l1product_paths:
@@ -259,28 +236,10 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
     # apply adapters
     with semaphores['adapt']:
         for adapter in list(filter(None, params['General']['adapters'].split(","))):
-            if adapter == "QLRGB":
-                from adapters.qlrgb.qlrgb import apply
-            elif adapter == "QLSINGLEBAND":
-                from adapters.qlsingleband.qlsingleband import apply
-            elif adapter == "PRIMARYPRODUCTION":
-                from adapters.primaryproduction.primaryproduction import apply
-            elif adapter == "DATALAKES":
-                from adapters.datalakes.datalakes import apply
-            elif adapter == "MERGE":
-                from adapters.merge.merge import apply
-            elif adapter == "SECCHIDEPTH":
-                from adapters.secchidepth.secchidepth import apply
-            elif adapter == "FORELULE":
-                from adapters.forelule.forelule import apply
-            elif adapter == "MDN":
-                from adapters.mdn.mdn import apply
-            else:
-                raise RuntimeError("Unknown adapter: {}".format(adapter))
-
             try:
+                apply = getattr(importlib.import_module("adapters.{}.{}".format(adapter.lower(), adapter.lower())), "apply")
                 apply(env, params, l2product_files, group)
             except RuntimeError:
                 print(sys.exc_info()[0])
-                print("An error occured while applying {} to product: {}".format(adapter, l1product_path))
+                print("An error occured while applying {} to product group: {}".format(adapter, group))
                 traceback.print_exc()
