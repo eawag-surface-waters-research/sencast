@@ -9,7 +9,7 @@ sys.path.append("/prj/sentinel-hindcast")
 
 from utils.auxil import load_params
 from main import hindcast
-from externalapis.creodias_api import get_updated_files
+from remote_dias.creodias.creodias import get_updated_files
 from utils.auxil import load_environment, load_wkt
 from utils.product_fun import parse_date_from_name
 

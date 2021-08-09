@@ -17,7 +17,6 @@ from requests.auth import HTTPBasicAuth
 from threading import Semaphore, Thread
 
 from utils.auxil import init_hindcast
-from externalapis.earthdata_api import authenticate
 from utils.product_fun import filter_for_timeliness, get_satellite_name_from_product_name, \
     get_sensing_date_from_product_name, get_l1product_path
 
@@ -74,18 +73,14 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
             | **Default: 1**
             | Maximum number of adapters to run in parallel
         """
-    # decide which API to use
-    if env['General']['remote_dias_api'] == "COAH":
-        from externalapis.coah_api import get_download_requests, do_download
-        auth = HTTPBasicAuth(env['COAH']['username'], env['COAH']['password'])
-    elif env['General']['remote_dias_api'] == "HDA":
-        from externalapis.hda_api import get_download_requests, do_download
-        auth = HTTPBasicAuth(env['HDA']['username'], env['HDA']['password'])
-    elif env['General']['remote_dias_api'] == "CREODIAS":
-        from externalapis.creodias_api import get_download_requests, do_download
-        auth = [env['CREODIAS']['username'], env['CREODIAS']['password']]
-    else:
-        raise RuntimeError("Unknown DIAS API: {} (possible options are 'HDA', 'CREODIAS' or 'COAH').".format(env['General']['API']))
+    # dynamically import the remote dias api to use
+    api = env['General']['remote_dias_api']
+    authenticate = getattr(importlib.import_module("remote_dias.{}.{}".format(api.lower(), api.lower())), "authenticate")
+    get_download_requests = getattr(importlib.import_module("remote_dias.{}.{}".format(api.lower(), api.lower())), "get_download_requests")
+    do_download = getattr(importlib.import_module("remote_dias.{}.{}".format(api.lower(), api.lower())), "do_download")
+
+    # create authentication to remote dias api
+    auth = authenticate(env[api]['username'], env[api]['password'], env[api]['apikey'])
 
     # find products which match the criterias from params
     start, end = params['General']['start'], params['General']['end']
@@ -136,9 +131,6 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     # print information about grouped products
     print("The products have been grouped into {} group(s).".format(len(l1product_path_groups)))
     print("Each group is handled by an individual thread.")
-
-    # authenticate for earth data api
-    authenticate(env['EARTHDATA']['username'], env['EARTHDATA']['password'])
 
     # do hindcast for every product group
     hindcast_threads = []

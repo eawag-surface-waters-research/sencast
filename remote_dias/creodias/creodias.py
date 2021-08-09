@@ -9,6 +9,8 @@ Documentation for CREODIAS API can be found `here. <https://creodias.eu/eo-data-
 import os
 import requests
 from shutil import copytree, copyfile
+
+from requests.auth import HTTPBasicAuth
 from requests.status_codes import codes
 from tqdm import tqdm
 from zipfile import ZipFile
@@ -25,6 +27,10 @@ download_address = "https://zipper.creodias.eu/download/{}?token={}"
 
 # token address
 token_address = 'https://auth.creodias.eu/auth/realms/DIAS/protocol/openid-connect/token'
+
+
+def authenticate(username, password, _):
+    return [username, password]
 
 
 def get_download_requests(auth, startDate, completionDate, sensor, resolution, wkt):

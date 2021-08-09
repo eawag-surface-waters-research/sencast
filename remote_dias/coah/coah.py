@@ -8,6 +8,7 @@ Documentation for COAH API can be found `here. <https://scihub.copernicus.eu/twi
 
 import os
 import requests
+from requests.auth import HTTPBasicAuth
 
 from requests.status_codes import codes
 from xml.etree import ElementTree
@@ -22,6 +23,10 @@ api_endpoint = "https://scihub.copernicus.eu/dhus"
 search_address = api_endpoint + "/search?q={}&start={}&rows={}"
 # download address
 download_address = api_endpoint + "/odata/v1/Products('{}')/$value"
+
+
+def authenticate(username, password, _):
+    return HTTPBasicAuth(username, password)
 
 
 def get_download_requests(auth, start, end, sensor, resolution, wkt):

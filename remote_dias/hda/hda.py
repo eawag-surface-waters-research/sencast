@@ -11,6 +11,7 @@ import os
 import requests
 import time
 
+from requests.auth import HTTPBasicAuth
 from requests.status_codes import codes
 from requests.utils import requote_uri
 from zipfile import ZipFile
@@ -40,6 +41,10 @@ dataorder_address = api_endpoint + "/databroker/dataorder"
 dataorder_status_address = api_endpoint + "/databroker/dataorder/status/{}"
 # Data order download address
 dataorder_download_address = api_endpoint + "/databroker/dataorder/download/{}"
+
+
+def authenticate(username, password, _):
+    return HTTPBasicAuth(username, password)
 
 
 def get_download_requests(auth, start, end, sensor, resolution, wkt):

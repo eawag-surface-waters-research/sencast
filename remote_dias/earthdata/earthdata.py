@@ -15,7 +15,7 @@ import urllib.request
 api_endpoint = "https://oceandata.sci.gsfc.nasa.gov/cgi/getfile/"
 
 
-def authenticate(username, password):
+def authenticate(username, password, _):
     # See discussion https://github.com/SciTools/cartopy/issues/789#issuecomment-245789751
     # And the solution on https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+Python
 
