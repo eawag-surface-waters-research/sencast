@@ -13,7 +13,7 @@ from netCDF4 import Dataset
 import numpy as np
 import pandas as pd
 
-from auxil import get_sensing_datetime_from_product_name, get_satellite_name_from_name
+from utils.auxil import get_sensing_datetime_from_product_name, get_satellite_name_from_name
 
 
 # the url of the datalakes api

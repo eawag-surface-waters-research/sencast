@@ -26,7 +26,7 @@ from cartopy.io import PostprocessedRasterSource, LocatedImage
 from haversine import haversine
 from snappy import GPF, HashMap, jpy, Mask, PixelPos, ProductUtils, ProductIO
 
-from product_fun import get_lons_lats
+from utils.product_fun import get_lons_lats
 
 plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')

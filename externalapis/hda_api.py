@@ -15,7 +15,7 @@ from requests.status_codes import codes
 from requests.utils import requote_uri
 from zipfile import ZipFile
 
-from product_fun import get_lons_lats
+from utils.product_fun import get_lons_lats
 
 # Documentation for HDA API can be found here:
 # https://wekeo-broker.apps.mercator.dpi.wekeo.eu/databroker/ui/

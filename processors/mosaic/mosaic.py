@@ -10,8 +10,8 @@ import os
 import re
 import subprocess
 
-from auxil import get_sensing_date_from_product_name
-from product_fun import get_lons_lats, get_reproject_params_from_wkt
+from utils.auxil import get_sensing_date_from_product_name
+from utils.product_fun import get_lons_lats, get_reproject_params_from_wkt
 
 
 # The name of the xml file for gpt

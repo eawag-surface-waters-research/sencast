@@ -10,7 +10,7 @@ import os
 import numpy as np
 from colour import dominant_wavelength
 from snappy import ProductIO, ProductData, Product, ProductUtils
-from auxil import get_satellite_name_from_name
+from utils.auxil import get_satellite_name_from_name
 
 
 # key of the params section for this adapter

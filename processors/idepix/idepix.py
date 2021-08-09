@@ -12,7 +12,7 @@ https://www.brockmann-consult.de/portfolio/idepix/
 import os
 import subprocess
 
-from product_fun import get_reproject_params_from_wkt
+from utils.product_fun import get_reproject_params_from_wkt
 
 # Key of the params section for this processor
 PARAMS_SECTION = "IDEPIX"

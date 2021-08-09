@@ -56,7 +56,7 @@ def init_hindcast(env_file, params_file):
     return env, params, out_path
 
 
-def load_environment(env_file=None, env_path=os.path.join(project_path, "environments")):
+def load_environment(env_file=None, env_path=os.path.join(project_path, "../environments")):
     env = configparser.ConfigParser()
 
     # Try to use provided env file
@@ -87,7 +87,7 @@ def load_environment(env_file=None, env_path=os.path.join(project_path, "environ
                        host_env_file))
 
 
-def load_params(params_file, params_path=os.path.join(project_path, "parameters")):
+def load_params(params_file, params_path=os.path.join(project_path, "../parameters")):
     if not os.path.isabs(params_file) and params_path:
         params_file = os.path.join(params_path, params_file)
     if not os.path.isfile(params_file):
@@ -97,7 +97,7 @@ def load_params(params_file, params_path=os.path.join(project_path, "parameters"
     return params, params_file
 
 
-def load_wkt(wkt_file, wkt_path=os.path.join(project_path, "wkt")):
+def load_wkt(wkt_file, wkt_path=os.path.join(project_path, "../wkt")):
     if not os.path.isabs(wkt_file) and wkt_path:
         wkt_file = os.path.join(wkt_path, wkt_file)
     if not os.path.isfile(wkt_file):

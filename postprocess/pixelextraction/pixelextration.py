@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from auxil import load_environment
+from utils.auxil import load_environment
 import subprocess
 
 # The name of the xml file for gpt

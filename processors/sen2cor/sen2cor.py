@@ -15,7 +15,7 @@ https://step.esa.int/main/third-party-plugins-2/sen2cor/
 import os
 import subprocess
 
-from product_fun import get_reproject_params_from_wkt
+from utils.product_fun import get_reproject_params_from_wkt
 
 # Key of the params section for this processor
 PARAMS_SECTION = "SEN2COR"

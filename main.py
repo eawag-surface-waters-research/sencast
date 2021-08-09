@@ -16,9 +16,9 @@ import sys
 from requests.auth import HTTPBasicAuth
 from threading import Semaphore, Thread
 
-from auxil import get_l1product_path, get_sensing_date_from_product_name, init_hindcast
+from utils.auxil import get_l1product_path, get_sensing_date_from_product_name, init_hindcast
 from externalapis.earthdata_api import authenticate
-from product_fun import filter_for_timeliness, get_satellite_name_from_product_name
+from utils.product_fun import filter_for_timeliness, get_satellite_name_from_product_name
 
 
 def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):

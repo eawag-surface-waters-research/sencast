@@ -15,7 +15,7 @@ from haversine import haversine
 from PIL import Image
 from snappy import ProductIO, PixelPos
 
-from product_fun import get_lons_lats
+from utils.product_fun import get_lons_lats
 
 # key of the params section for this adapter
 PARAMS_SECTION = "QLRGB"

@@ -25,10 +25,10 @@ from polymer.level1_olci import Level1_OLCI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
-from product_fun import get_reproject_params_from_wkt, get_lons_lats
+from utils.product_fun import get_reproject_params_from_wkt, get_lons_lats
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
-from auxil import load_properties, get_sensing_datetime_from_product_name
+from utils.auxil import get_sensing_datetime_from_product_name
 
 # Key of the params section for this processor
 PARAMS_SECTION = "POLYMER"

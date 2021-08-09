@@ -4,7 +4,7 @@
 import os
 import subprocess
 
-from auxil import get_sensing_datetime_from_product_name
+from utils.auxil import get_sensing_datetime_from_product_name
 
 
 # Key of the params section for this processor

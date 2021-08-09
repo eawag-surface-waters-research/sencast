@@ -3,15 +3,15 @@
 
 import sys
 
-from datetime import date, timedelta, datetime
+from datetime import date, datetime
 
 sys.path.append("/prj/sentinel-hindcast")
 
-from auxil import load_params
+from utils.auxil import load_params
 from main import hindcast
 from externalapis.creodias_api import get_updated_files
-from auxil import load_environment, load_wkt
-from product_fun import parse_date_from_name
+from utils.auxil import load_environment, load_wkt
+from utils.product_fun import parse_date_from_name
 
 # Process New Data
 params, params_file = load_params("/prj/sentinel-hindcast/parameters/datalakes_sui_S3.ini")
