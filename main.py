@@ -179,7 +179,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
         group
             Thread group name
         server
-            only needed for COAH API
+            only needed for CreoDIAS API
         """
     # download the products, which are not yet available locally
     for download_request, l1product_path in zip(download_requests, l1product_paths):
