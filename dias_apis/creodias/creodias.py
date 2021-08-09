@@ -29,8 +29,8 @@ download_address = "https://zipper.creodias.eu/download/{}?token={}"
 token_address = 'https://auth.creodias.eu/auth/realms/DIAS/protocol/openid-connect/token'
 
 
-def authenticate(username, password, _):
-    return [username, password]
+def authenticate(env):
+    return [env['username'], env['password']]
 
 
 def get_download_requests(auth, startDate, completionDate, sensor, resolution, wkt):

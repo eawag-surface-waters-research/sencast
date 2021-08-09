@@ -25,8 +25,8 @@ search_address = api_endpoint + "/search?q={}&start={}&rows={}"
 download_address = api_endpoint + "/odata/v1/Products('{}')/$value"
 
 
-def authenticate(username, password, _):
-    return HTTPBasicAuth(username, password)
+def authenticate(env):
+    return HTTPBasicAuth(env['username'], env['password'])
 
 
 def get_download_requests(auth, start, end, sensor, resolution, wkt):

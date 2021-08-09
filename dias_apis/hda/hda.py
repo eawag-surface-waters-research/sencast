@@ -43,8 +43,8 @@ dataorder_status_address = api_endpoint + "/databroker/dataorder/status/{}"
 dataorder_download_address = api_endpoint + "/databroker/dataorder/download/{}"
 
 
-def authenticate(username, password, _):
-    return HTTPBasicAuth(username, password)
+def authenticate(env):
+    return HTTPBasicAuth(env['username'], env['password'])
 
 
 def get_download_requests(auth, start, end, sensor, resolution, wkt):

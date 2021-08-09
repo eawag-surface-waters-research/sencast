@@ -15,14 +15,14 @@ import urllib.request
 api_endpoint = "https://oceandata.sci.gsfc.nasa.gov/cgi/getfile/"
 
 
-def authenticate(username, password, _):
+def authenticate(env):
     # See discussion https://github.com/SciTools/cartopy/issues/789#issuecomment-245789751
     # And the solution on https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+Python
 
     # Create a password manager to deal with the 401 reponse that is returned from
     # Earthdata Login
     password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-    password_manager.add_password(None, "https://urs.earthdata.nasa.gov", username, password)
+    password_manager.add_password(None, "https://urs.earthdata.nasa.gov", env['username'], env['password'])
 
     # Create a cookie jar for storing cookies. This is used to store and return
     # the session cookie given to use by the data server (otherwise it will just

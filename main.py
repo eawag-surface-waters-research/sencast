@@ -75,12 +75,12 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
         """
     # dynamically import the remote dias api to use
     api = env['General']['remote_dias_api']
-    authenticate = getattr(importlib.import_module("remote_dias.{}.{}".format(api.lower(), api.lower())), "authenticate")
-    get_download_requests = getattr(importlib.import_module("remote_dias.{}.{}".format(api.lower(), api.lower())), "get_download_requests")
-    do_download = getattr(importlib.import_module("remote_dias.{}.{}".format(api.lower(), api.lower())), "do_download")
+    authenticate = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "authenticate")
+    get_download_requests = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "get_download_requests")
+    do_download = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "do_download")
 
     # create authentication to remote dias api
-    auth = authenticate(env[api]['username'], env[api]['password'], env[api]['apikey'])
+    auth = authenticate(env[api])
 
     # find products which match the criterias from params
     start, end = params['General']['start'], params['General']['end']
