@@ -17,8 +17,8 @@ import subprocess
 from datetime import datetime
 from polymer.ancillary_era5 import Ancillary_ERA5
 
-from utils.auxil import load_properties, get_sensing_datetime_from_product_name
-from utils.product_fun import get_lons_lats
+from utils.auxil import load_properties
+from utils.product_fun import get_lons_lats, get_sensing_datetime_from_product_name
 
 # Key of the params section for this processor
 PARAMS_SECTION = "C2RCC"

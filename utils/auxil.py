@@ -4,11 +4,7 @@
 import configparser
 import getpass
 import os
-import re
 import socket
-
-from datetime import datetime
-
 
 project_path = os.path.dirname(__file__)
 
@@ -132,40 +128,3 @@ def load_properties(properties_file, separator_char='=', comment_char='#'):
                 value = separator_char.join(key_value[1:]).strip().strip('"')
                 properties_dict[key] = value
     return properties_dict
-
-
-def get_sensing_date_from_product_name(product_name):
-    return re.findall(r"\d{8}T\d{6}", product_name)[0][0:8]
-
-
-def get_sensing_datetime_from_product_name(product_name):
-    return re.findall(r"\d{8}T\d{6}", product_name)[0]
-
-
-def get_l1product_path(env, product_name):
-    if product_name.startswith("S3A") or product_name.startswith("S3B"):
-        satellite = "Sentinel-3"
-        sensor = "OLCI"
-        dataset = product_name[4:12]
-        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%dT%H%M%S")
-    elif product_name.startswith("S2A") or product_name.startswith("S2B"):
-        satellite = "Sentinel-2"
-        sensor = "MSI"
-        dataset = product_name[7:10]
-        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%dT%H%M%S")
-    else:
-        raise RuntimeError("Unable to retrieve satellite from product name: {}".format(product_name))
-
-    kwargs = {
-        'product_name': product_name,
-        'satellite': satellite,
-        'sensor': sensor,
-        'dataset': dataset,
-        'year': date.strftime(r"%Y"),
-        'month': date.strftime(r"%m"),
-        'day': date.strftime(r"%d"),
-        'hour': date.strftime(r"%H"),
-        'minute': date.strftime(r"%M"),
-        'second': date.strftime(r"%S"),
-    }
-    return env['DIAS']['l1_path'].format(**kwargs)

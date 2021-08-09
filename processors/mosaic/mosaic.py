@@ -10,9 +10,7 @@ import os
 import re
 import subprocess
 
-from utils.auxil import get_sensing_date_from_product_name
-from utils.product_fun import get_lons_lats, get_reproject_params_from_wkt
-
+from utils.product_fun import get_lons_lats, get_sensing_date_from_product_name, get_reproject_params_from_wkt
 
 # The name of the xml file for gpt
 GPT_XML_FILENAME = "mosaic_{}_{}.xml"

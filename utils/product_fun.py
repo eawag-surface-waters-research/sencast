@@ -92,14 +92,6 @@ def get_lons_lats(wkt):
     return lons, lats
 
 
-def read_product(product_path):
-    if os.path.isdir(product_path):
-        return Dataset(product_path + "\\geo_coordinates.nc")
-    elif os.path.isfile(product_path):
-        return Dataset(product_path)
-    raise RuntimeError("The provided path [{}] does not exist!".format(product_path))
-
-
 def get_reproject_params_from_wkt(wkt, resolution):
     lons, lats = get_lons_lats(wkt)
     x_dist = haversine((min(lats), min(lons)), (min(lats), max(lons)))
@@ -113,13 +105,38 @@ def get_reproject_params_from_wkt(wkt, resolution):
             'pixelSizeY': str(y_pixsize), 'width': str(x_pix), 'height': str(y_pix)}
 
 
-def get_band_names(product_path):
-    if os.path.isdir(product_path):
-        band_names = []
-        for nc_file in os.listdir(product_path):
-            if nc_file.endswith(".nc"):
-                band_names.extend(list(Dataset(product_path + "\\" + nc_file).variables.keys()))
-        return set(band_names)
-    elif os.path.isfile(product_path):
-        return set(Dataset(product_path).variables.keys())
-    raise RuntimeError("The provided path [{}] does not exist!".format(product_path))
+def get_sensing_date_from_product_name(product_name):
+    return re.findall(r"\d{8}T\d{6}", product_name)[0][0:8]
+
+
+def get_sensing_datetime_from_product_name(product_name):
+    return re.findall(r"\d{8}T\d{6}", product_name)[0]
+
+
+def get_l1product_path(env, product_name):
+    if product_name.startswith("S3A") or product_name.startswith("S3B"):
+        satellite = "Sentinel-3"
+        sensor = "OLCI"
+        dataset = product_name[4:12]
+        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%dT%H%M%S")
+    elif product_name.startswith("S2A") or product_name.startswith("S2B"):
+        satellite = "Sentinel-2"
+        sensor = "MSI"
+        dataset = product_name[7:10]
+        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%dT%H%M%S")
+    else:
+        raise RuntimeError("Unable to retrieve satellite from product name: {}".format(product_name))
+
+    kwargs = {
+        'product_name': product_name,
+        'satellite': satellite,
+        'sensor': sensor,
+        'dataset': dataset,
+        'year': date.strftime(r"%Y"),
+        'month': date.strftime(r"%m"),
+        'day': date.strftime(r"%d"),
+        'hour': date.strftime(r"%H"),
+        'minute': date.strftime(r"%M"),
+        'second': date.strftime(r"%S"),
+    }
+    return env['DIAS']['l1_path'].format(**kwargs)
