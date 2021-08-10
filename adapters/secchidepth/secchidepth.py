@@ -10,7 +10,7 @@ import os
 import re
 import numpy as np
 from snappy import ProductIO, ProductData, Product, ProductUtils
-from utils.auxil import get_satellite_name_from_name
+from utils.product_fun import get_satellite_name_from_name
 
 
 # key of the params section for this adapter

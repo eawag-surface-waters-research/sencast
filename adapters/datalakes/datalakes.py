@@ -6,15 +6,14 @@ in the Datalakes data portal https://www.datalakes-eawag.ch/.
 """
 
 import os
+import numpy as np
+import pandas as pd
 import requests
 
 from json import dump
 from netCDF4 import Dataset
-import numpy as np
-import pandas as pd
+from utils.product_fun import get_satellite_name_from_name, get_sensing_datetime_from_product_name
 
-from utils.auxil import get_satellite_name_from_name
-from utils.product_fun import get_sensing_datetime_from_product_name
 
 # the url of the datalakes api
 API_URL = "https://api.datalakes-eawag.ch"
@@ -26,7 +25,6 @@ PARAMS_SECTION = "DATALAKES"
 JSON_FILENAME = "{}_{}_{}_{}.json"
 # the file name pattern for json output files
 NC_FILENAME = "{}_{}_{}.nc"
-
 
 
 def apply(env, params, l2product_files, date):

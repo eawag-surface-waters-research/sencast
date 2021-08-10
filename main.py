@@ -194,11 +194,10 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
 
     with semaphores['process']:
         l2product_files = {}
+        # apply processor to all products
         for processor in list(filter(None, params['General']['processors'].split(","))):
             # import processor
             process = getattr(importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
-
-            # apply processor to all products
             for l1product_path in l1product_paths:
                 if l1product_path not in l2product_files.keys():
                     l2product_files[l1product_path] = {}
