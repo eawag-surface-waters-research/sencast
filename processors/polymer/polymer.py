@@ -15,8 +15,11 @@ import os
 import subprocess
 from math import ceil, floor
 from datetime import datetime
+
 import numpy as np
+from netCDF4 import Dataset
 from snappy import ProductIO, GeoPos
+from haversine import haversine
 
 from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.gsw import GSW
@@ -63,7 +66,7 @@ def process(env, params, l1product_path, _, out_path):
         ozone = round(ancillary.get("ozone", date)[coords])  # Test can retrieve parameters
         anc_name = "ERA5"
         print("Polymer collected ERA5 ancillary data.")
-    except Exception:
+    except RuntimeError:
         ancillary = None
         anc_name = "NA"
         print("Polymer failed to collect ERA5 ancillary data.")
@@ -75,13 +78,7 @@ def process(env, params, l1product_path, _, out_path):
             os.remove(output_file)
         else:
             print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
-            product = ProductIO.readProduct(output_file)
-            band = product.getBand("Rw443")
-            w = band.getRasterWidth()
-            h = band.getRasterHeight()
-            band_data = np.zeros(w * h, np.float32)
-            band.readPixels(0, 0, w, h, band_data)
-            if np.isnan(np.nanmean(band_data)):
+            if not check_file(output_file):
                 print("No pixels present in the file.")
                 return False
             return output_file
@@ -91,8 +88,8 @@ def process(env, params, l1product_path, _, out_path):
         calib_gains = polymer_vicarious.msi_vicarious(vicar_version)
         granule_path = os.path.join(l1product_path, "GRANULE")
         msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
-        UL, UR, LR, LL = get_corner_pixels_roi(msi_product_path, wkt)
-        sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]), max(LL[1], LR[1])
+        ul, ur, lr, ll = get_corner_pixels_roi(msi_product_path, wkt)
+        sline, scol, eline, ecol = min(ul[0], ur[0]), min(ul[1], ur[1]), max(ll[0], lr[0]), max(ll[1], lr[1])
         # Normalize to correct resolution
         target_divisor = 60 / int(resolution)
         sline, scol, eline, ecol = [(i * 10 / int(resolution)) for i in [sline, scol, eline, ecol]]
@@ -104,13 +101,15 @@ def process(env, params, l1product_path, _, out_path):
         additional_ds = ['sza']
     else:
         calib_gains = polymer_vicarious.olci_vicarious(vicar_version)
-        UL, UR, LR, LL = get_corner_pixels_roi(l1product_path, wkt)
-        sline, scol, eline, ecol = min(UL[0], UR[0]), min(UL[1], UR[1]), max(LL[0], LR[0]), max(LL[1], LR[1])
+        product_lons, product_lats = get_lons_lats_olci_l1(l1product_path)
+        ul, ur, lr, ll = get_corner_pixels_roi_new(product_lons, product_lats, wkt)
+        sline, scol, eline, ecol = min(ul[0], ur[0]), min(ul[1], ur[1]), max(ll[0], lr[0]), max(ll[1], lr[1])
         gsw = GSW(directory=gsw_path, agg=8)
         l1 = Level1_OLCI(l1product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw,
                          ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
-    poly_tmp_file = os.path.join(out_path, OUT_DIR, "_reproducibility", OUT_FILENAME.format(anc_name, product_name) + ".tmp")
+    poly_tmp_file = os.path.join(out_path, OUT_DIR, "_reproducibility",
+                                 OUT_FILENAME.format(anc_name, product_name) + ".tmp")
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
     os.makedirs(os.path.dirname(poly_tmp_file), exist_ok=True)
 
@@ -129,13 +128,7 @@ def process(env, params, l1product_path, _, out_path):
             print("No file was created.")
         raise RuntimeError("GPT Failed.")
 
-    product = ProductIO.readProduct(output_file)
-    band = product.getBand("Rw443")
-    w = band.getRasterWidth()
-    h = band.getRasterHeight()
-    band_data = np.zeros(w * h, np.float32)
-    band.readPixels(0, 0, w, h, band_data)
-    if np.isnan(np.nanmean(band_data)):
+    if not check_file(output_file):
         print("No pixels present in the file.")
         return False
 
@@ -161,6 +154,16 @@ def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt):
         f.write(xml)
 
 
+def check_file(file):
+    product = ProductIO.readProduct(file)
+    band = product.getBand("Rw443")
+    w = band.getRasterWidth()
+    h = band.getRasterHeight()
+    band_data = np.zeros(w * h, np.float32)
+    band.readPixels(0, 0, w, h, band_data)
+    return not np.isnan(np.nanmean(band_data))
+
+
 def get_corner_pixels_roi(product_path, wkt):
     """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
     product = ProductIO.readProduct(product_path)
@@ -173,10 +176,82 @@ def get_corner_pixels_roi(product_path, wkt):
     ll_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(min(lats), min(lons)), None)
     lr_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(min(lats), max(lons)), None)
 
-    UL = [int(ul_pos.y) if (0 <= ul_pos.y < h) else 0, int(ul_pos.x) if (0 <= ul_pos.x < w) else 0]
-    UR = [int(ur_pos.y) if (0 <= ur_pos.y < h) else 0, int(ur_pos.x) if (0 <= ur_pos.x < w) else w]
-    LL = [int(ll_pos.y) if (0 <= ll_pos.y < h) else h, int(ll_pos.x) if (0 <= ll_pos.x < w) else 0]
-    LR = [int(lr_pos.y) if (0 <= lr_pos.y < h) else h, int(lr_pos.x) if (0 <= lr_pos.x < w) else w]
+    ul = [int(ul_pos.y) if (0 <= ul_pos.y < h) else 0, int(ul_pos.x) if (0 <= ul_pos.x < w) else 0]
+    ur = [int(ur_pos.y) if (0 <= ur_pos.y < h) else 0, int(ur_pos.x) if (0 <= ur_pos.x < w) else w]
+    ll = [int(ll_pos.y) if (0 <= ll_pos.y < h) else h, int(ll_pos.x) if (0 <= ll_pos.x < w) else 0]
+    lr = [int(lr_pos.y) if (0 <= lr_pos.y < h) else h, int(lr_pos.x) if (0 <= lr_pos.x < w) else w]
 
     product.closeIO()
-    return UL, UR, LR, LL
+    return ul, ur, lr, ll
+
+
+def get_corner_pixels_roi_new(product_lons, product_lats, wkt):
+    """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
+
+    h, w = len(product_lons), len(product_lons[0])
+
+    lons, lats = get_lons_lats(wkt)
+    ul_pos = get_pixel_pos(product_lons, product_lats, min(lons), max(lats))
+    ur_pos = get_pixel_pos(product_lons, product_lats, max(lons), max(lats))
+    ll_pos = get_pixel_pos(product_lons, product_lats, min(lons), min(lats))
+    lr_pos = get_pixel_pos(product_lons, product_lats, max(lons), min(lats))
+
+    ul = [int(ul_pos.y) if (0 <= ul_pos.y < h) else 0, int(ul_pos.x) if (0 <= ul_pos.x < w) else 0]
+    ur = [int(ur_pos.y) if (0 <= ur_pos.y < h) else 0, int(ur_pos.x) if (0 <= ur_pos.x < w) else w]
+    ll = [int(ll_pos.y) if (0 <= ll_pos.y < h) else h, int(ll_pos.x) if (0 <= ll_pos.x < w) else 0]
+    lr = [int(lr_pos.y) if (0 <= lr_pos.y < h) else h, int(lr_pos.x) if (0 <= lr_pos.x < w) else w]
+
+    return ul, ur, lr, ll
+
+
+def get_lons_lats_olci_l1(product_path):
+    nc = Dataset(os.path.join(product_path, "geo_coordinates.nc"))
+    lons, lats = nc.variables['longitude'][:], nc.variables['latitude'][:]
+    nc.close()
+    return lons, lats
+
+
+def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
+    """
+    Returns the coordinates of the pixel [x, y] which cover a certain geo location (lon/lat).
+    :param longitudes: matrix representing the longitude of each pixel
+    :param latitudes: matrix representing the latitude of every pixel
+    :param lon: longitude of the geo location of interest
+    :param lat: latitude of the geo location of interest
+    :param x: starting point of the algorithm
+    :param y: starting point of the algorithm
+    :param step: starting step size of the algorithm
+    :return: [-1, -1] if the geo location is not covered by this product
+    """
+
+    lons_height, lons_width = len(longitudes), len(longitudes[0])
+    lats_height, lats_width = len(latitudes), len(latitudes[0])
+
+    print("lons: {} x {}, lats: {} x {}".format(lons_height, lons_width, lats_height, lats_width))
+
+    if lats_height != lons_height or lats_width != lons_width:
+        raise RuntimeError("Provided latitudes and longitudes matrices do not have the same size!")
+
+    if x is None:
+        x = int(lons_width / 2)
+    if y is None:
+        y = int(lats_height / 2)
+    if step is None:
+        step = int(ceil(max(lons_width, lons_height) / 4))
+
+    new_coords = [[x, y], [x - step, y - step], [x - step, y], [x - step, y + step], [x, y + step],
+                  [x + step, y + step], [x + step, y], [x + step, y - step], [x, y - step]]
+    distances = [haversine((lat, lon), (latitudes[new_x][new_y], longitudes[new_x][new_y])) for [new_x, new_y] in
+                 new_coords]
+
+    print("x = {}, y = {}, curr.dist. = {}, ({} / {})".format(x, y, distances[0], longitudes[x][y], latitudes[x][y]))
+    print(distances)
+
+    idx = distances.index(min(distances))
+
+    if step == 1:
+        if x <= 0 or x >= lats_width - 1 or y <= 0 or y >= lats_height - 1:
+            return [-1, -1]
+        return new_coords[idx]
+    else:
+        return get_pixel_pos(longitudes, latitudes, lon, lat, new_coords[idx][0], new_coords[idx][1], int(ceil(step / 2)))
