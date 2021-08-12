@@ -21,7 +21,7 @@ FILENAME = 'L2QAA_{}'
 FILEFOLDER = 'L2QAA'
 
 
-def apply(env, params, l2product_files, date):
+def apply(env, params, l2product_files, _):
     """Apply Secchi Depth adapter.
                 1. Calculates Secchi depth from Polymer output
 
@@ -34,7 +34,7 @@ def apply(env, params, l2product_files, date):
                     Dictionary of environment parameters, loaded from input file
                 l2product_files
                     Dictionary of Level 2 product files created by processors
-                date
+                _
                     Run date
                 """
 
@@ -107,7 +107,7 @@ def apply(env, params, l2product_files, date):
         y1 = 0
         spectral_band_names = ['Rw443', 'Rw490', 'Rw560', 'Rw665', 'Rw705']
         tsm_band = 'tsm_binding740'
-        a_gelb_band= ''
+        a_gelb_band = ''
 
     elif satellite in ['S3A', 'S3B']:
         # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
@@ -127,10 +127,10 @@ def apply(env, params, l2product_files, date):
         y1 = 0.265
         spectral_band_names = ['Rw412', 'Rw443', 'Rw490', 'Rw510', 'Rw560', 'Rw620', 'Rw665', 'Rw681']
         tsm_band = 'tsm_binding754'
-        a_gelb_band= 'a_gelb443'
+        a_gelb_band = 'a_gelb443'
 
     else:
-        exit('Secchi adapter not implemented for satellite ' + satellite)
+        raise RuntimeError('Secchi adapter not implemented for satellite ' + satellite)
 
     bands = [product.getBand(bname) for bname in spectral_band_names]
     SZA = product.getBand('sza')
@@ -155,7 +155,7 @@ def apply(env, params, l2product_files, date):
             temp_band.setUnit('m^-1')
         temp_band.setNoDataValueUsed(True)
         temp_band.setNoDataValue(np.NaN)
-        wavelength = re.findall('\d+', secchi_name)[0]
+        wavelength = re.findall(r'\d+', secchi_name)[0]
         temp_band.setSpectralWavelength(float(wavelength))
         temp_band.setValidPixelExpression(valid_pixel_expression)
         secchi_bands.append(temp_band)
@@ -193,7 +193,7 @@ def apply(env, params, l2product_files, date):
         ratioChi = rrs[6] / rrs[2]
         chi = np.log10((rrs[1] + rrs[2]) / (rrs[4] + 5 * ratioChi * rrs[6]))
         # Absorption ref. band:
-        a0 = aws[4] + (10 ** (-1.146 - (1.366 * chi) - (0.469 * (chi ** (2)))))
+        a0 = aws[4] + (10 ** (-1.146 - (1.366 * chi) - (0.469 * (chi ** 2))))
         # Backscattering suspended particles ref. band:
         bbp0 = ((us[4] * a0) / (1 - us[4])) - bws[4]
         ration = rrs[1] / rrs[4]
@@ -239,4 +239,3 @@ def apply(env, params, l2product_files, date):
 
     secchiProduct.closeIO()
     print("Writing Secchi depth to file: {}".format(output_file))
-
