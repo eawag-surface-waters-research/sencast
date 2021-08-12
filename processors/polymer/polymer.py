@@ -16,9 +16,9 @@ import subprocess
 from math import ceil, floor
 from datetime import datetime
 
-import numpy as np
+import rasterio
 from netCDF4 import Dataset
-from snappy import ProductIO, GeoPos
+from pyproj import Transformer
 from haversine import haversine
 
 from polymer.ancillary_era5 import Ancillary_ERA5
@@ -78,9 +78,6 @@ def process(env, params, l1product_path, _, out_path):
             os.remove(output_file)
         else:
             print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
-            if not check_file(output_file):
-                print("No pixels present in the file.")
-                return False
             return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
@@ -88,7 +85,7 @@ def process(env, params, l1product_path, _, out_path):
         calib_gains = polymer_vicarious.msi_vicarious(vicar_version)
         granule_path = os.path.join(l1product_path, "GRANULE")
         msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
-        ul, ur, lr, ll = get_corner_pixels_roi(msi_product_path, wkt)
+        ul, ur, lr, ll = get_corner_pixels_roi_msi(msi_product_path, wkt)
         sline, scol, eline, ecol = min(ul[0], ur[0]), min(ul[1], ur[1]), max(ll[0], lr[0]), max(ll[1], lr[1])
         # Normalize to correct resolution
         target_divisor = 60 / int(resolution)
@@ -99,15 +96,18 @@ def process(env, params, l1product_path, _, out_path):
         l1 = Level1_MSI(msi_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw,
                         ancillary=ancillary, resolution=resolution)
         additional_ds = ['sza']
-    else:
+    elif sensor == "OLCI":
         calib_gains = polymer_vicarious.olci_vicarious(vicar_version)
         product_lons, product_lats = get_lons_lats_olci_l1(l1product_path)
-        ul, ur, lr, ll = get_corner_pixels_roi_new(product_lons, product_lats, wkt)
+        ul, ur, lr, ll = get_corner_pixels_roi_olci(product_lons, product_lats, wkt)
         sline, scol, eline, ecol = min(ul[0], ur[0]), min(ul[1], ur[1]), max(ll[0], lr[0]), max(ll[1], lr[1])
         gsw = GSW(directory=gsw_path, agg=8)
         l1 = Level1_OLCI(l1product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw,
                          ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
+    else:
+        raise RuntimeError("Unknown sensor for polymer: {}".format(sensor))
+
     poly_tmp_file = os.path.join(out_path, OUT_DIR, "_reproducibility",
                                  OUT_FILENAME.format(anc_name, product_name) + ".tmp")
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
@@ -127,10 +127,6 @@ def process(env, params, l1product_path, _, out_path):
         else:
             print("No file was created.")
         raise RuntimeError("GPT Failed.")
-
-    if not check_file(output_file):
-        print("No pixels present in the file.")
-        return False
 
     return output_file
 
@@ -154,38 +150,40 @@ def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt):
         f.write(xml)
 
 
-def check_file(file):
-    product = ProductIO.readProduct(file)
-    band = product.getBand("Rw443")
-    w = band.getRasterWidth()
-    h = band.getRasterHeight()
-    band_data = np.zeros(w * h, np.float32)
-    band.readPixels(0, 0, w, h, band_data)
-    return not np.isnan(np.nanmean(band_data))
-
-
-def get_corner_pixels_roi(product_path, wkt):
+def get_corner_pixels_roi_msi(product_path, wkt):
     """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
-    product = ProductIO.readProduct(product_path)
-
-    h, w = product.getSceneRasterHeight(), product.getSceneRasterWidth()
 
     lons, lats = get_lons_lats(wkt)
-    ul_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(max(lats), min(lons)), None)
-    ur_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(max(lats), max(lons)), None)
-    ll_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(min(lats), min(lons)), None)
-    lr_pos = product.getSceneGeoCoding().getPixelPos(GeoPos(min(lats), max(lons)), None)
 
-    ul = [int(ul_pos.y) if (0 <= ul_pos.y < h) else 0, int(ul_pos.x) if (0 <= ul_pos.x < w) else 0]
-    ur = [int(ur_pos.y) if (0 <= ur_pos.y < h) else 0, int(ur_pos.x) if (0 <= ur_pos.x < w) else w]
-    ll = [int(ll_pos.y) if (0 <= ll_pos.y < h) else h, int(ll_pos.x) if (0 <= ll_pos.x < w) else 0]
-    lr = [int(lr_pos.y) if (0 <= lr_pos.y < h) else h, int(lr_pos.x) if (0 <= lr_pos.x < w) else w]
+    product_path = os.path.join(product_path, "GRANULE")
+    l1c_dirs = list(filter(lambda d: d.starts_with("L1C"), os.listdir(product_path)))
+    product_path = os.path.join(product_path, l1c_dirs[0], "IMG_DATA", "T32TMT_20210605T102021_TCI.jp2")
 
-    product.closeIO()
+    with rasterio.open(product_path) as dataset:
+        h, w = dataset.height, dataset.width
+        ul_pos = get_pixel_pos_msi(dataset, max(lats), min(lons))
+        ur_pos = get_pixel_pos_msi(dataset, max(lats), max(lons))
+        ll_pos = get_pixel_pos_msi(dataset, min(lats), min(lons))
+        lr_pos = get_pixel_pos_msi(dataset, min(lats), max(lons))
+
+    ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
+    ur = [int(ur_pos[1]) if (0 <= ur_pos[1] < h) else 0, int(ur_pos[0]) if (0 <= ur_pos[0] < w) else w]
+    ll = [int(ll_pos[1]) if (0 <= ll_pos[1] < h) else h, int(ll_pos[0]) if (0 <= ll_pos[0] < w) else 0]
+    lr = [int(lr_pos[1]) if (0 <= lr_pos[1] < h) else h, int(lr_pos[0]) if (0 <= lr_pos[0] < w) else w]
+
     return ul, ur, lr, ll
 
 
-def get_corner_pixels_roi_new(product_lons, product_lats, wkt):
+def get_pixel_pos_msi(dataset, lon, lat):
+    transformer = Transformer.from_crs("epsg:4326", dataset.crs)
+    row, col = transformer.transform(lat, lon)
+    x, y = dataset.index(row, col)
+    if x < 0 or y < 0:
+        return [-1, -1]
+    return [x, y]
+
+
+def get_corner_pixels_roi_olci(product_lons, product_lats, wkt):
     """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
 
     h, w = len(product_lons), len(product_lons[0])
@@ -196,10 +194,10 @@ def get_corner_pixels_roi_new(product_lons, product_lats, wkt):
     ll_pos = get_pixel_pos(product_lons, product_lats, min(lons), min(lats))
     lr_pos = get_pixel_pos(product_lons, product_lats, max(lons), min(lats))
 
-    ul = [int(ul_pos.y) if (0 <= ul_pos.y < h) else 0, int(ul_pos.x) if (0 <= ul_pos.x < w) else 0]
-    ur = [int(ur_pos.y) if (0 <= ur_pos.y < h) else 0, int(ur_pos.x) if (0 <= ur_pos.x < w) else w]
-    ll = [int(ll_pos.y) if (0 <= ll_pos.y < h) else h, int(ll_pos.x) if (0 <= ll_pos.x < w) else 0]
-    lr = [int(lr_pos.y) if (0 <= lr_pos.y < h) else h, int(lr_pos.x) if (0 <= lr_pos.x < w) else w]
+    ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
+    ur = [int(ur_pos[1]) if (0 <= ur_pos[1] < h) else 0, int(ur_pos[0]) if (0 <= ur_pos[0] < w) else w]
+    ll = [int(ll_pos[1]) if (0 <= ll_pos[1] < h) else h, int(ll_pos[0]) if (0 <= ll_pos[0] < w) else 0]
+    lr = [int(lr_pos[1]) if (0 <= lr_pos[1] < h) else h, int(lr_pos[0]) if (0 <= lr_pos[0] < w) else w]
 
     return ul, ur, lr, ll
 
