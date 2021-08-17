@@ -199,9 +199,9 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
     # FOR S3 MAKE SURE THE NON-DEFAULT S3TBX SETTING IS SELECTED IN THE SNAP PREFERENCES!
     if "OLCI" == params['General']['sensor']:
         product = ProductIO.readProduct(l1product_paths[0])
-        if 'PixelGeoCoding2' not in str(product.getSceneGeoCoding()):
+        """if 'PixelGeoCoding2' not in str(product.getSceneGeoCoding()):
             raise RuntimeError("Pixelwise geocoding is not activated for S3TBX, please check the settings in SNAP!")
-        product.closeIO()
+        product.closeIO()"""
 
     with semaphores['process']:
         # only process products, which are really necessary
@@ -285,6 +285,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from adapters.forelule.forelule import apply
             elif adapter == "MDN":
                 from adapters.mdn.mdn import apply
+            elif adapter == "OC3":
+                from adapters.oc3.oc3 import apply
             else:
                 raise RuntimeError("Unknown adapter: {}".format(adapter))
 

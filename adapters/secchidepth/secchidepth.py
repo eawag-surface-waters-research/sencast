@@ -120,8 +120,8 @@ def apply(env, params, l2product_files, date):
         # Center Wavelenghts
         wvl = [412.5, 442.5, 490, 510, 560, 620, 665, 681.25]
         # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
-        m0 = 0.005
-        m1 = 4.259
+        m0 = 0.0
+        m1 = 5.8
         m2 = 0.52
         m3 = 10.8
         y1 = 0.265
