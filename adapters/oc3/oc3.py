@@ -119,14 +119,9 @@ def apply(env, params, l2product_files, date):
     clusterID[:] = np.nan
     totScore[:] = np.nan
 
-    for i in range(width * height):
-        if not np.isnan(chla[i]):
-            #              412,        443,       488,        510,       531,      547,       555,       667,        678
-            pixel_rrs = [Rrs[1][i], Rrs[2][i], Rrs[3][i], Rrs[4][i], Rrs[5][i], Rrs[5][i], Rrs[5][i], Rrs[7][i], Rrs[8][i]]
-            maxCos_pixel, cos_pixel, clusterID_pixel, totScore_pixel = QAscores(pixel_rrs)
-            maxCos[i] = maxCos_pixel
-            clusterID[i] = clusterID_pixel
-            totScore[i] = totScore_pixel
+    wavelengths = [412, 443, 488, 510, 531, 547, 555, 667, 678]
+    spectra = [Rrs[1], Rrs[2], Rrs[3], Rrs[4], Rrs[5], Rrs[5], Rrs[5], Rrs[7], Rrs[8]]
+    maxCos, cos, clusterID, totScore = QAscores(spectra, wavelengths)
 
     maxCos_band.writePixels(0, 0, width, height, maxCos)
     clusterID_band.writePixels(0, 0, width, height, clusterID)
@@ -158,19 +153,22 @@ def ocx(rsbg, a0, a1, a2, a3, a4):
     return 10**(a0 + a1 * rsbg + a2 * (rsbg ** 2) + a3 * (rsbg ** 3) + a4 * (rsbg ** 4))
 
 
-def QAscores(test_Rrs):
+def QAscores(spectra, wavelengths):
     """Quality assurance system for Rrs spectra
 
-    Author: Jianwei Wei, University of Massachusetts Boston
+    Original Author: Jianwei Wei, University of Massachusetts Boston
     Email: Jianwei.Wei@umb.edu
     Nov-01-2016
 
-    [TRANSLATED FROM MATLAB TO PYTHON]
+    Translated from MATLAB to Python.
+    James Runnalls, Eawag
 
     Parameters
     -----------
-    test_Rrs : list
+    spectra : list
         Rrs spectra for testing (units: sr^-1); a row vector at the wavelengths in ref_lambda
+    wavelengths : array
+        Wavelengths for spectra, axis 0 needs to equal length of spectra
 
     Outputs
     ---------
@@ -181,15 +179,14 @@ def QAscores(test_Rrs):
     clusterID : int
         idenfification of water types (from 1-23)
     totScore : float
-        total score assigned to test_Rrs
+        total score assigned to spectra
     """
 
-    test_Rrs = np.array(test_Rrs)
+    spectra = np.array(spectra)
+    wavelengths = np.array(wavelengths)
 
     # Wavelengths for ref_nRrs (1x9 matrix)
-    ref_lambda = np.array([
-        412, 443, 488, 510, 531, 547, 555, 667, 678
-    ])
+    ref_lambda = np.array([412, 443, 488, 510, 531, 547, 555, 667, 678])
 
     # Normalized Rrs spectra per-determined from water clustering (23x9 matrix)
     ref_nRrs = np.array([
@@ -272,23 +269,23 @@ def QAscores(test_Rrs):
         [9.3197327e-02, 9.4502428e-02, 1.4641494e-01, 1.9385761e-01, 2.6497912e-01, 3.8223376e-01, 4.8516910e-01, 3.0135913e-01, 3.8303801e-01]
     ])
 
-    nRrs = test_Rrs / np.nansum(test_Rrs**2)**0.5
+    if not list(wavelengths) == list(ref_lambda):
+        raise ValueError('Input lambda array must equal reference lambda array.')
+
+    nRrs = spectra / np.nansum(spectra**2, axis=0)**0.5
 
     ref_nRrs_corr = np.empty(ref_nRrs.shape)
 
     for i in range(len(ref_nRrs)):
         ref_nRrs_corr[i, :] = ref_nRrs[i, :] / np.nansum(ref_nRrs[i, :]**2)**0.5
 
-    cos = np.empty(len(ref_nRrs))
+    cos = np.empty((len(ref_nRrs), spectra.shape[1]))
+
     for i in range(len(ref_nRrs)):
-        cos[i] = np.nansum(ref_nRrs_corr[i, :] * nRrs) / (np.nansum((ref_nRrs_corr[i, :])**2)*np.nansum(nRrs**2))**0.5
+        cos[i, :] = np.nansum(np.swapaxes([ref_nRrs_corr[i, :]], 0, 1) * nRrs, axis=0) / (np.nansum((ref_nRrs_corr[i, :])**2) * np.nansum(nRrs**2, axis=0))**0.5
 
-    maxCos = np.max(cos)
-
-    if np.isnan(maxCos):
-        clusterID = np.nan
-    else:
-        clusterID = list(cos).index(maxCos)
+    maxCos = np.max(cos, axis=0)
+    clusterID = np.argmax(cos, axis=0)
 
     upB_corr = np.empty(ref_nRrs.shape)
     lowB_corr = np.empty(ref_nRrs.shape)
@@ -296,12 +293,22 @@ def QAscores(test_Rrs):
         upB_corr[i, :] = upB[i, :] / np.nansum(ref_nRrs[i, :]**2)**0.5
         lowB_corr[i, :] = lowB[i, :] / np.nansum(ref_nRrs[i, :]**2)**0.5
 
-    C = [1] * ref_nRrs.shape[1]
+    C = np.ones((ref_nRrs.shape[1], spectra.shape[1]))
+    upper = np.zeros((ref_nRrs.shape[1], spectra.shape[1]))
+    lower = np.ones((ref_nRrs.shape[1], spectra.shape[1]))
 
-    for i in range(ref_nRrs.shape[1]):
-        if nRrs[i] > upB_corr[clusterID, i] * (1+0.005) or nRrs[i] < lowB_corr[clusterID, i] * (1-0.005):
-            C[i] = 0
+    for i in range(ref_nRrs.shape[0]):
+        if i in clusterID:
+            upper[:, clusterID == i] = np.tile(np.swapaxes([upB_corr[i]], 0, 1), (1, (clusterID == i).sum()))
+            lower[:, clusterID == i] = np.tile(np.swapaxes([lowB_corr[i]], 0, 1), (1, (clusterID == i).sum()))
 
-    totScore = np.nanmean(C)
+    upper = upper * 1.005
+    lower = lower * 0.995
 
-    return maxCos, cos, clusterID + 1, totScore
+    C[nRrs > upper] = 0.0
+    C[nRrs < lower] = 0.0
+
+    totScore = np.nanmean(C, axis=0)
+
+    return maxCos, cos, clusterID + 1.0, totScore
+
