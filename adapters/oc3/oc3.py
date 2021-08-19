@@ -119,9 +119,8 @@ def apply(env, params, l2product_files, date):
     clusterID[:] = np.nan
     totScore[:] = np.nan
 
-    wavelengths = [412, 443, 488, 510, 531, 547, 555, 667, 678]
-    spectra = [Rrs[1], Rrs[2], Rrs[3], Rrs[4], Rrs[5], Rrs[5], Rrs[5], Rrs[7], Rrs[8]]
-    maxCos, cos, clusterID, totScore = QAscores(spectra, wavelengths)
+    wavelengths = [400, 412, 443, 490, 510, 560, 620, 665, 681, 709, 754, 779, 865, 1020]
+    maxCos, cos, clusterID, totScore = QAscores(Rrs, wavelengths)
 
     maxCos_band.writePixels(0, 0, width, height, maxCos)
     clusterID_band.writePixels(0, 0, width, height, clusterID)
@@ -270,7 +269,7 @@ def QAscores(spectra, wavelengths):
     ])
 
     if not list(wavelengths) == list(ref_lambda):
-        raise ValueError('Input lambda array must equal reference lambda array.')
+        spectra = interpolate_spectra(spectra, wavelengths, ref_lambda)
 
     nRrs = spectra / np.nansum(spectra**2, axis=0)**0.5
 
@@ -312,3 +311,21 @@ def QAscores(spectra, wavelengths):
 
     return maxCos, cos, clusterID + 1.0, totScore
 
+
+def interpolate_spectra(spectra, wavelengths, ref):
+    interp_spec = np.zeros((len(ref), spectra.shape[1]))
+    interp_spec[:] = np.nan
+    for i in range(len(ref)):
+        if ref[i] in wavelengths:
+            interp_spec[i, :] = spectra[list(wavelengths).index(ref[i])]
+        elif ref[i] > np.amax(wavelengths):
+            interp_spec[i, :] = spectra[np.argmax(wavelengths)]
+        elif ref[i] < np.amin(wavelengths):
+            interp_spec[i, :] = spectra[np.argmin(wavelengths)]
+        else:
+            # Interpolate spectra
+            upper = list(wavelengths).index(np.nanmin(wavelengths[wavelengths > ref[i]] - ref[i]) + ref[i])
+            lower = list(wavelengths).index(np.nanmax(wavelengths[wavelengths < ref[i]] - ref[i]) + ref[i])
+            interp_spec[i, :] = spectra[lower] + ((spectra[upper] - spectra[lower])*((ref[i] - wavelengths[lower])/(wavelengths[upper] - wavelengths[lower])))
+
+    return interp_spec
