@@ -14,7 +14,7 @@ https://forum.hygeos.com/viewforum.php?f=3
 import os
 import subprocess
 from math import ceil, floor
-from datetime import datetime
+# from datetime import datetime
 
 import rasterio
 from netCDF4 import Dataset
@@ -28,7 +28,7 @@ from polymer.level1_olci import Level1_OLCI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
-from utils.product_fun import get_lons_lats, get_sensing_datetime_from_product_name, get_reproject_params_from_wkt
+from utils.product_fun import get_lons_lats, get_reproject_params_from_wkt  # get_sensing_datetime_from_product_name
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
 # Key of the params section for this processor
@@ -50,7 +50,7 @@ def process(env, params, l1product_path, _, out_path):
 
     print("Applying POLYMER...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
-    date_str = get_sensing_datetime_from_product_name(product_name)
+    # date_str = get_sensing_datetime_from_product_name(product_name)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     water_model, validexpression = params['POLYMER']['water_model'], params['POLYMER']['validexpression']
     vicar_version = params['POLYMER']['vicar_version']
@@ -59,11 +59,11 @@ def process(env, params, l1product_path, _, out_path):
     os.makedirs(ancillary_path, exist_ok=True)
 
     try:
-        date = datetime.strptime(date_str, "%Y%m%dT%H%M%S")
-        lons, lats = get_lons_lats(wkt)
-        coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
+        # date = datetime.strptime(date_str, "%Y%m%d")
+        # lons, lats = get_lons_lats(wkt)
+        # coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
         ancillary = Ancillary_ERA5(directory=ancillary_path)
-        ozone = round(ancillary.get("ozone", date)[coords])  # Test can retrieve parameters
+        # ozone = round(ancillary.get("ozone", date)[coords])  # Test can retrieve parameters
         anc_name = "ERA5"
         print("Polymer collected ERA5 ancillary data.")
     except RuntimeError:
@@ -93,6 +93,9 @@ def process(env, params, l1product_path, _, out_path):
         sline, scol = [int(floor(i / target_divisor) * target_divisor) for i in [sline, scol]]
         eline, ecol = [int(ceil(i / target_divisor) * target_divisor) for i in [eline, ecol]]
         gsw = GSW(directory=gsw_path)
+        print("msi_product_path: {}".format(msi_product_path))
+        print("sline: {}, eline: {}, scol: {}, ecol: {}".format(sline, eline, scol, ecol))
+        print("gsw_path: {}, ancillary_path: {}, resolution: {}".format(gsw_path, ancillary_path, resolution))
         l1 = Level1_MSI(msi_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw,
                         ancillary=ancillary, resolution=resolution)
         additional_ds = ['sza']
@@ -155,16 +158,15 @@ def get_corner_pixels_roi_msi(product_path, wkt):
 
     lons, lats = get_lons_lats(wkt)
 
-    product_path = os.path.join(product_path, "GRANULE")
-    l1c_dirs = list(filter(lambda d: d.starts_with("L1C"), os.listdir(product_path)))
-    product_path = os.path.join(product_path, l1c_dirs[0], "IMG_DATA", "T32TMT_20210605T102021_TCI.jp2")
+    img_dirs = list(filter(lambda d: d.endswith("_TCI.jp2"), os.listdir(os.path.join(product_path, "IMG_DATA"))))
+    product_path = os.path.join(product_path, "IMG_DATA", img_dirs[0])
 
     with rasterio.open(product_path) as dataset:
         h, w = dataset.height, dataset.width
-        ul_pos = get_pixel_pos_msi(dataset, max(lats), min(lons))
-        ur_pos = get_pixel_pos_msi(dataset, max(lats), max(lons))
-        ll_pos = get_pixel_pos_msi(dataset, min(lats), min(lons))
-        lr_pos = get_pixel_pos_msi(dataset, min(lats), max(lons))
+        ul_pos = get_pixel_pos_msi(dataset, min(lons), max(lats))
+        ur_pos = get_pixel_pos_msi(dataset, max(lons), max(lats))
+        ll_pos = get_pixel_pos_msi(dataset, min(lons), min(lats))
+        lr_pos = get_pixel_pos_msi(dataset, max(lons), min(lats))
 
     ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
     ur = [int(ur_pos[1]) if (0 <= ur_pos[1] < h) else 0, int(ur_pos[0]) if (0 <= ur_pos[0] < w) else w]
