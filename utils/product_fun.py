@@ -1,11 +1,9 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import os
 import re
 
 from haversine import haversine
-from netCDF4 import Dataset
 from datetime import datetime
 
 
@@ -106,11 +104,11 @@ def get_reproject_params_from_wkt(wkt, resolution):
 
 
 def get_sensing_date_from_product_name(product_name):
-    return re.findall(r"\d{8}T\d{6}", product_name)[0][0:8]
+    return re.findall(r"\d{8}", product_name)[0]
 
 
 def get_sensing_datetime_from_product_name(product_name):
-    return re.findall(r"\d{8}T\d{6}", product_name)[0]
+    return re.findall(r"\d{8}", product_name)[0]
 
 
 def get_l1product_path(env, product_name):
@@ -118,12 +116,17 @@ def get_l1product_path(env, product_name):
         satellite = "Sentinel-3"
         sensor = "OLCI"
         dataset = product_name[4:12]
-        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%dT%H%M%S")
+        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%d")
     elif product_name.startswith("S2A") or product_name.startswith("S2B"):
         satellite = "Sentinel-2"
         sensor = "MSI"
         dataset = product_name[7:10]
-        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%dT%H%M%S")
+        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%d")
+    elif product_name.startswith("LC08"):
+        satellite = "Landsat8"
+        sensor = "OLI_TIRS"
+        dataset = product_name[5:9]
+        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%d")
     else:
         raise RuntimeError("Unable to retrieve satellite from product name: {}".format(product_name))
 
@@ -134,9 +137,9 @@ def get_l1product_path(env, product_name):
         'dataset': dataset,
         'year': date.strftime(r"%Y"),
         'month': date.strftime(r"%m"),
-        'day': date.strftime(r"%d"),
-        'hour': date.strftime(r"%H"),
-        'minute': date.strftime(r"%M"),
-        'second': date.strftime(r"%S"),
+        'day': date.strftime(r"%d")
     }
-    return env['DIAS']['l1_path'].format(**kwargs)
+    if sensor == "OLI_TIRS":
+        return os.path.join(env['DIAS']['l1_path'].format(**kwargs), product_name + "_MTL.txt")
+    else:
+        return env['DIAS']['l1_path'].format(**kwargs)
