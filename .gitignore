@@ -1,6 +1,7 @@
 __pycache__
 /.idea
 /ANCILLARY
+/data
 /data_landmask_gsw
 /datalakes
 /environments/*

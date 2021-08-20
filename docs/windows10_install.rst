@@ -53,7 +53,7 @@ Windows 10
 		> conda config --add channels conda-forge
 
 	Create a new environment named "sencast" using Anaconda
-		> conda create --name sencast-37 python=3.7 gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj
+		> conda create --name sencast-37 python=3.7 gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj scikit-image pyresample h5py
 
 	Set CONDA_ENV_HOME to "%CONDA_HOME%\\envs\\sencast-37"
 
