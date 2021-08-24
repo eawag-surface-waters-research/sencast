@@ -56,7 +56,8 @@ def process(env, params, l1product_path, _, out_path):
         raise RuntimeError("iCOR not implemented for sensor {}".format(sensor))
 
     # ensure reproducibility
-    with open(os.path.join(out_path, REPROD_DIR, "cli_call.txt")) as f:
+    os.makedirs(os.path.join(out_path, OUT_DIR, REPROD_DIR), exist_ok=True)
+    with open(os.path.join(out_path, OUT_DIR, REPROD_DIR, "cli_call.txt"), 'w') as f:
         f.write(" ".join(args))
 
     # execute call
@@ -71,7 +72,7 @@ def create_args_msi(icor, glint, apply_simec_correction, working_folder, output_
     args.extend(["--sensor", "S2"])
     args.extend(["--generate_viewing_grids_s2", "false"])
     args.extend(["--glint_cor", glint])
-    args.extend(["--keep_intermediate", "false"])
+    args.extend(["--keep_intermediate", "true"])
     args.extend(["--apply_gains", "false"])
     args.extend(["--cloud_average_threshold", "0.19"])
     args.extend(["--cloud_low_band", "B01"])
