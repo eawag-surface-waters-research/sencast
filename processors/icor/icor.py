@@ -25,13 +25,15 @@ def process(env, params, l1product_path, _, out_path):
 
     print("Applying iCor...")
 
-    gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
+    # read env and params
+    icor, product_name = env[PARAMS_SECTION]['icor_path'], os.path.basename(l1product_path)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     use_product_water_mask = params[PARAMS_SECTION]['useProductWaterMask'] if 'useProductWaterMask' in params[PARAMS_SECTION] else "false"
     use_inland_water_mask = params[PARAMS_SECTION]['useInlandWaterMask'] if 'useInlandWaterMask' in params[PARAMS_SECTION] else "false"
     apply_simec_correction = params[PARAMS_SECTION]['applySimecCorrection'] if 'applySimecCorrection' in params[PARAMS_SECTION] else "false"
     glint = params[PARAMS_SECTION]['glintCorrectionPostProcessing'] if 'glintCorrectionPostProcessing' in params[PARAMS_SECTION] else "false"
 
+    # check output path
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
@@ -42,33 +44,112 @@ def process(env, params, l1product_path, _, out_path):
             return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    gpt_xml_file = os.path.join(out_path, OUT_DIR, REPROD_DIR, GPT_XML_FILENAME.format(sensor))
-    if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, sensor, os.path.dirname(output_file), use_product_water_mask, use_inland_water_mask, apply_simec_correction, glint)
+    # prepare call
+    if sensor == "MSI":
+        args = create_args_msi(icor, glint, apply_simec_correction, os.path.dirname(output_file), output_file, l1product_path)
+    elif sensor == "OLCI":
+        args = create_args_olci(icor, glint, apply_simec_correction, use_product_water_mask, use_inland_water_mask, os.path.dirname(output_file), output_file, l1product_path)
+    elif sensor == "OLI_TIRS":
+        args = create_args_oli_tirs(icor, glint, apply_simec_correction, os.path.dirname(output_file), output_file, l1product_path)
+    else:
+        raise RuntimeError("iCOR not implemented for sensor {}".format(sensor))
 
-    args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(l1product_path),
-            "-PoutputFile={}".format(output_file)]
-    print("Calling '{}'".format(args))
+    # ensure reproducibility
+    with open(os.path.join(out_path, REPROD_DIR, "cli_call.txt")) as f:
+        f.write(" ".join(args))
+
+    # execute call
+    print("Calling '{}'".format(" ".join(args)))
     if subprocess.call(args):
-        if os.path.exists(output_file):
-            os.remove(output_file)
-        else:
-            print("No file was created.")
-        raise RuntimeError("GPT Failed.")
-
+        raise RuntimeError("Subprocess Failed.")
     return output_file
 
 
-def rewrite_xml(gpt_xml_file, sensor, working_folder, use_product_water_mask, use_inland_water_mask, apply_simec_correction, glint):
-    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor)), "r") as f:
-        xml = f.read()
+def create_args_msi(icor, glint, apply_simec_correction, working_folder, output_file, l1product_path):
+    args = [icor]
+    args.extend(["--sensor", "S2"])
+    args.extend(["--generate_viewing_grids_s2", "false"])
+    args.extend(["--glint_cor", glint])
+    args.extend(["--keep_intermediate", "false"])
+    args.extend(["--apply_gains", "false"])
+    args.extend(["--cloud_average_threshold", "0.19"])
+    args.extend(["--cloud_low_band", "B01"])
+    args.extend(["--cloud_low_threshold", "0.25"])
+    args.extend(["--cirrus", "true"])
+    args.extend(["--aot", "true"])
+    args.extend(["--aerosol_type", "RURAL"])
+    args.extend(["--aot_window_size", "100"])
+    args.extend(["--simec", apply_simec_correction])
+    args.extend(["--watervapor", "true"])
+    args.extend(["--bg_window", "1"])
+    args.extend(["--cirrus_threshold", "0.01"])
+    args.extend(["--aot_override", "0.1"])
+    args.extend(["--ozone_override", "0.33"])
+    args.extend(["--wv_override", "2.0"])
+    args.extend(["--water_band", "B08"])
+    args.extend(["--water_threshold", "0.05"])
+    args.extend(["--working_folder", working_folder])
+    args.extend(["--output_file", output_file])
+    args.append(l1product_path)
+    return args
 
-    xml = xml.replace("${workingFolder}", working_folder)
-    xml = xml.replace("${useProductWaterMask}", use_product_water_mask)
-    xml = xml.replace("${useInlandWaterMask}", use_inland_water_mask)
-    xml = xml.replace("${applySimecCorrection}", apply_simec_correction)
-    xml = xml.replace("${glintCorrectionPostProcessing}", glint)
 
-    os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
-    with open(gpt_xml_file, "w") as f:
-        f.write(xml)
+def create_args_olci(icor, apply_simec_correction, output_file, glint, use_inland_water_mask, use_product_water_mask, working_folder, l1product_path):
+    args = [icor]
+    args.extend(["--keep_intermediate", "false"])
+    args.extend(["--cloud_average_threshold", "0.23"])
+    args.extend(["--cloud_low_band", "B02"])
+    args.extend(["--cloud_low_threshold", "0.2"])
+    args.extend(["--aot", "true"])
+    args.extend(["--aerosol_type", "RURAL"])
+    args.extend(["--aot_window_size", "100"])
+    args.extend(["--simec", apply_simec_correction])
+    args.extend(["--bg_window", "1"])
+    args.extend(["--aot_override", "0.1"])
+    args.extend(["--ozone", "true"])
+    args.extend(["--aot_override", "0.1"])
+    args.extend(["--ozone_override", "0.33"])
+    args.extend(["--watervapor", "true"])
+    args.extend(["--wv_override", "2.0"])
+    args.extend(["--water_band", "B18"])
+    args.extend(["--water_threshold", "0.06"])
+    args.extend(["--output_file", output_file])
+    args.extend(["--sensor", "S3"])
+    args.extend(["--apply_gains", "false"])
+    args.extend(["--glint_cor", glint])
+    args.extend(["--inlandwater", use_inland_water_mask])
+    args.extend(["--productwater", use_product_water_mask])
+    args.extend(["--keep_land", "false"])
+    args.extend(["--keep_water", "false"])
+    args.extend(["--project", "false"])
+    args.extend(["--working_folder", working_folder])
+    args.append(l1product_path)
+    return args
+
+
+def create_args_oli_tirs(icor, glint, apply_simec_correction, working_folder, output_file, l1product_path):
+    args = [icor]
+    args.extend(["--keep_intermediate", "false"])
+    args.extend(["--apply_gains", "false"])
+    args.extend(["--glint_cor", glint])
+    args.extend(["--cloud_average_threshold", "0.2"])
+    args.extend(["--cloud_low_band", "B01"])
+    args.extend(["--cloud_low_threshold", "0.15"])
+    args.extend(["--cirrus", "true"])
+    args.extend(["--aot", "true"])
+    args.extend(["--aerosol_type", "RURAL"])
+    args.extend(["--aot_override", "0.1"])
+    args.extend(["--aot_window_size", "500"])
+    args.extend(["--simec", apply_simec_correction])
+    args.extend(["--watervapor", "true"])
+    args.extend(["--wv_override", "2.0"])
+    args.extend(["--bg_window", "1"])
+    args.extend(["--cirrus_threshold", "0.005"])
+    args.extend(["--ozone_override", "0.33"])
+    args.extend(["--water_band", "B08"])
+    args.extend(["--water_threshold", "0.05"])
+    args.extend(["--sensor", "L8"])
+    args.extend(["--working_folder", working_folder])
+    args.extend(["--output_file", output_file])
+    args.append(l1product_path)
+    return args

@@ -7,7 +7,7 @@
 		</sources>
 		<parameters>
 			<targetProductFile>${outputFile}</targetProductFile>
-			<workingFolder>string</workingFolder>
+			<workingFolder>${workingFolder}</workingFolder>
 			<keepIntermediateData>false</keepIntermediateData>
 			<applyUserDefinedGains>false</applyUserDefinedGains>
         	<generateIlluminationGrids>false</generateIlluminationGrids>

@@ -7,7 +7,7 @@
 		</sources>
 		<parameters>
 			<targetProductFile>${outputFile}</targetProductFile>
-			<workingFolder>string</workingFolder>
+			<workingFolder>${workingFolder}</workingFolder>
 			<keepIntermediateData>false</keepIntermediateData>
 			<applyUserDefinedGains>false</applyUserDefinedGains>
 			<waterDetectionBand>B05</waterDetectionBand>
