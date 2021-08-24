@@ -7,6 +7,7 @@ import os
 import subprocess
 
 from constants import REPROD_DIR
+from utils.product_fun import get_main_file_from_product_path
 
 
 # Key of the params section for this processor
@@ -90,7 +91,7 @@ def create_args_msi(icor, glint, apply_simec_correction, working_folder, output_
     args.extend(["--water_threshold", "0.05"])
     args.extend(["--working_folder", working_folder])
     args.extend(["--output_file", output_file])
-    args.append(l1product_path)
+    args.append(get_main_file_from_product_path(l1product_path))
     return args
 
 
@@ -123,7 +124,7 @@ def create_args_olci(icor, apply_simec_correction, output_file, glint, use_inlan
     args.extend(["--keep_water", "false"])
     args.extend(["--project", "false"])
     args.extend(["--working_folder", working_folder])
-    args.append(l1product_path)
+    args.append(get_main_file_from_product_path(l1product_path))
     return args
 
 
@@ -151,5 +152,5 @@ def create_args_oli_tirs(icor, glint, apply_simec_correction, working_folder, ou
     args.extend(["--sensor", "L8"])
     args.extend(["--working_folder", working_folder])
     args.extend(["--output_file", output_file])
-    args.append(l1product_path)
+    args.append(get_main_file_from_product_path(l1product_path))
     return args

@@ -143,3 +143,16 @@ def get_l1product_path(env, product_name):
         return os.path.join(env['DIAS']['l1_path'].format(**kwargs), product_name + "_MTL.txt")
     else:
         return env['DIAS']['l1_path'].format(**kwargs)
+
+
+def get_main_file_from_product_path(l1product_path):
+    product_name = os.path.basename(l1product_path)
+    satellite = get_satellite_name_from_product_name(product_name)
+    if satellite in ["S2A", "S2B"]:
+        return os.path.join(l1product_path, "MTD_MSIL1C.xml")
+    elif satellite in ["S3A", "S3B"]:
+        return os.path.join(l1product_path, "xfdumanifest.xml")
+    elif satellite == "L8":
+        return os.path.join(l1product_path, "{}_MTL.txt".format(product_name))
+    else:
+        raise RuntimeError("Unknown satellite: {}".format(satellite))
