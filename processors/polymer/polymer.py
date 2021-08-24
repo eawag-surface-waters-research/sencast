@@ -14,7 +14,6 @@ https://forum.hygeos.com/viewforum.php?f=3
 import os
 import subprocess
 from math import ceil, floor
-# from datetime import datetime
 
 import rasterio
 from netCDF4 import Dataset
@@ -25,10 +24,11 @@ from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.gsw import GSW
 from polymer.level1_msi import Level1_MSI
 from polymer.level1_olci import Level1_OLCI
+from polymer.level1_landsat8 import Level1_OLI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
-from utils.product_fun import get_lons_lats, get_reproject_params_from_wkt  # get_sensing_datetime_from_product_name
+from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
 # Key of the params section for this processor
@@ -96,18 +96,22 @@ def process(env, params, l1product_path, _, out_path):
         print("msi_product_path: {}".format(msi_product_path))
         print("sline: {}, eline: {}, scol: {}, ecol: {}".format(sline, eline, scol, ecol))
         print("gsw_path: {}, ancillary_path: {}, resolution: {}".format(gsw_path, ancillary_path, resolution))
-        l1 = Level1_MSI(msi_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw,
-                        ancillary=ancillary, resolution=resolution)
+        l1 = Level1_MSI(msi_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw, ancillary=ancillary, resolution=resolution)
         additional_ds = ['sza']
     elif sensor == "OLCI":
         calib_gains = polymer_vicarious.olci_vicarious(vicar_version)
-        product_lons, product_lats = get_lons_lats_olci_l1(l1product_path)
-        ul, ur, lr, ll = get_corner_pixels_roi_olci(product_lons, product_lats, wkt)
+        ul, ur, lr, ll = get_corner_pixels_roi_olci(l1product_path, wkt)
         sline, scol, eline, ecol = min(ul[0], ur[0]), min(ul[1], ur[1]), max(ll[0], lr[0]), max(ll[1], lr[1])
         gsw = GSW(directory=gsw_path, agg=8)
-        l1 = Level1_OLCI(l1product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw,
-                         ancillary=ancillary)
+        l1 = Level1_OLCI(l1product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw, ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
+    elif sensor == "OLI_TIRS":
+        calib_gains = polymer_vicarious.oli_vicarious(vicar_version)
+        ul, ur, lr, ll = get_corner_pixels_roi_oli(l1product_path, wkt)
+        sline, scol, eline, ecol = min(ul[0], ur[0]), min(ul[1], ur[1]), max(ll[0], lr[0]), max(ll[1], lr[1])
+        gsw = GSW(directory=gsw_path, agg=8)
+        l1 = Level1_OLI(l1product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw, ancillary=ancillary)
+        additional_ds = ['sza']
     else:
         raise RuntimeError("Unknown sensor for polymer: {}".format(sensor))
 
@@ -153,20 +157,20 @@ def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt):
         f.write(xml)
 
 
-def get_corner_pixels_roi_msi(product_path, wkt):
+def get_corner_pixels_roi_msi(l1product_path, wkt):
     """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
 
-    lons, lats = get_lons_lats(wkt)
+    south, east, north, west = get_south_east_north_west_bound(wkt)
 
-    img_dirs = list(filter(lambda d: d.endswith("_TCI.jp2"), os.listdir(os.path.join(product_path, "IMG_DATA"))))
-    product_path = os.path.join(product_path, "IMG_DATA", img_dirs[0])
+    img_dirs = list(filter(lambda d: d.endswith("_TCI.jp2"), os.listdir(os.path.join(l1product_path, "IMG_DATA"))))
+    l1product_path = os.path.join(l1product_path, "IMG_DATA", img_dirs[0])
 
-    with rasterio.open(product_path) as dataset:
+    with rasterio.open(l1product_path) as dataset:
         h, w = dataset.height, dataset.width
-        ul_pos = get_pixel_pos_msi(dataset, min(lons), max(lats))
-        ur_pos = get_pixel_pos_msi(dataset, max(lons), max(lats))
-        ll_pos = get_pixel_pos_msi(dataset, min(lons), min(lats))
-        lr_pos = get_pixel_pos_msi(dataset, max(lons), min(lats))
+        ul_pos = get_pixel_pos_msi(dataset, west, north)
+        ur_pos = get_pixel_pos_msi(dataset, east, north)
+        ll_pos = get_pixel_pos_msi(dataset, west, south)
+        lr_pos = get_pixel_pos_msi(dataset, east, south)
 
     ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
     ur = [int(ur_pos[1]) if (0 <= ur_pos[1] < h) else 0, int(ur_pos[0]) if (0 <= ur_pos[0] < w) else w]
@@ -180,21 +184,22 @@ def get_pixel_pos_msi(dataset, lon, lat):
     transformer = Transformer.from_crs("epsg:4326", dataset.crs)
     row, col = transformer.transform(lat, lon)
     x, y = dataset.index(row, col)
-    if x < 0 or y < 0:
-        return [-1, -1]
-    return [x, y]
+    return [-1, -1] if x < 0 or y < 0 else [x, y]
 
 
-def get_corner_pixels_roi_olci(product_lons, product_lats, wkt):
+def get_corner_pixels_roi_olci(l1product_path, wkt):
     """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
+
+    with Dataset(os.path.join(l1product_path, "geo_coordinates.nc")) as nc:
+        product_lons, product_lats = nc.variables['longitude'][:], nc.variables['latitude'][:]
 
     h, w = len(product_lons), len(product_lons[0])
 
-    lons, lats = get_lons_lats(wkt)
-    ul_pos = get_pixel_pos(product_lons, product_lats, min(lons), max(lats))
-    ur_pos = get_pixel_pos(product_lons, product_lats, max(lons), max(lats))
-    ll_pos = get_pixel_pos(product_lons, product_lats, min(lons), min(lats))
-    lr_pos = get_pixel_pos(product_lons, product_lats, max(lons), min(lats))
+    south, east, north, west = get_south_east_north_west_bound(wkt)
+    ul_pos = get_pixel_pos(product_lons, product_lats, west, north)
+    ur_pos = get_pixel_pos(product_lons, product_lats, east, north)
+    ll_pos = get_pixel_pos(product_lons, product_lats, west, south)
+    lr_pos = get_pixel_pos(product_lons, product_lats, east, south)
 
     ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
     ur = [int(ur_pos[1]) if (0 <= ur_pos[1] < h) else 0, int(ur_pos[0]) if (0 <= ur_pos[0] < w) else w]
@@ -202,13 +207,6 @@ def get_corner_pixels_roi_olci(product_lons, product_lats, wkt):
     lr = [int(lr_pos[1]) if (0 <= lr_pos[1] < h) else h, int(lr_pos[0]) if (0 <= lr_pos[0] < w) else w]
 
     return ul, ur, lr, ll
-
-
-def get_lons_lats_olci_l1(product_path):
-    nc = Dataset(os.path.join(product_path, "geo_coordinates.nc"))
-    lons, lats = nc.variables['longitude'][:], nc.variables['latitude'][:]
-    nc.close()
-    return lons, lats
 
 
 def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
@@ -255,3 +253,33 @@ def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
         return new_coords[idx]
     else:
         return get_pixel_pos(longitudes, latitudes, lon, lat, new_coords[idx][0], new_coords[idx][1], int(ceil(step / 2)))
+
+
+def get_corner_pixels_roi_oli(l1product_path, wkt):
+    """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
+
+    south, east, north, west = get_south_east_north_west_bound(wkt)
+
+    product_name = os.path.basename(l1product_path)
+    sample_file_path = os.path.join(l1product_path, "{}_BQA.TIF".format(product_name))
+
+    with rasterio.open(sample_file_path) as dataset:
+        h, w = dataset.height, dataset.width
+        ul_pos = get_pixel_pos_oli(dataset, west, north)
+        ur_pos = get_pixel_pos_oli(dataset, east, north)
+        ll_pos = get_pixel_pos_oli(dataset, west, south)
+        lr_pos = get_pixel_pos_oli(dataset, east, south)
+
+    ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
+    ur = [int(ur_pos[1]) if (0 <= ur_pos[1] < h) else 0, int(ur_pos[0]) if (0 <= ur_pos[0] < w) else w]
+    ll = [int(ll_pos[1]) if (0 <= ll_pos[1] < h) else h, int(ll_pos[0]) if (0 <= ll_pos[0] < w) else 0]
+    lr = [int(lr_pos[1]) if (0 <= lr_pos[1] < h) else h, int(lr_pos[0]) if (0 <= lr_pos[0] < w) else w]
+
+    return ul, ur, lr, ll
+
+
+def get_pixel_pos_oli(dataset, lon, lat):
+    transformer = Transformer.from_crs("epsg:4326", dataset.crs)
+    row, col = transformer.transform(lat, lon)
+    x, y = dataset.index(row, col)
+    return [-1, -1] if x < 0 or y < 0 else [x, y]
