@@ -33,12 +33,14 @@ def get_satellite_name_from_product_name(product_name):
         return "S2A"
     elif product_name.startswith("S2B"):
         return "S2B"
+    elif product_name.startswith("LC08"):
+        return "L8"
     else:
         return "Unknown"
 
 
 def get_satellite_name_from_name(product_name):
-    satellite_names = ["S3A", "S3B", "S2A", "S2B"]
+    satellite_names = ["S3A", "S3B", "S2A", "S2B", "L8"]
     for satellite_name in satellite_names:
         if satellite_name in product_name:
             return satellite_name
@@ -145,10 +147,8 @@ def get_l1product_path(env, product_name):
         'month': date.strftime(r"%m"),
         'day': date.strftime(r"%d")
     }
-    if sensor == "OLI_TIRS":
-        return os.path.join(env['DIAS']['l1_path'].format(**kwargs), product_name + "_MTL.txt")
-    else:
-        return env['DIAS']['l1_path'].format(**kwargs)
+
+    return env['DIAS']['l1_path'].format(**kwargs)
 
 
 def get_main_file_from_product_path(l1product_path):

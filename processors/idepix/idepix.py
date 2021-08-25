@@ -12,7 +12,7 @@ https://www.brockmann-consult.de/portfolio/idepix/
 import os
 import subprocess
 
-from utils.product_fun import get_reproject_params_from_wkt
+from utils.product_fun import get_reproject_params_from_wkt, get_main_file_from_product_path
 
 # Key of the params section for this processor
 PARAMS_SECTION = "IDEPIX"
@@ -50,6 +50,8 @@ def process(env, params, l1product_path, _, out_path):
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, sensor, resolution, wkt)
 
+    if sensor == "OLI_TIRS":
+        l1product_path = get_main_file_from_product_path(l1product_path)
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(l1product_path),
             "-PoutputFile={}".format(output_file)]
     print("Calling '{}'".format(args))
