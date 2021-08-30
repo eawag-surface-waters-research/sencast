@@ -37,8 +37,6 @@ def apply(env, params, l2product_files, date):
                 date
                     Run date
                 """
-    if not env.has_section(PARAMS_SECTION):
-        raise RuntimeWarning('Forel-Ule was not configured in this environment.')
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning('Forel-Ule was not configured in parameters.')
     print("Applying Forel-Ule...")

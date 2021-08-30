@@ -225,8 +225,6 @@ def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
     lons_height, lons_width = len(longitudes), len(longitudes[0])
     lats_height, lats_width = len(latitudes), len(latitudes[0])
 
-    print("lons: {} x {}, lats: {} x {}".format(lons_height, lons_width, lats_height, lats_width))
-
     if lats_height != lons_height or lats_width != lons_width:
         raise RuntimeError("Provided latitudes and longitudes matrices do not have the same size!")
 
@@ -241,9 +239,6 @@ def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
                   [x + step, y + step], [x + step, y], [x + step, y - step], [x, y - step]]
     distances = [haversine((lat, lon), (latitudes[new_x][new_y], longitudes[new_x][new_y])) for [new_x, new_y] in
                  new_coords]
-
-    print("x = {}, y = {}, curr.dist. = {}, ({} / {})".format(x, y, distances[0], longitudes[x][y], latitudes[x][y]))
-    print(distances)
 
     idx = distances.index(min(distances))
 

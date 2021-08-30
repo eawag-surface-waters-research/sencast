@@ -38,8 +38,6 @@ def apply(env, params, l2product_files, _):
                     Run date
                 """
 
-    if not env.has_section(PARAMS_SECTION):
-        raise RuntimeWarning('Secchi depth was not configured in this environment.')
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning('Secchi depth was not configured in parameters.')
     print("Applying Secchi Depth...")

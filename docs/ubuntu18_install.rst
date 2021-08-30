@@ -1,29 +1,33 @@
 .. _ubuntu18install:
 
 ------------------------------------------------------------------------------------------
-Ubuntu 18
+Ubuntu 18, 20.04
 ------------------------------------------------------------------------------------------
+Prepare)
 
+	Update repositories and installed packages:
+		$ sudo apt update
+		$ sudo apt upgrade
+		
+	Here we put the setup files:
+		$ mkdir -p ~/setup
+		
 
 1.) OpenJdk: https://dzone.com/articles/installing-openjdk-11-on-ubuntu-1804-for-real (if not installed already):
 
 	In shell do following:
-		$ sudo apt-get install default-jdk
+		$ sudo apt install default-jdk
 			> y
 		$ java -version
-		  Needs to be version 11java
+		$ echo export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64 >> ~/.bashrc
+	
+	Restart your shell session
 
 2.) Maven: https://www.javahelps.com/2017/10/install-apache-maven-on-linux.html
 
 	In shell do following:
-		$ mkdir -p ~/setup
-		$ curl http://mirror.easyname.ch/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz -o ~/setup/apache-maven-3.6.3-bin.tar.gz
-		$ sudo tar -xvzf ~/setup/apache-maven-3.6.3-bin.tar.gz --directory /home/jamesrunnalls
-		$ sudo su -c 'echo "M2_HOME=/home/jamesrunnalls/apache-maven-3.6.3/" >> /etc/environment'
-		$ sudo update-alternatives --install "/usr/bin/mvn" "mvn" "/home/jamesrunnalls/apache-maven-3.6.3/bin/mvn" 0
-		$ sudo update-alternatives --set mvn /home/jamesrunnalls/apache-maven-3.6.3/bin/mvn
+		$ sudo apt install maven
 		$ mvn -version
-		$ sudo reboot
 
 
 3.) Anaconda: https://problemsolvingwithpython.com/01-Orientation/01.05-Installing-Anaconda-on-Linux/
@@ -38,13 +42,20 @@ Ubuntu 18
 			>>> yes
 		$ sudo reboot
 		$ conda config --set auto_activate_base false
+		$ echo export CONDA_HOME=~/anaconda3 >> ~/.bashrc
+	
+	Restart your shell session
 
 
 4. Anaconda: create sencast-39 environment
 
 	In shell do following:
 		$ conda config --add channels conda-forge
-		$ conda create --name sencast-39 python=3.9 gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj scikit-image pyresample h5py pyhdf pyepr glymur pygrib cdsapi xarray xlrd bioconda::ecmwfapi
+		$ conda config --append channels bioconda
+		$ conda create --name sencast-39 python=3.9 colour-science gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj pyresample h5py pyhdf pyepr glymur pygrib cdsapi xarray xlrd=1.2.0 bioconda::ecmwfapi
+		$ echo export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast-39 >> ~/.bashrc
+	
+	Restart your shell session
 
 
 5.) SNAP: http://step.esa.int/main/download/
@@ -70,44 +81,49 @@ Ubuntu 18
 		$ echo "s3tbx.reader.meris.pixelGeoCoding=true" >> ~/.snap/etc/s3tbx.properties
 		$ echo "s3tbx.reader.slstrl1b.pixelGeoCodings=true" >> ~/.snap/etc/s3tbx.properties
 		$ echo "s3tbx.landsat.readAs=reflectance" >> ~/.snap/etc/s3tbx.properties
+		$ echo export SNAP_HOME=~/snap >> ~/.bashrc
+	
+	Restart your shell session
 
 	Note: there are many strange error messages, but it seems to work in the end when updating and installing plugins
 
 	To remove warning "WARNING: org.esa.snap.dataio.netcdf.util.MetadataUtils: Missing configuration property ‘snap.dataio.netcdf.metadataElementLimit’. Using default (100).":
-		$ echo "" >> ~/snap/etc/snap.properties
-		$ echo "# NetCDF options" >> ~/snap/etc/snap.properties
-		$ echo "snap.dataio.netcdf.metadataElementLimit=10000" >> ~/snap/etc/snap.properties
+		$ echo "" >> $SNAP_HOME/etc/snap.properties
+		$ echo "# NetCDF options" >> $SNAP_HOME/etc/snap.properties
+		$ echo "snap.dataio.netcdf.metadataElementLimit=10000" >> $SNAP_HOME/etc/snap.properties
 
 	To remove warning "SEVERE: org.esa.s2tbx.dataio.gdal.activator.GDALDistributionInstaller: The environment variable LD_LIBRARY_PATH is not set. It must contain the current folder '.'."
-		$ sudo su -c 'echo "LD_LIBRARY_PATH=." >> /etc/environment'
+		$ echo export LD_LIBRARY_PATH=. >> ~/.bashrc
+	
+	Restart your shell session
 
 
-6.) Python - jpy: https://github.com/bcdev/jpy/blob/master/README.md
+6.) Python - jpy: https://github.com/jpy-consortium/jpy/blob/master/README.md
 
 	In shell do following:
-		$ sudo apt-get install python-setuptools
-		$ cd ~/anaconda3/envs/sencast-39/lib/python3.9/site-packages
-		$ git clone https://github.com/bcdev/jpy.git
+		($ sudo apt install python-setuptools)
+		$ cd $CONDA_ENV_HOME/lib/python3.9/site-packages
+		$ git clone https://github.com/jpy-consortium/jpy
 		$ cd jpy
 		$ conda activate sencast-39
-		$ conda install -c conda-forge wheel
-		$ python get-pip.py
+		($ conda install -c conda-forge wheel)
+		($ python get-pip.py)
 		$ python setup.py build maven bdist_wheel
 
 
 7.) Python - snappy: https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md
 
 	In shell do following:
-		a$ sudo ln -s ../../lib64/libnsl.so.2 /usr/lib64/libnsl.so
-		a$ sudo ln -s ../../lib64/libnsl.so.2.0.0 /usr/lib64/libnsl.so.1
+		($ sudo ln -s ../../lib64/libnsl.so.2 /usr/lib64/libnsl.so)
+		($ sudo ln -s ../../lib64/libnsl.so.2.0.0 /usr/lib64/libnsl.so.1)
 		$ mkdir -p ~/.snap/snap-python/snappy
-		$ cp ~/anaconda3/envs/sencast-39/lib/python3.9/site-packages/jpy/dist/*.whl ~/.snap/snap-python/snappy
-		$ bash ~/snap/bin/snappy-conf ~/anaconda3/envs/sencast-39/bin/python ~/.snap/snap-python
+		$ cp $CONDA_ENV_HOME/lib/python3.9/site-packages/jpy/dist/*.whl ~/.snap/snap-python/snappy
+		$ bash ~/snap/bin/snappy-conf $CONDA_ENV_HOME/bin/python ~/.snap/snap-python
 		$ conda activate sencast-39
 		$ python ~/.snap/snap-python/snappy/setup.py install --user
-		$ cp -avr ~/.snap/snap-python/build/lib/snappy ~/anaconda3/envs/sencast-39/lib/python3.9/site-packages/snappy
-		$ cp -avr ~/.snap/snap-python/snappy/tests ~/anaconda3/envs/sencast-39/lib/python3.9/site-packages/snappy/tests
-		$ cd ~/anaconda3/envs/sencast-39/lib/python3.9/site-packages/snappy/tests
+		$ cp -avr ~/.snap/snap-python/build/lib/snappy $CONDA_ENV_HOME/lib/python3.9/site-packages/snappy
+		$ cp -avr ~/.snap/snap-python/snappy/tests $CONDA_ENV_HOME/lib/python3.9/site-packages/snappy/tests
+		$ cd $CONDA_ENV_HOME/lib/python3.9/site-packages/snappy/tests
 		$ curl https://raw.githubusercontent.com/bcdev/eo-child-gen/master/child-gen-N1/src/test/resources/com/bc/childgen/MER_RR__1P.N1 -o MER_RR__1P.N1
 		$ python test_snappy_mem.py
 		$ python test_snappy_perf.py
@@ -123,10 +139,12 @@ Ubuntu 18
 		$ tar -xvzf ~/setup/polymer-v4.13.tar.gz --directory ~/setup/
 		$ cd ~/setup/polymer-v4.13
 		$ conda activate sencast-39
-		$ sudo apt-get install wget
+		($ sudo apt install wget)
+		($ sudo apt install make)
+		($ sudo apt install gcc)
 		$ make all
-		$ cp -avr ~/setup/polymer-v4.13/polymer ~/anaconda3/envs/sencast-39/lib/python3.9/site-packages/polymer
-		$ cp -avr ~/setup/polymer-v4.13/auxdata ~/anaconda3/envs/sencast-39/lib/python3.9/site-packages/auxdata
+		$ cp -avr ~/setup/polymer-v4.13/polymer $CONDA_ENV_HOME/lib/python3.9/site-packages/polymer
+		$ cp -avr ~/setup/polymer-v4.13/auxdata $CONDA_ENV_HOME/lib/python3.9/site-packages/auxdata
 
 
 9.) sentinel-hindcast: https://renkulab.io/gitlab/odermatt/sentinel-hindcast
@@ -146,7 +164,7 @@ Ubuntu 18
 	Have a Copernicus Climate account ready, otherwise create one: https://cds.climate.copernicus.eu/
 
 	In shell do following:
-		$ echo "url: https://cds.climate.copernicus.eu/api/v2" > ~/.cdsapirc
+		$ echo "url: https://cds.climate.copernicus.eu/api/v2" >> ~/.cdsapirc
 		$ echo key: [uid]:[api-key] >> ~/.cdsapirc (Note: replace [uid] and [api-key] by your actual credentials, see https://cds.climate.copernicus.eu/api-how-to )
 		$ chmod 600 ~/.cdsapirc
 
@@ -166,7 +184,7 @@ Ubuntu 18
 
 	In shell do following:
 		$ touch ~/.netrc
-		$ echo "machine urs.earthdata.nasa.gov login <earthdata user> password <earthdata password>" > ~/.netrc
+		$ echo "machine urs.earthdata.nasa.gov login <earthdata user> password <earthdata password>" >> ~/.netrc
 		$ chmod 0600 ~/.netrc
 		$ touch ~/.urs_cookies
 

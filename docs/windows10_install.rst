@@ -54,7 +54,7 @@ Windows 10
 		> conda config --add channels conda-forge
 
 	Create a new environment named "sencast" using Anaconda
-		> conda create --name sencast-39 python=3.9 gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj scikit-image pyresample h5py pyhdf pyepr glymur pygrib cdsapi xarray bioconda::ecmwfapi
+		> conda create --name sencast-39 python=3.9 colour-science gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj pyresample h5py pyhdf pyepr glymur pygrib cdsapi xarray xlrd=1.2.0 bioconda::ecmwfapi
 
 	Set CONDA_ENV_HOME to "%CONDA_HOME%\\envs\\sencast-39"
 
@@ -92,7 +92,7 @@ Windows 10
 
 	Configure: Tools -> Plugins -> Available Plugins -> Install all IDEPIX Plugins
 
-	Set SNAP_HOME to "C:\\path_to_snap_isntallation\\" (e.g. C:\\Snap7)
+	Set SNAP_HOME to "C:\\path_to_snap_installation\\" (e.g. C:\\Snap7)
 
 	Close SNAP
 
@@ -123,7 +123,6 @@ Windows 10
 		> jar xf "polymer-v4.13.zip"
 		> cd "polymer-v4.13"
 		> conda activate sencast-39
-		> conda install pyhdf pyepr glymur pygrib cdsapi xarray bioconda::ecmwfapi
 		> python setup.py build_ext --inplace
 		> xcopy "%USERPROFILE%\\AppData\\Local\\Temp\\polymer-v4.13\\polymer" "%CONDA_ENV_HOME%\\Lib\\site-packages\\polymer\\"
 		> xcopy "%USERPROFILE%\\AppData\\Local\\Temp\\polymer-v4.13\\auxdata" "%CONDA_ENV_HOME%\\Lib\\site-packages\\auxdata\\"
