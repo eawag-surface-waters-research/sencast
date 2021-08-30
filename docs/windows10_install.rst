@@ -126,6 +126,8 @@ Windows 10
 		> python setup.py build_ext --inplace
 		> xcopy "%USERPROFILE%\\AppData\\Local\\Temp\\polymer-v4.13\\polymer" "%CONDA_ENV_HOME%\\Lib\\site-packages\\polymer\\"
 		> xcopy "%USERPROFILE%\\AppData\\Local\\Temp\\polymer-v4.13\\auxdata" "%CONDA_ENV_HOME%\\Lib\\site-packages\\auxdata\\"
+		
+	In the file site-packages\polymer\level1_landsat8.py replace line 13 "import osr" by "from osgeo import osr"
 
 
 10.) sencast: https://renkulab.io/gitlab/odermatt/sentinel-hindcast

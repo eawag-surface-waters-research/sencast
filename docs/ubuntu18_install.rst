@@ -145,6 +145,8 @@ Prepare)
 		$ make all
 		$ cp -avr ~/setup/polymer-v4.13/polymer $CONDA_ENV_HOME/lib/python3.9/site-packages/polymer
 		$ cp -avr ~/setup/polymer-v4.13/auxdata $CONDA_ENV_HOME/lib/python3.9/site-packages/auxdata
+		
+	In the file site-packages/polymer/level1_landsat8.py replace line 13 "import osr" by "from osgeo import osr"
 
 
 9.) sentinel-hindcast: https://renkulab.io/gitlab/odermatt/sentinel-hindcast
