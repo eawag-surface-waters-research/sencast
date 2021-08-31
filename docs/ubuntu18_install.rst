@@ -8,6 +8,7 @@ Prepare)
 	Update repositories and installed packages:
 		$ sudo apt update
 		$ sudo apt upgrade
+		$ sudo apt install unzip zip
 		
 	Here we put the setup files:
 		$ mkdir -p ~/setup
@@ -74,7 +75,7 @@ Prepare)
 			[n, Enter]
 			[n, Enter]
 		$ ~/snap/bin/snap --nosplash --nogui --modules --update-all
-		$ ~/snap/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi
+		$ ~/snap/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi org.esa.chris.chris.noise.reduction org.esa.snap.snap.zarr org.esa.s2tbx.s2tbx.otb.adapters.kit org.esa.s2tbx.Pansharpening.bayes org.esa.s2tbx.s2tbx.gdal.reader.ui org.esa.chris.chris.atmospheric.correction org.esa.chris.chris.cloud.screening org.esa.s2tbx.sen2three org.esa.snap.snap.jython org.esa.s2tbx.Segmentation.cc org.esa.chris.chris.atmospheric.correction.lut org.esa.s2tbx.Pansharpening.rcs org.esa.chris.chris.toa.reflectance.computation org.esa.chris.chris.geometric.correction org.esa.s2tbx.MultivariateAlterationDetector org.esa.snap.core.gpf.operators.tooladapter.snaphu org.esa.s2tbx.Pansharpening.lmvm org.esa.chris.chris.util org.esa.s2tbx.Segmentation.meanshift org.esa.snap.snap.product.library.ui org.esa.chris.chris.kit org.esa.s2tbx.SFSTextureExtraction org.esa.sen2coral.sen2coral.algorithms.ui org.esa.s2tbx.Segmentation.watershed org.esa.s2tbx.Segmentation.mprofiles org.esa.chris.chris.reader
 		$ echo "#SNAP configuration 's3tbx'" >> ~/.snap/etc/s3tbx.properties
 		$ echo "#Fri Mar 27 12:55:00 CET 2020" >> ~/.snap/etc/s3tbx.properties
 		$ echo "s3tbx.reader.olci.pixelGeoCoding=true" >> ~/.snap/etc/s3tbx.properties
@@ -207,4 +208,23 @@ Prepare)
 		$ git clone https://github.com/acolite/acolite.git
 	
 	Configure your Acolite path in you environment file.
-		
+
+
+16.) iCOR:
+
+	In shell do following:
+		$
+
+
+17.) FLUO: 
+
+	In shell do following:
+		$ unzip snap-eum-fluo-1.0.nbm -d ~/setup/snap-eum-fluo-1.0
+		$ cp ~/setup/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
+
+
+18.) LSWT: 
+
+	In shell do following:
+		$ unzip snap-musenalp-processor-1.0.5.nbm -d ~/setup/snap-musenalp-processor-1.0.5
+		$ cp ~/setup/snap-musenalp-processor-1.0.5/netbeans/* ~/.snap/system
