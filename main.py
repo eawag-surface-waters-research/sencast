@@ -238,3 +238,11 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 print(sys.exc_info()[0])
                 print("An error occured while applying {} to product group: {}".format(adapter, group))
                 traceback.print_exc()
+
+
+if len(sys.argv) == 2:
+    hindcast(params_file=sys.argv[1])
+elif len(sys.argv) == 3:
+    hindcast(params_file=sys.argv[1], env_file=sys.argv[2])
+else:
+    raise RuntimeError("Unexpected number of arguments: {}, expected 2 or 3 arguments.".format(len(sys.argv)))

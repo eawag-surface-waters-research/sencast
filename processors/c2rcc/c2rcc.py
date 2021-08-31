@@ -47,8 +47,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
     ancillary_obj = {"ozone": "330", "surf_press": "1000", "useEcmwfAuxData": "False"}
     anc_name = "NA"
     if params['C2RCC']['ancillary_data'] == 'ERA5':
+        ancillary_path = env['CDS']['era5_path']
         try:
-            ancillary_path = env['CDS']['era5_path']
             os.makedirs(ancillary_path, exist_ok=True)
             ancillary = Ancillary_ERA5(ancillary_path)
             date = datetime.strptime(date_str, "%Y%m%dT%H%M%S")
@@ -60,7 +60,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             anc_name = "ERA5"
             print(
                 "C2RCC Ancillary Data successfully retrieved. Ozone: {}, Surface Pressure {}".format(ozone, surf_press))
-        except Exception:
+        except RuntimeError:
             print("C2RCC Ancillary Data not retrieved using default values. Ozone: 330, Surface Pressure 1000")
             if ancillary_path.endwith("METEO"):
                 ancillary_obj["useEcmwfAuxData"] = "True"
