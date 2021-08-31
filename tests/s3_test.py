@@ -3,7 +3,7 @@
 
 import os
 
-from main import hindcast
+from ..main import hindcast
 
 
 hindcast(os.path.join(os.path.dirname(os.path.abspath(__file__)), "parameters", "test_S3.ini"))
