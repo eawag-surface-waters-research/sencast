@@ -25,29 +25,17 @@ def parse_s3_name(name):
 
 
 def get_satellite_name_from_product_name(product_name):
-    if product_name.startswith("S3A"):
+    if "S3A" in product_name:
         return "S3A"
-    elif product_name.startswith("S3B"):
+    elif "S3B" in product_name:
         return "S3B"
-    elif product_name.startswith("S2A"):
+    elif "S2A" in product_name:
         return "S2A"
-    elif product_name.startswith("S2B"):
+    elif "S2B" in product_name:
         return "S2B"
-    elif product_name.startswith("LC08"):
+    elif "LC08" in product_name:
         return "L8"
-    else:
-        return "Unknown"
-
-
-def get_satellite_name_from_name(product_name):
-    satellite_names = ["S3A", "S3B", "S2A", "S2B", "L8"]
-    for satellite_name in satellite_names:
-        if satellite_name in product_name:
-            return satellite_name
-    # ToDo: add satellite name to mosaicking
-    if 'Mosaic_' in product_name:
-        return 'S2A'
-    return "NA"
+    raise RuntimeError("Could not read satellite name from product name [{}]".format(product_name))
 
 
 def filter_for_timeliness(download_requests, product_names):

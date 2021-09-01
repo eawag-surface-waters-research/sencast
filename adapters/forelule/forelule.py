@@ -10,7 +10,7 @@ import os
 import numpy as np
 from colour import dominant_wavelength
 from snappy import ProductIO, ProductData, Product, ProductUtils
-from utils.product_fun import get_satellite_name_from_name
+from utils.product_fun import get_satellite_name_from_product_name
 
 
 # key of the params section for this adapter
@@ -79,7 +79,7 @@ def apply(env, params, l2product_files, date):
     print('Raster size: {} x {} pixels'.format(width, height))
     print('Bands:       {}'.format(list(product_band_names)))
 
-    satellite = get_satellite_name_from_name(product_name)
+    satellite = get_satellite_name_from_product_name(product_name)
 
     ################## Derivation of the hue angle ##################
     if satellite in ['S2A', 'S2B']:

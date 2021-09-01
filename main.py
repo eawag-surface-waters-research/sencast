@@ -57,10 +57,10 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
         Parameters
         -------------
 
-        params
-            Dictionary of parameters, loaded from input file
         env
             Dictionary of environment parameters, loaded from input file
+        params
+            Dictionary of parameters, loaded from input file
         l2_path
             The output folder in which to save the output files
         max_parallel_downloads
@@ -74,7 +74,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
             | Maximum number of adapters to run in parallel
         """
     # dynamically import the remote dias api to use
-    api = env['General']['remote_dias_api']
+    api = params['General']['remote_dias_api']
     authenticate = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "authenticate")
     get_download_requests = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "get_download_requests")
     do_download = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "do_download")
@@ -98,13 +98,8 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
         'adapt': Semaphore(max_parallel_adapters)
     }
 
-    # if running on creodias server
-    server = False
-    if "server" in env['General'] and env['General']['server'] is not False:
-        server = env['General']['server']
-
     # for readonly local dias, remove unavailable products and their download_requests
-    if env['DIAS']['readonly'] == "readonly":
+    if env['DIAS']['readonly'] == "True":
         print("{} products have been found.".format(len(l1product_paths)))
         for i in range(len(l1product_paths)):
             if not os.path.exists(l1product_paths[i]):
@@ -112,6 +107,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
         l1product_paths = list(filter(None, l1product_paths))
         download_requests = list(filter(None, download_requests))
         print("{} products are avaiable and will be processed.".format(len(l1product_paths)))
+        print("Products which are available will not be downloaded because the local DIAS is set to 'readonly'.")
     else:
         actual_downloads = len([0 for l1product_path in l1product_paths if not os.path.exists(l1product_path)])
         print("{} products are already locally available.".format(len(l1product_paths) - actual_downloads))
@@ -138,7 +134,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     # do hindcast for every product group
     hindcast_threads = []
     for group, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
-        args = (env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path, semaphores, group, server)
+        args = (env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path, semaphores, group)
         hindcast_threads.append(Thread(target=hindcast_product_group, args=args, name="Thread-{}".format(group)))
         hindcast_threads[-1].start()
 
@@ -149,7 +145,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     print("Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
 
 
-def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, group, server):
+def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, group):
     """Run sencast for given thread.
         1. Downloads required products
         2. Runs processors
@@ -178,14 +174,12 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
             Dictionary of semaphore objects
         group
             Thread group name
-        server
-            only needed for CreoDIAS API
         """
     # download the products, which are not yet available locally
     for download_request, l1product_path in zip(download_requests, l1product_paths):
         if not os.path.exists(l1product_path):
             with semaphores['download']:
-                do_download(auth, download_request, l1product_path, server)
+                do_download(auth, download_request, l1product_path)
 
     # ensure all products have been downloaded
     for l1product_path in l1product_paths:

@@ -1,0 +1,31 @@
+<graph id="mph">
+	<version>1.0</version>
+	<node id="icorNode">
+		<operator>iCOR-SENTINEL-2</operator>
+		<sources>
+			<sourceProduct>${sourceFile}</sourceProduct>
+		</sources>
+		<parameters>
+			<targetProductFile>${outputFile}</targetProductFile>
+			<workingFolder>${workingFolder}</workingFolder>
+			<keepIntermediateData>false</keepIntermediateData>
+			<applyUserDefinedGains>false</applyUserDefinedGains>
+        	<generateIlluminationGrids>false</generateIlluminationGrids>
+			<waterDetectionBand>B08</waterDetectionBand>
+			<waterMaskDetectionThreshold>0.05</waterMaskDetectionThreshold>
+			<cloudDetectionLowBand>B01</cloudDetectionLowBand>
+			<cloudMaskLowThreshold>0.25</cloudMaskLowThreshold>
+			<cloudMaskAverageThreshold>0.19</cloudMaskAverageThreshold>
+			<cloudMaskIncludeCirrus>true</cloudMaskIncludeCirrus>
+			<cloudMaskCirrusThreshold>0.01</cloudMaskCirrusThreshold>
+			<estimateAot>true</estimateAot>
+			<aerosolType>RURAL</aerosolType>
+			<defaultAotValue>0.1</defaultAotValue>
+        	<estimateWaterVapor>true</estimateWaterVapor>
+			<defaultWaterVaporValue>2.0</defaultWaterVaporValue>
+			<applySimecCorrection>${applySimecCorrection}</applySimecCorrection>
+			<defaultAdjacencyWindowSize>1</defaultAdjacencyWindowSize>
+			<glintCorrectionPostProcessing>${glintCorrectionPostProcessing}</glintCorrectionPostProcessing>
+	  	</parameters>
+	</node>
+</graph>

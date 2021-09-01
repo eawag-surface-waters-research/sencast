@@ -8,7 +8,6 @@ Documentation for CREODIAS API can be found `here. <https://creodias.eu/eo-data-
 
 import os
 import requests
-from shutil import copytree, copyfile
 
 from requests.status_codes import codes
 from tqdm import tqdm
@@ -19,7 +18,7 @@ from pathlib import Path
 # https://creodias.eu/eo-data-finder-api-manual
 
 # search address
-search_address = "https://finder.creodias.eu/resto/api/collections/{}/search.json?{}"  #Sentinel3
+search_address = "https://finder.creodias.eu/resto/api/collections/{}/search.json?{}"  # Sentinel3
 
 # download address
 download_address = "https://zipper.creodias.eu/download/{}?token={}"
@@ -81,20 +80,6 @@ def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endposi
     return uuids_filtered, product_names_filtered
 
 
-def do_download(auth, download_request, product_path, server):
-    if server is not False:
-        try:
-            if local_download(product_path, server) is False:
-                print("Failed to locate file on server, downloading file from API.")
-                download(auth, download_request['uuid'], product_path)
-        except Exception as e:
-            print(e)
-            print("Failed to copy file from server, downloading file from API.")
-            download(auth, download_request['uuid'], product_path)
-    else:
-        download(auth, download_request['uuid'], product_path)
-
-
 def get_dataset_id(sensor, resolution):
     if sensor == 'OLCI' and int(resolution) < 1000:
         return 'Sentinel3', 'OL', 'EFR', ''
@@ -127,13 +112,13 @@ def search(satellite, query):
             raise RuntimeError("Unexpected response: {}".format(response.text))
 
 
-def download(auth, uuid, filename):
+def do_download(auth, download_request, product_path):
     username = auth[0]
     password = auth[1]
     token = get_token(username, password)
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    url = download_address.format(uuid, token)
-    file_temp = "{}.incomplete".format(filename)
+    os.makedirs(os.path.dirname(product_path), exist_ok=True)
+    url = download_address.format(download_request['uuid'], token)
+    file_temp = "{}.incomplete".format(product_path)
     try:
         downloaded_bytes = 0
         with requests.get(url, stream=True, timeout=100) as req:
@@ -146,28 +131,12 @@ def download(auth, uuid, filename):
                             progress.update(len(chunk))
                             downloaded_bytes += len(chunk)
         with ZipFile(file_temp, 'r') as zip_file:
-            zip_file.extractall(os.path.dirname(filename))
+            zip_file.extractall(os.path.dirname(product_path))
     finally:
         try:
             Path(file_temp).unlink()
         except OSError:
             pass
-
-
-def local_download(filepath, server):
-    filename = os.path.basename(filepath)
-    if parse_filename(filename) is False:
-        return False
-    satellite, sensor, product, year, month, day = parse_filename(filename)
-    server_path = os.path.join(server, satellite, sensor, product, year, month, day, filename)
-    if os.path.isfile(server_path):
-        copyfile(server_path, filepath)
-        return True
-    elif os.path.isdir(server_path):
-        copytree(server_path, filepath)
-        return True
-    else:
-        return False
 
 
 def parse_filename(filename):
