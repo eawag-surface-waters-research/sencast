@@ -70,7 +70,7 @@ def create_args_msi(icor, glint, apply_simec_correction, working_folder, output_
     args.extend(["--sensor", "S2"])
     args.extend(["--generate_viewing_grids_s2", "false"])
     args.extend(["--glint_cor", glint])
-    args.extend(["--keep_intermediate", "true"])
+    args.extend(["--keep_intermediate", "false"])
     args.extend(["--apply_gains", "false"])
     args.extend(["--cloud_average_threshold", "0.19"])
     args.extend(["--cloud_low_band", "B01"])
