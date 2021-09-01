@@ -199,7 +199,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                     output_file = process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
                     if output_file:
                         l2product_files[l1product_path][processor] = output_file
-                except RuntimeError:
+                except (Exception, ):
                     print("An error occured while applying {} to product: {}".format(processor, l1product_path))
                     traceback.print_exc()
 
@@ -215,8 +215,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 from processors.mosaic.mosaic import mosaic
                 try:
                     l2product_files[processor] = mosaic(env, params, tmp)
-                except RuntimeError:
-                    print("An error occured while applying MOSAIC to products: {}".format(tmp))
+                except (Exception, ):
+                    print("An error occured while mosaicing the outputs [{}] of processor {}".format(tmp, processor))
                     traceback.print_exc()
 
         for l1product_path in l1product_paths:
@@ -228,7 +228,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
             try:
                 apply = getattr(importlib.import_module("adapters.{}.{}".format(adapter.lower(), adapter.lower())), "apply")
                 apply(env, params, l2product_files, group)
-            except RuntimeError:
+            except (Exception, ):
                 print(sys.exc_info()[0])
                 print("An error occured while applying {} to product group: {}".format(adapter, group))
                 traceback.print_exc()

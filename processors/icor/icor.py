@@ -16,8 +16,6 @@ PARAMS_SECTION = "ICOR"
 OUT_DIR = "ICOR"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
 OUT_FILENAME = "icor_{}.nc"
-# The name of the xml file for gpt
-GPT_XML_FILENAME = "icor_{}.xml"
 
 
 def process(env, params, l1product_path, _, out_path):
@@ -148,7 +146,7 @@ def create_args_oli_tirs(icor, glint, apply_simec_correction, working_folder, ou
     args.extend(["--bg_window", "1"])
     args.extend(["--cirrus_threshold", "0.005"])
     args.extend(["--ozone_override", "0.33"])
-    args.extend(["--water_band", "B08"])
+    args.extend(["--water_band", "B05"])
     args.extend(["--water_threshold", "0.05"])
     args.extend(["--sensor", "L8"])
     args.extend(["--working_folder", working_folder])
