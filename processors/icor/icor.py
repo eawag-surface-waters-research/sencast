@@ -25,7 +25,7 @@ def process(env, params, l1product_path, _, out_path):
     print("Applying iCor...")
 
     # read env and params
-    icor_root_path, product_name = env[PARAMS_SECTION]['root_path'], os.path.basename(l1product_path)
+    icor, product_name = env[PARAMS_SECTION]['icor_path'], os.path.basename(l1product_path)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     use_product_water_mask = params[PARAMS_SECTION]['useProductWaterMask'] if 'useProductWaterMask' in params[PARAMS_SECTION] else "false"
     use_inland_water_mask = params[PARAMS_SECTION]['useInlandWaterMask'] if 'useInlandWaterMask' in params[PARAMS_SECTION] else "false"
@@ -44,14 +44,12 @@ def process(env, params, l1product_path, _, out_path):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     # prepare call
-    os.environ['ICOR_DIR'] = os.path.dirname(icor_root_path)
-    icor_script = os.path.join(icor_root_path, "src", "icor.py")
     if sensor == "MSI":
-        args = create_args_msi(icor_script, glint, apply_simec_correction, os.path.dirname(output_file), output_file, l1product_path)
+        args = create_args_msi(icor, glint, apply_simec_correction, os.path.dirname(output_file), output_file, l1product_path)
     elif sensor == "OLCI":
-        args = create_args_olci(icor_script, glint, apply_simec_correction, use_product_water_mask, use_inland_water_mask, os.path.dirname(output_file), output_file, l1product_path)
+        args = create_args_olci(icor, glint, apply_simec_correction, use_product_water_mask, use_inland_water_mask, os.path.dirname(output_file), output_file, l1product_path)
     elif sensor == "OLI_TIRS":
-        args = create_args_oli_tirs(icor_script, glint, apply_simec_correction, os.path.dirname(output_file), output_file, l1product_path)
+        args = create_args_oli_tirs(icor, glint, apply_simec_correction, os.path.dirname(output_file), output_file, l1product_path)
     else:
         raise RuntimeError("iCOR not implemented for sensor {}".format(sensor))
 
@@ -68,7 +66,7 @@ def process(env, params, l1product_path, _, out_path):
 
 
 def create_args_msi(icor, glint, apply_simec_correction, working_folder, output_file, l1product_path):
-    args = ["python", icor]
+    args = [icor]
     args.extend(["--sensor", "S2"])
     args.extend(["--generate_viewing_grids_s2", "false"])
     args.extend(["--glint_cor", glint])
@@ -97,7 +95,7 @@ def create_args_msi(icor, glint, apply_simec_correction, working_folder, output_
 
 
 def create_args_olci(icor, apply_simec_correction, glint, use_inland_water_mask, use_product_water_mask, working_folder, output_file, l1product_path):
-    args = ["python", icor]
+    args = [icor]
     args.extend(["--keep_intermediate", "false"])
     args.extend(["--cloud_average_threshold", "0.23"])
     args.extend(["--cloud_low_band", "B02"])
@@ -130,7 +128,7 @@ def create_args_olci(icor, apply_simec_correction, glint, use_inland_water_mask,
 
 
 def create_args_oli_tirs(icor, glint, apply_simec_correction, working_folder, output_file, l1product_path):
-    args = ["python", icor]
+    args = [icor]
     args.extend(["--keep_intermediate", "false"])
     args.extend(["--apply_gains", "false"])
     args.extend(["--glint_cor", glint])
