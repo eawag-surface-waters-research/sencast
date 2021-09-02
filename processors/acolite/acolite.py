@@ -26,7 +26,7 @@ def process(env, params, l1product_path, _, out_path):
 
     print("Applying Acolite...")
 
-    sys.path.append(env[PARAMS_SECTION]['acolite_path'])
+    sys.path.append(env[PARAMS_SECTION]['root_path'])
     ac = importlib.import_module("acolite.acolite")
 
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']

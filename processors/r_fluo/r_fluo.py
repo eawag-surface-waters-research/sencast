@@ -46,7 +46,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             os.remove(output_file)
         else:
             print("No file was created.")
-        raise RuntimeError("GPT process for POLYMER reflectance failed.")
+        # raise RuntimeError("GPT process for POLYMER reflectance failed.")
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(l2product_files['C2RCC']), "-PoutputFile={}".format(output_file)]
