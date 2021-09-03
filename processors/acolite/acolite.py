@@ -24,8 +24,6 @@ def process(env, params, l1product_path, _, out_path):
     """ This processor calls acolite for the source product and
         writes the result to disk. It returns the location of the output product. """
 
-    print("Applying Acolite...")
-
     sys.path.append(env[PARAMS_SECTION]['root_path'])
     ac = importlib.import_module("acolite.acolite")
 

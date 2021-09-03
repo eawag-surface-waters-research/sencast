@@ -48,7 +48,6 @@ GPT_XML_FILENAME = "polymer_{}.xml"
 def process(env, params, l1product_path, _, out_path):
     """ This processor applies polymer to the source product and stores the result. """
 
-    print("Applying POLYMER...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     # date_str = get_sensing_datetime_from_product_name(product_name)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
@@ -129,10 +128,6 @@ def process(env, params, l1product_path, _, out_path):
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(poly_tmp_file),
             "-PoutputFile={}".format(output_file)]
     if subprocess.call(args):
-        if os.path.exists(output_file):
-            os.remove(output_file)
-        else:
-            print("No file was created.")
         raise RuntimeError("GPT Failed.")
 
     return output_file

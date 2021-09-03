@@ -21,7 +21,6 @@ GPT_XML_FILENAME = "r_fluo.xml"
 def process(env, params, l1product_path, l2product_files, out_path):
     """ This processor applies the fluorescence processor to a radiance source product and stores the result. """
 
-    print("Applying R_FLUO...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     validexpression = params[PARAMS_SECTION]['validexpression']
 
@@ -42,11 +41,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(l2product_files['POLYMER']), "-PoutputFile={}".format(output_file)]
     if subprocess.call(args):
-        if os.path.exists(output_file):
-            os.remove(output_file)
-        else:
-            print("No file was created.")
-        # raise RuntimeError("GPT process for POLYMER reflectance failed.")
+        raise RuntimeError("GPT process for POLYMER reflectance failed.")
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(l2product_files['C2RCC']), "-PoutputFile={}".format(output_file)]

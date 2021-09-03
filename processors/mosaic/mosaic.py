@@ -17,7 +17,6 @@ GPT_XML_FILENAME = "mosaic_{}_{}.xml"
 
 
 def mosaic(env, params, product_files):
-    print("Applying MOSAIC...")
     product_filename = os.path.basename(product_files[0])
     date = get_sensing_date_from_product_name(product_filename)
     name_arr = list(filter(None, re.split('[0-9]{8}', product_filename)[0].split("_")))
@@ -49,10 +48,6 @@ def mosaic(env, params, product_files):
         args.append("-SsourceFile{}={}".format(i, product_files[i]))
     args.append("-PoutputFile={}".format(output_file))
     if subprocess.call(args):
-        if os.path.exists(output_file):
-            os.remove(output_file)
-        else:
-            print("No file was created.")
         raise RuntimeError("GPT Failed.")
 
     return output_file

@@ -12,7 +12,7 @@ import requests
 
 from json import dump
 from netCDF4 import Dataset
-from utils.product_fun import get_satellite_name_from_product_name, get_sensing_datetime_from_product_name
+from utils.product_fun import get_satellite_name_from_product_name, get_sensing_date_from_product_name
 
 
 # the url of the datalakes api
@@ -53,10 +53,10 @@ def apply(env, params, l2product_files, date):
         if processor in l2product_files.keys():
             l2product_file = l2product_files[processor]
             satellite = get_satellite_name_from_product_name(os.path.basename(l2product_file))
-            datetime = get_sensing_datetime_from_product_name(os.path.basename(l2product_file))
+            date = get_sensing_date_from_product_name(os.path.basename(l2product_file))
             out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'],
-                                    satellite + "_" + datetime)
-            output_file_main = os.path.join(out_path, NC_FILENAME.format(processor, satellite, datetime))
+                                    satellite + "_" + date)
+            output_file_main = os.path.join(out_path, NC_FILENAME.format(processor, satellite, date))
             os.makedirs(out_path, exist_ok=True)
             bands_list = list(filter(None, params[PARAMS_SECTION][key].split(",")))
             bands, bands_min, bands_max = parse_bands(bands_list)
@@ -66,8 +66,8 @@ def apply(env, params, l2product_files, date):
                     print("Removing file: ${}".format(output_file_main))
                     os.remove(output_file_main)
                     for idx, val in enumerate(bands):
-                        output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, datetime))
-                        nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, datetime)
+                        output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
+                        nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, date)
                     with open(l2product_file, "rb") as f:
                         nc_bytes = f.read()
                     with open(output_file_main, "wb") as f:
@@ -76,8 +76,8 @@ def apply(env, params, l2product_files, date):
                     print("Skipping Datalakes. Target already exists")
             else:
                 for idx, val in enumerate(bands):
-                    output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, datetime))
-                    nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, datetime)
+                    output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
+                    nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, date)
                 with open(l2product_file, "rb") as f:
                     nc_bytes = f.read()
                 with open(output_file_main, "wb") as f:
@@ -98,7 +98,7 @@ def convert_valid_pixel_expression(vpe, variables):
     return vpe
 
 
-def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_max, satellite, datetime):
+def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_max, satellite, date):
     print("Converting {} to JSON".format(variable_name))
     nc = Dataset(input_file, "r", format="NETCDF4")
     _lons, _lats, _values = np.array(nc.variables['lon'][:]), np.array(nc.variables['lat'][:]), np.array(nc.variables[variable_name][:])
@@ -130,7 +130,7 @@ def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_
         df["valid_pixels"] = 0
     with open(output_file, "w") as f:
         f.truncate()
-        dump({'lonres': lonres, 'latres': latres, 'lon': list(df["lons"]), 'lat': list(df["lats"]), 'v': list(df[variable_name]), 'vp': list(df["valid_pixels"]), 'vpe': valid_pixel_expression, 'satellite': satellite, 'datetime': datetime}, f, separators=(',', ':'))
+        dump({'lonres': lonres, 'latres': latres, 'lon': list(df["lons"]), 'lat': list(df["lats"]), 'v': list(df[variable_name]), 'vp': list(df["valid_pixels"]), 'vpe': valid_pixel_expression, 'satellite': satellite, 'datetime': date}, f, separators=(',', ':'))
 
 
 def notify_datalakes(api_key):

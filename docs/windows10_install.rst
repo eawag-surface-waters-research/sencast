@@ -50,11 +50,11 @@ Windows 10
 6. Anaconda: sencast-39 environment
 
 	Add conda-forge channel to environment:
-		> conda config --add channels bioconda
 		> conda config --add channels conda-forge
+		> conda config --append channels bioconda
 
 	Create a new environment named "sencast" using Anaconda
-		> conda create --name sencast-39 python=3.9 colour-science gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj pyresample h5py pyhdf pyepr glymur pygrib cdsapi xarray xlrd=1.2.0 bioconda::ecmwfapi
+		> conda create --name sencast-39 python=3.9 colour-science gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj pyresample h5py pyhdf pyepr glymur pygrib cdsapi xarray xlrd=1.2.0 bioconda::ecmwfapi scikit-image
 
 	Set CONDA_ENV_HOME to "%CONDA_HOME%\\envs\\sencast-39"
 

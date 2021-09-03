@@ -22,8 +22,6 @@ def process(env, params, l1product_path, _, out_path):
     """ This processor applies iCor to the source product and
         writes the result to disk. It returns the location of the output product. """
 
-    print("Applying iCor...")
-
     # read env and params
     icor, product_name = env[PARAMS_SECTION]['icor_path'], os.path.basename(l1product_path)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']

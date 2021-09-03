@@ -8,6 +8,7 @@ The core functions of Sencast
     where some of them might not be available.
 """
 import importlib
+import logging
 import os
 import time
 import traceback
@@ -19,6 +20,9 @@ from threading import Semaphore, Thread
 from utils.auxil import init_hindcast
 from utils.product_fun import filter_for_timeliness, get_satellite_name_from_product_name, \
     get_sensing_date_from_product_name, get_l1product_path
+
+
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
 
 def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
@@ -186,38 +190,35 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
         if not os.path.exists(l1product_path):
             raise RuntimeError("Download of product was not successfull: {}".format(l1product_path))
 
+    # process the products
     with semaphores['process']:
         l2product_files = {}
-        # apply processor to all products
+        # apply processors to all products
         for processor in list(filter(None, params['General']['processors'].split(","))):
             try:
-                # import processor
+                print("Processor {} starting...".format(processor))
                 process = getattr(importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
+                processor_outputs = []
                 for l1product_path in l1product_paths:
                     if l1product_path not in l2product_files.keys():
                         l2product_files[l1product_path] = {}
                     output_file = process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
                     l2product_files[l1product_path][processor] = output_file
+                    processor_outputs.append(output_file)
+                print("Processor {} finished: [{}].".format(processor, ", ".join(processor_outputs)))
+                if len(l1product_paths) > 1:
+                    try:
+                        print("Mosaicing outputs of processor {}...".format(processor))
+                        from processors.mosaic.mosaic import mosaic
+                        l2product_files[processor] = mosaic(env, params, processor_outputs)
+                        print("Mosaiced outputs of processor {}.".format(processor))
+                    except (Exception, ):
+                        print("Mosaicing outputs of processor {} failed.".format(processor))
+                        traceback.print_exc()
             except (Exception, ):
-                print("An error occured while applying {} to product: {}".format(processor, l1product_path))
+                print("Processor {} failed on product {}.".format(processor, l1product_path))
+                print(sys.exc_info()[0])
                 traceback.print_exc()
-
-        # mosaic outputs
-        for processor in list(filter(None, params['General']['processors'].split(","))):
-            tmp = []
-            for l1product_path in l1product_paths:
-                if processor in l2product_files[l1product_path].keys():
-                    tmp += [l2product_files[l1product_path][processor]]
-            if len(tmp) == 1:
-                l2product_files[processor] = tmp[0]
-            elif len(tmp) > 1:
-                from processors.mosaic.mosaic import mosaic
-                try:
-                    l2product_files[processor] = mosaic(env, params, tmp)
-                except (Exception, ):
-                    print("An error occured while mosaicing the outputs [{}] of processor {}".format(tmp, processor))
-                    traceback.print_exc()
-
         for l1product_path in l1product_paths:
             del(l2product_files[l1product_path])
 
@@ -225,11 +226,13 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
     with semaphores['adapt']:
         for adapter in list(filter(None, params['General']['adapters'].split(","))):
             try:
+                print("Adapter {} starting...".format(adapter))
                 apply = getattr(importlib.import_module("adapters.{}.{}".format(adapter.lower(), adapter.lower())), "apply")
                 apply(env, params, l2product_files, group)
+                print("Adapter {} finished.".format(adapter))
             except (Exception, ):
+                print("Adapter {} failed on product group {}.".format(adapter, group))
                 print(sys.exc_info()[0])
-                print("An error occured while applying {} to product group: {}".format(adapter, group))
                 traceback.print_exc()
 
 

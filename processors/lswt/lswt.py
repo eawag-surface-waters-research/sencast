@@ -27,7 +27,6 @@ GPT_XML_FILENAME = "lswt.xml"
 def process(env, params, l1product_path, _, out_path):
     """ This processor applies the LSWT (Musenalp) Algorithm to the source products. """
 
-    print("Applying LSWT...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
 
@@ -47,10 +46,6 @@ def process(env, params, l1product_path, _, out_path):
             "-PoutputFile={}".format(output_file)]
     print("Calling '{}'".format(args))
     if subprocess.call(args):
-        if os.path.exists(output_file):
-            os.remove(output_file)
-        else:
-            print("No file was created.")
         raise RuntimeError("GPT Failed.")
 
     return output_file

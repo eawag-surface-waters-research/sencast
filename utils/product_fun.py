@@ -103,26 +103,22 @@ def get_sensing_date_from_product_name(product_name):
     return re.findall(r"\d{8}", product_name)[0]
 
 
-def get_sensing_datetime_from_product_name(product_name):
-    return re.findall(r"\d{8}", product_name)[0]
-
-
 def get_l1product_path(env, product_name):
     if product_name.startswith("S3A") or product_name.startswith("S3B"):
         satellite = "Sentinel-3"
         sensor = "OLCI"
         dataset = product_name[4:12]
-        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%d")
+        date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
     elif product_name.startswith("S2A") or product_name.startswith("S2B"):
         satellite = "Sentinel-2"
         sensor = "MSI"
         dataset = product_name[7:10]
-        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%d")
+        date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
     elif product_name.startswith("LC08"):
         satellite = "Landsat8"
         sensor = "OLI_TIRS"
         dataset = product_name[5:9]
-        date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), r"%Y%m%d")
+        date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
     else:
         raise RuntimeError("Unable to retrieve satellite from product name: {}".format(product_name))
 

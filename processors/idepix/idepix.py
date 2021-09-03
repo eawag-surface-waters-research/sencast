@@ -32,7 +32,6 @@ def process(env, params, l1product_path, _, out_path):
     """ This processor applies subset, idepix, merge and reprojection to the source product and
     writes the result to disk. It returns the location of the output product. """
 
-    print("Applying IDEPIX...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
 
@@ -56,10 +55,6 @@ def process(env, params, l1product_path, _, out_path):
             "-PoutputFile={}".format(output_file)]
     print("Calling '{}'".format(args))
     if subprocess.call(args):
-        if os.path.exists(output_file):
-            os.remove(output_file)
-        else:
-            print("No file was created.")
         raise RuntimeError("GPT Failed.")
 
     return output_file
