@@ -190,18 +190,17 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
         l2product_files = {}
         # apply processor to all products
         for processor in list(filter(None, params['General']['processors'].split(","))):
-            # import processor
-            process = getattr(importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
-            for l1product_path in l1product_paths:
-                if l1product_path not in l2product_files.keys():
-                    l2product_files[l1product_path] = {}
-                try:
+            try:
+                # import processor
+                process = getattr(importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
+                for l1product_path in l1product_paths:
+                    if l1product_path not in l2product_files.keys():
+                        l2product_files[l1product_path] = {}
                     output_file = process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
-                    if output_file:
-                        l2product_files[l1product_path][processor] = output_file
-                except (Exception, ):
-                    print("An error occured while applying {} to product: {}".format(processor, l1product_path))
-                    traceback.print_exc()
+                    l2product_files[l1product_path][processor] = output_file
+            except (Exception, ):
+                print("An error occured while applying {} to product: {}".format(processor, l1product_path))
+                traceback.print_exc()
 
         # mosaic outputs
         for processor in list(filter(None, params['General']['processors'].split(","))):
