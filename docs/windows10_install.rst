@@ -47,16 +47,16 @@ Windows 10
 	Add "%CONDA_HOME%\\condabin" to PATH
 
 
-6. Anaconda: sencast-39 environment
+6. Anaconda: sencast environment
 
 	Add conda-forge channel to environment:
 		> conda config --add channels conda-forge
 		> conda config --append channels bioconda
 
 	Create a new environment named "sencast" using Anaconda
-		> conda create --name sencast-39 python=3.9 colour-science gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj pyresample h5py pyhdf pyepr glymur pygrib cdsapi xarray xlrd=1.2.0 bioconda::ecmwfapi scikit-image
+		> conda create --name sencast python=3.9 colour-science gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj pyresample h5py pyhdf pyepr glymur pygrib cdsapi xarray xlrd=1.2.0 bioconda::ecmwfapi
 
-	Set CONDA_ENV_HOME to "%CONDA_HOME%\\envs\\sencast-39"
+	Set CONDA_ENV_HOME to "%CONDA_HOME%\\envs\\sencast"
 
 
 6.) Python - jpy: https://github.com/jpy-consortium/jpy/blob/master/README.md
@@ -65,7 +65,7 @@ Windows 10
 		> cd "%CONDA_ENV_HOME%\\Lib\\site-packages"
 		> git clone https://github.com/bcdev/jpy.git
 		> cd "jpy"
-		> conda activate sencast-39
+		> conda activate sencast
 		> python get-pip.py
 		> python setup.py build maven bdist_wheel
 
@@ -105,7 +105,7 @@ Windows 10
 		> snappy-conf "%CONDA_ENV_HOME%\\python.exe" "%USERPROFILE%\\.snap\\snap-python"
 		> (I had to end the process after about 30 seconds using "Ctrl+C" at this point)
 		> cd "%USERPROFILE%\\.snap\\snap-python\\snappy"
-		> conda activate sencast-39
+		> conda activate sencast
 		> python setup.py install
 		> xcopy "%USERPROFILE%\\.snap\\snap-python\\snappy\\tests" "%CONDA_ENV_HOME%\\Lib\\site-packages\\snappy\\tests\\"
 		> cd "%CONDA_ENV_HOME%\\Lib\\site-packages\\snappy\\tests"
@@ -122,7 +122,7 @@ Windows 10
 		> xcopy "Q:\\Abteilungsprojekte\\Surf\\surf-DD\\RS\\Software\\Polymer\\polymer-v4.13.zip" "%USERPROFILE%\\AppData\\Local\\Temp"
 		> jar xf "polymer-v4.13.zip"
 		> cd "polymer-v4.13"
-		> conda activate sencast-39
+		> conda activate sencast
 		> python setup.py build_ext --inplace
 		> xcopy "%USERPROFILE%\\AppData\\Local\\Temp\\polymer-v4.13\\polymer" "%CONDA_ENV_HOME%\\Lib\\site-packages\\polymer\\"
 		> xcopy "%USERPROFILE%\\AppData\\Local\\Temp\\polymer-v4.13\\auxdata" "%CONDA_ENV_HOME%\\Lib\\site-packages\\auxdata\\"
@@ -158,22 +158,22 @@ Windows 10
 
 	Add a Project Interpreter:
 		- File -> Settings -> Project: sencast -> Gearwheel in the upper right -> Show All...
-		- Add (+) -> Conda Environment -> Existing environment -> Interpreter: C:\\Anaconda3\\envs\\sencast-39\\python.exe -> OK -> OK -> OK
+		- Add (+) -> Conda Environment -> Existing environment -> Interpreter: C:\\Anaconda3\\envs\\sencast\\python.exe -> OK -> OK -> OK
 		- Give it some time to index files (watch processes in the bottom line to finish)
 
 	Define a running configuration:
 		- In the top right "Add Configuration..."
 		- In the top left Add (+) -> Python
-		- Name: sencast-39
+		- Name: sencast
 		- Script path: C:\\Projects\\sentinel-hindcast\\sencast.py
-		- Python interpreter: Python 3.9 (sencast-39)
+		- Python interpreter: Python 3.9 (sencast)
 		- OK
 
 
 14.) Optional - required for MDN
 
 	Start a command prompt and do following:
-		> conda activate sencast-39
+		> conda activate sencast
 		> conda install -c conda-forge tensorflow==1.15.0
 		> conda install -c anaconda scikit-learn=0.23.2
 		> conda install -c conda-forge tensorflow-probability=0.7
