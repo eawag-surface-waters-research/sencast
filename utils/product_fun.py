@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import re
+import subprocess
 
 from haversine import haversine
 from datetime import datetime
@@ -146,3 +147,11 @@ def get_main_file_from_product_path(l1product_path):
         return os.path.join(l1product_path, "{}_MTL.txt".format(product_name))
     else:
         raise RuntimeError("Unknown satellite: {}".format(satellite))
+
+
+def generate_l8_angle_files(env, l1product_path):
+    product_name = os.path.basename(l1product_path)
+    ang_file = os.path.join(l1product_path, "{}_ANG.txt".format(product_name))
+    args = [os.path.join(env['L8_ANGLES']['root_path'], "l8_angles"), ang_file, "BOTH", "1", "-b", "1"]
+    print("Calling [{}]...".format(" ".join(args)))
+    return subprocess.call(args, cwd=l1product_path)

@@ -28,7 +28,7 @@ from polymer.level1_landsat8 import Level1_OLI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
-from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound
+from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
 # Key of the params section for this processor
@@ -92,9 +92,6 @@ def process(env, params, l1product_path, _, out_path):
         sline, scol = [int(floor(i / target_divisor) * target_divisor) for i in [sline, scol]]
         eline, ecol = [int(ceil(i / target_divisor) * target_divisor) for i in [eline, ecol]]
         gsw = GSW(directory=gsw_path)
-        print("msi_product_path: {}".format(msi_product_path))
-        print("sline: {}, eline: {}, scol: {}, ecol: {}".format(sline, eline, scol, ecol))
-        print("gsw_path: {}, ancillary_path: {}, resolution: {}".format(gsw_path, ancillary_path, resolution))
         l1 = Level1_MSI(msi_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw, ancillary=ancillary, resolution=resolution)
         additional_ds = ['sza']
     elif sensor == "OLCI":
@@ -105,6 +102,8 @@ def process(env, params, l1product_path, _, out_path):
         l1 = Level1_OLCI(l1product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw, ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
     elif sensor == "OLI_TIRS":
+        if generate_l8_angle_files(env, l1product_path):
+            raise RuntimeError("Could not create angle files for L8 product: {}".format(l1product_path))
         calib_gains = polymer_vicarious.oli_vicarious(vicar_version)
         ul, ur, lr, ll = get_corner_pixels_roi_oli(l1product_path, wkt)
         sline, scol, eline, ecol = min(ul[0], ur[0]), min(ul[1], ur[1]), max(ll[0], lr[0]), max(ll[1], lr[1])

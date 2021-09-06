@@ -35,8 +35,6 @@ def apply(env, params, l2product_files, date):
     date
         Run date
     """
-    if not env.has_section(PARAMS_SECTION):
-        raise RuntimeWarning("Primary Production was not configured in this environment.")
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("Primary Production was not configured in parameters.")
     print("Applying Primary Production...")
@@ -190,9 +188,11 @@ def apply(env, params, l2product_files, date):
     # Close output file
     out_product.closeIO()
 
+
 def PhytoplanktonToChlorophyll(ph):
     # a_CHL = 0.054 CHL ** 0.96
     return (ph / 0.054) ** (1/0.96)
+
 
 def LatLon_from_XY(product, x, y):
     geoPosType = jpy.get_type('org.esa.snap.core.datamodel.GeoPos')
