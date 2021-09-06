@@ -152,6 +152,19 @@ Prepare)
 		$ cp -avr ~/setup/polymer-v4.13/auxdata $CONDA_ENV_SP/auxdata
 		
 	In the file site-packages/polymer/level1_landsat8.py replace line 13 "import osr" by "from osgeo import osr"
+	
+
+8.) l8_angles: https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con
+	
+	To use polymer with L8 data you must install l8_angles according to: https://forum.hygeos.com/viewtopic.php?f=7&t=136
+	
+	In shell do following:
+		$ curl https://landsat.usgs.gov/sites/default/files/documents/L8_ANGLES_2_7_0.tgz -o ~/setup/L8_ANGLES_2_7_0.tgz
+		$ tar -xvzf ~/setup/L8_ANGLES_2_7_0.tgz --directory ~/
+		$ cd ~/l8_angles
+		$ make
+	
+	Configure the l8_angles in your environment file.
 
 
 8.) CDS API: https://cds.climate.copernicus.eu/api-how-to
