@@ -59,17 +59,6 @@ Windows 10
 	Set CONDA_ENV_HOME to "%CONDA_HOME%\\envs\\sencast"
 
 
-6.) Python - jpy: https://github.com/jpy-consortium/jpy/blob/master/README.md
-
-	Start a command prompt and do following:
-		> cd "%CONDA_ENV_HOME%\\Lib\\site-packages"
-		> git clone https://github.com/bcdev/jpy.git
-		> cd "jpy"
-		> conda activate sencast
-		> python get-pip.py
-		> python setup.py build maven bdist_wheel
-
-
 7.) SNAP: http://step.esa.int/main/download/
 
 	Uninstall all old versions of SNAP:
@@ -97,9 +86,36 @@ Windows 10
 	Close SNAP
 
 
-8.) Python - snappy: https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md
+8.) sencast: https://renkulab.io/gitlab/odermatt/sentinel-hindcast
 
-	Start a command prompt and do following:
+	In cmd do following:
+		> cd "C:\\Projects"
+		> mkdir "DIAS"
+		> mkdir "datalakes"
+		> git clone https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git
+
+
+9. Local DIAS
+
+	Create a folder which you want to use as your local DIAS folder.
+	
+	Configure your local DIAS path in your environment file.
+
+
+10.) Python - jpy: https://github.com/jpy-consortium/jpy/blob/master/README.md
+
+	In cmd do following:
+		> cd "%CONDA_ENV_HOME%\\Lib\\site-packages"
+		> git clone https://github.com/bcdev/jpy.git
+		> cd "jpy"
+		> conda activate sencast
+		> python get-pip.py
+		> python setup.py build maven bdist_wheel
+
+
+11.) Python - snappy: https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md
+
+	In cmd do following:
 		> cd "%SNAP_HOME%\\bin"
 		> xcopy "%CONDA_ENV_HOME%\\Lib\\site-packages\\jpy\\dist\\*.whl" "%USERPROFILE%\\.snap\\snap-python\\snappy\\"
 		> snappy-conf "%CONDA_ENV_HOME%\\python.exe" "%USERPROFILE%\\.snap\\snap-python"
@@ -115,9 +131,11 @@ Windows 10
 		> python test_snappy_product.py
 
 
-9.) Python - polymer: https://forum.hygeos.com/viewforum.php?f=5
+12.) Python - polymer: https://forum.hygeos.com/viewforum.php?f=5
 
-	Start a command prompt and do following:
+	(Due to some internals of polymer it still does not work on Windows. However the part required for C2RCC (ancillary_era5.py) works on windows.)
+
+	In cmd do following:
 		> cd "%USERPROFILE%\\AppData\\Local\\Temp"
 		> xcopy "Q:\\Abteilungsprojekte\\Surf\\surf-DD\\RS\\Software\\Polymer\\polymer-v4.13.zip" "%USERPROFILE%\\AppData\\Local\\Temp"
 		> jar xf "polymer-v4.13.zip"
@@ -130,23 +148,14 @@ Windows 10
 	In the file site-packages\polymer\level1_landsat8.py replace line 13 "import osr" by "from osgeo import osr"
 
 
-10.) sencast: https://renkulab.io/gitlab/odermatt/sentinel-hindcast
+13.) CDS API: https://cds.climate.copernicus.eu/api-how-to
 
-	Start a command prompt and do following:
-		> cd "C:\\Projects"
-		> mkdir "DIAS"
-		> mkdir "datalakes"
-		> git clone https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git
-
-
-11.) CDS API: https://cds.climate.copernicus.eu/api-how-to
-
-	Start a command prompt and do following:
+	In cmd do following:
 		> echo url: https://cds.climate.copernicus.eu/api/v2 > %USERPROFILE%\\.cdsapirc
 		> echo key: <uid>:<api-key> >> %USERPROFILE%\\.cdsapirc
 
 
-12.) PyCharm CE: https://www.jetbrains.com/de-de/pycharm/download/#section=windows
+14.) PyCharm CE: https://www.jetbrains.com/de-de/pycharm/download/#section=windows
 
 	Download PyCharm CE from https://www.jetbrains.com/de-de/pycharm/download/download-thanks.html?platform=windows&code=PCC
 
@@ -170,19 +179,48 @@ Windows 10
 		- OK
 
 
-14.) Optional - required for MDN
+15.) MDN:
 
-	Start a command prompt and do following:
+	In cmd do following:
 		> conda activate sencast
 		> conda install -c conda-forge tensorflow==1.15.0
 		> conda install -c anaconda scikit-learn=0.23.2
 		> conda install -c conda-forge tensorflow-probability=0.7
 
 
-15.) Optional - required for Acolite
+16.) Acolite:
 
 	Start a command prompt and do following:
 		> cd C:\\Projects
 		> git clone https://github.com/acolite/acolite.git
+		
+	Edit the file acolite_l2w.py and comment-out all usages (and import) of "skimage".
+		Currently lines 23, 898, 909, 910, 911
 	
-	Configure your Acolite path in you environment file.
+	Configure your Acolite path in your environment file.
+
+
+17.) FLUO:
+	
+	Install the operator in SNAP Desktop:
+		- Tools -> Plugins -> Downloaded -> Add Plugins...
+		- Choose your *.nbm file (Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\sentinel-hindcast\SNAP Plugins) -> OK
+		- Select your new Plugin in the list -> Install -> Accept everything
+
+
+18.) iCOR: https://remotesensing.vito.be/case/icor
+
+	Download iCOR from https://remotesensing.vito.be/case/icor
+	
+	Execute downloaded .exe file.
+	
+	Installation of SNAP plugin only necessairy if you want to use iCOR from SNAP Desktop. For sencast it is not needed.
+
+
+
+19.) LSWT:
+	
+	Install the operator in SNAP Desktop:
+		- Tools -> Plugins -> Downloaded -> Add Plugins...
+		- Choose your *.nbm file (Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\sentinel-hindcast\SNAP Plugins) -> OK
+		- Select your new Plugin in the list -> Install -> Accept everything

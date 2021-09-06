@@ -37,14 +37,14 @@ Prepare)
 	Restart your shell session
 
 
-2. Anaconda: create sencast-39 environment
+2. Anaconda: create sencast environment
 
 	In shell do following:
 		$ conda config --add channels conda-forge
 		$ conda config --append channels bioconda
-		$ conda create --name sencast-39 python=3.9 colour-science gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj pyresample h5py pyhdf pyepr glymur pygrib cdsapi wheel xarray xlrd=1.2.0 bioconda::ecmwfapi
-		$ echo export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast-39 >> ~/.bashrc
-		$ echo export CONDA_ENV_SP=$CONDA_HOME/envs/sencast-39/lib/python3.9/site-packages >> ~/.bashrc
+		$ conda create --name sencast python=3.9 colour-science gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj pyresample h5py pyhdf pyepr glymur pygrib cdsapi wheel xarray xlrd=1.2.0 bioconda::ecmwfapi
+		$ echo export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast >> ~/.bashrc
+		$ echo export CONDA_ENV_SP=$CONDA_HOME/envs/sencast/lib/python3.9/site-packages >> ~/.bashrc
 	
 	Restart your shell session
 
@@ -112,7 +112,7 @@ Prepare)
 		$ cd $CONDA_ENV_SP
 		$ git clone https://github.com/jpy-consortium/jpy
 		$ cd jpy
-		$ conda activate sencast-39
+		$ conda activate sencast
 		$ python setup.py build maven bdist_wheel
 
 
@@ -124,7 +124,7 @@ Prepare)
 		$ mkdir -p ~/.snap/snap-python/snappy
 		$ cp $CONDA_ENV_SP/jpy/dist/*.whl ~/.snap/snap-python/snappy
 		$ bash $SNAP_HOME/bin/snappy-conf $CONDA_ENV_HOME/bin/python ~/.snap/snap-python
-		$ conda activate sencast-39
+		$ conda activate sencast
 		$ python ~/.snap/snap-python/snappy/setup.py install --user
 		$ cp -avr ~/.snap/snap-python/build/lib/snappy $CONDA_ENV_SP/snappy
 		$ cp -avr ~/.snap/snap-python/snappy/tests $CONDA_ENV_SP/snappy/tests
@@ -143,7 +143,7 @@ Prepare)
 	In shell do following:
 		$ tar -xvzf ~/setup/polymer-v4.13.tar.gz --directory ~/setup/
 		$ cd ~/setup/polymer-v4.13
-		$ conda activate sencast-39
+		$ conda activate sencast
 		($ sudo apt install wget)
 		($ sudo apt install make)
 		($ sudo apt install gcc)
@@ -187,7 +187,7 @@ Prepare)
 11.) MDN:
 
 	In shell do following:
-		$ conda activate sencast-39
+		$ conda activate sencast
 		$ conda install -c conda-forge tensorflow==1.15.0
 		$ conda install -c anaconda scikit-learn=0.23.2
 		$ conda install -c conda-forge tensorflow-probability=0.7
@@ -198,6 +198,9 @@ Prepare)
 	In shell do following:
 		$ cd ~
 		$ git clone https://github.com/acolite/acolite.git
+	
+	Edit the file acolite_l2w.py and comment-out all usages (and import) of "skimage".
+		Currently lines 23, 898, 909, 910, 911
 	
 	Configure your Acolite path in you environment file.
 
@@ -212,7 +215,7 @@ Prepare)
 		$ cp ~/setup/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
 
 
-14.) iCOR:
+14.) iCOR: https://remotesensing.vito.be/case/icor
 
 	Somehow bring the installation file icor_install_ubuntu_20_04_x64_3.0.0.bin to the directory ~/setup/
 
@@ -221,6 +224,8 @@ Prepare)
 		$ sudo mkdir /opt/vito
 		$ sudo chown sencast:sencast /opt/vito
 		$ ./icor_install_ubuntu_20_04_x64_3.0.0.bin
+	
+	Installation of SNAP plugin only necessairy if you want to use iCOR from SNAP Desktop:
 		$ mkdir ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
 		$ mkdir ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
 		$ mkdir ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX

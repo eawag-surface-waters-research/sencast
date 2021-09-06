@@ -206,7 +206,9 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                     l2product_files[l1product_path][processor] = output_file
                     processor_outputs.append(output_file)
                 print("Processor {} finished: [{}].".format(processor, ", ".join(processor_outputs)))
-                if len(l1product_paths) > 1:
+                if len(processor_outputs) == 1:
+                    l2product_files[processor] = processor_outputs[0]
+                elif len(processor_outputs) > 1:
                     try:
                         print("Mosaicing outputs of processor {}...".format(processor))
                         from processors.mosaic.mosaic import mosaic
@@ -219,8 +221,10 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 print("Processor {} failed on product {}.".format(processor, l1product_path))
                 print(sys.exc_info()[0])
                 traceback.print_exc()
+        del processor_outputs
         for l1product_path in l1product_paths:
             del(l2product_files[l1product_path])
+        print("All processors finished! {}".format(str(l2product_files)))
 
     # apply adapters
     with semaphores['adapt']:
