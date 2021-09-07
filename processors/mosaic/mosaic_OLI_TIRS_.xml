@@ -7,30 +7,7 @@
 		</sources>
 		<parameters>
 			<variables>
-				<variable>
-					<name>blue</name>
-					<expression>blue</expression>
-				</variable>
-				<variable>
-					<name>green</name>
-					<expression>green</expression>
-				</variable>
-				<variable>
-					<name>red</name>
-					<expression>red</expression>
-				</variable>
-				<variable>
-					<name>near_infrared</name>
-					<expression>near_infrared</expression>
-				</variable>
-				<variable>
-					<name>thermal_infrared_(tirs)_1</name>
-					<expression>thermal_infrared_(tirs)_1</expression>
-				</variable>
-				<variable>
-					<name>thermal_infrared_(tirs)_2</name>
-					<expression>thermal_infrared_(tirs)_2</expression>
-				</variable>
+				${variables}
 			</variables>
 			<combine>OR</combine>
 			<crs>EPSG:4326</crs>

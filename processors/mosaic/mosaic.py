@@ -10,7 +10,8 @@ import os
 import re
 import subprocess
 
-from utils.product_fun import get_lons_lats, get_sensing_date_from_product_name, get_reproject_params_from_wkt
+from utils.product_fun import get_lons_lats, get_sensing_date_from_product_name, get_reproject_params_from_wkt, \
+    get_band_names_from_nc
 
 # The name of the xml file for gpt
 GPT_XML_FILENAME = "mosaic_{}_{}.xml"
@@ -60,9 +61,17 @@ def rewrite_xml(gpt_xml_file, product_files, sensor, wkt, resolution):
 
     sources_str = "\n\t\t\t".join(["<source{}>{}</source{}>".format(i, "${sourceFile" + str(i) + "}", i) for i in range(len(product_files))])
 
+    product_band_names = [get_band_names_from_nc(product_file) for product_file in product_files]
+    common_band_names = product_band_names[0]
+    for band_names in product_band_names[1:]:
+        common_band_names = list(set(common_band_names) & set(band_names))
+    variable_template = "<variable>\n\t\t\t\t\t<name>{}</name>\n\t\t\t\t\t<expression>{}</expression>\n\t\t\t\t</variable>"
+    variables_str = "\n\t\t\t\t".join([variable_template.format(band_name, band_name) for band_name in common_band_names])
+
     reproject_params = get_reproject_params_from_wkt(wkt, resolution)
     lons, lats = get_lons_lats(wkt)
     xml = xml.replace("${sources}", sources_str)
+    xml = xml.replace("${variables}", variables_str)
     xml = xml.replace("${westBound}", str(min(lons)))
     xml = xml.replace("${northBound}", str(max(lats)))
     xml = xml.replace("${eastBound}", str(max(lons)))

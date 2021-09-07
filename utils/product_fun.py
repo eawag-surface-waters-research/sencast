@@ -7,6 +7,8 @@ import subprocess
 from haversine import haversine
 from datetime import datetime
 
+from netCDF4 import Dataset
+
 
 def parse_date_from_name(name):
     sensing_time = name.split("_")[7]
@@ -155,3 +157,16 @@ def generate_l8_angle_files(env, l1product_path):
     args = [os.path.join(env['L8_ANGLES']['root_path'], "l8_angles"), ang_file, "BOTH", "1", "-b", "1"]
     print("Calling [{}]...".format(" ".join(args)))
     return subprocess.call(args, cwd=l1product_path)
+
+
+def get_band_names_from_nc(product_file):
+    bands = []
+    with Dataset(product_file) as nc:
+        for var in nc.variables:
+            if len(nc.variables[var].shape) == 2:
+                if hasattr(nc.variables[var], 'orig_name'):
+                    bands.append(nc.variables[var].orig_name)
+                else:
+                    bands.append(var)
+    return bands
+
