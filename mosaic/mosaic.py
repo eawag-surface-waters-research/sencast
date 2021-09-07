@@ -17,7 +17,6 @@ from utils.product_fun import get_lons_lats, get_sensing_date_from_product_name,
 GPT_XML_FILENAME = "mosaic_{}_{}.xml"
 
 
-# TODO: this should be moved to utils because it is called from the main thread and not as a processor!
 def mosaic(env, params, product_files):
     product_filename = os.path.basename(product_files[0])
     date = get_sensing_date_from_product_name(product_filename)

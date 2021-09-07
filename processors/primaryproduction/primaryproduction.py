@@ -21,7 +21,6 @@ FILENAME = "L2PP_{}"
 FILEFOLDER = "L2PP"
 
 
-# TODO: this should be a processor instead of an adapter!
 def process(env, params, l1product_path, l2product_files, out_path):
     """Apply Primary Production adapter.
     1. Calculates primary production for Chl and KD
