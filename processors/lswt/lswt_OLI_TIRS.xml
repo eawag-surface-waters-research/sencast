@@ -1,0 +1,42 @@
+<graph id="someGraphId">
+    <version>1.0</version>
+    <node id="musenalpId">
+        <operator>musenalp_op</operator>
+        <sources>
+            <source>${sourceFile}</source>
+        </sources>
+        <parameters>
+            <sattype>${sattype}</sattype>
+            <refImage>file</refImage>
+            <geometricData>file</geometricData>
+            <bandCloudMask>string</bandCloudMask>
+            <bandLandWaterMask>string</bandLandWaterMask>
+            <calculateLwm>boolean</calculateLwm>
+            <maskBeforeCalculation>True</maskBeforeCalculation>
+            <validPixelExpression/>
+            <algorithm>split-window</algorithm>
+            <coef-file/>
+            <lut>False</lut>
+            <a0>0</a0>
+            <a1>0</a1>
+            <a2>0</a2>
+            <a3>0</a3>
+            <height>${height}</height>
+            <poix>0</poix>
+            <poiy>0</poiy>
+            <padding>0</padding>
+            <optional>False</optional>
+            <optionalBands/>
+        </parameters>
+    </node>
+	<node id="writeNode">
+		<operator>write</operator>
+		<sources>
+			<source>musenalpNode</source>
+		</sources>
+		<parameters>
+			<file>${outputFile}</file>
+			<formatName>NetCDF4-BEAM</formatName>
+		</parameters>
+	</node>
+</graph>

@@ -7,6 +7,7 @@
 		</sources>
 		<parameters>
 			<geoRegion>${wkt}</geoRegion>
+			<copyMetadata>true</copyMetadata>
 		</parameters>
 	</node>
 	<node id="idepixNode">

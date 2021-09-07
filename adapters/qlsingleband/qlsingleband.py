@@ -26,7 +26,7 @@ from cartopy.io import PostprocessedRasterSource, LocatedImage
 from haversine import haversine
 from snappy import GPF, HashMap, jpy, Mask, PixelPos, ProductUtils, ProductIO
 
-from product_fun import get_lons_lats
+from utils.product_fun import get_lons_lats
 
 plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')
@@ -36,16 +36,16 @@ canvas_area = []
 PARAMS_SECTION = "QLSINGLEBAND"
 
 
-def apply(_, params, l2product_files, date):
+def apply(env, params, l2product_files, date):
     """Apply QLSingleBand adapter.
 
     Parameters
     -------------
 
-    params
-        Dictionary of parameters, loaded from input file
     env
         Dictionary of environment parameters, loaded from input file
+    params
+        Dictionary of parameters, loaded from input file
     l2product_files
         Dictionary of Level 2 product files created by processors
     date

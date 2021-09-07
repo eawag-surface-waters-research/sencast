@@ -5,7 +5,7 @@ import sys
 
 sys.path.append("/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast")
 
-from auxil import load_params
+from utils.auxil import load_params
 from main import hindcast
 
 params, params_file = load_params("/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast/parameters/datalakes_sui_S3.ini")

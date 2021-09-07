@@ -18,6 +18,7 @@ FILENAME = "L2MERGE_{}"
 FILEFOLDER = "L2MERGE"
 
 
+# TODO: this should be to util and be called from the processors!
 def apply(env, params, l2product_files,date):
     """Apply merge adapter.
                 1. Uses snappy to merge multiple L2 files

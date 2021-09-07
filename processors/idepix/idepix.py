@@ -12,7 +12,7 @@ https://www.brockmann-consult.de/portfolio/idepix/
 import os
 import subprocess
 
-from product_fun import get_reproject_params_from_wkt
+from utils.product_fun import get_reproject_params_from_wkt, get_main_file_from_product_path
 
 # Key of the params section for this processor
 PARAMS_SECTION = "IDEPIX"
@@ -32,7 +32,6 @@ def process(env, params, l1product_path, _, out_path):
     """ This processor applies subset, idepix, merge and reprojection to the source product and
     writes the result to disk. It returns the location of the output product. """
 
-    print("Applying IDEPIX...")
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
 
@@ -50,13 +49,12 @@ def process(env, params, l1product_path, _, out_path):
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, sensor, resolution, wkt)
 
+    if sensor == "OLI_TIRS":
+        l1product_path = get_main_file_from_product_path(l1product_path)
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(l1product_path),
             "-PoutputFile={}".format(output_file)]
+    print("Calling '{}'".format(args))
     if subprocess.call(args):
-        if os.path.exists(output_file):
-            os.remove(output_file)
-        else:
-            print("No file was created.")
         raise RuntimeError("GPT Failed.")
 
     return output_file

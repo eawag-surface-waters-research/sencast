@@ -1,6 +1,6 @@
 def olci_vicarious(vicar_version):
 
-    #null
+    # null
     if vicar_version == 'olci_null':
         vicar_gains = {
             400: 1.000000, 412: 1.000000,
@@ -17,7 +17,7 @@ def olci_vicarious(vicar_version):
         }
         return vicar_gains
 
-    #SVC 01/08/19 (v4.12+, omitting 412 nm band)
+    # SVC 01/08/19 (v4.12+, omitting 412 nm band)
     elif vicar_version == 'olci_svc2019' or vicar_version == 'olci_scv2019':
         vicar_gains = {
             400: 1.000000, 412: 1.000000,
@@ -34,7 +34,7 @@ def olci_vicarious(vicar_version):
         }
         return vicar_gains
 
-    #SVC 01/08/18 (v4.9+, using 412 nm band)
+    # SVC 01/08/18 (v4.9+, using 412 nm band)
     elif vicar_version == 'olci_svc2018':
         vicar_gains = {
             400: 1.000000, 412: 0.997,
@@ -58,7 +58,7 @@ def olci_vicarious(vicar_version):
 
 def msi_vicarious(vicar_version):
 
-    #null
+    # null
     if vicar_version == 'msi_null':
         vicar_gains = {
             443: 1.000000, 490: 1.000000,
@@ -68,6 +68,21 @@ def msi_vicarious(vicar_version):
             865: 1.000000, 945: 1.000000,
             1375: 1.000000, 1610: 1.000000,
             2190: 1.000000,
+        }
+        return vicar_gains
+
+    else:
+        print('Recalibration gains ' + vicar_version + ' not found.')
+        raise RuntimeError("Polymer recalibration failed.")
+
+
+def oli_vicarious(vicar_version):
+
+    # null
+    if vicar_version == 'oli_null':
+        vicar_gains = {
+            440: 1.000000, 480: 1.000000, 560: 1.000000, 590: 1.000000, 655: 1.000000, 865: 1.000000, 1370: 1.000000,
+            1610: 1.000000, 2200: 1.000000, 10895: 1.000000, 12005: 1.000000
         }
         return vicar_gains
 

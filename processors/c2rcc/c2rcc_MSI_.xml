@@ -1,4 +1,4 @@
-<graph id="idepix">
+<graph id="c2rcc">
 	<version>1.0</version>
 	<node id="c2rccNode">
 		<operator>c2rcc.msi</operator>
