@@ -104,7 +104,7 @@ def search(satellite, query):
             for feature in root['features']:
                 uuids.append(feature['id'])
                 filenames.append(feature['properties']['title'])
-                timelinesss.append(feature['properties']['timeliness'] if satellite != "Landsat8" else "Non Time Critical")
+                timelinesss.append(feature['properties']['timeliness'] if satellite != "Landsat8" else feature['properties']['title'][-2:])
                 beginpositions.append(feature['properties']['startDate'])
                 endpositions.append(feature['properties']['completionDate'])
             return uuids, filenames, timelinesss, beginpositions, endpositions
