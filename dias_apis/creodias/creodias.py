@@ -60,12 +60,12 @@ def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endposi
         curr_pos = (beginpositions[i], endpositions[i])
         if curr_pos in positions:
             curr_proj_idx = positions.index(curr_pos)
-            if timelinesss[i] == 'Non Time Critical' and timelinesss_filtered[curr_proj_idx] == 'Near Real Time':
+            if (timelinesss[i] == 'Non Time Critical' and timelinesss_filtered[curr_proj_idx] == 'Near Real Time') or (timelinesss[i] == 'T1' and timelinesss_filtered[curr_proj_idx] == 'RT'):
                 timelinesss_filtered[curr_proj_idx] = timelinesss[i]
                 uuids_filtered[curr_proj_idx] = uuids[i]
                 product_names_filtered[curr_proj_idx] = product_names[i]
                 positions[curr_proj_idx] = (beginpositions[i], endpositions[i])
-            elif timelinesss[i] == 'Near Real Time' and timelinesss_filtered[curr_proj_idx] == 'Non Time Critical':
+            elif (timelinesss[i] == 'Near Real Time' and timelinesss_filtered[curr_proj_idx] == 'Non Time Critical') or (timelinesss[i] == 'RT' and timelinesss_filtered[curr_proj_idx] == 'T1'):
                 continue
             else:
                 timelinesss_filtered.append(timelinesss[i])
