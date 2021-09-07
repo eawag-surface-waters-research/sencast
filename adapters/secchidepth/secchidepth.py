@@ -21,6 +21,7 @@ FILENAME = 'L2QAA_{}'
 FILEFOLDER = 'L2QAA'
 
 
+# TODO: this should be a processor instead of an adapter!
 def apply(env, params, l2product_files, date):
     """Apply Secchi Depth adapter.
                 1. Calculates Secchi depth from Polymer output

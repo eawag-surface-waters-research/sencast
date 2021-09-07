@@ -67,6 +67,8 @@ def process(env, params, l1product_path, _, out_path):
 
     shutil.rmtree(tmp_path)
 
+    # TODO: merge with idepix masks
+
     return out_file
 
 

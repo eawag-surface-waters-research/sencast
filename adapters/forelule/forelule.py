@@ -21,6 +21,7 @@ FILENAME = 'L2FU_{}'
 FILEFOLDER = 'L2FU'
 
 
+# TODO: this should be a processor instead of an adapter!
 def apply(env, params, l2product_files, date):
     """Apply the Forel-Ule adapter.
                 1. Calculates a hue product from Polymer output

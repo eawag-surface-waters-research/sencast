@@ -22,6 +22,8 @@ FILEFOLDER = "L2MDN"
 #'OLCI-poly': [411, 442, 490, 510, 560, 619, 664, 681, 708, 753, 778],
 #'OLCI-sat': [411, 442, 490, 510, 560, 619, 664, 673, 681, 708, 753, 761, 764, 767, ],
 
+
+# TODO: this should be a processor instead of an adapter!
 def apply(env, params, l2product_files, date):
     """Apply MDN adapter.
         1. Uses MDN to output CHL-A
