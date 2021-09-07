@@ -49,6 +49,7 @@ def mosaic(env, params, product_files):
     for i in range(len(product_files)):
         args.append("-SsourceFile{}={}".format(i, product_files[i]))
     args.append("-PoutputFile={}".format(output_file))
+    print("Calling [{}]...".format(" ".join(args)))
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 
@@ -66,7 +67,12 @@ def rewrite_xml(gpt_xml_file, product_files, sensor, wkt, resolution):
     for band_names in product_band_names[1:]:
         common_band_names = list(set(common_band_names) & set(band_names))
     variable_template = "<variable>\n\t\t\t\t\t<name>{}</name>\n\t\t\t\t\t<expression>{}</expression>\n\t\t\t\t</variable>"
-    variables_str = "\n\t\t\t\t".join([variable_template.format(band_name, band_name) for band_name in common_band_names])
+    for band_name in ["lon", "lat"]:
+        try:
+            common_band_names.remove(band_name)
+        except (Exception, ):
+            pass
+    variables_str = "\n\t\t\t\t".join([variable_template.format(band_name, band_name) for band_name in sorted(common_band_names)])
 
     reproject_params = get_reproject_params_from_wkt(wkt, resolution)
     lons, lats = get_lons_lats(wkt)
