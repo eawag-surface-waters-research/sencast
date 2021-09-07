@@ -211,7 +211,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 elif len(processor_outputs) > 1:
                     try:
                         print("Mosaicing outputs of processor {}...".format(processor))
-                        from processors.mosaic.mosaic import mosaic
+                        from mosaic.mosaic import mosaic
                         l2product_files[processor] = mosaic(env, params, processor_outputs)
                         print("Mosaiced outputs of processor {}.".format(processor))
                     except (Exception, ):

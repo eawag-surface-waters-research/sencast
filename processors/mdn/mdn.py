@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The MDN adapter calculates Chlorophyll A from Polymer output"""
+"""The MDN processor calculates Chlorophyll A from Polymer output"""
 
 import os
 import numpy as np
 from snappy import ProductIO, ProductData, Product, ProductUtils
-from .MDN import image_estimates, get_tile_data, get_sensor_bands, get_tile_data_polymer
+from .MDN import image_estimates, get_tile_data, get_tile_data_polymer
 
 # key of the params section for this adapter
 PARAMS_SECTION = "MDN"
@@ -23,22 +23,23 @@ FILEFOLDER = "L2MDN"
 #'OLCI-sat': [411, 442, 490, 510, 560, 619, 664, 673, 681, 708, 753, 761, 764, 767, ],
 
 
-# TODO: this should be a processor instead of an adapter!
-def apply(env, params, l2product_files, date):
-    """Apply MDN adapter.
+def process(env, params, l1product_path, l2product_files, out_path):
+    """MDN processor.
         1. Uses MDN to output CHL-A
 
         Parameters
         -------------
 
-        params
-            Dictionary of parameters, loaded from input file
         env
             Dictionary of environment parameters, loaded from input file
+        params
+            Dictionary of parameters, loaded from input file
+        l1product_path
+            unused
         l2product_files
             Dictionary of Level 2 product files created by processors
-        date
-            Run date
+        out_path
+            unused
         """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("MDN was not configured in parameters.")

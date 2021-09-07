@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The Primary Production adapter is an implementation of `T.Soomets et al. 2019 <https://core.ac.uk/reader/211997910>`_
+"""The Primary Production processor is an implementation of `T.Soomets et al. 2019 <https://core.ac.uk/reader/211997910>`_
 in order to derive primary production from Satellite images.
 """
 
@@ -12,6 +12,8 @@ from scipy.integrate import trapz
 from snappy import ProductIO, PixelPos, jpy, ProductData, Product, ProductUtils
 
 # key of the params section for this adapter
+from utils.product_fun import get_sensing_date_from_product_name
+
 PARAMS_SECTION = "PRIMARYPRODUCTION"
 
 # the file name pattern for output file
@@ -20,21 +22,23 @@ FILEFOLDER = "L2PP"
 
 
 # TODO: this should be a processor instead of an adapter!
-def apply(env, params, l2product_files, date):
+def process(env, params, l1product_path, l2product_files, out_path):
     """Apply Primary Production adapter.
     1. Calculates primary production for Chl and KD
 
     Parameters
     -------------
 
-    params
-        Dictionary of parameters, loaded from input file
     env
         Dictionary of environment parameters, loaded from input file
+    params
+        Dictionary of parameters, loaded from input file
+    l1product_path
+        unused
     l2product_files
         Dictionary of Level 2 product files created by processors
-    date
-        Run date
+    out_path
+        unused
     """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("Primary Production was not configured in parameters.")
@@ -134,6 +138,7 @@ def apply(env, params, l2product_files, date):
         valid_pixel_expression = kd_valid_pixel_expression
 
     # Get PAR
+    date = get_sensing_date_from_product_name(product_name)
     month = datetomonth(date)
     qpar0 = qpar0_lookup(month, chl_data)
 

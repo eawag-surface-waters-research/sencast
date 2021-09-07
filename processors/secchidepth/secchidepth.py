@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The Secchi Depth adapter is an implementation of `Lee et al. 2002 <https://www.osapublishing.org/ao/abstract.cfm?uri=ao-41-27-5755>`_
+"""The Secchi Depth processor is an implementation of `Lee et al. 2002 <https://www.osapublishing.org/ao/abstract.cfm?uri=ao-41-27-5755>`_
 in order to derive Secchi depth from Satellite images.
 Adapter authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt
 """
@@ -21,22 +21,23 @@ FILENAME = 'L2QAA_{}'
 FILEFOLDER = 'L2QAA'
 
 
-# TODO: this should be a processor instead of an adapter!
-def apply(env, params, l2product_files, date):
-    """Apply Secchi Depth adapter.
+def process(env, params, l1product_path, l2product_files, out_path):
+    """Secchi Depth processor.
                 1. Calculates Secchi depth from Polymer output
 
                 Parameters
                 -------------
 
-                params
-                    Dictionary of parameters, loaded from input file
                 env
                     Dictionary of environment parameters, loaded from input file
+                params
+                    Dictionary of parameters, loaded from input file
+                l1product_path
+                    unused
                 l2product_files
                     Dictionary of Level 2 product files created by processors
-                date
-                    Run date
+                out_path
+                    unused
                 """
 
     if not params.has_section(PARAMS_SECTION):
