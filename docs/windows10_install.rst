@@ -49,12 +49,10 @@ Windows 10
 
 6. Anaconda: sencast environment
 
-	Add conda-forge channel to environment:
+	In cmd do following:
 		> conda config --add channels conda-forge
 		> conda config --append channels bioconda
-
-	Create a new environment named "sencast" using Anaconda
-		> conda create --name sencast python=3.9 colour-science gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj pyresample h5py pyhdf pyepr glymur pygrib cdsapi xarray xlrd=1.2.0 bioconda::ecmwfapi
+		> conda create --name sencast python=3 cartopy=0.19 cdsapi=0.5 colour-science=0.3 cython=0.29 ecmwfapi=1.4 gdal=3.2 glymur=0.9 h5py=3.3 haversine=2.5 matplotlib=3.4 netcdf4=1.5 pkgconfig=1.5 pyepr=1.1 pygrib=2.1 pyhdf=0.10.3 pyproj=3.1 pyresample=1.21 rasterio=1.2 scikit-learn=0.24 statsmodels=0.12 tensorflow=1.15 tensorflow-probability=0.7 wheel=0.37 xarray=0.19 xlrd=1.2
 
 	Set CONDA_ENV_HOME to "%CONDA_HOME%\\envs\\sencast"
 
@@ -177,15 +175,6 @@ Windows 10
 		- Script path: C:\\Projects\\sentinel-hindcast\\sencast.py
 		- Python interpreter: Python 3.9 (sencast)
 		- OK
-
-
-15.) MDN:
-
-	In cmd do following:
-		> conda activate sencast
-		> conda install -c conda-forge tensorflow==1.15.0
-		> conda install -c anaconda scikit-learn=0.23.2
-		> conda install -c conda-forge tensorflow-probability=0.7
 
 
 16.) Acolite:

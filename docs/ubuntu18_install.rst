@@ -42,7 +42,7 @@ Prepare)
 	In shell do following:
 		$ conda config --add channels conda-forge
 		$ conda config --append channels bioconda
-		$ conda create --name sencast python=3.9 colour-science gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine rasterio pyproj pyresample h5py pyhdf pyepr glymur pygrib cdsapi wheel xarray xlrd=1.2.0 bioconda::ecmwfapi
+		$ conda create --name sencast python=3 cartopy=0.19 cdsapi=0.5 colour-science=0.3 cython=0.29 ecmwfapi=1.4 gdal=3.2 glymur=0.9 h5py=3.3 haversine=2.5 matplotlib=3.4 netcdf4=1.5 pkgconfig=1.5 pyepr=1.1 pygrib=2.1 pyhdf=0.10.3 pyproj=3.1 pyresample=1.21 rasterio=1.2 scikit-learn=0.24 statsmodels=0.12 tensorflow=1.15 tensorflow-probability=0.7 wheel=0.37 xarray=0.19 xlrd=1.2
 		$ echo export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast >> ~/.bashrc
 		$ echo export CONDA_ENV_SP=$CONDA_HOME/envs/sencast/lib/python3.9/site-packages >> ~/.bashrc
 	
@@ -122,7 +122,7 @@ Prepare)
 		($ sudo ln -s ../../lib64/libnsl.so.2 /usr/lib64/libnsl.so)
 		($ sudo ln -s ../../lib64/libnsl.so.2.0.0 /usr/lib64/libnsl.so.1)
 		$ mkdir -p ~/.snap/snap-python/snappy
-		$ cp $CONDA_ENV_SP/jpy/dist/*.whl ~/.snap/snap-python/snappy
+		$ cp -v $CONDA_ENV_SP/jpy/dist/*.whl ~/.snap/snap-python/snappy
 		$ bash $SNAP_HOME/bin/snappy-conf $CONDA_ENV_HOME/bin/python ~/.snap/snap-python
 		$ conda activate sencast
 		$ python ~/.snap/snap-python/snappy/setup.py install --user
@@ -151,7 +151,7 @@ Prepare)
 		$ cp -avr ~/setup/polymer-v4.13/polymer $CONDA_ENV_SP/polymer
 		$ cp -avr ~/setup/polymer-v4.13/auxdata $CONDA_ENV_SP/auxdata
 		
-	In the file site-packages/polymer/level1_landsat8.py replace line 13 "import osr" by "from osgeo import osr"
+	In the file $CONDA_ENV_SP/polymer/level1_landsat8.py replace line 13 "import osr" by "from osgeo import osr"
 	
 
 8.) l8_angles: https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con
@@ -195,15 +195,6 @@ Prepare)
 		$ curl https://renkulab.io/gitlab/odermatt/sentinel-hindcast/raw/snap7compatibility/parameters/datalakes_sui_S3.ini?inline=false -o /prj/datalakes/datalakes_sui_S3.ini
 		$ chmod 755 /prj/sentinel-hindcast/scripts/datalakes.sh
 		$ crontab -l | { cat; echo "0 20 * * * nohup /prj/sentinel-hindcast/scripts/datalakes.sh &"; } | crontab -
-
-
-11.) MDN:
-
-	In shell do following:
-		$ conda activate sencast
-		$ conda install -c conda-forge tensorflow==1.15.0
-		$ conda install -c anaconda scikit-learn=0.23.2
-		$ conda install -c conda-forge tensorflow-probability=0.7
 
 
 12.) Acolite: https://github.com/acolite/acolite.git

@@ -229,6 +229,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     foreluleProduct.closeIO()
     print('Writing Forel-Ule to file: {}'.format(output_file))
+    return output_file
+
 
 def get_hue_angle(x, y):
     # yields values for FU 1-21:

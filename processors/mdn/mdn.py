@@ -128,3 +128,4 @@ def process(env, params, l1product_path, l2product_files, out_path):
         mdn_b.writePixels(0, 0, width, height, band_data)
     mdn_product.closeIO()
     print("Writing MDN to file: {}".format(output_file))
+    return output_file

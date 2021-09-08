@@ -239,3 +239,4 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     secchiProduct.closeIO()
     print("Writing Secchi depth to file: {}".format(output_file))
+    return output_file
