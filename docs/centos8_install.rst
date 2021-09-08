@@ -3,6 +3,14 @@
 ------------------------------------------------------------------------------------------
 CentOS 8
 ------------------------------------------------------------------------------------------
+Prepare)
+
+	Update repositories and installed packages:
+		$ sudo apt update
+		$ sudo apt upgrade
+		
+	Here we put the setup files:
+		$ mkdir -p ~/setup
 
 
 1.) OpenJdk (if not installed already):
@@ -18,37 +26,34 @@ CentOS 8
 2.) Maven: https://www.javahelps.com/2017/10/install-apache-maven-on-linux.html
 
 	In shell do following:
-		$ mkdir -p ~/Downloads
-		$ curl http://mirror.easyname.ch/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz -o ~/Downloads/apache-maven-3.6.3-bin.tar.gz
-		$ sudo tar -xvzf ~/Downloads/apache-maven-3.6.3-bin.tar.gz --directory /opt
-		$ sudo su -c 'echo "M2_HOME=/opt/apache-maven-3.6.3/" >> /etc/environment'
-		$ sudo update-alternatives --install "/usr/bin/mvn" "mvn" "/opt/apache-maven-3.6.3/bin/mvn" 0
-		$ sudo update-alternatives --set mvn /opt/apache-maven-3.6.3/bin/mvn
+		$ sudo yum install maven
 		$ mvn -version
-		$ sudo reboot
 
 
 3.) Anaconda: https://problemsolvingwithpython.com/01-Orientation/01.05-Installing-Anaconda-on-Linux/
 
 	In shell do following:
-		$ curl https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh -o ~/Downloads/Anaconda3-2020.02-Linux-x86_64.sh
-		$ sudo chmod 777 /opt
-		$ bash ~/Downloads/Anaconda3-2020.02-Linux-x86_64.sh
+		$ curl https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh -o ~/setup/Anaconda3-2021.05-Linux-x86_64.sh
+		$ bash ~/setup/Anaconda3-2021.05-Linux-x86_64.sh
 			>>> [Enter]
 			[s]
 			>>> yes
-			>>> /opt/anaconda3
+			>>> [Enter]
 			>>> yes
-		$ sudo chmod 755 /opt
 		$ sudo reboot
+		$ conda config --set auto_activate_base false
+		$ echo export CONDA_HOME=~/anaconda3 >> ~/.bashrc
+	
+	Restart your shell session
 
 
-4. Anaconda: create sentinel-hindcast-37 environment
+4. Anaconda: create sencast-39 environment
 
 	In shell do following:
 		$ conda config --add channels conda-forge
-		$ conda create --name sentinel-hindcast-37 python=3.7 gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine
-			> y
+		$ conda config --append channels bioconda
+		$ conda create --name sencast-39 python=3.9 gdal cartopy netcdf4 cython pkgconfig statsmodels matplotlib haversine
+		$ echo export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast-39 >> ~/.bashrc
 
 
 5.) SNAP: http://step.esa.int/main/download/
@@ -56,9 +61,8 @@ CentOS 8
 	Uninstall all old versions of SNAP and remove associated data
 
 	In shell do following:
-		$ curl http://step.esa.int/downloads/7.0/installers/esa-snap_all_unix_7_0.sh -o ~/Downloads/esa-snap_all_unix_7_0.sh
-		$ sudo chmod 777 /opt
-		$ bash ~/Downloads/esa-snap_all_unix_7_0.sh
+		$ curl http://step.esa.int/downloads/8.0/installers/esa-snap_all_unix_8_0.sh -o ~/setup/esa-snap_all_unix_8_0.sh
+		$ bash ~/Downloads/esa-snap_all_unix_8_0.sh
 			[o, Enter]
 			[1, Enter]
 			[Enter]
@@ -66,33 +70,37 @@ CentOS 8
 			[n, Enter]
 			[n, Enter]
 			[n, Enter]
-		$ sudo chmod 755 /opt
-		$ /opt/snap/bin/snap --nosplash --nogui --modules --update-all
-		$ /opt/snap/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi
+		$ ~/snap/bin/snap --nosplash --nogui --modules --update-all
+		$ ~/snap/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi
 		$ echo "#SNAP configuration 's3tbx'" >> ~/.snap/etc/s3tbx.properties
 		$ echo "#Fri Mar 27 12:55:00 CET 2020" >> ~/.snap/etc/s3tbx.properties
 		$ echo "s3tbx.reader.olci.pixelGeoCoding=true" >> ~/.snap/etc/s3tbx.properties
 		$ echo "s3tbx.reader.meris.pixelGeoCoding=true" >> ~/.snap/etc/s3tbx.properties
 		$ echo "s3tbx.reader.slstrl1b.pixelGeoCodings=true" >> ~/.snap/etc/s3tbx.properties
+		$ echo export SNAP_HOME=~/snap >> ~/.bashrc
+	
+	Restart your shell session
 
 	Note: there are many strange error messages, but it seems to work in the end when updating and installing plugins
 
 	To remove warning "WARNING: org.esa.snap.dataio.netcdf.util.MetadataUtils: Missing configuration property ‘snap.dataio.netcdf.metadataElementLimit’. Using default (100).":
-		$ echo "" >> /opt/snap/etc/snap.properties
-		$ echo "# NetCDF options" >> /opt/snap/etc/snap.properties
-		$ echo "snap.dataio.netcdf.metadataElementLimit=10000" >> /opt/snap/etc/snap.properties
+		$ echo "" >> $SNAP_HOME/etc/snap.properties
+		$ echo "# NetCDF options" >> $SNAP_HOME/etc/snap.properties
+		$ echo "snap.dataio.netcdf.metadataElementLimit=10000" >> $SNAP_HOME/etc/snap.properties
 
 	To remove warning "SEVERE: org.esa.s2tbx.dataio.gdal.activator.GDALDistributionInstaller: The environment variable LD_LIBRARY_PATH is not set. It must contain the current folder '.'."
-		$ sudo su -c 'echo "LD_LIBRARY_PATH=." >> /etc/environment'
+		$ echo export LD_LIBRARY_PATH=. >> ~/.bashrc
+	
+	Restart your shell session
 
 
 6.) Python - jpy: https://github.com/bcdev/jpy/blob/master/README.md
 
 	In shell do following:
-		$ cd /opt/anaconda3/envs/sentinel-hindcast-37/lib/python3.7/site-packages
+		$ cd $CONDA_ENV_HOME/lib/python3.9/site-packages
 		$ git clone https://github.com/bcdev/jpy.git
 		$ cd jpy
-		$ conda activate sentinel-hindcast-37
+		$ conda activate sencast-39
 		$ python get-pip.py
 		$ python setup.py build maven bdist_wheel
 
@@ -103,13 +111,13 @@ CentOS 8
 		$ sudo ln -s ../../lib64/libnsl.so.2 /usr/lib64/libnsl.so
 		$ sudo ln -s ../../lib64/libnsl.so.2.0.0 /usr/lib64/libnsl.so.1
 		$ mkdir -p ~/.snap/snap-python/snappy
-		$ cp /opt/anaconda3/envs/sentinel-hindcast-37/lib/python3.7/site-packages/jpy/dist/*.whl ~/.snap/snap-python/snappy
-		$ bash /opt/snap/bin/snappy-conf /opt/anaconda3/envs/sentinel-hindcast-37/bin/python ~/.snap/snap-python
-		$ conda activate sentinel-hindcast-37
+		$ cp $CONDA_ENV_HOME/lib/python3.9/site-packages/jpy/dist/*.whl ~/.snap/snap-python/snappy
+		$ bash /opt/snap/bin/snappy-conf $CONDA_ENV_HOME/bin/python ~/.snap/snap-python
+		$ conda activate sencast-39
 		$ python ~/.snap/snap-python/snappy/setup.py install --user
-		$ cp -avr ~/.snap/snap-python/build/lib/snappy /opt/anaconda3/envs/sentinel-hindcast-37/lib/python3.7/site-packages/snappy
-		$ cp -avr ~/.snap/snap-python/snappy/tests /opt/anaconda3/envs/sentinel-hindcast-37/lib/python3.7/site-packages/snappy/tests
-		$ cd /opt/anaconda3/envs/sentinel-hindcast-37/lib/python3.7/site-packages/snappy/tests
+		$ cp -avr ~/.snap/snap-python/build/lib/snappy $CONDA_ENV_HOME/lib/python3.9/site-packages/snappy
+		$ cp -avr ~/.snap/snap-python/snappy/tests $CONDA_ENV_HOME/lib/python3.9/site-packages/snappy/tests
+		$ cd $CONDA_ENV_HOME/lib/python3.9/site-packages/snappy/tests
 		$ curl https://raw.githubusercontent.com/bcdev/eo-child-gen/master/child-gen-N1/src/test/resources/com/bc/childgen/MER_RR__1P.N1 -o MER_RR__1P.N1
 		$ python test_snappy_mem.py
 		$ python test_snappy_perf.py
@@ -119,31 +127,27 @@ CentOS 8
 8.) Python - polymer: https://forum.hygeos.com/viewforum.php?f=5
 
 	From a computer in the eawag network, copy the polymer zip file to the linux server:
-		> scp -i .ssh\cloudferro.key \\eawag\Abteilungs-Projekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.13.tar.gz eouser@45.130.29.115:/home/eouser/Downloads
+		> scp -i .ssh\cloudferro.key \\eawag\Abteilungs-Projekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.13.tar.gz eouser@45.130.29.115:/home/eouser/setup/
 
 	In shell do following:
-		$ sudo chmod 777 /opt
-		$ tar -xvzf ~/Downloads/polymer-v4.13.tar.gz --directory /opt
-		$ sudo chmod 755 /opt
-		$ cd /opt/polymer-v4.13
-		$ conda activate sentinel-hindcast-37
+		$ tar -xvzf ~/setup/polymer-v4.13.tar.gz --directory ~/setup
+		$ cd ~/setup/polymer-v4.13
+		$ conda activate sencast-39
 		$ bash install-anaconda-deps.sh
 			[y]
 			[y]
+		$ sudo yum install gcc
 		$ sudo yum install wget
 		$ make all
-		$ cp -avr /opt/polymer-v4.13/polymer /opt/anaconda3/envs/sentinel-hindcast-37/lib/python3.7/site-packages/polymer
-		$ cp -avr /opt/polymer-v4.13/auxdata /opt/anaconda3/envs/sentinel-hindcast-37/lib/python3.7/site-packages/auxdata
+		$ cp -avr /opt/polymer-v4.13/polymer $CONDA_ENV_HOME/lib/python3.9/site-packages/polymer
+		$ cp -avr /opt/polymer-v4.13/auxdata $CONDA_ENV_HOME/lib/python3.9/site-packages/auxdata
 
 
 9.) sentinel-hindcast: https://renkulab.io/gitlab/odermatt/sentinel-hindcast
 
 	In shell do following:
-		$ cd /prj
-		$ sudo chmod 777 /prj
-		$ mkdir /prj/DIAS
+		$ mkdir ~/DIAS
 		$ git clone https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git
-		$ sudo chmod 755 /prj
 		$ cd sentinel-hindcast
 		$ git checkout <branchname> (if not master)
 
@@ -178,7 +182,7 @@ CentOS 8
 		$ touch ~/.urs_cookies
 
 14.) Optional - required for MDN
-	conda activate sentinel-hindcast-37
+	conda activate sencast-39
 	conda install -c conda-forge tensorflow==1.15.0
 	conda install -c anaconda scikit-learn=0.23.2
 	conda install -c conda-forge tensorflow-probability=0.7

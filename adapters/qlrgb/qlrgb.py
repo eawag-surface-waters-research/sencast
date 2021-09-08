@@ -1,8 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The QLRGB adapter creates RGB quick looks output as .pdf files.
-"""
+"""The QLRGB adapter creates RGB quick looks output as .pdf files."""
 
 import cartopy.crs as ccrs
 import matplotlib as mpl
@@ -15,7 +14,7 @@ from haversine import haversine
 from PIL import Image
 from snappy import ProductIO, PixelPos
 
-from product_fun import get_lons_lats
+from utils.product_fun import get_lons_lats
 
 # key of the params section for this adapter
 PARAMS_SECTION = "QLRGB"
@@ -25,21 +24,22 @@ mpl.pyplot.switch_backend('agg')
 canvas_area = []
 
 
-def apply(_, params, l2product_files, date):
+def apply(env, params, l2product_files, date):
     """Apply QLRGB adapter.
 
                     Parameters
                     -------------
 
-                    params
-                        Dictionary of parameters, loaded from input file
                     env
                         Dictionary of environment parameters, loaded from input file
+                    params
+                        Dictionary of parameters, loaded from input file
                     l2product_files
                         Dictionary of Level 2 product files created by processors
                     date
                         Run date
                     """
+
     wkt = params['General']['wkt']
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()

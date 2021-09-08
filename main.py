@@ -1,25 +1,28 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The core functions of Sencast
-
+"""
+The core functions of Sencast
 .. note::
     Download API's, processors, and adapters are imported dynamically to make Sencast also work on systems,
     where some of them might not be available.
 """
-
+import importlib
+import logging
 import os
 import time
 import traceback
 import sys
 
-from requests.auth import HTTPBasicAuth
-from snappy import ProductIO
+from utils import earthdata
 from threading import Semaphore, Thread
 
-from auxil import get_l1product_path, get_sensing_date_from_product_name, get_satellite_name_from_product_name, init_hindcast, copy_metadata
-from externalapis.earthdata_api import authenticate
-from product_fun import minimal_subset_of_products, filter_for_timeliness
+from utils.auxil import init_hindcast
+from utils.product_fun import filter_for_timeliness, get_satellite_name_from_product_name, \
+    get_sensing_date_from_product_name, get_l1product_path
+
+
+logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
 
 def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
@@ -49,8 +52,7 @@ def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_
     do_hindcast(env, params, l2_path, max_parallel_downloads, max_parallel_processors, max_parallel_adapters)
 
 
-def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_processors=1,
-                max_parallel_adapters=1):
+def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
     """Threading function for running Sentinel Hindcast.
         1. Calls API to find available data for given query
         2. Splits the processing into threads based on date and satellite
@@ -59,10 +61,10 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
         Parameters
         -------------
 
-        params
-            Dictionary of parameters, loaded from input file
         env
             Dictionary of environment parameters, loaded from input file
+        params
+            Dictionary of parameters, loaded from input file
         l2_path
             The output folder in which to save the output files
         max_parallel_downloads
@@ -75,18 +77,14 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
             | **Default: 1**
             | Maximum number of adapters to run in parallel
         """
-    # decide which API to use
-    if env['General']['remote_dias_api'] == "COAH":
-        from externalapis.coah_api import get_download_requests, do_download
-        auth = HTTPBasicAuth(env['COAH']['username'], env['COAH']['password'])
-    elif env['General']['remote_dias_api'] == "HDA":
-        from externalapis.hda_api import get_download_requests, do_download
-        auth = HTTPBasicAuth(env['HDA']['username'], env['HDA']['password'])
-    elif env['General']['remote_dias_api'] == "CREODIAS":
-        from externalapis.creodias_api import get_download_requests, do_download
-        auth = [env['CREODIAS']['username'], env['CREODIAS']['password']]
-    else:
-        raise RuntimeError("Unknown DIAS API: {} (possible options are 'HDA', 'CREODIAS' or 'COAH').".format(env['General']['API']))
+    # dynamically import the remote dias api to use
+    api = params['General']['remote_dias_api']
+    authenticate = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "authenticate")
+    get_download_requests = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "get_download_requests")
+    do_download = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "do_download")
+
+    # create authentication to remote dias api
+    auth = authenticate(env[api])
 
     # find products which match the criterias from params
     start, end = params['General']['start'], params['General']['end']
@@ -104,13 +102,8 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
         'adapt': Semaphore(max_parallel_adapters)
     }
 
-    # if running on creodias server
-    server = False
-    if "server" in env['General'] and env['General']['server'] is not False:
-        server = env['General']['server']
-
     # for readonly local dias, remove unavailable products and their download_requests
-    if env['DIAS']['readonly'] == "readonly":
+    if env['DIAS']['readonly'] == "True":
         print("{} products have been found.".format(len(l1product_paths)))
         for i in range(len(l1product_paths)):
             if not os.path.exists(l1product_paths[i]):
@@ -118,17 +111,18 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
         l1product_paths = list(filter(None, l1product_paths))
         download_requests = list(filter(None, download_requests))
         print("{} products are avaiable and will be processed.".format(len(l1product_paths)))
+        print("Products which are available will not be downloaded because the local DIAS is set to 'readonly'.")
     else:
         actual_downloads = len([0 for l1product_path in l1product_paths if not os.path.exists(l1product_path)])
         print("{} products are already locally available.".format(len(l1product_paths) - actual_downloads))
         print("{} products must be downloaded first.".format(actual_downloads))
 
-    # group download requests and product paths by date and sort them by group size and sensing date
+    # group download requests and product paths by (date and satelite) and sort them by (group size and sensing date)
     download_groups, l1product_path_groups = {}, {}
     for download_request, l1product_path in zip(download_requests, l1product_paths):
         date = get_sensing_date_from_product_name(os.path.basename(l1product_path))
         satellite = get_satellite_name_from_product_name(os.path.basename(l1product_path))
-        group = date + "_" + satellite
+        group = satellite + "_" + date
         if group not in download_groups.keys():
             download_groups[group], l1product_path_groups[group] = [], []
         download_groups[group].append(download_request)
@@ -138,14 +132,14 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     print("The products have been grouped into {} group(s).".format(len(l1product_path_groups)))
     print("Each group is handled by an individual thread.")
 
-    # authenticate for earth data api
-    authenticate(env['EARTHDATA']['username'], env['EARTHDATA']['password'])
+    # authenticate to earthdata api for anchillary data download anchillary data (used by some processors)
+    earthdata.authenticate(env)
 
     # do hindcast for every product group
     hindcast_threads = []
     for group, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
-        args = (env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path, semaphores, group, server)
-        hindcast_threads.append(Thread(target=hindcast_product_group, args=args))
+        args = (env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path, semaphores, group)
+        hindcast_threads.append(Thread(target=hindcast_product_group, args=args, name="Thread-{}".format(group)))
         hindcast_threads[-1].start()
 
     # wait for all hindcast threads to terminate
@@ -155,7 +149,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     print("Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
 
 
-def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, group, server):
+def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, group):
     """Run sencast for given thread.
         1. Downloads required products
         2. Runs processors
@@ -189,110 +183,65 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
     for download_request, l1product_path in zip(download_requests, l1product_paths):
         if not os.path.exists(l1product_path):
             with semaphores['download']:
-                do_download(auth, download_request, l1product_path, server)
+                do_download(auth, download_request, l1product_path)
 
     # ensure all products have been downloaded
     for l1product_path in l1product_paths:
         if not os.path.exists(l1product_path):
             raise RuntimeError("Download of product was not successfull: {}".format(l1product_path))
 
-    # FOR S3 MAKE SURE THE NON-DEFAULT S3TBX SETTING IS SELECTED IN THE SNAP PREFERENCES!
-    if "OLCI" == params['General']['sensor']:
-        product = ProductIO.readProduct(l1product_paths[0])
-        """if 'PixelGeoCoding2' not in str(product.getSceneGeoCoding()):
-            raise RuntimeError("Pixelwise geocoding is not activated for S3TBX, please check the settings in SNAP!")
-        product.closeIO()"""
-
     with semaphores['process']:
-        # only process products, which are really necessary
-        if len(l1product_paths) in [2, 4]:
-            n_group_old = len(l1product_paths)
-            l1product_paths, covered = minimal_subset_of_products(l1product_paths, params['General']['wkt'])
-            n_group_new = len(l1product_paths)
-            if n_group_old != n_group_new:
-                print("Group has been reduced from {} to {} necessary product(s)".format(n_group_old, n_group_new))
-
         l2product_files = {}
+        # apply processors to all products
         for processor in list(filter(None, params['General']['processors'].split(","))):
-            # import processor
-            if processor == "IDEPIX":
-                from processors.idepix.idepix import process
-            elif processor == "C2RCC":
-                from processors.c2rcc.c2rcc import process
-            elif processor == "POLYMER":
-                from processors.polymer.polymer import process
-            elif processor == "L_FLUO":
-                from processors.fluo.l_fluo import process
-            elif processor == "R_FLUO":
-                from processors.fluo.r_fluo import process
-            elif processor == "MPH":
-                from processors.mph.mph import process
-            elif processor == "SEN2COR":
-                from processors.sen2cor.sen2cor import process
-            else:
-                raise RuntimeError("Unknown processor: {}".format(processor))
-
-            # apply processor to all products
-            for l1product_path in l1product_paths:
-                if l1product_path not in l2product_files.keys():
-                    l2product_files[l1product_path] = {}
-                try:
+            try:
+                print("Processor {} starting...".format(processor))
+                process = getattr(importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
+                processor_outputs = []
+                for l1product_path in l1product_paths:
+                    if l1product_path not in l2product_files.keys():
+                        l2product_files[l1product_path] = {}
                     output_file = process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
-                    if output_file != False:
-                        l2product_files[l1product_path][processor] = output_file
-
-                except Exception:
-                    print("An error occured while applying {} to product: {}".format(processor, l1product_path))
-                    traceback.print_exc()
-
-        # mosaic outputs
-        for processor in list(filter(None, params['General']['processors'].split(","))):
-            tmp = []
-            for l1product_path in l1product_paths:
-                if processor in l2product_files[l1product_path].keys():
-                    tmp += [l2product_files[l1product_path][processor]]
-            if len(tmp) == 1:
-                l2product_files[processor] = tmp[0]
-            elif len(tmp) > 1:
-                from processors.mosaic.mosaic import mosaic
-                try:
-                    l2product_files[processor] = mosaic(env, params, tmp)
-                    # mosaic output metadata missing: https://senbox.atlassian.net/browse/SNAP-745
-                    copy_metadata(tmp[0], l2product_files[processor])
-                except Exception:
-                    print("An error occured while applying MOSAIC to products: {}".format(tmp))
-                    traceback.print_exc()
-
+                    l2product_files[l1product_path][processor] = output_file
+                    processor_outputs.append(output_file)
+                print("Processor {} finished: [{}].".format(processor, ", ".join(processor_outputs)))
+                if len(processor_outputs) == 1:
+                    l2product_files[processor] = processor_outputs[0]
+                elif len(processor_outputs) > 1:
+                    try:
+                        print("Mosaicing outputs of processor {}...".format(processor))
+                        from mosaic.mosaic import mosaic
+                        l2product_files[processor] = mosaic(env, params, processor_outputs)
+                        print("Mosaiced outputs of processor {}.".format(processor))
+                    except (Exception, ):
+                        print("Mosaicing outputs of processor {} failed.".format(processor))
+                        traceback.print_exc()
+            except (Exception, ):
+                print("Processor {} failed on product {}.".format(processor, l1product_path))
+                print(sys.exc_info()[0])
+                traceback.print_exc()
+        del processor_outputs
         for l1product_path in l1product_paths:
             del(l2product_files[l1product_path])
+        print("All processors finished! {}".format(str(l2product_files)))
 
     # apply adapters
     with semaphores['adapt']:
         for adapter in list(filter(None, params['General']['adapters'].split(","))):
-            if adapter == "QLRGB":
-                from adapters.qlrgb.qlrgb import apply
-            elif adapter == "QLSINGLEBAND":
-                from adapters.qlsingleband.qlsingleband import apply
-            elif adapter == "PRIMARYPRODUCTION":
-                from adapters.primaryproduction.primaryproduction import apply
-            elif adapter == "DATALAKES":
-                from adapters.datalakes.datalakes import apply
-            elif adapter == "MERGE":
-                from adapters.merge.merge import apply
-            elif adapter == "SECCHIDEPTH":
-                from adapters.secchidepth.secchidepth import apply
-            elif adapter == "FORELULE":
-                from adapters.forelule.forelule import apply
-            elif adapter == "MDN":
-                from adapters.mdn.mdn import apply
-            elif adapter == "OC3":
-                from adapters.oc3.oc3 import apply
-            else:
-                raise RuntimeError("Unknown adapter: {}".format(adapter))
-
             try:
+                print("Adapter {} starting...".format(adapter))
+                apply = getattr(importlib.import_module("adapters.{}.{}".format(adapter.lower(), adapter.lower())), "apply")
                 apply(env, params, l2product_files, group)
-            except Exception:
+                print("Adapter {} finished.".format(adapter))
+            except (Exception, ):
+                print("Adapter {} failed on product group {}.".format(adapter, group))
                 print(sys.exc_info()[0])
-                print("An error occured while applying {} to product: {}".format(adapter, l1product_path))
                 traceback.print_exc()
+
+
+if len(sys.argv) == 2:
+    hindcast(params_file=sys.argv[1])
+elif len(sys.argv) == 3:
+    hindcast(params_file=sys.argv[1], env_file=sys.argv[2])
+else:
+    raise RuntimeError("Unexpected number of arguments: {}, expected 2 or 3 arguments.".format(len(sys.argv)))

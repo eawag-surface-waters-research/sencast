@@ -12,7 +12,7 @@ sys.path.append(package_location)
 import datetime
 import os
 import shutil
-from auxil import load_params
+from utils.auxil import load_params
 from main import hindcast
 
 params, params_file = load_params(os.path.join(package_location, "parameters", parameter_file))
