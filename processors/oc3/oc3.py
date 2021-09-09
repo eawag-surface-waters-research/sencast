@@ -18,8 +18,7 @@ FILEFOLDER = "L2OC3"
 p0_oc3_lin = [0.73, -1.2, 0, 0, 0]
 popt_oc3_rev = [0.44580314, -2.29314384, 13.17079188, -11.08418745, -408.86537168]
 
-
-def apply(env, params, l2product_files, date):
+def process(env, params, l1product_path, l2product_files, out_path):
     """Apply OC3 adapter.
         1. Uses OC3 to output CHL-A
 
@@ -128,6 +127,7 @@ def apply(env, params, l2product_files, date):
 
     oc3_product.closeIO()
     print("Writing OC3 to file: {}".format(output_file))
+    return output_file
 
 
 def create_band(product, name, unit, valid_pixel_expression):

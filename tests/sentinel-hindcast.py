@@ -11,4 +11,4 @@ sys.path.append("/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hi
 
 from main import hindcast
 
-hindcast("S2_sen2cor.ini")
+hindcast("/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast/parameters/datalakes_sui_S3.ini")
