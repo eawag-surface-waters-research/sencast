@@ -1,18 +1,17 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Polymer is an algorithm aimed at recovering the radiance scattered and absorbed by the oceanic waters (also called
+"""
+Polymer is an algorithm aimed at recovering the radiance scattered and absorbed by the oceanic waters (also called
 Ocean Colour) from the signal measured by satellite sensors in the visible spectrum.
 
-For an overview of the processor:
-https://www.hygeos.com/polymer
-
-or for more details:
-https://forum.hygeos.com/viewforum.php?f=3
+For an overview of the processor: https://www.hygeos.com/polymer
+or for more details: https://forum.hygeos.com/viewforum.php?f=3
 """
 
 import os
 import subprocess
+from datetime import datetime
 from math import ceil, floor
 
 import rasterio
@@ -28,7 +27,8 @@ from polymer.level1_landsat8 import Level1_OLI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
-from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files
+from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
+    get_lons_lats, get_sensing_date_from_product_name
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
 # Key of the params section for this processor
@@ -46,10 +46,10 @@ GPT_XML_FILENAME = "polymer_{}.xml"
 
 
 def process(env, params, l1product_path, _, out_path):
-    """ This processor applies polymer to the source product and stores the result. """
+    """This processor applies polymer to the source product and stores the result."""
 
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
-    # date_str = get_sensing_datetime_from_product_name(product_name)
+    date_str = get_sensing_date_from_product_name(product_name)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     water_model, validexpression = params['POLYMER']['water_model'], params['POLYMER']['validexpression']
     vicar_version = params['POLYMER']['vicar_version']
@@ -58,14 +58,14 @@ def process(env, params, l1product_path, _, out_path):
     os.makedirs(ancillary_path, exist_ok=True)
 
     try:
-        # date = datetime.strptime(date_str, "%Y%m%d")
-        # lons, lats = get_lons_lats(wkt)
-        # coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
+        date = datetime.strptime(date_str, "%Y%m%d")
+        lons, lats = get_lons_lats(wkt)
+        coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
         ancillary = Ancillary_ERA5(directory=ancillary_path)
-        # ozone = round(ancillary.get("ozone", date)[coords])  # Test can retrieve parameters
+        ozone = round(ancillary.get("ozone", date)[coords])  # Test can retrieve parameters
         anc_name = "ERA5"
         print("Polymer collected ERA5 ancillary data.")
-    except RuntimeError:
+    except (Exception, ):
         ancillary = None
         anc_name = "NA"
         print("Polymer failed to collect ERA5 ancillary data.")
@@ -272,3 +272,4 @@ def get_pixel_pos_oli(dataset, lon, lat):
     row, col = transformer.transform(lat, lon)
     x, y = dataset.index(row, col)
     return [-1, -1] if x < 0 or y < 0 else [x, y]
+    
