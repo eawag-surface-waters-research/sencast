@@ -244,5 +244,3 @@ if len(sys.argv) == 2:
     hindcast(params_file=sys.argv[1])
 elif len(sys.argv) == 3:
     hindcast(params_file=sys.argv[1], env_file=sys.argv[2])
-else:
-    raise RuntimeError("Unexpected number of arguments: {}, expected 2 or 3 arguments.".format(len(sys.argv)))
