@@ -100,11 +100,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
         # Center Wavelenghts
         wvl = [443, 490, 560, 665, 705]
         # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
-        m0 = 0
-        m1 = 0
-        m2 = 0
-        m3 = 0
-        y1 = 0
+        m0 = 0.0 if "m0" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m0"]
+        m1 = 0.0 if "m1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m1"]
+        m2 = 0.0 if "m2" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m2"]
+        m3 = 0.8 if "m3" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m3"]
+        y1 = 0.0 if "y1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["y1"]
         spectral_band_names = ['Rw443', 'Rw490', 'Rw560', 'Rw665', 'Rw705']
         tsm_band = 'tsm_binding740'
         a_gelb_band = ''
@@ -120,11 +120,14 @@ def process(env, params, l1product_path, l2product_files, out_path):
         # Center Wavelenghts
         wvl = [412.5, 442.5, 490, 510, 560, 620, 665, 681.25]
         # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
-        m0 = 0.0
-        m1 = 5.8
-        m2 = 0.52
-        m3 = 10.8
-        y1 = 0.265
+        m0 = 0.005 if "m0" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m0"]
+        m1 = 4.259 if "m1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m1"]
+        m2 = 0.52 if "m2" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m2"]
+        m3 = 10.8 if "m3" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m3"]
+        y1 = 0.265 if "y1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["y1"]
+
+        print(m0, m1, m2, m3, y1)
+
         spectral_band_names = ['Rw412', 'Rw443', 'Rw490', 'Rw510', 'Rw560', 'Rw620', 'Rw665', 'Rw681']
         tsm_band = 'tsm_binding754'
         a_gelb_band = 'a_gelb443'
