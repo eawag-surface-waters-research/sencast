@@ -106,6 +106,10 @@ def get_sensing_date_from_product_name(product_name):
     return re.findall(r"\d{8}", product_name)[0]
 
 
+def get_sensing_datetime_from_product_name(product_name):
+    return re.findall(r"\d{8}", product_name)[0] + "T" + re.findall(r"\d{6}", product_name)[1]
+
+
 def get_l1product_path(env, product_name):
     if product_name.startswith("S3A") or product_name.startswith("S3B"):
         satellite = "Sentinel-3"

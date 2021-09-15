@@ -12,7 +12,7 @@ import requests
 
 from json import dump
 from netCDF4 import Dataset
-from utils.product_fun import get_satellite_name_from_product_name, get_sensing_date_from_product_name
+from utils.product_fun import get_satellite_name_from_product_name, get_sensing_datetime_from_product_name
 
 
 # the url of the datalakes api
@@ -53,7 +53,7 @@ def apply(env, params, l2product_files, date):
         if processor in l2product_files.keys():
             l2product_file = l2product_files[processor]
             satellite = get_satellite_name_from_product_name(os.path.basename(l2product_file))
-            date = get_sensing_date_from_product_name(os.path.basename(l2product_file))
+            date = get_sensing_datetime_from_product_name(os.path.basename(l2product_file))
             out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'],
                                     satellite + "_" + date)
             output_file_main = os.path.join(out_path, NC_FILENAME.format(processor, satellite, date))
