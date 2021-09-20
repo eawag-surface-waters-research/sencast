@@ -191,7 +191,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
         sza = SZA.readPixels(0, n_row, width, 1, sza)
 
         ################## Derivation of total absorption and backscattering coefficients ###########
-        rrs = [r / (0.52 + (1.7 * r)) for r in rs]
+        # Divide r by pi for the conversion of polymer’s water-leaving reflectance output (Rw, unitless) to QAA’s expected remote sensing reflectance input (Rrs, unit per steradian, sr-1)
+        rrs = [(r / np.pi) / (0.52 + (1.7 * (r / np.pi))) for r in rs]
         us = [(-g0 + (np.sqrt((g0 ** 2) + (4 * g1) * rr))) / (2 * g1) for rr in rrs]
         ratioChi = rrs[6] / rrs[2]
         chi = np.log10((rrs[1] + rrs[2]) / (rrs[4] + 5 * ratioChi * rrs[6]))
