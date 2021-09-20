@@ -120,13 +120,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
         # Center Wavelenghts
         wvl = [412.5, 442.5, 490, 510, 560, 620, 665, 681.25]
         # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
-        m0 = 0.005 if "m0" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m0"]
-        m1 = 4.259 if "m1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m1"]
-        m2 = 0.52 if "m2" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m2"]
-        m3 = 10.8 if "m3" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m3"]
-        y1 = 0.265 if "y1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["y1"]
-
-        print(m0, m1, m2, m3, y1)
+        m0 = 0.005 if "m0" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m0"])
+        m1 = 4.259 if "m1" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m1"])
+        m2 = 0.52 if "m2" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m2"])
+        m3 = 10.8 if "m3" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m3"])
+        y1 = 0.265 if "y1" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["y1"])
 
         spectral_band_names = ['Rw412', 'Rw443', 'Rw490', 'Rw510', 'Rw560', 'Rw620', 'Rw665', 'Rw681']
         tsm_band = 'tsm_binding754'
@@ -142,7 +140,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     secchi_names = ['Z' + band_name[2:] for band_name in spectral_band_names] + \
                    [a_gelb_band] + \
                    ['a_dg' + band_name[2:] for band_name in spectral_band_names] + \
-                   ['a_ph' + band_name[2:] for band_name in spectral_band_names]
+                   ['a_ph' + band_name[2:] for band_name in spectral_band_names] + ["Zsd_lee", "Zsd_jiang"]
 
     valid_pixel_expression = product.getBand(tsm_band).getValidPixelExpression()
     for band_name in product_band_names:
@@ -158,8 +156,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
             temp_band.setUnit('m^-1')
         temp_band.setNoDataValueUsed(True)
         temp_band.setNoDataValue(np.NaN)
-        wavelength = re.findall(r'\d+', secchi_name)[0]
-        temp_band.setSpectralWavelength(float(wavelength))
+        if len(re.findall(r'\d+', secchi_name)) > 0:
+            temp_band.setSpectralWavelength(float(re.findall(r'\d+', secchi_name)[0]))
         temp_band.setValidPixelExpression(valid_pixel_expression)
         secchi_bands.append(temp_band)
 
@@ -217,6 +215,16 @@ def process(env, params, l1product_path, l2product_files, out_path):
         # Secchi depth per band:
         Zs = [(1 / (2.5 * Kd)) * np.log((np.absolute(0.14 - r)) / 0.013) for (Kd, r) in zip(Kds, rs)]
 
+        # ..., Zsd(broadband) according to Lee et al. (2015)
+        """if any([Kd for Kd in Kds if Kd > 0]):
+            minKd_ind = Kds.index(min([Kd for Kd in Kds if Kd > 0]))
+            Zsd_lee = (1 / (2.5 * Kds[minKd_ind])) * np.log((np.absolute(0.14 - rrs[minKd_ind])) / 0.013)
+
+        # ...and Jiang et al. (2019)
+            K_ratio = (1.04 * (1 + 5.4 * us[minKd_ind]) ** 0.5) / (1 / (1 - (np.sin(sza) ** 2 / 1.34)) ** 0.5)
+            Zsd_jiang = (1 / ((1 + K_ratio) * Kds[minKd_ind])) * np.log(
+                (np.absolute(0.14 - rrs[minKd_ind])) / 0.013)"""
+
         ############################### Decomposition of the total absorption coefficient ###########
 
         ratio = (rrs[1]) / (rrs[4])
@@ -231,6 +239,9 @@ def process(env, params, l1product_path, l2product_files, out_path):
         a_ph = [a - aw - a_g_s for (a, a_g_s, aw) in zip(a_s, a_g_s, aws)]
         Zs.append(a_g)
         output = Zs + a_g_s + a_ph + rrs
+
+        print(len(output[0]))
+        print(len(secchi_bands))
 
         # Mark infinite values as NAN
         for bds in output:
