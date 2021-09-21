@@ -109,9 +109,13 @@ def set_gpt_cache_size(env):
             for line in f:
                 if line.startswith(r"-Xmx"):
                     heap_size = line.replace(r"-Xmx", "")
+                    if "m" in heap_size:
+                        heap_size = float(heap_size.replace(r"m", ""))/1000
+                    elif "G" in heap_size:
+                        heap_size = float(heap_size.replace(r"G", ""))
         if not heap_size:
             raise RuntimeError("Could not read heap size from GPT vmoptions. Set it in your env file!")
-        cache_size = str(int(round(int(heap_size.replace(r"G", "")) * 0.7, 0,))) + "G"
+        cache_size = str(int(round(int(heap_size) * 1, 0,))) + "G"
         print("Setting GPT cache size to {}".format(cache_size))
         env['General']['gpt_cache_size'] = cache_size
 
