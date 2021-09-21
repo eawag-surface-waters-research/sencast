@@ -181,6 +181,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     print("Calculating Secchi depth.")
 
+    print(secchi_names)
+
     for n_row in range(height):
         # Reading the different bands per pixel into arrays
         rs = [b.readPixels(0, n_row, width, 1, r) for (b, r) in zip(bands, rs)]
@@ -215,15 +217,28 @@ def process(env, params, l1product_path, l2product_files, out_path):
         # Secchi depth per band:
         Zs = [(1 / (2.5 * Kd)) * np.log((np.absolute(0.14 - r)) / 0.013) for (Kd, r) in zip(Kds, rs)]
 
-        # ..., Zsd(broadband) according to Lee et al. (2015)
-        """if any([Kd for Kd in Kds if Kd > 0]):
-            minKd_ind = Kds.index(min([Kd for Kd in Kds if Kd > 0]))
-            Zsd_lee = (1 / (2.5 * Kds[minKd_ind])) * np.log((np.absolute(0.14 - rrs[minKd_ind])) / 0.013)
 
-        # ...and Jiang et al. (2019)
-            K_ratio = (1.04 * (1 + 5.4 * us[minKd_ind]) ** 0.5) / (1 / (1 - (np.sin(sza) ** 2 / 1.34)) ** 0.5)
-            Zsd_jiang = (1 / ((1 + K_ratio) * Kds[minKd_ind])) * np.log(
-                (np.absolute(0.14 - rrs[minKd_ind])) / 0.013)"""
+        Zsd_lee = np.empty(width)
+        Zsd_lee[:] = np.nan
+        Zsd_jiang = np.empty(width)
+        Zsd_jiang[:] = np.nan
+        Kda = np.array(Kds)
+        rrsa = np.array(rrs)
+        usa = np.array(us)
+        Kda[Kda < 0] = np.nan
+        non_nan_rows = np.any(Kda > 0, axis=0)
+        if np.any(non_nan_rows == True):
+            minKd_ind = np.nanargmin(Kda[:, non_nan_rows], axis=0)
+
+            # Zsd(broadband) according to Lee et al. (2015)
+            Zsd_lee[non_nan_rows] = (1 / (2.5 * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
+                (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
+
+            # Zsd(broadband) according to Jiang et al.(2019)
+            K_ratio = (1.04 * (1 + 5.4 * usa[:, non_nan_rows][minKd_ind].diagonal()) ** 0.5) / (
+                        1 / (1 - (np.sin(sza[non_nan_rows]) ** 2 / 1.34)) ** 0.5)
+            Zsd_jiang[non_nan_rows] = (1 / ((1 + K_ratio) * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
+                (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
 
         ############################### Decomposition of the total absorption coefficient ###########
 
@@ -238,10 +253,9 @@ def process(env, params, l1product_path, l2product_files, out_path):
         # phytoplancton pigments:
         a_ph = [a - aw - a_g_s for (a, a_g_s, aw) in zip(a_s, a_g_s, aws)]
         Zs.append(a_g)
-        output = Zs + a_g_s + a_ph + rrs
-
-        print(len(output[0]))
-        print(len(secchi_bands))
+        rrs.append(Zsd_lee)
+        rrs.append(Zsd_jiang)
+        output = Zs + a_ph + rrs
 
         # Mark infinite values as NAN
         for bds in output:
