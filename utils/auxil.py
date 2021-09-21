@@ -115,7 +115,7 @@ def set_gpt_cache_size(env):
                         heap_size = float(heap_size.replace(r"G", ""))
         if not heap_size:
             raise RuntimeError("Could not read heap size from GPT vmoptions. Set it in your env file!")
-        cache_size = str(int(round(int(heap_size) * 1, 0,))) + "G"
+        cache_size = str(int(round(int(heap_size) * 0.7, 0,))) + "G"
         print("Setting GPT cache size to {}".format(cache_size))
         env['General']['gpt_cache_size'] = cache_size
 
