@@ -6,7 +6,7 @@ import subprocess
 
 from haversine import haversine
 from datetime import datetime
-
+from utils.auxil import log
 from netCDF4 import Dataset
 
 
@@ -41,7 +41,7 @@ def get_satellite_name_from_product_name(product_name):
     raise RuntimeError("Could not read satellite name from product name [{}]".format(product_name))
 
 
-def filter_for_timeliness(download_requests, product_names):
+def filter_for_timeliness(download_requests, product_names, env):
     s3_products = []
     for i in range(len(product_names)):
         tmp = product_names[i]
@@ -65,7 +65,7 @@ def filter_for_timeliness(download_requests, product_names):
                 filtered_product_names.append(s3_products[j]["name"])
                 filtered_download_requests.append({"uuid": s3_products[j]["uuid"]})
             else:
-                print("Removed superseded file: {}).".format(s3_products[j]["name"]))
+                log(env["General"]["log"], "Removed superseded file: {}).".format(s3_products[j]["name"]))
         else:
             filtered_product_names.append(s3_products[j]["name"])
             filtered_download_requests.append({"uuid": s3_products[j]["uuid"]})
@@ -159,7 +159,7 @@ def generate_l8_angle_files(env, l1product_path):
     product_name = os.path.basename(l1product_path)
     ang_file = os.path.join(l1product_path, "{}_ANG.txt".format(product_name))
     args = [os.path.join(env['L8_ANGLES']['root_path'], "l8_angles"), ang_file, "BOTH", "1", "-b", "1"]
-    print("Calling [{}]...".format(" ".join(args)))
+    log(env["General"]["log"], "Calling [{}]...".format(" ".join(args)))
     return subprocess.call(args, cwd=l1product_path)
 
 

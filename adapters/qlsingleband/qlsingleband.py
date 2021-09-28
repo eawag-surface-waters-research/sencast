@@ -56,7 +56,7 @@ def apply(env, params, l2product_files, date):
     for key in params[PARAMS_SECTION].keys():
         processor = key.upper()
         if processor in l2product_files.keys():
-            print("Creating quicklooks for {}".format(processor))
+            log(env["General"]["log"], "Creating quicklooks for {}".format(processor))
             bands = list(filter(None, params[PARAMS_SECTION][key].split(",")))[::3]
             bandmins = list(filter(None, params[PARAMS_SECTION][key].split(",")))[1::3]
             bandmaxs = list(filter(None, params[PARAMS_SECTION][key].split(",")))[2::3]
@@ -70,21 +70,21 @@ def apply(env, params, l2product_files, date):
                 ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, band))
                 if os.path.exists(ql_file):
                     if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-                        print("Removing file: ${}".format(ql_file))
+                        log(env["General"]["log"], "Removing file: ${}".format(ql_file))
                         os.remove(ql_file)
                         param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin), float(bandmax)]
-                        plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade",
+                        plot_map(env, l2product_files[processor], ql_file, band, wkt, "srtm_hillshade",
                                  param_range=param_range)
                     else:
-                        print("Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
+                        log(env["General"]["log"], "Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
                 else:
                     param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin), float(bandmax)]
                     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-                    plot_map(l2product_files[processor], ql_file, band, wkt, "srtm_hillshade",
+                    plot_map(env, l2product_files[processor], ql_file, band, wkt, "srtm_hillshade",
                              param_range=param_range)
 
 
-def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevation', crop_ext=None,
+def plot_map(env, input_file, output_file, layer_str, wkt=None, basemap='srtm_elevation', crop_ext=None,
              param_range=None, cloud_layer=None, suspect_layer=None, water_layer=None, grid=True, shadow_layer=None,
              aspect_balance=None):
     """ basemap options are srtm_hillshade, srtm_elevation, quadtree_rgb, nobasemap """
@@ -140,7 +140,7 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     parameters.put('targetBands', targetBands)
     sub_product = GPF.createProduct('BandMaths', parameters, product)
     ProductUtils.copyGeoCoding(product, sub_product)
-    print('Reading Band {}'.format(layer_str))
+    log(env["General"]["log"], 'Reading Band {}'.format(layer_str))
     param_band = sub_product.getBand(layer_str + '_ql')
 
     # read constituent band
@@ -153,10 +153,10 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     masked_param_arr = np.ma.masked_where(invalid_mask == False, masked_param_arr)
     #masked_param_arr = np.ma.masked_where(masked_param_arr >= 9999, masked_param_arr)
     #masked_param_arr = np.ma.masked_where(masked_param_arr < 0.000000000001, masked_param_arr)
-    print(
+    log(env["General"]["log"],
         '   applicable values are found in ' + str(masked_param_arr.count()) + ' of ' + str(height * width) + ' pixels')
     if masked_param_arr.count() == 0:
-        print('Image is empty, skipping...')
+        log(env["General"]["log"], 'Image is empty, skipping...')
         return
 
     # load flag bands if requested
@@ -281,7 +281,7 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     # Define colour scale
     title_str, legend_str, log = get_legend_str(layer_str)
     if log:
-        print('Transforming log data...')
+        log(env["General"]["log"], 'Transforming log data...')
         masked_param_arr = np.exp(masked_param_arr)
 
     bounds = None
@@ -314,7 +314,7 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
 
     color_type.set_bad(alpha=0)
     if not param_range:
-        print('No range provided. Estimating...')
+        log(env["General"]["log"], 'No range provided. Estimating...')
         range_intervals = [2000, 1000, 500, 200, 100, 50, 40, 30, 20, 15,
                            10, 8, 6, 4, 2, 1, 0.5, 0.2, 0.1, 0.08, 0.06,
                            0.04, 0.02, 0.01, 0.008, 0.006, 0.004, 0.002,
@@ -326,7 +326,7 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
             elif np.nanpercentile(masked_param_arr.compressed(), 90) < range_intervals[-1]:
                 param_range = [0, range_intervals[-1]]
                 break
-    print('Parameters range set to: {}'.format(param_range))
+    log(env["General"]["log"], 'Parameters range set to: {}'.format(param_range))
     if not ticks:
         if param_range[1] >= 10:
             tick_format = '%.0f'
@@ -355,21 +355,21 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     if basemap in ['srtm_hillshade', 'srtm_elevation']:
         if canvas_area[1][1] <= 60 and canvas_area[0][1] >= -60:
             if x_dist < 50 and y_dist < 50:
-                print('   larger image side is ' + str(round(max(x_dist, y_dist), 1)) + ' km, applying SRTM1')
+                log(env["General"]["log"], '   larger image side is ' + str(round(max(x_dist, y_dist), 1)) + ' km, applying SRTM1')
                 source = srtm.SRTM1Source
             else:
-                print('   larger image side is ' + str(round(max(x_dist, y_dist), 1)) + ' km, applying SRTM3')
+                log(env["General"]["log"], '   larger image side is ' + str(round(max(x_dist, y_dist), 1)) + ' km, applying SRTM3')
                 source = srtm.SRTM3Source
 
             #  Add shading if requested
             if basemap == 'srtm_hillshade':
-                print('   preparing SRTM hillshade basemap')
+                log(env["General"]["log"], '   preparing SRTM hillshade basemap')
                 srtm_raster = PostprocessedRasterSource(source(max_nx=8, max_ny=8), shade)
                 color_vals = [[0.8, 0.8, 0.8, 1], [1.0, 1.0, 1.0, 1]]
                 shade_grey = colors.LinearSegmentedColormap.from_list("ShadeGrey", color_vals)
                 base_cols = shade_grey
             else:  # elif basemap == 'srtm_elevation':
-                print('   preparing SRTM elevation basemap')
+                log(env["General"]["log"], '   preparing SRTM elevation basemap')
                 srtm_raster = PostprocessedRasterSource(source(max_nx=6, max_ny=6), elevate)
                 color_vals = [[0.7, 0.7, 0.7, 1], [0.90, 0.90, 0.90, 1], [0.97, 0.97, 0.97, 1], [1.0, 1.0, 1.0, 1]]
                 elev_grey = colors.LinearSegmentedColormap.from_list("ElevGrey", color_vals)
@@ -379,7 +379,7 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
             subplot_axes.add_raster(srtm_raster, cmap=base_cols)
 
         else:
-            print('   no SRTM data outside 55 deg N/S, proceeding without basemap')
+            log(env["General"]["log"], '   no SRTM data outside 55 deg N/S, proceeding without basemap')
             basemap = 'nobasemap'
 
     ##################################
@@ -389,9 +389,9 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
     if basemap in ['quadtree_rgb', 'nobasemap']:
 
         if basemap == 'nobasemap':
-            print('   proceeding without basemap')
+            log(env["General"]["log"], '   proceeding without basemap')
         if basemap == 'quadtree_rgb':
-            print('   preparing Quadtree tiles basemap')
+            log(env["General"]["log"], '   preparing Quadtree tiles basemap')
 
             # background = maps.GoogleTiles(style='street')
             # background = maps.GoogleTiles(style='satellite')
@@ -461,7 +461,7 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
         gridlines.ylabel_style = {'size': gridlabel_size, 'color': 'black'}
 
     # Create colorbar
-    print('   creating colorbar')
+    log(env["General"]["log"], '   creating colorbar')
     fig = plt.gcf()
     fig.subplots_adjust(top=1, bottom=0, left=0,
                         right=(aspect_ratio * 3) / ((aspect_ratio * 3) + (1.2 * legend_extension)),
@@ -479,7 +479,7 @@ def plot_map(input_file, output_file, layer_str, wkt=None, basemap='srtm_elevati
 
     # Save plot
     plt.title(legend_str, y=1.05, fontsize=8)
-    print('Writing {}'.format(os.path.basename(output_file)))
+    log(env["General"]["log"], 'Writing {}'.format(os.path.basename(output_file)))
     plt.savefig(output_file, bbox_inches='tight', dpi=300)
     plt.close()
     sub_product.closeIO()

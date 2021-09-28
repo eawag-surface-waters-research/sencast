@@ -13,6 +13,7 @@ from requests.status_codes import codes
 from tqdm import tqdm
 from zipfile import ZipFile
 from pathlib import Path
+from utils.auxil import log
 
 # Documentation for CREODIAS API can be found here:
 # https://creodias.eu/eo-data-finder-api-manual
@@ -31,13 +32,13 @@ def authenticate(env):
     return [env['username'], env['password']]
 
 
-def get_download_requests(auth, startDate, completionDate, sensor, resolution, wkt):
+def get_download_requests(auth, startDate, completionDate, sensor, resolution, wkt, env):
     query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}&processingLevel={}"
     maxRecords = 1000
     geometry = wkt.replace(" ", "", 1).replace(" ", "+")
     satellite, instrument, productType, processingLevel = get_dataset_id(sensor, resolution)
     query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType, processingLevel)
-    uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query)
+    uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query, env)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
 
@@ -93,8 +94,8 @@ def get_dataset_id(sensor, resolution):
         raise RuntimeError("CREODIAS API is not yet implemented for sensor: {}".format(sensor))
 
 
-def search(satellite, query):
-    print("Search for products: {}".format(query))
+def search(satellite, query, env):
+    log(env["General"]["log"], "Search for products: {}".format(query))
     uuids, filenames = [], []
     timelinesss, beginpositions, endpositions = [], [], []
     while True:
@@ -112,7 +113,7 @@ def search(satellite, query):
             raise RuntimeError("Unexpected response: {}".format(response.text))
 
 
-def do_download(auth, download_request, product_path):
+def do_download(auth, download_request, product_path, env):
     username = auth[0]
     password = auth[1]
     token = get_token(username, password)

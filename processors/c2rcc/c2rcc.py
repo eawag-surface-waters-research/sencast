@@ -16,8 +16,7 @@ import subprocess
 
 from datetime import datetime
 from polymer.ancillary_era5 import Ancillary_ERA5
-
-from utils.auxil import load_properties
+from utils.auxil import load_properties, log
 from utils.product_fun import get_lons_lats, get_sensing_date_from_product_name
 
 # Key of the params section for this processor
@@ -57,10 +56,10 @@ def process(env, params, l1product_path, l2product_files, out_path):
             surf_press = round(ancillary.get("surf_press", date)[coords])
             ancillary_obj = {"ozone": ozone, "surf_press": surf_press, "useEcmwfAuxData": "False"}
             anc_name = "ERA5"
-            print(
+            log(env["General"]["log"],
                 "C2RCC Ancillary Data successfully retrieved. Ozone: {}, Surface Pressure {}".format(ozone, surf_press))
         except RuntimeError:
-            print("C2RCC Ancillary Data not retrieved using default values. Ozone: 330, Surface Pressure 1000")
+            log(env["General"]["log"], "C2RCC Ancillary Data not retrieved using default values. Ozone: 330, Surface Pressure 1000")
             if ancillary_path.endwith("METEO"):
                 ancillary_obj["useEcmwfAuxData"] = "True"
             pass
@@ -68,10 +67,10 @@ def process(env, params, l1product_path, l2product_files, out_path):
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print("Removing file: ${}".format(output_file))
+            log(env["General"]["log"], "Removing file: ${}".format(output_file))
             os.remove(output_file)
         else:
-            print("Skipping C2RCC, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
+            log(env["General"]["log"], "Skipping C2RCC, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
             return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
@@ -80,7 +79,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(l2product_files['IDEPIX']), "-PoutputFile={}".format(output_file)]
-    print("Calling [{}]".format(" ".join(args)))
+    log(env["General"]["log"], "Calling [{}]".format(" ".join(args)))
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 

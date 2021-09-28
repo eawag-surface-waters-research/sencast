@@ -27,6 +27,7 @@ from polymer.level1_landsat8 import Level1_OLI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
+from utils.auxil import log
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
     get_lons_lats, get_sensing_date_from_product_name
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
@@ -64,19 +65,19 @@ def process(env, params, l1product_path, _, out_path):
         ancillary = Ancillary_ERA5(directory=ancillary_path)
         ozone = round(ancillary.get("ozone", date)[coords])  # Test can retrieve parameters
         anc_name = "ERA5"
-        print("Polymer collected ERA5 ancillary data.")
+        log(env["General"]["log"], "Polymer collected ERA5 ancillary data.")
     except (Exception, ):
         ancillary = None
         anc_name = "NA"
-        print("Polymer failed to collect ERA5 ancillary data.")
+        log(env["General"]["log"], "Polymer failed to collect ERA5 ancillary data.")
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print("Removing file: ${}".format(output_file))
+            log(env["General"]["log"], "Removing file: ${}".format(output_file))
             os.remove(output_file)
         else:
-            print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
+            log(env["General"]["log"], "Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
             return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 

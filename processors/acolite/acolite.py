@@ -7,7 +7,7 @@ import importlib
 import os
 import shutil
 import sys
-
+from utils.auxil import log
 from constants import REPROD_DIR
 
 
@@ -43,7 +43,7 @@ def process(env, params, l1product_path, _, out_path):
 
     if os.path.isdir(out_path):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print("Removing file: ${}".format(out_path))
+            log(env["General"]["log"], "Removing file: ${}".format(out_path))
             os.remove(out_path)
     os.makedirs(out_path, exist_ok=True)
 
@@ -59,7 +59,7 @@ def process(env, params, l1product_path, _, out_path):
         if aco_file == REPROD_DIR:
             continue
         elif aco_file.endswith("_L2W.nc"):
-            print("Renaming Acolite L2W output file.")
+            log(env["General"]["log"], "Renaming Acolite L2W output file.")
             os.rename(os.path.join(tmp_path, aco_file), out_file)
 
     if not os.path.isfile(out_file):

@@ -13,6 +13,7 @@ from requests.auth import HTTPBasicAuth
 from requests.status_codes import codes
 from xml.etree import ElementTree
 from zipfile import ZipFile
+from utils.auxil import log
 
 # Documentation for COAH API can be found here:
 # https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/BatchScripting?redirectedfrom=SciHubUserGuide.8BatchScripting
@@ -29,17 +30,17 @@ def authenticate(env):
     return HTTPBasicAuth(env['username'], env['password'])
 
 
-def get_download_requests(auth, start, end, sensor, resolution, wkt):
+def get_download_requests(auth, start, end, sensor, resolution, wkt, env):
     query = "instrumentshortname:{}+AND+producttype:{}+AND+beginPosition:[{}+TO+{}]+AND+footprint:\"Intersects({})\""
     datatype = get_dataset_id(sensor, resolution)
     query = query.format(sensor.lower(), datatype, start, end, wkt)
-    uuids, product_names, timelinesss, beginpositions, endpositions = search(auth, query)
+    uuids, product_names, timelinesss, beginpositions, endpositions = search(auth, query, env)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
 
 
-def do_download(auth, download_request, product_path):
-    download(auth, download_request['uuid'], product_path)
+def do_download(auth, download_request, product_path, env):
+    download(auth, download_request['uuid'], product_path, env)
 
 
 def get_dataset_id(sensor, resolution):
@@ -83,8 +84,8 @@ def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endposi
         return uuids, product_names
 
 
-def search(auth, query):
-    print("Search for products: {}".format(query))
+def search(auth, query, env):
+    log(env["General"]["log"], "Search for products: {}".format(query))
     uuids, filenames = [], []
     timelinesss, beginpositions, endpositions = [], [], []
     start, rows = 0, 100
@@ -116,9 +117,9 @@ def search(auth, query):
             raise RuntimeError("Unexpeted response: {}".format(response.text))
 
 
-def download(auth, uuid, filename):
+def download(auth, uuid, filename, env):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
-    print("Downloading file from {}.".format(download_address.format(uuid)))
+    log(env["General"]["log"], ("Downloading file from {}.".format(download_address.format(uuid)))
     response = requests.get(download_address.format(uuid), auth=auth, stream=True)
     if response.status_code == codes.OK:
         with open(filename + '.zip', 'wb') as down_stream:
@@ -128,7 +129,7 @@ def download(auth, uuid, filename):
             zip_file.extractall(os.path.dirname(filename))
         os.remove(filename + '.zip')
     else:
-        print("Unexpected response (HTTP {}) on download request: {}".format(response.status_code, response.text))
+        log(env["General"]["log"], ("Unexpected response (HTTP {}) on download request: {}".format(response.status_code, response.text))
 
 
 def prepend_ns(s):

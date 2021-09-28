@@ -11,7 +11,7 @@ import numpy as np
 from colour import dominant_wavelength
 from snappy import ProductIO, ProductData, Product, ProductUtils
 from utils.product_fun import get_satellite_name_from_product_name
-
+from utils.auxil import log
 
 # key of the params section for this adapter
 PARAMS_SECTION = 'FORELULE'
@@ -41,7 +41,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
                 """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning('Forel-Ule was not configured in parameters.')
-    print("Applying Forel-Ule...")
+    log(env["General"]["log"], "Applying Forel-Ule...")
 
     if "processor" not in params[PARAMS_SECTION]:
         raise RuntimeWarning('processor must be defined in the parameter file.')
@@ -62,14 +62,14 @@ def process(env, params, l1product_path, l2product_files, out_path):
     l2product_files["FORELULE"] = output_file
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print('Removing file: ${}'.format(output_file))
+            log(env["General"]["log"], 'Removing file: ${}'.format(output_file))
             os.remove(output_file)
         else:
-            print('Skipping Forel-Ule, target already exists: {}'.format(FILENAME.format(product_name)))
+            log(env["General"]["log"], 'Skipping Forel-Ule, target already exists: {}'.format(FILENAME.format(product_name)))
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
-    print('Reading processor output from {}'.format(product_path))
+    log(env["General"]["log"], 'Reading processor output from {}'.format(product_path))
     product = ProductIO.readProduct(product_path)
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
@@ -77,9 +77,9 @@ def process(env, params, l1product_path, l2product_files, out_path):
     description = product.getDescription()
     product_band_names = product.getBandNames()
 
-    print('Product:      {}, {}'.format(name, description))
-    print('Raster size: {} x {} pixels'.format(width, height))
-    print('Bands:       {}'.format(list(product_band_names)))
+    log(env["General"]["log"], 'Product:      {}, {}'.format(name, description))
+    log(env["General"]["log"], 'Raster size: {} x {} pixels'.format(width, height))
+    log(env["General"]["log"], 'Bands:       {}'.format(list(product_band_names)))
 
     satellite = get_satellite_name_from_product_name(product_name)
 
@@ -168,7 +168,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             product.getBand(band_name).readPixels(0, 0, width, height, temp_arr)
             foreluleProduct.getBand(band_name).writePixels(0, 0, width, height, temp_arr)
 
-    print("Calculating Forel-Ule parameters.")
+    log(env["General"]["log"], "Calculating Forel-Ule parameters.")
 
     for n_row in range(height):
         hue_angles_corr = []
@@ -228,7 +228,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             forelule.writePixels(0, n_row, width, 1, bds)
 
     foreluleProduct.closeIO()
-    print('Writing Forel-Ule to file: {}'.format(output_file))
+    log(env["General"]["log"], 'Writing Forel-Ule to file: {}'.format(output_file))
     return output_file
 
 

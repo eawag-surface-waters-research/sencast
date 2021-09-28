@@ -11,7 +11,7 @@ https://www.brockmann-consult.de/portfolio/idepix/
 
 import os
 import subprocess
-
+from utils.auxil import log
 from utils.product_fun import get_reproject_params_from_wkt, get_main_file_from_product_path
 
 # Key of the params section for this processor
@@ -32,7 +32,7 @@ def process(env, params, l1product_path, _, out_path):
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
-        print("Skipping LSWT, target already exists: {}".format(os.path.basename(output_file)))
+        log(env["General"]["log"], "Skipping LSWT, target already exists: {}".format(os.path.basename(output_file)))
         return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
@@ -44,7 +44,7 @@ def process(env, params, l1product_path, _, out_path):
         l1product_path = get_main_file_from_product_path(l1product_path)
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(l1product_path),
             "-PoutputFile={}".format(output_file)]
-    print("Calling '{}'".format(args))
+    log(env["General"]["log"], "Calling '{}'".format(args))
     if subprocess.call(args):
         raise RuntimeError("GPT Failed.")
 

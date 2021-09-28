@@ -5,6 +5,7 @@
 
 import os
 import numpy as np
+from utils.auxil import log
 from snappy import ProductIO, ProductData, Product, ProductUtils
 from .MDN import image_estimates, get_tile_data, get_tile_data_polymer
 
@@ -43,7 +44,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("MDN was not configured in parameters.")
-    print("Applying MDN...")
+    log(env["General"]["log"], "Applying MDN...")
 
     if "processor" not in params[PARAMS_SECTION]:
         raise RuntimeWarning("MDN processor must be defined in the parameter file.")
@@ -67,14 +68,14 @@ def process(env, params, l1product_path, l2product_files, out_path):
     l2product_files["MDN"] = output_file
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print("Removing file: ${}".format(output_file))
+            log(env["General"]["log"], "Removing file: ${}".format(output_file))
             os.remove(output_file)
         else:
-            print("Skipping MDN, target already exists: {}".format(FILENAME.format(product_name)))
+            log(env["General"]["log"], "Skipping MDN, target already exists: {}".format(FILENAME.format(product_name)))
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
-    print("Reading POLYMER output from {}".format(product_path))
+    log(env["General"]["log"], "Reading POLYMER output from {}".format(product_path))
     product = ProductIO.readProduct(product_path)
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
@@ -82,9 +83,9 @@ def process(env, params, l1product_path, l2product_files, out_path):
     description = product.getDescription()
     band_names = product.getBandNames()
 
-    print("Product:      {}, {}".format(name, description))
-    print("Raster size: {} x {} pixels".format(width, height))
-    print("Bands:       {}".format(list(band_names)))
+    log(env["General"]["log"], "Product:      {}, {}".format(name, description))
+    log(env["General"]["log"], "Raster size: {} x {} pixels".format(width, height))
+    log(env["General"]["log"], "Bands:       {}".format(list(band_names)))
 
     mdn_product = Product('Z0', 'Z0', width, height)
 
@@ -127,5 +128,5 @@ def process(env, params, l1product_path, l2product_files, out_path):
         band_data = np.asarray(estimates[0])
         mdn_b.writePixels(0, 0, width, height, band_data)
     mdn_product.closeIO()
-    print("Writing MDN to file: {}".format(output_file))
+    log(env["General"]["log"], "Writing MDN to file: {}".format(output_file))
     return output_file

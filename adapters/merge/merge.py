@@ -8,6 +8,7 @@ regions.
 """
 
 import os
+from utils.auxil import log
 from snappy import ProductIO, HashMap, GPF
 
 # key of the params section for this adapter
@@ -37,7 +38,7 @@ def apply(env, params, l2product_files,date):
                 """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("Merge was not configured in parameters.")
-    print("Applying Merge...")
+    log(env["General"]["log"], "Applying Merge...")
 
     if "merge_nc" not in params[PARAMS_SECTION]:
         raise RuntimeWarning("Merge files must be defined in the parameter file under the merge_nc key.")
@@ -52,10 +53,10 @@ def apply(env, params, l2product_files,date):
     l2product_files["MERGE"] = output_file
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print("Removing file: ${}".format(output_file))
+            log(env["General"]["log"], "Removing file: ${}".format(output_file))
             os.remove(output_file)
         else:
-            print("Skipping Merge, target already exists: {}".format(FILENAME.format(product_name)))
+            log(env["General"]["log"], "Skipping Merge, target already exists: {}".format(FILENAME.format(product_name)))
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
