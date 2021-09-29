@@ -184,7 +184,9 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
     for download_request, l1product_path in zip(download_requests, l1product_paths):
         if not os.path.exists(l1product_path):
             with semaphores['download']:
+                log(env["General"]["log"], "Downloading file: " + l1product_path)
                 do_download(auth, download_request, l1product_path, env)
+                log(env["General"]["log"], "Completed downloading file: " + l1product_path)
 
     # ensure all products have been downloaded
     for l1product_path in l1product_paths:
@@ -220,8 +222,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                         traceback.print_exc()
             except (Exception, ):
                 log(env["General"]["log"], "Processor {} failed on product {}.".format(processor, l1product_path))
-                log(env["General"]["log"], sys.exc_info()[0])
-                traceback.print_exc()
+                log(env["General"]["log"], traceback.format_exc(), indent=1)
         del processor_outputs
         for l1product_path in l1product_paths:
             del(l2product_files[l1product_path])

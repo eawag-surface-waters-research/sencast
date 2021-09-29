@@ -21,7 +21,7 @@ OUT_DIR = "LSWT"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
 OUT_FILENAME = "LSWT_{}.nc"
 # The name of the xml file for gpt
-GPT_XML_FILENAME = "lswt.xml"
+GPT_XML_FILENAME = "lswt_OLI_TIRS.xml"
 
 
 def process(env, params, l1product_path, _, out_path):
@@ -34,19 +34,28 @@ def process(env, params, l1product_path, _, out_path):
     if os.path.isfile(output_file):
         log(env["General"]["log"], "Skipping LSWT, target already exists: {}".format(os.path.basename(output_file)))
         return output_file
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor))
-    if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, sensor, resolution, wkt)
 
     if sensor == "OLI_TIRS":
         l1product_path = get_main_file_from_product_path(l1product_path)
+    else:
+        raise RuntimeError("LSWT not set up for Sensor: "+sensor)
+
+    if not os.path.isfile(gpt_xml_file):
+        rewrite_xml(gpt_xml_file, sensor, resolution, wkt)
+
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(l1product_path),
             "-PoutputFile={}".format(output_file)]
-    log(env["General"]["log"], "Calling '{}'".format(args))
-    if subprocess.call(args):
+    log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
+
+    result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode != 0:
+        log(env["General"]["log"], result.stderr, indent=2)
         raise RuntimeError("GPT Failed.")
+    else:
+        log(env["General"]["log"], result.stdout, indent=2)
 
     return output_file
 

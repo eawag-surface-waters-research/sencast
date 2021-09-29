@@ -127,8 +127,13 @@ def process(env, params, l1product_path, _, out_path):
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(poly_tmp_file),
             "-PoutputFile={}".format(output_file)]
-    if subprocess.call(args):
+    log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
+    result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode != 0:
+        log(env["General"]["log"], result.stderr, indent=2)
         raise RuntimeError("GPT Failed.")
+    else:
+        log(env["General"]["log"], result.stdout, indent=2)
 
     return output_file
 

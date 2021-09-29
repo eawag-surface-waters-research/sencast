@@ -140,18 +140,20 @@ def load_properties(properties_file, separator_char='=', comment_char='#'):
     return properties_dict
 
 
-def log(file, text, indent=0, start=False):
-    if start:
-        out = "\n" + text
-    else:
-        out = datetime.now().strftime("%H:%M:%S.%f") + (" " * 3 * (indent + 1)) + text
-    print(out)
+def log(file, text, indent=0):
+    text = str(text).split(r"\n")
     with open(file, "a") as file:
-        file.write(out + "\n")
+        for t in text:
+            out = datetime.now().strftime("%H:%M:%S.%f") + (" " * 3 * (indent + 1)) + t
+            print(out)
+            file.write(out + "\n")
 
 
-def error(file, text):
-    out = datetime.now().strftime("%H:%M:%S.%f") + "   ERROR: " + text
+def error(file, e):
+    text = str(e).split("\n")
     with open(file, "a") as file:
-        file.write(out + "\n")
-    raise ValueError(str)
+        for t in text:
+            out = datetime.now().strftime("%H:%M:%S.%f") + "   ERROR: " + t
+            print(out)
+            file.write(out + "\n")
+    raise ValueError(str(e))
