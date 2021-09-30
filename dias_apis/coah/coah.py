@@ -50,7 +50,7 @@ def get_dataset_id(sensor, resolution):
         return 'OL_1_ERR___'
     elif sensor == 'MSI':
         return 'S2MSI1C'
-    elif sensor == 'MSI2':
+    elif sensor == 'MSI-L2A':
         return 'S2MSI2A'
     else:
         raise RuntimeError("COAH API is not yet implemented for sensor: {}".format(sensor))

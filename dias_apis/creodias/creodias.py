@@ -88,7 +88,7 @@ def get_dataset_id(sensor, resolution):
         return 'Sentinel3', 'OL', 'ERR', ''
     elif sensor == 'MSI':
         return 'Sentinel2', 'MSI', '', 'LEVEL1C'
-    elif sensor == 'MSI2':
+    elif sensor == 'MSI-L2A':
         return 'Sentinel2', 'MSI', '', 'LEVEL2A'
     elif sensor == 'OLI_TIRS':
         return 'Landsat8', 'OLI_TIRS', 'L1TP', 'LEVEL1TP'
