@@ -38,7 +38,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     validexpression = params[PARAMS_SECTION]['validexpression']
 
-    if sensor != "MSI":
+    if "MSI" not in sensor:
         return
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
