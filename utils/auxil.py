@@ -144,16 +144,18 @@ def log(file, text, indent=0):
     text = str(text).split(r"\n")
     with open(file, "a") as file:
         for t in text:
-            out = datetime.now().strftime("%H:%M:%S.%f") + (" " * 3 * (indent + 1)) + t
-            print(out)
-            file.write(out + "\n")
+            if t != "":
+                out = datetime.now().strftime("%H:%M:%S.%f") + (" " * 3 * (indent + 1)) + t
+                print(out)
+                file.write(out + "\n")
 
 
 def error(file, e):
     text = str(e).split("\n")
     with open(file, "a") as file:
         for t in text:
-            out = datetime.now().strftime("%H:%M:%S.%f") + "   ERROR: " + t
-            print(out)
-            file.write(out + "\n")
+            if t != "":
+                out = datetime.now().strftime("%H:%M:%S.%f") + "   ERROR: " + t
+                print(out)
+                file.write(out + "\n")
     raise ValueError(str(e))
