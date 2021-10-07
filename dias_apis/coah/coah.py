@@ -121,7 +121,7 @@ def search(auth, query, env):
 
 def download(auth, uuid, filename, env):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
-    log(env["General"]["log"], ("Downloading file from {}.".format(download_address.format(uuid)))
+    log(env["General"]["log"], ("Downloading file from {}.".format(download_address.format(uuid))))
     response = requests.get(download_address.format(uuid), auth=auth, stream=True)
     if response.status_code == codes.OK:
         with open(filename + '.zip', 'wb') as down_stream:
@@ -131,7 +131,7 @@ def download(auth, uuid, filename, env):
             zip_file.extractall(os.path.dirname(filename))
         os.remove(filename + '.zip')
     else:
-        log(env["General"]["log"], ("Unexpected response (HTTP {}) on download request: {}".format(response.status_code, response.text))
+        log(env["General"]["log"], ("Unexpected response (HTTP {}) on download request: {}".format(response.status_code, response.text)))
 
 
 def prepend_ns(s):
