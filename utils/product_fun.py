@@ -81,7 +81,7 @@ def get_south_east_north_west_bound(wkt):
 
 def get_lons_lats(wkt):
     """ Return one array with all longitudes and one array with all latitudes of the perimeter corners. """
-    if not wkt.startswith("POLYGON"):
+    if wkt[0:7].lower() != "polygon":
         raise RuntimeError("Provided wkt must be a polygon!")
     corners = [float(c) for c in re.findall(r'[-]?\d+\.\d+', wkt)]
     lons = [float(corner) for corner in corners[::2]]
