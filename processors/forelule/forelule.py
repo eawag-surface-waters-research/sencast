@@ -47,17 +47,22 @@ def process(env, params, l1product_path, l2product_files, out_path):
         raise RuntimeWarning('processor must be defined in the parameter file.')
 
     processor = params[PARAMS_SECTION]['processor']
-    if processor not in ['POLYMER', 'C2RCC']:
-        raise RuntimeWarning('Forel-Ule adapter only works with Polymer and C2RCC processor output')
+    if processor not in ['POLYMER', 'C2RCC', 'MSI-L2A']:
+        raise RuntimeWarning('Forel-Ule adapter only works with Polymer, C2RCC and MSI-L2A processor output')
 
     # Check for precursor datasets
-    if processor not in l2product_files or not os.path.exists(l2product_files[processor]):
-        raise RuntimeWarning('Precursor file not found ensure a processor is run before this adapter.')
+    if processor == "MSI-L2A":
+        if not os.path.exists(l1product_path):
+            raise RuntimeWarning('S2 L2A precursor file not found.')
+        product_path = l1product_path
+    else:
+        if processor not in l2product_files or not os.path.exists(l2product_files[processor]):
+            raise RuntimeWarning('Precursor file not found ensure a processor is run before this adapter.')
+        product_path = l2product_files[processor]
 
     # Create folder for file
-    product_path = l2product_files[processor]
     product_name = os.path.basename(product_path)
-    product_dir = os.path.join(os.path.dirname(os.path.dirname(product_path)), FILEFOLDER)
+    product_dir = os.path.join(out_path, FILEFOLDER)
     output_file = os.path.join(product_dir, FILENAME.format(product_name))
     l2product_files["FORELULE"] = output_file
     if os.path.isfile(output_file):
@@ -109,6 +114,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
         elif processor == 'C2RCC':
             spectral_band_names = ["rhow_B1", "rhow_B2", "rhow_B3", "rhow_B4", "rhow_B5", "rhow_B6"]
             sample_band = 'conc_tsm'
+        elif processor == 'MSI-L2A':
+            spectral_band_names = ["B1", "B2", "B3", "B4", "B5", "B6"]
+            sample_band = 'B1'
+        else:
+            raise RuntimeWarning('Forel-Ule not yet configured for S2 input: ' + processor)
     elif satellite in ['S3A', 'S3B']:
         chromaticity = chromaticity_values("OLCI")
         hue_angle_coeff = hue_angle_coefficients("OLCI")
@@ -118,6 +128,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
         elif processor == 'C2RCC':
             spectral_band_names = ["rhow_1", "rhow_2", "rhow_3", "rhow_4", "rhow_5", "rhow_6", "rhow_7", "rhow_8", "rhow_9", "rhow_10", "rhow_11", "rhow_12"]
             sample_band = 'conc_tsm'
+        else:
+            raise RuntimeWarning('Forel-Ule not yet configured for S3 processor: ' + processor)
     else:
         exit('Forel-Ule adapter not implemented for satellite ' + satellite)
 
@@ -152,8 +164,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     foreluleProduct.setProductWriter(writer)
     foreluleProduct.writeHeader(output_file)
-
-    rs_row = [np.zeros(width, dtype=np.float32) for _ in range(len(spectral_band_names))]
 
     # Write valid pixel bands
     for band_name in product_band_names:
