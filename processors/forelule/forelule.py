@@ -206,10 +206,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
     x = x_nan[~np.isnan(x_nan)]
     y = y_nan[~np.isnan(x_nan)]
 
-    print(np.nanmax(X), np.nanmin(X), np.std(X))
-    print(np.nanmax(Y), np.nanmin(Y), np.std(Y))
-    print(np.nanmax(Z), np.nanmin(Z), np.std(Z))
-
     hue_angle_c = np.zeros(len(x_nan))
     dom_wvl = np.zeros(len(x_nan))
     hue_angle_c[:] = np.nan
@@ -217,6 +213,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     log(env["General"]["log"], "Calculating hue angle", indent=1)
     hue_angle = get_hue_angle(x, y)
+
     hue_angle_c[~np.isnan(x_nan)] = (hue_angle_coeff["a5"] * (hue_angle / 100) ** 5) + (hue_angle_coeff["a4"] * (hue_angle / 100) ** 4) +\
                   (hue_angle_coeff["a3"] * (hue_angle / 100) ** 3) + (hue_angle_coeff["a2"] * (hue_angle / 100) ** 2) + \
                   (hue_angle_coeff["a"] * (hue_angle / 100)) + hue_angle_coeff["const"]
