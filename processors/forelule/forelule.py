@@ -194,7 +194,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             l_index = np.where(input_band_lambdas == l_lbda)[0][0]
             log(env["General"]["log"], 'Interpolating reflectance {}nm between {}nm and {}nm'.format(lbda, l_lbda, u_lbda), indent=2)
             f = (lbda - l_lbda)/(u_lbda - l_lbda)
-            band_values.append(band_values[l_index] + (band_values[u_index]-band_values[l_index])*f)
+            band_values.append(input_band_values[l_index] + (input_band_values[u_index]-input_band_values[l_index])*f)
 
     log(env["General"]["log"], "Calculating Tristimulus values", indent=1)
     X = np.sum(np.array([chromaticity["x"][i] * band_values[i] for i in range(len(chromaticity["lambda"]))]), axis=0)
