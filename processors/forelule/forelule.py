@@ -213,10 +213,9 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     log(env["General"]["log"], "Calculating hue angle", indent=1)
     hue_angle = get_hue_angle(x, y)
-
     hue_angle_c[~np.isnan(x_nan)] = (hue_angle_coeff["a5"] * (hue_angle / 100) ** 5) + (hue_angle_coeff["a4"] * (hue_angle / 100) ** 4) +\
                   (hue_angle_coeff["a3"] * (hue_angle / 100) ** 3) + (hue_angle_coeff["a2"] * (hue_angle / 100) ** 2) + \
-                  (hue_angle_coeff["a"] * (hue_angle / 100)) + hue_angle_coeff["const"]
+                  (hue_angle_coeff["a"] * (hue_angle / 100)) + hue_angle_coeff["const"] + hue_angle
     forelule_bands[0].writePixels(0, 0, width, height, hue_angle_c)
 
     log(env["General"]["log"], "Calculating dominant wavelength", indent=1)
