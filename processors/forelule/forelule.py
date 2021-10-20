@@ -163,11 +163,12 @@ def process(env, params, l1product_path, l2product_files, out_path):
             foreluleProduct.getBand(band_name).writePixels(0, 0, width, height, temp_arr)
 
     log(env["General"]["log"], "Reading reflectance values.", indent=1)
-    input_band_values = len(bands) * [np.zeros(width * height)]
+    input_band_values = []
     input_band_lambdas = []
     for i in range(len(bands)):
-        input_band_values[i][:] = np.nan
-        bands[i].readPixels(0, 0, width, height, input_band_values[i])
+        temp_arr = np.zeros(width * height)
+        bands[i].readPixels(0, 0, width, height, temp_arr)
+        input_band_values.append(temp_arr)
         input_band_lambdas.append(bands[i].getSpectralWavelength())
     input_band_lambdas = np.array(input_band_lambdas)
 
@@ -204,6 +205,10 @@ def process(env, params, l1product_path, l2product_files, out_path):
     y_nan = Y / (X + Y + Z)
     x = x_nan[~np.isnan(x_nan)]
     y = y_nan[~np.isnan(x_nan)]
+
+    print(np.nanmax(X), np.nanmin(X), np.std(X))
+    print(np.nanmax(Y), np.nanmin(Y), np.std(Y))
+    print(np.nanmax(Z), np.nanmin(Z), np.std(Z))
 
     hue_angle_c = np.zeros(len(x_nan))
     dom_wvl = np.zeros(len(x_nan))
