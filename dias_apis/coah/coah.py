@@ -33,7 +33,7 @@ def authenticate(env):
 def get_download_requests(auth, start, end, sensor, resolution, wkt, env):
     query = "instrumentshortname:{}+AND+producttype:{}+AND+beginPosition:[{}+TO+{}]+AND+footprint:\"Intersects({})\""
     datatype = get_dataset_id(sensor, resolution)
-    query = query.format(sensor.lower(), datatype, start, end, wkt)
+    query = query.format(sensor.lower().split("-")[0], datatype, start, end, wkt)
     uuids, product_names, timelinesss, beginpositions, endpositions = search(auth, query, env)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
