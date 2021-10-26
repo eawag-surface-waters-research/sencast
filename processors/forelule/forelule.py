@@ -8,9 +8,10 @@ Adapter authors: Daniel Odermatt, James Runnalls
 
 import os
 import math
+from scipy.interpolate import griddata
 import numpy as np
 from colour import dominant_wavelength
-from snappy import ProductIO, ProductData, Product, ProductUtils
+from snappy import ProductIO, ProductData, Product, ProductUtils, Mask, jpy
 from utils.product_fun import get_satellite_name_from_product_name
 from utils.auxil import log
 
@@ -78,7 +79,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
     product = ProductIO.readProduct(product_path)
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
-    print(width, height)
     name = product.getName()
     description = product.getDescription()
     product_band_names = product.getBandNames()
@@ -88,6 +88,24 @@ def process(env, params, l1product_path, l2product_files, out_path):
     log(env["General"]["log"], 'Bands:       {}'.format(list(product_band_names)), indent=1)
 
     satellite = get_satellite_name_from_product_name(product_name)
+
+    # Use a classification to filter water pixels
+    if "classification" in params[PARAMS_SECTION]:
+        water_band = product.getBand(params[PARAMS_SECTION]["classification"])
+        water_band_width = water_band.getRasterWidth()
+        water_band_height = water_band.getRasterHeight()
+        water_band_data = np.zeros(width * height, np.uint32)
+        water_band.readPixels(0, 0, width, height, water_band_data)
+        print(water_band_data)
+        exit()
+        water_band_data[water_band_data != int(params[PARAMS_SECTION]["water_code"])] = 0
+        water_band_data[water_band_data == int(params[PARAMS_SECTION]["water_code"])] = 1
+        xv, yv = np.meshgrid(np.linspace(0, 1, water_band_width), np.linspace(0, 1, water_band_height))
+        X, Y = np.meshgrid(np.linspace(0, 1, width), np.linspace(0, 1, height))
+        #water_band_data = griddata((xv.ravel(), yv.ravel()), water_band_data, (X, Y), method='nearest')
+        print(water_band_data)
+    else:
+        water_band = False
 
     log(env["General"]["log"], "Defining chromaticity and hue angle coefficients.", indent=1)
     if "sensor" in params[PARAMS_SECTION] and "spectral_band_names" in params[PARAMS_SECTION] and "sample_band" in params[PARAMS_SECTION]:
@@ -165,6 +183,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     foreluleProduct.setProductWriter(writer)
     foreluleProduct.writeHeader(output_file)
+
+
 
     # Write valid pixel bands
     if "valid_pixel_expression" not in params[PARAMS_SECTION] or params[PARAMS_SECTION]["valid_pixel_expression"] == "True":
