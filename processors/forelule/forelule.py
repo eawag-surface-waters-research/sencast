@@ -190,14 +190,14 @@ def process(env, params, l1product_path, l2product_files, out_path):
     else:
         chunks = [{"x": 0, "y": 0, "w": width, "h": height}]
 
-    for i in range(len(chunks)):
-        log(env["General"]["log"], "Processing chunk {} of {}".format(i, len(chunks)), indent=1)
+    for c in range(len(chunks)):
+        log(env["General"]["log"], "Processing chunk {} of {}".format(c+1, len(chunks)), indent=1)
         log(env["General"]["log"], "Reading reflectance values.", indent=2)
         input_band_values = []
         input_band_lambdas = []
         for i in range(len(bands)):
-            temp_arr = np.zeros(chunks[i]["w"] * chunks[i]["h"])
-            bands[i].readPixels(chunks[i]["x"], chunks[i]["y"], chunks[i]["w"], chunks[i]["h"], temp_arr)
+            temp_arr = np.zeros(chunks[c]["w"] * chunks[c]["h"])
+            bands[i].readPixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], temp_arr)
             input_band_values.append(temp_arr)
             input_band_lambdas.append(bands[i].getSpectralWavelength())
         input_band_lambdas = np.array(input_band_lambdas)
@@ -246,19 +246,19 @@ def process(env, params, l1product_path, l2product_files, out_path):
         hue_angle_c[~np.isnan(x_nan)] = (hue_angle_coeff["a5"] * (hue_angle / 100) ** 5) + (hue_angle_coeff["a4"] * (hue_angle / 100) ** 4) +\
                       (hue_angle_coeff["a3"] * (hue_angle / 100) ** 3) + (hue_angle_coeff["a2"] * (hue_angle / 100) ** 2) + \
                       (hue_angle_coeff["a"] * (hue_angle / 100)) + hue_angle_coeff["const"] + hue_angle
-        forelule_bands[0].writePixels(chunks[i]["x"], chunks[i]["y"], chunks[i]["w"], chunks[i]["h"], hue_angle_c)
+        forelule_bands[0].writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], hue_angle_c)
 
         log(env["General"]["log"], "Calculating dominant wavelength", indent=2)
         try:
             dom_wvl[~np.isnan(x_nan)] = dominant_wavelength(np.swapaxes(np.array([x, y]), 0, 1), [1 / 3, 1 / 3])[0]
-            forelule_bands[1].writePixels(chunks[i]["x"], chunks[i]["y"], chunks[i]["w"], chunks[i]["h"], dom_wvl)
+            forelule_bands[1].writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], dom_wvl)
         except Exception as e:
             log(env["General"]["log"], e, indent=3)
             log(env["General"]["log"], "Failed to calculate dominant wavelength", indent=3)
 
         log(env["General"]["log"], "Calculating Forel-Ule", indent=2)
         FU = get_FU_class(hue_angle_c)
-        forelule_bands[2].writePixels(chunks[i]["x"], chunks[i]["y"], chunks[i]["w"], chunks[i]["h"], FU)
+        forelule_bands[2].writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], FU)
 
     log(env["General"]["log"], 'Writing Forel-Ule to file: {}'.format(output_file))
     foreluleProduct.closeIO()
