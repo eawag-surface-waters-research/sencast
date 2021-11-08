@@ -27,6 +27,7 @@ from polymer.level1_landsat8 import Level1_OLI
 from polymer.level2 import default_datasets
 from polymer.main import run_atm_corr, Level2
 
+from utils.auxil import log
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
     get_lons_lats, get_sensing_date_from_product_name
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
@@ -67,30 +68,31 @@ def process(env, params, l1product_path, _, out_path):
             return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    try:
+    """try:
         date = datetime.strptime(date_str, "%Y%m%d")
         lons, lats = get_lons_lats(wkt)
         coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
         ancillary = Ancillary_ERA5(directory=ancillary_path)
         ozone = round(ancillary.get("ozone", date)[coords])  # Test can retrieve parameters
         anc_name = "ERA5"
-        print("Polymer collected ERA5 ancillary data.")
-    except (Exception, ):
-        ancillary = None
-        anc_name = "NA"
-        print("Polymer failed to collect ERA5 ancillary data.")
+        log(env["General"]["log"], "Polymer collected ERA5 ancillary data.")
+    except (Exception, ):"""
+    ancillary = None
+    anc_name = "NA"
+    log(env["General"]["log"], "Polymer failed to collect ERA5 ancillary data.")
 
-        output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
-        if os.path.isfile(output_file):
-            if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-                print("Removing file: ${}".format(output_file))
-                os.remove(output_file)
-            else:
-                print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
-                return output_file
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
+    if os.path.isfile(output_file):
+        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+            log(env["General"]["log"], "Removing file: ${}".format(output_file))
+            os.remove(output_file)
+        else:
+            log(env["General"]["log"], "Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
+            return output_file
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     if sensor == "MSI":
+        log(env["General"]["log"], "Reading MSI Level 1 data...", indent=1)
         calib_gains = polymer_vicarious.msi_vicarious(vicar_version)
         granule_path = os.path.join(l1product_path, "GRANULE")
         msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
@@ -105,6 +107,7 @@ def process(env, params, l1product_path, _, out_path):
         l1 = Level1_MSI(msi_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw, ancillary=ancillary, resolution=resolution)
         additional_ds = ['sza']
     elif sensor == "OLCI":
+        log(env["General"]["log"], "Reading OLCI L1 data...", indent=1)
         calib_gains = polymer_vicarious.olci_vicarious(vicar_version)
         ul, ur, lr, ll = get_corner_pixels_roi_olci(l1product_path, wkt)
         sline, scol, eline, ecol = min(ul[0], ur[0]), min(ul[1], ur[1]), max(ll[0], lr[0]), max(ll[1], lr[1])
@@ -112,6 +115,7 @@ def process(env, params, l1product_path, _, out_path):
         l1 = Level1_OLCI(l1product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw, ancillary=ancillary)
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
     elif sensor == "OLI_TIRS":
+        log(env["General"]["log"], "Reading OLI_TIRS data...", indent=1)
         if generate_l8_angle_files(env, l1product_path):
             raise RuntimeError("Could not create angle files for L8 product: {}".format(l1product_path))
         calib_gains = polymer_vicarious.oli_vicarious(vicar_version)
@@ -127,8 +131,9 @@ def process(env, params, l1product_path, _, out_path):
                                  OUT_FILENAME.format(anc_name, product_name) + ".tmp")
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
     os.makedirs(os.path.dirname(poly_tmp_file), exist_ok=True)
-
+    log(env["General"]["log"], "Running atmospheric correction...", indent=1)
     run_atm_corr(l1, l2, water_model=water_model, calib=calib_gains)
+    log(env["General"]["log"], "Atmospheric correction complete.", indent=1)
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor))
     if not os.path.isfile(gpt_xml_file):
@@ -136,8 +141,17 @@ def process(env, params, l1product_path, _, out_path):
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(poly_tmp_file),
             "-PoutputFile={}".format(output_file)]
-    if subprocess.call(args):
-        raise RuntimeError("GPT Failed.")
+    log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
+
+    process = subprocess.Popen(args, stdout=subprocess.PIPE, universal_newlines=True)
+    while True:
+        output = process.stdout.readline()
+        log(env["General"]["log"], output.strip(), indent=2)
+        return_code = process.poll()
+        if return_code is not None:
+            if return_code != 0:
+                raise RuntimeError("GPT Failed.")
+            break
 
     return output_file
 
@@ -205,10 +219,10 @@ def get_corner_pixels_roi_olci(l1product_path, wkt):
     ll_pos = get_pixel_pos(product_lons, product_lats, west, south)
     lr_pos = get_pixel_pos(product_lons, product_lats, east, south)
 
-    ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
-    ur = [int(ur_pos[1]) if (0 <= ur_pos[1] < h) else 0, int(ur_pos[0]) if (0 <= ur_pos[0] < w) else w]
-    ll = [int(ll_pos[1]) if (0 <= ll_pos[1] < h) else h, int(ll_pos[0]) if (0 <= ll_pos[0] < w) else 0]
-    lr = [int(lr_pos[1]) if (0 <= lr_pos[1] < h) else h, int(lr_pos[0]) if (0 <= lr_pos[0] < w) else w]
+    ul = [int(ul_pos[0]) if (0 <= ul_pos[0] < h) else 0, int(ul_pos[1]) if (0 <= ul_pos[1] < w) else 0]
+    ur = [int(ur_pos[0]) if (0 <= ur_pos[0] < h) else 0, int(ur_pos[1]) if (0 <= ur_pos[1] < w) else w]
+    ll = [int(ll_pos[0]) if (0 <= ll_pos[0] < h) else h, int(ll_pos[1]) if (0 <= ll_pos[1] < w) else 0]
+    lr = [int(lr_pos[0]) if (0 <= lr_pos[0] < h) else h, int(lr_pos[1]) if (0 <= lr_pos[1] < w) else w]
 
     return ul, ur, lr, ll
 

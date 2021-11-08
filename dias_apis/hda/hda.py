@@ -46,8 +46,7 @@ dataorder_download_address = api_endpoint + "/databroker/dataorder/download/{}"
 def authenticate(env):
     return HTTPBasicAuth(env['username'], env['password'])
 
-
-def get_download_requests(auth, start, end, sensor, resolution, wkt):
+def get_download_requests(auth, start, end, sensor, resolution, wkt, env):
     lons, lats = get_lons_lats(wkt)
     datarequest = {
         'datasetId': get_dataset_id(sensor, resolution),

@@ -12,6 +12,7 @@ from scipy.integrate import trapz
 from snappy import ProductIO, PixelPos, jpy, ProductData, Product, ProductUtils
 
 # key of the params section for this adapter
+from utils.auxil import log
 from utils.product_fun import get_sensing_date_from_product_name
 
 PARAMS_SECTION = "PRIMARYPRODUCTION"
@@ -41,7 +42,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("Primary Production was not configured in parameters.")
-    print("Applying Primary Production...")
+    log(env["General"]["log"], "Applying Primary Production...")
 
     if "chl_processor" not in params[PARAMS_SECTION] or "chl_bandname" not in params[PARAMS_SECTION]:
         raise RuntimeWarning("chl_processor and chl_bandname must be defined in the parameter file.")
@@ -68,10 +69,10 @@ def process(env, params, l1product_path, l2product_files, out_path):
     l2product_files["PRIMARYPRODUCTION"] = output_file
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print("Removing file: ${}".format(output_file))
+            log(env["General"]["log"], "Removing file: ${}".format(output_file))
             os.remove(output_file)
         else:
-            print("Skipping Primary Production, target already exists: {}".format(FILENAME.format(product_name)))
+            log(env["General"]["log"], "Skipping Primary Production, target already exists: {}".format(FILENAME.format(product_name)))
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
@@ -82,7 +83,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     zvals_fine = np.linspace(np.min(zvals), np.max(zvals), 100)  # Fine spaced depths for integration
 
     # Read in chlorophyll band
-    print("Reading Chlorophyll values from {}".format(product_path))
+    log(env["General"]["log"], "Reading Chlorophyll values from {}".format(product_path))
     product = ProductIO.readProduct(product_path)
     all_bns = product.getBandNames()
     if chl_bandname not in all_bns:
@@ -100,7 +101,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     # Read in KD band
     kd_product_path = l2product_files[kd_processor]
-    print("Reading kd values from {}".format(kd_product_path))
+    log(env["General"]["log"], "Reading kd values from {}".format(kd_product_path))
     kd_product = ProductIO.readProduct(kd_product_path)
     all_bns_kd = kd_product.getBandNames()
     if kd_bandname not in all_bns_kd:

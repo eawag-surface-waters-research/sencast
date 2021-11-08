@@ -17,7 +17,7 @@ import sys
 from utils import earthdata
 from threading import Semaphore, Thread
 
-from utils.auxil import init_hindcast
+from utils.auxil import init_hindcast, log
 from utils.product_fun import filter_for_timeliness, get_satellite_name_from_product_name, \
     get_sensing_date_from_product_name, get_l1product_path
 
@@ -77,6 +77,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
             | **Default: 1**
             | Maximum number of adapters to run in parallel
         """
+
     # dynamically import the remote dias api to use
     api = params['General']['remote_dias_api']
     authenticate = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "authenticate")
@@ -89,10 +90,10 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     # find products which match the criterias from params
     start, end = params['General']['start'], params['General']['end']
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
-    download_requests, product_names = get_download_requests(auth, start, end, sensor, resolution, wkt)
+    download_requests, product_names = get_download_requests(auth, start, end, sensor, resolution, wkt, env)
 
     # filter for timeliness
-    download_requests, product_names = filter_for_timeliness(download_requests, product_names)
+    download_requests, product_names = filter_for_timeliness(download_requests, product_names, env)
 
     # set up inputs for product hindcast
     l1product_paths = [get_l1product_path(env, product_name) for product_name in product_names]
@@ -104,18 +105,18 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
 
     # for readonly local dias, remove unavailable products and their download_requests
     if env['DIAS']['readonly'] == "True":
-        print("{} products have been found.".format(len(l1product_paths)))
+        log(env["General"]["log"], "{} products have been found.".format(len(l1product_paths)))
         for i in range(len(l1product_paths)):
             if not os.path.exists(l1product_paths[i]):
                 download_requests[i], l1product_paths[i] = None, None
         l1product_paths = list(filter(None, l1product_paths))
         download_requests = list(filter(None, download_requests))
-        print("{} products are avaiable and will be processed.".format(len(l1product_paths)))
-        print("Products which are available will not be downloaded because the local DIAS is set to 'readonly'.")
+        log(env["General"]["log"], "{} products are avaiable and will be processed.".format(len(l1product_paths)))
+        log(env["General"]["log"], "Products which are available will not be downloaded because the local DIAS is set to 'readonly'.")
     else:
         actual_downloads = len([0 for l1product_path in l1product_paths if not os.path.exists(l1product_path)])
-        print("{} products are already locally available.".format(len(l1product_paths) - actual_downloads))
-        print("{} products must be downloaded first.".format(actual_downloads))
+        log(env["General"]["log"], "{} products are already locally available.".format(len(l1product_paths) - actual_downloads))
+        log(env["General"]["log"], "{} products must be downloaded first.".format(actual_downloads))
 
     # group download requests and product paths by (date and satelite) and sort them by (group size and sensing date)
     download_groups, l1product_path_groups = {}, {}
@@ -129,8 +130,8 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
         l1product_path_groups[group].append(l1product_path)
 
     # print information about grouped products
-    print("The products have been grouped into {} group(s).".format(len(l1product_path_groups)))
-    print("Each group is handled by an individual thread.")
+    log(env["General"]["log"], "The products have been grouped into {} group(s).".format(len(l1product_path_groups)))
+    log(env["General"]["log"], "Each group is handled by an individual thread.")
 
     # authenticate to earthdata api for anchillary data download anchillary data (used by some processors)
     earthdata.authenticate(env)
@@ -146,7 +147,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     starttime = time.time()
     for hindcast_thread in hindcast_threads:
         hindcast_thread.join()
-    print("Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
+    log(env["General"]["log"], "Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
 
 
 def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, group):
@@ -183,7 +184,9 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
     for download_request, l1product_path in zip(download_requests, l1product_paths):
         if not os.path.exists(l1product_path):
             with semaphores['download']:
-                do_download(auth, download_request, l1product_path)
+                log(env["General"]["log"], "Downloading file: " + l1product_path)
+                do_download(auth, download_request, l1product_path, env)
+                log(env["General"]["log"], "Completed downloading file: " + l1product_path)
 
     # ensure all products have been downloaded
     for l1product_path in l1product_paths:
@@ -195,7 +198,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
         # apply processors to all products
         for processor in list(filter(None, params['General']['processors'].split(","))):
             try:
-                print("Processor {} starting...".format(processor))
+                log(env["General"]["log"], "Processor {} starting...".format(processor))
                 process = getattr(importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
                 processor_outputs = []
                 for l1product_path in l1product_paths:
@@ -204,38 +207,37 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                     output_file = process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
                     l2product_files[l1product_path][processor] = output_file
                     processor_outputs.append(output_file)
-                print("Processor {} finished: [{}].".format(processor, ", ".join(processor_outputs)))
+                log(env["General"]["log"], "Processor {} finished: [{}].".format(processor, ", ".join(processor_outputs)))
                 if len(processor_outputs) == 1:
                     l2product_files[processor] = processor_outputs[0]
                 elif len(processor_outputs) > 1:
                     try:
-                        print("Mosaicing outputs of processor {}...".format(processor))
+                        log(env["General"]["log"], "Mosaicing outputs of processor {}...".format(processor))
                         from mosaic.mosaic import mosaic
                         l2product_files[processor] = mosaic(env, params, processor_outputs)
-                        print("Mosaiced outputs of processor {}.".format(processor))
+                        log(env["General"]["log"], "Mosaiced outputs of processor {}.".format(processor))
                     except (Exception, ):
-                        print("Mosaicing outputs of processor {} failed.".format(processor))
+                        log(env["General"]["log"], "Mosaicing outputs of processor {} failed.".format(processor))
                         traceback.print_exc()
             except (Exception, ):
-                print("Processor {} failed on product {}.".format(processor, l1product_path))
-                print(sys.exc_info()[0])
-                traceback.print_exc()
+                log(env["General"]["log"], "Processor {} failed on product {}.".format(processor, l1product_path))
+                log(env["General"]["log"], traceback.format_exc(), indent=1)
         del processor_outputs
         for l1product_path in l1product_paths:
             del(l2product_files[l1product_path])
-        print("All processors finished! {}".format(str(l2product_files)))
+        log(env["General"]["log"], "All processors finished! {}".format(str(l2product_files)))
 
     # apply adapters
     with semaphores['adapt']:
         for adapter in list(filter(None, params['General']['adapters'].split(","))):
             try:
-                print("Adapter {} starting...".format(adapter))
+                log(env["General"]["log"], "Adapter {} starting...".format(adapter))
                 apply = getattr(importlib.import_module("adapters.{}.{}".format(adapter.lower(), adapter.lower())), "apply")
                 apply(env, params, l2product_files, group)
-                print("Adapter {} finished.".format(adapter))
+                log(env["General"]["log"], "Adapter {} finished.".format(adapter))
             except (Exception, ):
-                print("Adapter {} failed on product group {}.".format(adapter, group))
-                print(sys.exc_info()[0])
+                log(env["General"]["log"], "Adapter {} failed on product group {}.".format(adapter, group))
+                log(env["General"]["log"], sys.exc_info()[0])
                 traceback.print_exc()
 
 

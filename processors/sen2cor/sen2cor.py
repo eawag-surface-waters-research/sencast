@@ -14,7 +14,7 @@ https://step.esa.int/main/third-party-plugins-2/sen2cor/
 
 import os
 import subprocess
-
+from utils.auxil import log
 from utils.product_fun import get_reproject_params_from_wkt
 
 # Key of the params section for this processor
@@ -38,16 +38,16 @@ def process(env, params, l1product_path, l2product_files, out_path):
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     validexpression = params[PARAMS_SECTION]['validexpression']
 
-    if sensor != "MSI":
+    if "MSI" not in sensor:
         return
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print("Removing file: ${}".format(output_file))
+            log(env["General"]["log"], "Removing file: ${}".format(output_file))
             os.remove(output_file)
         else:
-            print("Skipping Sen2Cor, target already exists: {}".format(OUT_FILENAME.format(product_name)))
+            log(env["General"]["log"], "Skipping Sen2Cor, target already exists: {}".format(OUT_FILENAME.format(product_name)))
             return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
@@ -57,9 +57,16 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
-
-    if subprocess.call(args):
-        raise RuntimeError("GPT Failed.")
+    log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
+    process = subprocess.Popen(args, stdout=subprocess.PIPE, universal_newlines=True)
+    while True:
+        output = process.stdout.readline()
+        log(env["General"]["log"], output.strip(), indent=2)
+        return_code = process.poll()
+        if return_code is not None:
+            if return_code != 0:
+                raise RuntimeError("GPT Failed.")
+            break
 
     return output_file
 

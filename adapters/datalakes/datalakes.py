@@ -9,7 +9,7 @@ import os
 import numpy as np
 import pandas as pd
 import requests
-
+from utils.auxil import log
 from json import dump
 from netCDF4 import Dataset
 from utils.product_fun import get_satellite_name_from_product_name, get_sensing_datetime_from_product_name
@@ -47,7 +47,7 @@ def apply(env, params, l2product_files, date):
     """
     if not env.has_section("DATALAKES"):
         raise RuntimeWarning("Datalakes integration was not configured in this environment.")
-    print("Applying datalakes...")
+    log(env["General"]["log"], "Applying datalakes...")
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
@@ -63,27 +63,27 @@ def apply(env, params, l2product_files, date):
 
             if os.path.exists(output_file_main):
                 if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-                    print("Removing file: ${}".format(output_file_main))
+                    log(env["General"]["log"], "Removing file: ${}".format(output_file_main))
                     os.remove(output_file_main)
                     for idx, val in enumerate(bands):
                         output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
-                        nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, date)
+                        nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
                     with open(l2product_file, "rb") as f:
                         nc_bytes = f.read()
                     with open(output_file_main, "wb") as f:
                         f.write(nc_bytes)
                 else:
-                    print("Skipping Datalakes. Target already exists")
+                    log(env["General"]["log"], "Skipping Datalakes. Target already exists")
             else:
                 for idx, val in enumerate(bands):
                     output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
-                    nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, date)
+                    nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
                 with open(l2product_file, "rb") as f:
                     nc_bytes = f.read()
                 with open(output_file_main, "wb") as f:
                     f.write(nc_bytes)
 
-    notify_datalakes(env['DATALAKES']['api_key'])
+    notify_datalakes(env['DATALAKES']['api_key'], env)
 
 
 def convert_valid_pixel_expression(vpe, variables):
@@ -98,15 +98,15 @@ def convert_valid_pixel_expression(vpe, variables):
     return vpe
 
 
-def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_max, satellite, date):
-    print("Converting {} to JSON".format(variable_name))
+def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_max, satellite, date, env):
+    log(env["General"]["log"], "Converting {} to JSON".format(variable_name))
     nc = Dataset(input_file, "r", format="NETCDF4")
     _lons, _lats, _values = np.array(nc.variables['lon'][:]), np.array(nc.variables['lat'][:]), np.array(nc.variables[variable_name][:])
     valid_pixel_expression = None
     try:
         valid_pixel_expression = nc.variables[variable_name].valid_pixel_expression
     except:
-        print("No valid pixel expression for {}".format(variable_name))
+        log(env["General"]["log"], "No valid pixel expression for {}".format(variable_name))
     variables = nc.variables.keys()
     variables_dict = {}
     for variable in variables:
@@ -133,8 +133,8 @@ def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_
         dump({'lonres': lonres, 'latres': latres, 'lon': list(df["lons"]), 'lat': list(df["lats"]), 'v': list(df[variable_name]), 'vp': list(df["valid_pixels"]), 'vpe': valid_pixel_expression, 'satellite': satellite, 'datetime': date}, f, separators=(',', ':'))
 
 
-def notify_datalakes(api_key):
-    print("Notifying Datalakes about new data...")
+def notify_datalakes(api_key, env):
+    log(env["General"]["log"], "Notifying Datalakes about new data...")
     requests.get(NOTIFY_URL, auth=api_key)
 
 

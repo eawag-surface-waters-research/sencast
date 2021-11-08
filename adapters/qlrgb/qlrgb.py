@@ -45,7 +45,7 @@ def apply(env, params, l2product_files, date):
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
             ql_name = key[key.find("_") + 1:]
-            print("Creating {} quicklooks for {}".format(ql_name, processor))
+            log(env["General"]["log"], "Creating {} quicklooks for {}".format(ql_name, processor))
             bands = list(filter(None, params[PARAMS_SECTION][key].split(",")))[0:-1]
             bandmax = list(filter(None, params[PARAMS_SECTION][key].split(",")))[-1]
             if params['General']['sensor'] == "OLCI":
@@ -55,17 +55,17 @@ def apply(env, params, l2product_files, date):
             ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, ql_name))
             if os.path.exists(ql_file):
                 if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-                    print("Removing file: ${}".format(ql_file))
+                    log(env["General"]["log"], "Removing file: ${}".format(ql_file))
                     os.remove(ql_file)
-                    plot_pic(l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
+                    plot_pic(env, l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
                 else:
-                    print("Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)))
+                    log(env["General"]["log"], "Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)))
             else:
                 os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-                plot_pic(l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
+                plot_pic(env, l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
 
 
-def plot_pic(input_file, output_file, wkt=None, crop_ext=None, rgb_layers=None, grid=True, max_val=0.10):
+def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=None, grid=True, max_val=0.10):
     linewidth = 0.8
     gridlabel_size = 6
 
@@ -195,7 +195,7 @@ def plot_pic(input_file, output_file, wkt=None, crop_ext=None, rgb_layers=None, 
         gridlines.ylabel_style = {'size': gridlabel_size, 'color': 'black'}
 
     # Save plot
-    print('Saving image {}'.format(os.path.basename(output_file)))
+    log(env["General"]["log"], 'Saving image {}'.format(os.path.basename(output_file)))
     plt.savefig(output_file, box_inches='tight', dpi=300)
     plt.close()
     product.closeIO()

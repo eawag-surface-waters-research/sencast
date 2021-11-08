@@ -5,6 +5,7 @@ import configparser
 import getpass
 import os
 import socket
+from datetime import datetime
 
 project_path = os.path.dirname(__file__)
 
@@ -24,13 +25,18 @@ def init_hindcast(env_file, params_file):
 
     }
     out_path = os.path.join(env['General']['out_path'].format(**kwargs))
+    log_file = os.path.join(out_path, "Logs", os.path.basename(params_file).split(".")[0]+"_log_"+datetime.now().strftime("%Y%m%dT%H%M%S")+".txt")
+    if not os.path.exists(os.path.dirname(log_file)):
+        os.makedirs(os.path.dirname(log_file))
+    env["General"]["log"] = log_file
+    log(log_file, "Starting SenCast...")
 
     if os.path.isdir(out_path) and os.listdir(out_path) and os.path.isfile(os.path.join(out_path, os.path.basename(params_file))):
-        print("Output folder for this run already exists.")
+        log(log_file, "Output folder for this run already exists.")
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print("Overwriting existing run")
+            log(log_file, "Overwriting existing run")
         else:
-            print("Reading params from output folder to ensure comparable results.")
+            log(log_file, "Reading params from output folder to ensure comparable results.")
             params, params_file = load_params(os.path.join(out_path, os.path.basename(params_file)))
         if not params['General']['wkt']:
             params['General']['wkt'], _ = load_wkt("{}.wkt".format(wkt_name), env['General']['wkt_path'])
@@ -132,3 +138,24 @@ def load_properties(properties_file, separator_char='=', comment_char='#'):
                 value = separator_char.join(key_value[1:]).strip().strip('"')
                 properties_dict[key] = value
     return properties_dict
+
+
+def log(file, text, indent=0):
+    text = str(text).split(r"\n")
+    with open(file, "a") as file:
+        for t in text:
+            if t != "":
+                out = datetime.now().strftime("%H:%M:%S.%f") + (" " * 3 * (indent + 1)) + t
+                print(out)
+                file.write(out + "\n")
+
+
+def error(file, e):
+    text = str(e).split("\n")
+    with open(file, "a") as file:
+        for t in text:
+            if t != "":
+                out = datetime.now().strftime("%H:%M:%S.%f") + "   ERROR: " + t
+                print(out)
+                file.write(out + "\n")
+    raise ValueError(str(e))

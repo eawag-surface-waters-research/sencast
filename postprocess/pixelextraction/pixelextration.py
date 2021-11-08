@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from utils.auxil import load_environment
+from utils.auxil import load_environment, log
 import subprocess
 
 # The name of the xml file for gpt
@@ -16,9 +16,16 @@ def pixelextration(files, coords, folder, env_file=None,  windowsize=1):
     rewrite_xml(gpt_xml_file, files, folder, coords, windowsize)
     tmp_file = os.path.join(folder, "pixelextration.tmp")
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size']]
-    subprocess.call(args)
-    #if subprocess.call(args):
-    #    raise RuntimeError("GPT Failed.")
+    log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
+    process = subprocess.Popen(args, stdout=subprocess.PIPE, universal_newlines=True)
+    while True:
+        output = process.stdout.readline()
+        log(env["General"]["log"], output.strip(), indent=2)
+        return_code = process.poll()
+        if return_code is not None:
+            if return_code != 0:
+                raise RuntimeError("GPT Failed.")
+            break
 
 
 def rewrite_xml(gpt_xml_file, files, folder, coords, windowsize):
