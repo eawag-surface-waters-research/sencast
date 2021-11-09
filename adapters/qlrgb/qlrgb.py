@@ -27,18 +27,18 @@ canvas_area = []
 def apply(env, params, l2product_files, date):
     """Apply QLRGB adapter.
 
-                    Parameters
-                    -------------
+    Parameters
+    -------------
 
-                    env
-                        Dictionary of environment parameters, loaded from input file
-                    params
-                        Dictionary of parameters, loaded from input file
-                    l2product_files
-                        Dictionary of Level 2 product files created by processors
-                    date
-                        Run date
-                    """
+    env
+        Dictionary of environment parameters, loaded from input file
+    params
+        Dictionary of parameters, loaded from input file
+    l2product_files
+        Dictionary of Level 2 product files created by processors
+    date
+        Run date
+    """
 
     wkt = params['General']['wkt']
     for key in params[PARAMS_SECTION].keys():

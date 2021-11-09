@@ -49,6 +49,27 @@ Odermatt`_.
 Getting Started
 ---------------
 
+Following flow chart illustrates how sencast works.
+
+.. image:: flowchart.png
+    :width: 1000px
+    :alt: Sencast Flow Chart
+    :align: middle
+
+Sencast offers two interfaces to process data.
+
+-  The file-based interface takes a parameter file and an optional
+   environment file as input. It reads the file contents and calls the
+   object based interface with the read configurations.
+-  The object-based interface directly takes an environment and a
+   parameters object as well as a path for the L1 (input) products and a
+   path for the L2 (output) products.
+
+From the command line only the file-based interface is available.
+Use it as follows:
+
+python main.py [parameters file] [(optional) environment file]
+
 Environment File
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -77,25 +98,22 @@ in the wkt folder.
 Data Processing
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Data is preprocessed by a build-in preprocessor which performs
-resampling, subsetting, idepix and reproject operations on the input
-products. Several processors then process the data and save the results
-to disk.
-
-Sencast offers to interfaces to process data.
-
--  The file-based interface takes a parameter file and an optional
-   environment file as input. It reads the file contents and calls the
-   object based interface with the read configurations.
--  The object-based interface directly takes an environment and a
-   parameters object as well as a path for the L1 (input) products and a
-   path for the L2 (output) products.
+Data is processed by a sequence of processors defined in the
+parameters file. Subsequent processors have all outputs of preceding
+processors available and might process these outputs further.
+The user is responsible to ensure that he specifies the processors
+in the parameters file a correct order.
 
 Adapters
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Adapters can receive the output of processors and for example send it to
-another service.
+The purpose of an adapter is to perform some action after the processors
+have finished. Possible actions include but are not limited to
+validating outputs, sending processed outputs to some webservice,
+creating quicklooks, notifying some webservice about the finished
+sencast run.
+
+Adapter usually do not produce any new output products.
 
 .. toctree::
    :maxdepth: 2

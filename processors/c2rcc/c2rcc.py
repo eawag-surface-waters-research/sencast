@@ -34,7 +34,7 @@ GPT_XML_FILENAME = "c2rcc_{}_{}.xml"
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
-    """ This processor applies c2rcc to the source product and stores the result. """
+    """This processor applies c2rcc to the source product and stores the result."""
 
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']

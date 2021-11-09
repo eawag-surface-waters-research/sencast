@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The QLSingleBand adapter creates single-band quick looks output as .png files.
-
+"""
+The QLSingleBand adapter creates single-band quick looks output as .png files.
 Individual bands are plotted geospatially using matplotlib and exported to .png
 """
 

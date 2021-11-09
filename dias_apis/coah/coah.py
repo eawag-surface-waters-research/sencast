@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Sencast uses the COAH API to query the image database in order to identify suitable images and also to download images.
+"""
+Sencast uses the COAH API to query the image database in order to identify suitable images and also to download images.
 
 Documentation for COAH API can be found `here. <https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/BatchScripting?redirectedfrom=SciHubUserGuide.8BatchScripting>`_
 """

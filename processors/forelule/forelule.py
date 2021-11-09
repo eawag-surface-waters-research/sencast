@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The Forel-Ule processor is an implementation of `Giardino et al. (2019) <https://www.intechopen.com/books/geospatial-analyses-of-earth-observation-eo-data/the-color-of-water-from-space-a-case-study-for-italian-lakes-from-sentinel-2>`_
+"""
+The Forel-Ule processor is an implementation of `Giardino et al. (2019) <https://www.intechopen.com/books/geospatial-analyses-of-earth-observation-eo-data/the-color-of-water-from-space-a-case-study-for-italian-lakes-from-sentinel-2>`_
 in order to estimate the Forel-Ule color from satellite images.
 Adapter authors: Daniel Odermatt, James Runnalls
 """
@@ -23,23 +24,24 @@ FILEFOLDER = 'L2FU'
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
-    """Forel-Ule processor.
-        1. Calculates a hue product from Polymer output
+    """
+    Forel-Ule processor.
+    1. Calculates a hue product from Polymer output
 
-        Parameters
-        -------------
+    Parameters
+    -------------
 
-        env
-            Dictionary of environment parameters, loaded from input file
-        params
-            Dictionary of parameters, loaded from input file
-        l1product_path
-            unused
-        l2product_files
-            Dictionary of Level 2 product files created by processors
-        out_path
-            unused
-        """
+    env
+        Dictionary of environment parameters, loaded from input file
+    params
+        Dictionary of parameters, loaded from input file
+    l1product_path
+        unused
+    l2product_files
+        Dictionary of Level 2 product files created by processors
+    out_path
+        unused
+    """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning('Forel-Ule was not configured in parameters.')
 

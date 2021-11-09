@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The Datalakes adapter is designed to output specified bands to JSON format in order to facilitate web visualisation
+"""
+The Datalakes adapter is designed to output specified bands to JSON format in order to facilitate web visualisation
 in the Datalakes data portal https://www.datalakes-eawag.ch/.
 """
 
