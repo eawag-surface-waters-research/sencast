@@ -1,12 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The Identification of Pixel Properties (IdePix) algorithm classifies pixels from Sentinel-2, Sentinel-3, MERIS,
+"""
+The Identification of Pixel Properties (IdePix) algorithm classifies pixels from Sentinel-2, Sentinel-3, MERIS,
 Landsat-8, MODIS, VIIRS, Proba-V, SPOT VGT amongst others in order to define surface types.
 
-For an overview of the processor:
-https://www.brockmann-consult.de/portfolio/idepix/
-
+For an overview of the processor: https://www.brockmann-consult.de/portfolio/idepix/
 """
 
 import os
@@ -29,8 +28,8 @@ GPT_XML_FILENAME = "idepix_{}.xml"
 
 
 def process(env, params, l1product_path, _, out_path):
-    """ This processor applies subset, idepix, merge and reprojection to the source product and
-    writes the result to disk. It returns the location of the output product. """
+    """This processor applies subset, idepix, merge and reprojection to the source product and
+    writes the result to disk. It returns the location of the output product."""
 
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']

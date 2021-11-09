@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+
+"""This module bundles utility functions regarding satellite products."""
+
 import os
 import re
 import subprocess
@@ -8,15 +11,6 @@ from haversine import haversine
 from datetime import datetime
 from utils.auxil import log
 from netCDF4 import Dataset
-
-
-def parse_date_from_name(name):
-    sensing_time = name.split("_")[7]
-    sensing_year = sensing_time[:4]
-    sensing_month = sensing_time[4:6]
-    sensing_day = sensing_time[6:8]
-    creation_time = datetime.strptime(name.split("_")[9], '%Y%m%dT%H%M%S')
-    return "{}-{}-{}".format(sensing_year, sensing_month, sensing_day), creation_time
 
 
 def parse_s3_name(name):
@@ -28,6 +22,7 @@ def parse_s3_name(name):
 
 
 def get_satellite_name_from_product_name(product_name):
+    """Return the satellite name of a given product name."""
     if "S3A" in product_name:
         return "S3A"
     elif "S3B" in product_name:
@@ -74,7 +69,7 @@ def filter_for_timeliness(download_requests, product_names, env):
 
 
 def get_south_east_north_west_bound(wkt):
-    """ Return south, east, north, and west boundery of a given wkt. """
+    """Return south, east, north, and west boundery of a given wkt."""
     lons, lats = get_lons_lats(wkt)
     return min(lats), max(lons), max(lats), min(lons)
 
@@ -90,6 +85,7 @@ def get_lons_lats(wkt):
 
 
 def get_reproject_params_from_wkt(wkt, resolution):
+    """Calculates reprojection parameters from a given wkt."""
     south, east, north, west = get_south_east_north_west_bound(wkt)
     x_dist = haversine((south, west), (south, east))
     y_dist = haversine((south, west), (north, west))
@@ -103,6 +99,7 @@ def get_reproject_params_from_wkt(wkt, resolution):
 
 
 def get_sensing_date_from_product_name(product_name):
+    """Read the sensing date from a product name."""
     return re.findall(r"\d{8}", product_name)[0]
 
 
@@ -111,6 +108,7 @@ def get_sensing_datetime_from_product_name(product_name):
 
 
 def get_l1product_path(env, product_name):
+    """Fills the placeholders in the configured DIAS path with actual values."""
     if product_name.startswith("S3A") or product_name.startswith("S3B"):
         satellite = "Sentinel-3"
         sensor = "OLCI"
@@ -143,6 +141,7 @@ def get_l1product_path(env, product_name):
 
 
 def get_main_file_from_product_path(l1product_path):
+    """Returns the path to the file to be read by third-party software in order to open a L1 product."""
     product_name = os.path.basename(l1product_path)
     satellite = get_satellite_name_from_product_name(product_name)
     if satellite in ["S2A", "S2B"]:
@@ -156,6 +155,9 @@ def get_main_file_from_product_path(l1product_path):
 
 
 def generate_l8_angle_files(env, l1product_path):
+    """Generates angle files for Landsat 8 L1 products."""
+    if env['DIAS']['readonly'] == "True":
+        raise RuntimeError("Cannot generate L8 angle files on read-only DIAS.")
     product_name = os.path.basename(l1product_path)
     ang_file = os.path.join(l1product_path, "{}_ANG.txt".format(product_name))
     args = [os.path.join(env['L8_ANGLES']['root_path'], "l8_angles"), ang_file, "BOTH", "1", "-b", "1"]
@@ -164,6 +166,7 @@ def generate_l8_angle_files(env, l1product_path):
 
 
 def get_band_names_from_nc(product_file):
+    """Returns a list containing all band names of a given product."""
     bands = []
     with Dataset(product_file) as nc:
         for var in nc.variables:

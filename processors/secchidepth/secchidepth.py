@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The Secchi Depth processor is an implementation of `Lee et al. 2002 <https://www.osapublishing.org/ao/abstract.cfm?uri=ao-41-27-5755>`_
+"""
+The Secchi Depth processor is an implementation of `Lee et al. 2002 <https://www.osapublishing.org/ao/abstract.cfm?uri=ao-41-27-5755>`_
 in order to derive Secchi depth from Satellite images.
-Adapter authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt
+Authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt
 """
 
 import os
@@ -24,22 +25,22 @@ FILEFOLDER = 'L2QAA'
 
 def process(env, params, l1product_path, l2product_files, out_path):
     """Secchi Depth processor.
-                1. Calculates Secchi depth from Polymer output
+    1. Calculates Secchi depth from Polymer output
 
-                Parameters
-                -------------
+    Parameters
+    -------------
 
-                env
-                    Dictionary of environment parameters, loaded from input file
-                params
-                    Dictionary of parameters, loaded from input file
-                l1product_path
-                    unused
-                l2product_files
-                    Dictionary of Level 2 product files created by processors
-                out_path
-                    unused
-                """
+    env
+        Dictionary of environment parameters, loaded from input file
+    params
+        Dictionary of parameters, loaded from input file
+    l1product_path
+        unused
+    l2product_files
+        Dictionary of Level 2 product files created by processors
+    out_path
+        unused
+    """
 
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning('Secchi depth was not configured in parameters.')

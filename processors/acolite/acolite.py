@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Acolite preprocessor for athmospheric correction """
+"""Acolite processor for athmospheric correction"""
 
 import importlib
 import os
@@ -24,8 +24,7 @@ SETTINGS_FILENAME = "acolite_{}.properties"
 
 
 def process(env, params, l1product_path, _, out_path):
-    """ This processor calls acolite for the source product and
-        writes the result to disk. It returns the location of the output product. """
+    """This processor calls acolite for the source product and writes the result to disk. It returns the location of the output product."""
 
     sys.path.append(env[PARAMS_SECTION]['root_path'])
     ac = importlib.import_module("acolite.acolite")

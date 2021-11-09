@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The Primary Production processor is an implementation of `T.Soomets et al. 2019 <https://core.ac.uk/reader/211997910>`_
+"""
+The Primary Production processor is an implementation of `T.Soomets et al. 2019 <https://core.ac.uk/reader/211997910>`_
 in order to derive primary production from Satellite images.
 """
 

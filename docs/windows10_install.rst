@@ -105,9 +105,8 @@ Windows 10
 	In cmd do following:
 		> cd "%CONDA_ENV_HOME%\\Lib\\site-packages"
 		> git clone https://github.com/bcdev/jpy.git
-		> cd "jpy"
+		> cd jpy
 		> conda activate sencast
-		> python get-pip.py
 		> python setup.py build maven bdist_wheel
 
 

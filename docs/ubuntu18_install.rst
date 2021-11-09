@@ -44,7 +44,8 @@ Prepare)
 		$ conda config --append channels bioconda
 		$ conda create --name sencast python=3 cartopy=0.19 cdsapi=0.5 colour-science=0.3 cython=0.29 ecmwfapi=1.4 gdal=3.2 glymur=0.9 h5py=3.3 haversine=2.5 matplotlib=3.4 netcdf4=1.5 pkgconfig=1.5 pyepr=1.1 pygrib=2.1 pyhdf=0.10.3 pyproj=3.1 pyresample=1.21 rasterio=1.2 scikit-learn=0.24 statsmodels=0.12 tensorflow=1.15 tensorflow-probability=0.7 wheel=0.37 xarray=0.19 xlrd=1.2
 		$ echo export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast >> ~/.bashrc
-		$ echo export CONDA_ENV_SP=$CONDA_HOME/envs/sencast/lib/python3.9/site-packages >> ~/.bashrc
+		$ export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast >> ~/.bashrc
+		$ echo export CONDA_ENV_SP=$CONDA_ENV_HOME/lib/python3.7/site-packages >> ~/.bashrc
 	
 	Restart your shell session
 
@@ -64,7 +65,8 @@ Prepare)
 			[n, Enter]
 			[n, Enter]
 			[n, Enter]
-		$ echo export SNAP_HOME=~/snap >> ~/.bashrc
+		$ export SNAP_HOME=~/snap >> ~/.bashrc
+		$ echo export SNAP_HOME=$SNAP_HOME >> ~/.bashrc
 		$ $SNAP_HOME/bin/snap --nosplash --nogui --modules --update-all
 		$ $SNAP_HOME/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi org.esa.chris.chris.noise.reduction org.esa.snap.snap.zarr org.esa.s2tbx.s2tbx.otb.adapters.kit org.esa.s2tbx.Pansharpening.bayes org.esa.s2tbx.s2tbx.gdal.reader.ui org.esa.chris.chris.atmospheric.correction org.esa.chris.chris.cloud.screening org.esa.s2tbx.sen2three org.esa.snap.snap.jython org.esa.s2tbx.Segmentation.cc org.esa.chris.chris.atmospheric.correction.lut org.esa.s2tbx.Pansharpening.rcs org.esa.chris.chris.toa.reflectance.computation org.esa.chris.chris.geometric.correction org.esa.s2tbx.MultivariateAlterationDetector org.esa.snap.core.gpf.operators.tooladapter.snaphu org.esa.s2tbx.Pansharpening.lmvm org.esa.chris.chris.util org.esa.s2tbx.Segmentation.meanshift org.esa.snap.snap.product.library.ui org.esa.chris.chris.kit org.esa.s2tbx.SFSTextureExtraction org.esa.sen2coral.sen2coral.algorithms.ui org.esa.s2tbx.Segmentation.watershed org.esa.s2tbx.Segmentation.mprofiles org.esa.chris.chris.reader
 		$ echo "#SNAP configuration 's3tbx'" >> ~/.snap/etc/s3tbx.properties
@@ -106,7 +108,7 @@ Prepare)
 	Configure your local DIAS path in your environment file.
 
 
-5.) Python - jpy: https://github.com/jpy-consortium/jpy/blob/master/README.md
+6.) Python - jpy: https://github.com/jpy-consortium/jpy/blob/master/README.md
 
 	In shell do following:
 		$ cd $CONDA_ENV_SP
@@ -116,7 +118,7 @@ Prepare)
 		$ python setup.py build maven bdist_wheel
 
 
-6.) Python - snappy: https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md
+7.) Python - snappy: https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md
 
 	In shell do following:
 		($ sudo ln -s ../../lib64/libnsl.so.2 /usr/lib64/libnsl.so)
@@ -135,7 +137,7 @@ Prepare)
 		$ python test_snappy_product.py
 
 
-7.) Python - polymer: https://forum.hygeos.com/viewforum.php?f=5
+8.) Python - polymer: https://forum.hygeos.com/viewforum.php?f=5
 
 	From a computer in the eawag network, copy the polymer zip file to the linux server:
 		> scp -i .ssh\cloudferro.key \\eawag\Abteilungs-Projekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.13.tar.gz eouser@45.130.29.115:/home/eouser/setup
@@ -154,7 +156,7 @@ Prepare)
 	In the file $CONDA_ENV_SP/polymer/level1_landsat8.py replace line 13 "import osr" by "from osgeo import osr"
 	
 
-8.) l8_angles: https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con
+9.) l8_angles: https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con
 	
 	To use polymer with L8 data you must install l8_angles according to: https://forum.hygeos.com/viewtopic.php?f=7&t=136
 	
@@ -164,10 +166,10 @@ Prepare)
 		$ cd ~/l8_angles
 		$ make
 	
-	Configure the l8_angles in your environment file.
+	Configure path to l8_angles in your environment file.
 
 
-8.) CDS API: https://cds.climate.copernicus.eu/api-how-to
+10.) CDS API: https://cds.climate.copernicus.eu/api-how-to
 
 	Have a Copernicus Climate account ready, otherwise create one: https://cds.climate.copernicus.eu/
 
@@ -177,7 +179,7 @@ Prepare)
 		$ chmod 600 ~/.cdsapirc
 
 
-9.) NASA Earthdata API: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget
+11.) NASA Earthdata API: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget
 
 	Have a NASA Earthdata account ready, otherwise create one: https://urs.earthdata.nasa.gov/
 
@@ -188,7 +190,7 @@ Prepare)
 		$ touch ~/.urs_cookies
 
 
-10.) Cronjob for datalakes: https://linux4one.com/how-to-set-up-cron-job-on-centos-8/
+12.) Cronjob for datalakes: https://linux4one.com/how-to-set-up-cron-job-on-centos-8/
 
 	In shell do following:
 		$ mkdir -p /prj/datalakes/log
@@ -197,7 +199,7 @@ Prepare)
 		$ crontab -l | { cat; echo "0 20 * * * nohup /prj/sentinel-hindcast/scripts/datalakes.sh &"; } | crontab -
 
 
-12.) Acolite: https://github.com/acolite/acolite.git
+13.) Acolite: https://github.com/acolite/acolite.git
 
 	In shell do following:
 		$ cd ~
@@ -209,7 +211,7 @@ Prepare)
 	Configure your Acolite path in you environment file.
 
 
-13.) FLUO:
+14.) FLUO:
 
 	Somehow bring the installation file snap-eum-fluo-1.0.nbm to the directory ~/setup/
 
@@ -219,7 +221,7 @@ Prepare)
 		$ cp ~/setup/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
 
 
-14.) iCOR: https://remotesensing.vito.be/case/icor
+15.) iCOR: https://remotesensing.vito.be/case/icor
 
 	Somehow bring the installation file icor_install_ubuntu_20_04_x64_3.0.0.bin to the directory ~/setup/
 
@@ -243,7 +245,7 @@ Prepare)
 	Configure your iCOR path in you environment file.
 
 
-15.) LSWT:
+16.) LSWT:
 
 	Somehow bring the installation file snap-musenalp-processor-1.0.5.nbm to the directory ~/setup/
 
