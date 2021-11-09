@@ -58,7 +58,17 @@ def process(env, params, l1product_path, _, out_path):
     os.makedirs(gsw_path, exist_ok=True)
     os.makedirs(ancillary_path, exist_ok=True)
 
-    try:
+    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format("ERA5", product_name))
+    if os.path.isfile(output_file):
+        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+            print("Removing file: ${}".format(output_file))
+            os.remove(output_file)
+        else:
+            print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format("ERA5", product_name)))
+            return output_file
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+    """try:
         date = datetime.strptime(date_str, "%Y%m%d")
         lons, lats = get_lons_lats(wkt)
         coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
@@ -66,10 +76,10 @@ def process(env, params, l1product_path, _, out_path):
         ozone = round(ancillary.get("ozone", date)[coords])  # Test can retrieve parameters
         anc_name = "ERA5"
         log(env["General"]["log"], "Polymer collected ERA5 ancillary data.")
-    except (Exception, ):
-        ancillary = None
-        anc_name = "NA"
-        log(env["General"]["log"], "Polymer failed to collect ERA5 ancillary data.")
+    except (Exception, ):"""
+    ancillary = None
+    anc_name = "NA"
+    log(env["General"]["log"], "Polymer failed to collect ERA5 ancillary data.")
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
     if os.path.isfile(output_file):

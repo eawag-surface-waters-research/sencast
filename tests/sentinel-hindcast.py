@@ -11,4 +11,4 @@ sys.path.append("/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hi
 
 from main import hindcast
 
-hindcast("forelule_test.ini")
+hindcast("oc3_test.ini")

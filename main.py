@@ -201,7 +201,6 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
         if not os.path.exists(l1product_path):
             raise RuntimeError("Download of product was not successfull: {}".format(l1product_path))
 
-    # process the products
     with semaphores['process']:
         l2product_files = {}
         # apply processors to all products
