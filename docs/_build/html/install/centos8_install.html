@@ -1,0 +1,516 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>CentOS 8 &mdash; Sencast  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Windows 10" href="windows10_install.html" />
+    <link rel="prev" title="Ubuntu 18.04, 20.04" href="ubuntu18_install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Sencast
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../environment_config.html">Environment File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parameters_config.html">Parameter File</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">main</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../utils/auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/earthdata.html">Earth Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/product_fun.html">product_fun</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Processors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../processors/acolite.html">Acolite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/c2rcc.html">C2RCC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/forelule.html">ForelUle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/icor.html">ICOR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/idepix.html">IDEPIX</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/lswt.html">LSWT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/mph.html">MPH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/ndwi.html">NDWI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/oc3.html">OC3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/polymer.html">Polymer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/secchidepth.html">Secchi Depth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/sen2cor.html">Sen2cor</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Adapters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
+</ul>
+<p class="caption"><span class="caption-text">DIAS API's</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../apis/coah.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/hda.html">HDA API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sencast</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>CentOS 8</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/install/centos8_install.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="centos-8">
+<span id="centos8install"></span><h1>CentOS 8<a class="headerlink" href="#centos-8" title="Permalink to this headline">¶</a></h1>
+<p>Prepare)</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Update repositories and installed packages:</dt><dd><p>$ sudo yum update
+$ sudo yum upgrade
+$ sudo yum install default-jdk
+$ java -version
+$ echo export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64 &gt;&gt; ~/.bashrc
+$ sudo yum install maven
+$ mvn -version
+$ sudo yum install unzip zip
+$ mkdir -p ~/setup</p>
+</dd>
+</dl>
+<p>Restart your shell session</p>
+</div></blockquote>
+<p>1.) Anaconda: <a class="reference external" href="https://problemsolvingwithpython.com/01-Orientation/01.05-Installing-Anaconda-on-Linux/">https://problemsolvingwithpython.com/01-Orientation/01.05-Installing-Anaconda-on-Linux/</a></p>
+<blockquote>
+<div><dl>
+<dt>In shell do following:</dt><dd><p>$ curl <a class="reference external" href="https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh">https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh</a> -o ~/setup/Anaconda3-2021.05-Linux-x86_64.sh
+$ bash ~/setup/Anaconda3-2021.05-Linux-x86_64.sh</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">Enter</span><span class="p">]</span>
+<span class="go">[s]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">Enter</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yes</span>
+</pre></div>
+</div>
+<p>$ sudo reboot
+$ conda config –set auto_activate_base false
+$ echo export CONDA_HOME=~/anaconda3 &gt;&gt; ~/.bashrc</p>
+</dd>
+</dl>
+<p>Restart your shell session</p>
+</div></blockquote>
+<ol class="arabic" start="2">
+<li><p>Anaconda: create sencast environment</p>
+<blockquote>
+<div><dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ conda config –add channels conda-forge
+$ conda config –append channels bioconda
+$ conda create –name sencast python=3 cartopy=0.19 cdsapi=0.5 colour-science=0.3 cython=0.29 ecmwfapi=1.4 gdal=3.2 glymur=0.9 h5py=3.3 haversine=2.5 matplotlib=3.4 netcdf4=1.5 pkgconfig=1.5 pyepr=1.1 pygrib=2.1 pyhdf=0.10.3 pyproj=3.1 pyresample=1.21 rasterio=1.2 scikit-learn=0.24 statsmodels=0.12 tensorflow=1.15 tensorflow-probability=0.7 wheel=0.37 xarray=0.19 xlrd=1.2
+$ echo export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast &gt;&gt; ~/.bashrc
+$ export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast &gt;&gt; ~/.bashrc
+$ echo export CONDA_ENV_SP=$CONDA_ENV_HOME/lib/python3.7/site-packages &gt;&gt; ~/.bashrc</p>
+</dd>
+</dl>
+<p>Restart your shell session</p>
+</div></blockquote>
+</li>
+</ol>
+<p>3.) SNAP: <a class="reference external" href="http://step.esa.int/main/download/">http://step.esa.int/main/download/</a></p>
+<blockquote>
+<div><p>Uninstall all old versions of SNAP and remove associated data</p>
+<dl>
+<dt>In shell do following:</dt><dd><p>$ curl <a class="reference external" href="http://step.esa.int/downloads/8.0/installers/esa-snap_all_unix_8_0.sh">http://step.esa.int/downloads/8.0/installers/esa-snap_all_unix_8_0.sh</a> -o ~/setup/esa-snap_all_unix_8_0.sh
+$ sudo chmod 755 ~/setup/esa-snap_all_unix_8_0.sh
+$ bash ~/Downloads/esa-snap_all_unix_8_0.sh</p>
+<blockquote>
+<div><p>[o, Enter]
+[1, Enter]
+[Enter]
+[Enter]
+[n, Enter]
+[n, Enter]
+[n, Enter]</p>
+</div></blockquote>
+<p>$ export SNAP_HOME=~/snap &gt;&gt; ~/.bashrc
+$ echo export SNAP_HOME=$SNAP_HOME &gt;&gt; ~/.bashrc
+$ $SNAP_HOME/bin/snap –nosplash –nogui –modules –update-all
+$ $SNAP_HOME/bin/snap –nosplash –nogui –modules –install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi org.esa.chris.chris.noise.reduction org.esa.snap.snap.zarr org.esa.s2tbx.s2tbx.otb.adapters.kit org.esa.s2tbx.Pansharpening.bayes org.esa.s2tbx.s2tbx.gdal.reader.ui org.esa.chris.chris.atmospheric.correction org.esa.chris.chris.cloud.screening org.esa.s2tbx.sen2three org.esa.snap.snap.jython org.esa.s2tbx.Segmentation.cc org.esa.chris.chris.atmospheric.correction.lut org.esa.s2tbx.Pansharpening.rcs org.esa.chris.chris.toa.reflectance.computation org.esa.chris.chris.geometric.correction org.esa.s2tbx.MultivariateAlterationDetector org.esa.snap.core.gpf.operators.tooladapter.snaphu org.esa.s2tbx.Pansharpening.lmvm org.esa.chris.chris.util org.esa.s2tbx.Segmentation.meanshift org.esa.snap.snap.product.library.ui org.esa.chris.chris.kit org.esa.s2tbx.SFSTextureExtraction org.esa.sen2coral.sen2coral.algorithms.ui org.esa.s2tbx.Segmentation.watershed org.esa.s2tbx.Segmentation.mprofiles org.esa.chris.chris.reader
+$ echo “#SNAP configuration ‘s3tbx’” &gt;&gt; ~/.snap/etc/s3tbx.properties
+$ echo “#Fri Mar 27 12:55:00 CET 2020” &gt;&gt; ~/.snap/etc/s3tbx.properties
+$ echo “s3tbx.reader.olci.pixelGeoCoding=true” &gt;&gt; ~/.snap/etc/s3tbx.properties
+$ echo “s3tbx.reader.meris.pixelGeoCoding=true” &gt;&gt; ~/.snap/etc/s3tbx.properties
+$ echo “s3tbx.reader.slstrl1b.pixelGeoCodings=true” &gt;&gt; ~/.snap/etc/s3tbx.properties
+$ echo “s3tbx.landsat.readAs=reflectance” &gt;&gt; ~/.snap/etc/s3tbx.properties</p>
+</dd>
+</dl>
+<p>Restart your shell session</p>
+<p>Note: there are many strange error messages, but it seems to work in the end when updating and installing plugins</p>
+<dl class="simple">
+<dt>To remove warning “WARNING: org.esa.snap.dataio.netcdf.util.MetadataUtils: Missing configuration property ‘snap.dataio.netcdf.metadataElementLimit’. Using default (100).”:</dt><dd><p>$ echo “” &gt;&gt; $SNAP_HOME/etc/snap.properties
+$ echo “# NetCDF options” &gt;&gt; $SNAP_HOME/etc/snap.properties
+$ echo “snap.dataio.netcdf.metadataElementLimit=10000” &gt;&gt; $SNAP_HOME/etc/snap.properties</p>
+</dd>
+<dt>To remove warning “SEVERE: org.esa.s2tbx.dataio.gdal.activator.GDALDistributionInstaller: The environment variable LD_LIBRARY_PATH is not set. It must contain the current folder ‘.’.”</dt><dd><p>$ echo export LD_LIBRARY_PATH=. &gt;&gt; ~/.bashrc</p>
+</dd>
+</dl>
+<p>Restart your shell session</p>
+</div></blockquote>
+<p>4.) sencast: <a class="reference external" href="https://renkulab.io/gitlab/odermatt/sentinel-hindcast">https://renkulab.io/gitlab/odermatt/sentinel-hindcast</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ cd ~
+$ git clone <a class="reference external" href="https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git">https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git</a>
+$ cd sentinel-hindcast
+$ git checkout &lt;branchname&gt; (if not master)</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>5.) Local DIAS:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ sudo mkdir /prj/DIAS
+$ sudo chown sencast:sencast /prj/DIAS</p>
+</dd>
+</dl>
+<p>Configure your local DIAS path in your environment file.</p>
+</div></blockquote>
+<p>6.) Python - jpy: <a class="reference external" href="https://github.com/jpy-consortium/jpy/blob/master/README.md">https://github.com/jpy-consortium/jpy/blob/master/README.md</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ cd $CONDA_ENV_SP
+$ git clone <a class="reference external" href="https://github.com/jpy-consortium/jpy">https://github.com/jpy-consortium/jpy</a>
+$ cd jpy
+$ conda activate sencast
+$ python setup.py build maven bdist_wheel</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>7.) Python - snappy: <a class="reference external" href="https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md">https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>In shell do following:</dt><dd><p>($ sudo ln -s ../../lib64/libnsl.so.2 /usr/lib64/libnsl.so)
+($ sudo ln -s ../../lib64/libnsl.so.2.0.0 /usr/lib64/libnsl.so.1)
+$ mkdir -p ~/.snap/snap-python/snappy
+$ cp -v $CONDA_ENV_SP/jpy/dist/<a href="#id1"><span class="problematic" id="id2">*</span></a>.whl ~/.snap/snap-python/snappy
+$ bash $SNAP_HOME/bin/snappy-conf $CONDA_ENV_HOME/bin/python ~/.snap/snap-python
+$ conda activate sencast
+$ python ~/.snap/snap-python/snappy/setup.py install –user
+$ cp -avr ~/.snap/snap-python/build/lib/snappy $CONDA_ENV_SP/snappy
+$ cp -avr ~/.snap/snap-python/snappy/tests $CONDA_ENV_SP/snappy/tests
+$ cd $CONDA_ENV_SP/snappy/tests
+$ curl <a class="reference external" href="https://raw.githubusercontent.com/bcdev/eo-child-gen/master/child-gen-N1/src/test/resources/com/bc/childgen/MER_RR__1P.N1">https://raw.githubusercontent.com/bcdev/eo-child-gen/master/child-gen-N1/src/test/resources/com/bc/childgen/MER_RR__1P.N1</a> -o MER_RR__1P.N1
+$ python test_snappy_mem.py
+$ python test_snappy_perf.py
+$ python test_snappy_product.py</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>8.) Python - polymer: <a class="reference external" href="https://forum.hygeos.com/viewforum.php?f=5">https://forum.hygeos.com/viewforum.php?f=5</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>From a computer in the eawag network, copy the polymer zip file to the linux server:</dt><dd><p>&gt; scp -i .sshcloudferro.key \eawagAbteilungs-ProjekteSurfsurf-DDRSSoftwarePolymerpolymer-v4.13.tar.gz <a class="reference external" href="mailto:eouser&#37;&#52;&#48;45&#46;130&#46;29&#46;115">eouser<span>&#64;</span>45<span>&#46;</span>130<span>&#46;</span>29<span>&#46;</span>115</a>:/home/eouser/setup</p>
+</dd>
+<dt>In shell do following:</dt><dd><p>$ tar -xvzf ~/setup/polymer-v4.13.tar.gz –directory ~/setup/
+$ cd ~/setup/polymer-v4.13
+$ conda activate sencast
+($ sudo yum install wget)
+($ sudo yum install make)
+($ sudo yum install gcc)
+$ make all
+$ cp -avr ~/setup/polymer-v4.13/polymer $CONDA_ENV_SP/polymer
+$ cp -avr ~/setup/polymer-v4.13/auxdata $CONDA_ENV_SP/auxdata</p>
+</dd>
+</dl>
+<p>In the file $CONDA_ENV_SP/polymer/level1_landsat8.py replace line 13 “import osr” by “from osgeo import osr”</p>
+</div></blockquote>
+<p>9.) l8_angles: <a class="reference external" href="https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con">https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con</a></p>
+<blockquote>
+<div><p>To use polymer with L8 data you must install l8_angles according to: <a class="reference external" href="https://forum.hygeos.com/viewtopic.php?f=7&amp;t=136">https://forum.hygeos.com/viewtopic.php?f=7&amp;t=136</a></p>
+<dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ curl <a class="reference external" href="https://landsat.usgs.gov/sites/default/files/documents/L8_ANGLES_2_7_0.tgz">https://landsat.usgs.gov/sites/default/files/documents/L8_ANGLES_2_7_0.tgz</a> -o ~/setup/L8_ANGLES_2_7_0.tgz
+$ tar -xvzf ~/setup/L8_ANGLES_2_7_0.tgz –directory ~/
+$ cd ~/l8_angles
+$ make</p>
+</dd>
+</dl>
+<p>Configure path to l8_angles in your environment file.</p>
+</div></blockquote>
+<p>10.) CDS API: <a class="reference external" href="https://cds.climate.copernicus.eu/api-how-to">https://cds.climate.copernicus.eu/api-how-to</a></p>
+<blockquote>
+<div><p>Have a Copernicus Climate account ready, otherwise create one: <a class="reference external" href="https://cds.climate.copernicus.eu/">https://cds.climate.copernicus.eu/</a></p>
+<dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ echo “url: <a class="reference external" href="https://cds.climate.copernicus.eu/api/v2">https://cds.climate.copernicus.eu/api/v2</a>” &gt; ~/.cdsapirc
+$ echo key: [uid]:[api-key] &gt;&gt; ~/.cdsapirc (Note: replace [uid] and [api-key] by your actual credentials, see <a class="reference external" href="https://cds.climate.copernicus.eu/api-how-to">https://cds.climate.copernicus.eu/api-how-to</a> )
+$ chmod 600 ~/.cdsapirc</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>11.) NASA Earthdata API: <a class="reference external" href="https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget">https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget</a></p>
+<blockquote>
+<div><p>Have a NASA Earthdata account ready, otherwise create one: <a class="reference external" href="https://urs.earthdata.nasa.gov/">https://urs.earthdata.nasa.gov/</a></p>
+<dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ touch ~/.netrc
+$ echo “machine urs.earthdata.nasa.gov login &lt;earthdata user&gt; password &lt;earthdata password&gt;” &gt;&gt; ~/.netrc
+$ chmod 0600 ~/.netrc
+$ touch ~/.urs_cookies</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>12.) Cronjob for datalakes: <a class="reference external" href="https://linux4one.com/how-to-set-up-cron-job-on-centos-8/">https://linux4one.com/how-to-set-up-cron-job-on-centos-8/</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ mkdir -p /prj/datalakes/log
+$ curl <a class="reference external" href="https://renkulab.io/gitlab/odermatt/sentinel-hindcast/raw/snap7compatibility/parameters/datalakes_sui_S3.ini?inline=false">https://renkulab.io/gitlab/odermatt/sentinel-hindcast/raw/snap7compatibility/parameters/datalakes_sui_S3.ini?inline=false</a> -o /prj/datalakes/datalakes_sui_S3.ini
+$ chmod 755 /prj/sentinel-hindcast/scripts/datalakes.sh
+$ crontab -l | { cat; echo “0 20 * * * nohup /prj/sentinel-hindcast/scripts/datalakes.sh &amp;”; } | crontab -</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>13.) Acolite: <a class="reference external" href="https://github.com/acolite/acolite.git">https://github.com/acolite/acolite.git</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ cd ~
+$ git clone <a class="reference external" href="https://github.com/acolite/acolite.git">https://github.com/acolite/acolite.git</a></p>
+</dd>
+<dt>Edit the file acolite_l2w.py and comment-out all usages (and import) of “skimage”.</dt><dd><p>Currently lines 23, 898, 909, 910, 911</p>
+</dd>
+</dl>
+<p>Configure your Acolite path in you environment file.</p>
+</div></blockquote>
+<p>14.) FLUO:</p>
+<blockquote>
+<div><p>Somehow bring the installation file snap-eum-fluo-1.0.nbm to the directory ~/setup/</p>
+<dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ mkdir ~/setup/snap-eum-fluo-1.0
+$ unzip snap-eum-fluo-1.0.nbm -d ~/setup/snap-eum-fluo-1.0
+$ cp ~/setup/snap-eum-fluo-1.0/netbeans/* ~/.snap/system</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>15.) iCOR: <a class="reference external" href="https://remotesensing.vito.be/case/icor">https://remotesensing.vito.be/case/icor</a></p>
+<blockquote>
+<div><p>Somehow bring the installation file icor_install_ubuntu_20_04_x64_3.0.0.bin to the directory ~/setup/</p>
+<dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin
+$ sudo mkdir /opt/vito
+$ sudo chown sencast:sencast /opt/vito
+$ ./icor_install_ubuntu_20_04_x64_3.0.0.bin</p>
+</dd>
+<dt>Installation of SNAP plugin only necessairy if you want to use iCOR from SNAP Desktop:</dt><dd><p>$ mkdir ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
+$ mkdir ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
+$ mkdir ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX
+$ unzip /opt/vito/icor/sta/iCOR-landsat8-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
+$ unzip /opt/vito/icor/sta/iCOR-sentinel2-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
+$ unzip /opt/vito/icor/sta/iCOR-sentinel3-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX
+$ cp -r ~/setup/iCOR-landsat8-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
+$ cp -r ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
+$ cp -r ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX/netbeans/* ~/.snap/system</p>
+</dd>
+</dl>
+<p>Configure your iCOR path in you environment file.</p>
+</div></blockquote>
+<p>16.) LSWT:</p>
+<blockquote>
+<div><p>Somehow bring the installation file snap-musenalp-processor-1.0.5.nbm to the directory ~/setup/</p>
+<dl class="simple">
+<dt>In shell do following:</dt><dd><p>$ ~/setup/snap-musenalp-processor-1.0.5
+$ unzip snap-musenalp-processor-1.0.5.nbm -d ~/setup/snap-musenalp-processor-1.0.5
+$ cp ~/setup/snap-musenalp-processor-1.0.5/netbeans/* ~/.snap/system</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="windows10_install.html" class="btn btn-neutral float-right" title="Windows 10" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ubuntu18_install.html" class="btn btn-neutral float-left" title="Ubuntu 18.04, 20.04" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

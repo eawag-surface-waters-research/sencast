@@ -30,7 +30,7 @@ Installation
 To install Sencast, run::
 
   git clone git@gitlab.com:eawag-rs/sencast.git
-  pip install -r requirements.txt
+  conda env create -f environment.yml
 
 Many of the Sencast'S processors reply on `SNAP`_ , the SeNtinel Application Platform
 project, funded by the `European Space Agency`_ (ESA) or other 3rd party packages. In order to have
@@ -48,6 +48,27 @@ Odermatt`_.
 
 Getting Started
 ---------------
+
+Following flow chart illustrates how sencast works.
+
+.. image:: flowchart.png
+    :width: 800px
+    :alt: Sencast Flow Chart
+    :align: center
+
+Sencast offers two interfaces to process data.
+
+-  The file-based interface takes a parameter file and an optional
+   environment file as input. It reads the file contents and calls the
+   object based interface with the read configurations.
+-  The object-based interface directly takes an environment and a
+   parameters object as well as a path for the L1 (input) products and a
+   path for the L2 (output) products.
+
+From the command line only the file-based interface is available.
+Use it as follows:
+
+python main.py [parameters file] [(optional) environment file]
 
 Environment File
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -74,36 +95,33 @@ Sentinel Hndacast. They are stored as polygons in `WKT`_ files, which
 are referenced from the parameter files. Some example perimeters are stored
 in the wkt folder.
 
-Data Processing
+Processors
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Data is preprocessed by a build-in preprocessor which performs
-resampling, subsetting, idepix and reproject operations on the input
-products. Several processors then process the data and save the results
-to disk.
-
-Sencast offers to interfaces to process data.
-
--  The file-based interface takes a parameter file and an optional
-   environment file as input. It reads the file contents and calls the
-   object based interface with the read configurations.
--  The object-based interface directly takes an environment and a
-   parameters object as well as a path for the L1 (input) products and a
-   path for the L2 (output) products.
+Data is processed by a sequence of processors defined in the
+parameters file. Subsequent processors have all outputs of preceding
+processors available and might process these outputs further.
+The user is responsible to ensure that he specifies the processors
+in the parameters file in the correct order.
 
 Adapters
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Adapters can receive the output of processors and for example send it to
-another service.
+The purpose of an adapter is to perform some action after the processors
+have finished. Possible actions include but are not limited to
+validating outputs, sending processed outputs to some webservice,
+creating quicklooks, notifying some webservice about the finished
+sencast run.
+
+Adapter usually do not produce any new output products.
 
 .. toctree::
    :maxdepth: 2
    :caption: Installation
 
-   ubuntu18_install.rst
-   centos8_install.rst
-   windows10_install.rst
+   install/ubuntu18_install.rst
+   install/centos8_install.rst
+   install/windows10_install.rst
 
 .. toctree::
    :maxdepth: 2
@@ -116,40 +134,52 @@ another service.
    :maxdepth: 2
    :caption: Sencast
 
-   main
-   auxil
-   product_fun
+   main.rst
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Utilities
+
+   utils/auxil.rst
+   utils/earthdata.rst
+   utils/product_fun.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Processors
 
-   c2rcc.rst
-   fluo.rst
-   idepix.rst
-   mosaic.rst
-   mph.rst
-   polymer.rst
-   sen2cor.rst
+   processors/acolite.rst
+   processors/c2rcc.rst
+   processors/fluo.rst
+   processors/forelule.rst
+   processors/icor.rst
+   processors/idepix.rst
+   processors/lswt.rst
+   processors/mdn.rst
+   processors/mph.rst
+   processors/ndwi.rst
+   processors/oc3.rst
+   processors/polymer.rst
+   processors/primaryproduction.rst
+   processors/secchidepth.rst
+   processors/sen2cor.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Adapters
 
-   primaryproduction_code
-   merge_code
-   datalakes_code
-   qlrgb_code
-   qlsingleband_code
+   adapters/merge.rst
+   adapters/datalakes.rst
+   adapters/qlrgb.rst
+   adapters/qlsingleband.rst
 
 .. toctree::
    :maxdepth: 2
-   :caption: External API's
+   :caption: DIAS API's
 
-   coah_api
-   creodias_api
-   earthdata_api
-   hda_api
+   apis/coah.rst
+   apis/creodias.rst
+   apis/hda.rst
 
 .. _SURF Remote Sensing group at Eawag: https://www.eawag.ch/en/department/surf/main-focus/remote-sensing/
 .. _jpy: https://github.com/bcdev/jpy/blob/master/README.md

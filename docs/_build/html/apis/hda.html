@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>HDA API &mdash; Sencast  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="CREODIAS API" href="creodias.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Sencast
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../environment_config.html">Environment File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parameters_config.html">Parameter File</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">main</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../utils/auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/earthdata.html">Earth Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/product_fun.html">product_fun</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Processors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../processors/acolite.html">Acolite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/c2rcc.html">C2RCC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/forelule.html">ForelUle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/icor.html">ICOR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/idepix.html">IDEPIX</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/lswt.html">LSWT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/mph.html">MPH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/ndwi.html">NDWI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/oc3.html">OC3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/polymer.html">Polymer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/secchidepth.html">Secchi Depth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/sen2cor.html">Sen2cor</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Adapters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
+</ul>
+<p class="caption"><span class="caption-text">DIAS API's</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="coah.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">HDA API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sencast</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>HDA API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/apis/hda.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-dias_apis.hda.hda">
+<span id="hda-api"></span><h1>HDA API<a class="headerlink" href="#module-dias_apis.hda.hda" title="Permalink to this headline">¶</a></h1>
+<p>Sencast uses the HDA API to query the image database in order to identify suitable images and also to download images.</p>
+<p>Documentation for HDA API can be found <a class="reference external" href="https://wekeo-broker.apps.mercator.dpi.wekeo.eu/databroker/ui/">here.</a></p>
+<dl class="py function">
+<dt id="dias_apis.hda.hda.accept_tc_if_required">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">accept_tc_if_required</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">access_token</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.accept_tc_if_required" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.authenticate">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">authenticate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.authenticate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.dataorder_download">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">dataorder_download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">access_token</span></em>, <em class="sig-param"><span class="n">order_id</span></em>, <em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.dataorder_download" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.do_download">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">do_download</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">auth</span></em>, <em class="sig-param"><span class="n">download_request</span></em>, <em class="sig-param"><span class="n">product_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.do_download" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.get_access_token">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">get_access_token</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">auth</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_access_token" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.get_datarequest_results">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">get_datarequest_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">access_token</span></em>, <em class="sig-param"><span class="n">job_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_datarequest_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.get_dataset_id">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">get_dataset_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sensor</span></em>, <em class="sig-param"><span class="n">resolution</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_dataset_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.get_download_requests">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">get_download_requests</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">auth</span></em>, <em class="sig-param"><span class="n">start</span></em>, <em class="sig-param"><span class="n">end</span></em>, <em class="sig-param"><span class="n">sensor</span></em>, <em class="sig-param"><span class="n">resolution</span></em>, <em class="sig-param"><span class="n">wkt</span></em>, <em class="sig-param"><span class="n">env</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_download_requests" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.post_dataorder">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">post_dataorder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">access_token</span></em>, <em class="sig-param"><span class="n">job_id</span></em>, <em class="sig-param"><span class="n">uri</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.post_dataorder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.post_datarequest">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">post_datarequest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">access_token</span></em>, <em class="sig-param"><span class="n">datarequest</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.post_datarequest" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.query_metadata">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">query_metadata</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">access_token</span></em>, <em class="sig-param"><span class="n">dataset_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.query_metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.wait_for_dataorder_to_complete">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">wait_for_dataorder_to_complete</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">access_token</span></em>, <em class="sig-param"><span class="n">order_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.wait_for_dataorder_to_complete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="dias_apis.hda.hda.wait_for_datarequest_to_complete">
+<code class="sig-prename descclassname">dias_apis.hda.hda.</code><code class="sig-name descname">wait_for_datarequest_to_complete</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">access_token</span></em>, <em class="sig-param"><span class="n">job_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.wait_for_datarequest_to_complete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="creodias.html" class="btn btn-neutral float-left" title="CREODIAS API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

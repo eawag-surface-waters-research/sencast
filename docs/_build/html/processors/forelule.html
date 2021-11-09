@@ -1,0 +1,305 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ForelUle &mdash; Sencast  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ICOR" href="icor.html" />
+    <link rel="prev" title="FLUO" href="fluo.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Sencast
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../environment_config.html">Environment File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parameters_config.html">Parameter File</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">main</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../utils/auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/earthdata.html">Earth Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/product_fun.html">product_fun</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Processors</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="acolite.html">Acolite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="c2rcc.html">C2RCC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fluo.html">FLUO</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ForelUle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="icor.html">ICOR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="idepix.html">IDEPIX</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lswt.html">LSWT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ndwi.html">NDWI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oc3.html">OC3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="secchidepth.html">Secchi Depth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Adapters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
+</ul>
+<p class="caption"><span class="caption-text">DIAS API's</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../apis/coah.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/hda.html">HDA API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sencast</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>ForelUle</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/processors/forelule.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-processors.forelule.forelule">
+<span id="forelule"></span><h1>ForelUle<a class="headerlink" href="#module-processors.forelule.forelule" title="Permalink to this headline">¶</a></h1>
+<p>The Forel-Ule processor is an implementation of <a class="reference external" href="https://www.intechopen.com/books/geospatial-analyses-of-earth-observation-eo-data/the-color-of-water-from-space-a-case-study-for-italian-lakes-from-sentinel-2">Giardino et al. (2019)</a>
+in order to estimate the Forel-Ule color from satellite images.
+Adapter authors: Daniel Odermatt, James Runnalls</p>
+<dl class="py function">
+<dt id="processors.forelule.forelule.chromaticity_values">
+<code class="sig-prename descclassname">processors.forelule.forelule.</code><code class="sig-name descname">chromaticity_values</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sensor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.chromaticity_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="processors.forelule.forelule.get_FU_class">
+<code class="sig-prename descclassname">processors.forelule.forelule.</code><code class="sig-name descname">get_FU_class</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hue_angle</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.get_FU_class" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="processors.forelule.forelule.get_hue_angle">
+<code class="sig-prename descclassname">processors.forelule.forelule.</code><code class="sig-name descname">get_hue_angle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.get_hue_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields values for FU 1-21: [229.45, 224.79, 217.12, 203.09, 178.91, 147.64, 118.289, 99.75, 88.37, 78.25, 71.08, 65.06, 59.56, 53.64, 47.89, 42.18, 37.23, 32.63, 28.38, 24.3, 20.98]
+See also Table 6 in Novoa et al. (2013): <a class="reference external" href="https://www.jeos.org/index.php/jeos_rp/article/view/13057">https://www.jeos.org/index.php/jeos_rp/article/view/13057</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="processors.forelule.forelule.hue_angle_coefficients">
+<code class="sig-prename descclassname">processors.forelule.forelule.</code><code class="sig-name descname">hue_angle_coefficients</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sensor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.hue_angle_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="processors.forelule.forelule.process">
+<code class="sig-prename descclassname">processors.forelule.forelule.</code><code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">l1product_path</span></em>, <em class="sig-param"><span class="n">l2product_files</span></em>, <em class="sig-param"><span class="n">out_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forel-Ule processor.
+1. Calculates a hue product from Polymer output</p>
+<dl class="simple">
+<dt>env</dt><dd><p>Dictionary of environment parameters, loaded from input file</p>
+</dd>
+<dt>params</dt><dd><p>Dictionary of parameters, loaded from input file</p>
+</dd>
+<dt>l1product_path</dt><dd><p>unused</p>
+</dd>
+<dt>l2product_files</dt><dd><p>Dictionary of Level 2 product files created by processors</p>
+</dd>
+<dt>out_path</dt><dd><p>unused</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="icor.html" class="btn btn-neutral float-right" title="ICOR" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="fluo.html" class="btn btn-neutral float-left" title="FLUO" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
