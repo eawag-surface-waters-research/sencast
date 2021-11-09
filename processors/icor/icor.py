@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" iCOR preprocessor for athmospheric correction """
+"""iCOR processor for athmospheric correction"""
 
 import os
 import subprocess
@@ -19,8 +19,7 @@ OUT_FILENAME = "icor_{}.nc"
 
 
 def process(env, params, l1product_path, _, out_path):
-    """ This processor applies iCor to the source product and
-        writes the result to disk. It returns the location of the output product. """
+    """This processor applies iCor to the source product and writes the result to disk. It returns the location of the output product."""
 
     # read env and params
     icor, product_name = env[PARAMS_SECTION]['icor_path'], os.path.basename(l1product_path)

@@ -1,0 +1,31 @@
+<graph id="ndwi">
+	<version>1.0</version>
+	<node id="indexNode">
+		<operator>BandMaths</operator>
+		<sources>
+			<source>${sourceFile}</source>
+		</sources>
+		<parameters>
+			<targetBands>
+				<targetBand>
+					<name>ndwi</name>
+					<type>float32</type>
+					<expression>((${green} - ${nir}) / (${green} + ${nir}))</expression>
+					<unit>dl</unit>
+					<validExpression>${validPixelExpression}</validExpression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+			</targetBands>
+    	</parameters>
+	</node>
+	<node id="writeNode">
+		<operator>write</operator>
+		<sources>
+			<source>indexNode</source>
+		</sources>
+		<parameters>
+			<file>${outputFile}</file>
+			<formatName>NetCDF4-BEAM</formatName>
+		</parameters>
+	</node>
+</graph>

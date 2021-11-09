@@ -25,23 +25,23 @@ FILEFOLDER = "L2MDN"
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
-    """MDN processor.
-        1. Uses MDN to output CHL-A
+    """
+    MDN processor: uses MDN to output CHL-A
 
-        Parameters
-        -------------
+    Parameters
+    -------------
 
-        env
-            Dictionary of environment parameters, loaded from input file
-        params
-            Dictionary of parameters, loaded from input file
-        l1product_path
-            unused
-        l2product_files
-            Dictionary of Level 2 product files created by processors
-        out_path
-            unused
-        """
+    env
+        Dictionary of environment parameters, loaded from input file
+    params
+        Dictionary of parameters, loaded from input file
+    l1product_path
+        unused
+    l2product_files
+        Dictionary of Level 2 product files created by processors
+    out_path
+        unused
+    """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("MDN was not configured in parameters.")
     log(env["General"]["log"], "Applying MDN...")

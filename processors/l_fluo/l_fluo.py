@@ -20,7 +20,7 @@ GPT_XML_FILENAME = "l_fluo.xml"
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
-    """ This processor applies the fluorescence processor to a radiance source product and stores the result. """
+    """This processor applies the fluorescence processor to a radiance source product and stores the result."""
 
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
     validexpression = params[PARAMS_SECTION]['validexpression']

@@ -11,7 +11,16 @@ from utils.auxil import load_params
 from main import hindcast
 from dias_apis.creodias.creodias import get_updated_files
 from utils.auxil import load_environment, load_wkt
-from utils.product_fun import parse_date_from_name
+
+
+def parse_date_from_name(name):
+    sensing_time = name.split("_")[7]
+    sensing_year = sensing_time[:4]
+    sensing_month = sensing_time[4:6]
+    sensing_day = sensing_time[6:8]
+    creation_time = datetime.strptime(name.split("_")[9], '%Y%m%dT%H%M%S')
+    return "{}-{}-{}".format(sensing_year, sensing_month, sensing_day), creation_time
+
 
 # Process New Data
 params, params_file = load_params("/prj/sentinel-hindcast/parameters/datalakes_sui_S3.ini")

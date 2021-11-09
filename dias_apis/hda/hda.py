@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Sencast uses the HDA API to query the image database in order to identify suitable images and also to download images.
+"""
+Sencast uses the HDA API to query the image database in order to identify suitable images and also to download images.
 
 Documentation for HDA API can be found `here. <https://wekeo-broker.apps.mercator.dpi.wekeo.eu/databroker/ui/>`_
 """

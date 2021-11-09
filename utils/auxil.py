@@ -10,6 +10,7 @@ from datetime import datetime
 project_path = os.path.dirname(__file__)
 
 def init_hindcast(env_file, params_file):
+    """Initialize a sencast run with an environment file and a parameters file."""
     # load environment and params from file
     env, env_file = load_environment(env_file)
     params, params_file = load_params(params_file, env['General']['params_path'])
@@ -58,6 +59,7 @@ def init_hindcast(env_file, params_file):
 
 
 def load_environment(env_file=None, env_path=os.path.join(project_path, "../environments")):
+    """Load the environment configuration from a ini file. If no ini file is provided, it tries to automatically pick one."""
     env = configparser.ConfigParser()
 
     # Try to use provided env file
@@ -89,6 +91,7 @@ def load_environment(env_file=None, env_path=os.path.join(project_path, "../envi
 
 
 def load_params(params_file, params_path=os.path.join(project_path, "../parameters")):
+    """Read the parameters from a ini file."""
     if not os.path.isabs(params_file) and params_path:
         params_file = os.path.join(params_path, params_file)
     if not os.path.isfile(params_file):
@@ -99,6 +102,7 @@ def load_params(params_file, params_path=os.path.join(project_path, "../paramete
 
 
 def load_wkt(wkt_file, wkt_path=os.path.join(project_path, "../wkt")):
+    """Read the perimeter from a given wkt file."""
     if not os.path.isabs(wkt_file) and wkt_path:
         wkt_file = os.path.join(wkt_path, wkt_file)
     if not os.path.isfile(wkt_file):
@@ -108,6 +112,7 @@ def load_wkt(wkt_file, wkt_path=os.path.join(project_path, "../wkt")):
 
 
 def set_gpt_cache_size(env):
+    """Set the GPT cache size, if not set."""
     if not env['General']['gpt_cache_size']:
         heap_size = ""
         with open(os.path.join(os.path.dirname(env['General']['gpt_path']), "gpt.vmoptions"), "rt") as f:

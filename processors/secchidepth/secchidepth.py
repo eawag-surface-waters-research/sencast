@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The Secchi Depth processor is an implementation of `Lee et al. 2002 <https://www.osapublishing.org/ao/abstract.cfm?uri=ao-41-27-5755>`_
+"""
+The Secchi Depth processor is an implementation of `Lee et al. 2002 <https://www.osapublishing.org/ao/abstract.cfm?uri=ao-41-27-5755>`_
 in order to derive Secchi depth from Satellite images.
-Adapter authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt
+Authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt
 """
 
 import os
@@ -24,22 +25,22 @@ FILEFOLDER = 'L2QAA'
 
 def process(env, params, l1product_path, l2product_files, out_path):
     """Secchi Depth processor.
-                1. Calculates Secchi depth from Polymer output
+    1. Calculates Secchi depth from Polymer output
 
-                Parameters
-                -------------
+    Parameters
+    -------------
 
-                env
-                    Dictionary of environment parameters, loaded from input file
-                params
-                    Dictionary of parameters, loaded from input file
-                l1product_path
-                    unused
-                l2product_files
-                    Dictionary of Level 2 product files created by processors
-                out_path
-                    unused
-                """
+    env
+        Dictionary of environment parameters, loaded from input file
+    params
+        Dictionary of parameters, loaded from input file
+    l1product_path
+        unused
+    l2product_files
+        Dictionary of Level 2 product files created by processors
+    out_path
+        unused
+    """
 
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning('Secchi depth was not configured in parameters.')
@@ -101,11 +102,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
         # Center Wavelenghts
         wvl = [443, 490, 560, 665, 705]
         # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
-        m0 = 0
-        m1 = 0
-        m2 = 0
-        m3 = 0
-        y1 = 0
+        m0 = 0.0 if "m0" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m0"]
+        m1 = 0.0 if "m1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m1"]
+        m2 = 0.0 if "m2" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m2"]
+        m3 = 0.8 if "m3" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m3"]
+        y1 = 0.0 if "y1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["y1"]
         spectral_band_names = ['Rw443', 'Rw490', 'Rw560', 'Rw665', 'Rw705']
         tsm_band = 'tsm_binding740'
         a_gelb_band = ''
@@ -121,11 +122,12 @@ def process(env, params, l1product_path, l2product_files, out_path):
         # Center Wavelenghts
         wvl = [412.5, 442.5, 490, 510, 560, 620, 665, 681.25]
         # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
-        m0 = 0.005
-        m1 = 4.259
-        m2 = 0.52
-        m3 = 10.8
-        y1 = 0.265
+        m0 = 0.005 if "m0" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m0"])
+        m1 = 4.259 if "m1" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m1"])
+        m2 = 0.52 if "m2" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m2"])
+        m3 = 10.8 if "m3" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m3"])
+        y1 = 0.265 if "y1" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["y1"])
+
         spectral_band_names = ['Rw412', 'Rw443', 'Rw490', 'Rw510', 'Rw560', 'Rw620', 'Rw665', 'Rw681']
         tsm_band = 'tsm_binding754'
         a_gelb_band = 'a_gelb443'
@@ -140,7 +142,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     secchi_names = ['Z' + band_name[2:] for band_name in spectral_band_names] + \
                    [a_gelb_band] + \
                    ['a_dg' + band_name[2:] for band_name in spectral_band_names] + \
-                   ['a_ph' + band_name[2:] for band_name in spectral_band_names]
+                   ['a_ph' + band_name[2:] for band_name in spectral_band_names] + ["Zsd_lee", "Zsd_jiang"]
 
     valid_pixel_expression = product.getBand(tsm_band).getValidPixelExpression()
     for band_name in product_band_names:
@@ -156,8 +158,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
             temp_band.setUnit('m^-1')
         temp_band.setNoDataValueUsed(True)
         temp_band.setNoDataValue(np.NaN)
-        wavelength = re.findall(r'\d+', secchi_name)[0]
-        temp_band.setSpectralWavelength(float(wavelength))
+        if len(re.findall(r'\d+', secchi_name)) > 0:
+            temp_band.setSpectralWavelength(float(re.findall(r'\d+', secchi_name)[0]))
         temp_band.setValidPixelExpression(valid_pixel_expression)
         secchi_bands.append(temp_band)
 
@@ -181,6 +183,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     log(env["General"]["log"], "Calculating Secchi depth.")
 
+    print(secchi_names)
+
     for n_row in range(height):
         # Reading the different bands per pixel into arrays
         rs = [b.readPixels(0, n_row, width, 1, r) for (b, r) in zip(bands, rs)]
@@ -189,7 +193,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
         sza = SZA.readPixels(0, n_row, width, 1, sza)
 
         ################## Derivation of total absorption and backscattering coefficients ###########
-        rrs = [r / (0.52 + (1.7 * r)) for r in rs]
+        # Divide r by pi for the conversion of polymer’s water-leaving reflectance output (Rw, unitless) to QAA’s expected remote sensing reflectance input (Rrs, unit per steradian, sr-1)
+        rrs = [(r / np.pi) / (0.52 + (1.7 * (r / np.pi))) for r in rs]
         us = [(-g0 + (np.sqrt((g0 ** 2) + (4 * g1) * rr))) / (2 * g1) for rr in rrs]
         ratioChi = rrs[6] / rrs[2]
         chi = np.log10((rrs[1] + rrs[2]) / (rrs[4] + 5 * ratioChi * rrs[6]))
@@ -214,6 +219,29 @@ def process(env, params, l1product_path, l2product_files, out_path):
         # Secchi depth per band:
         Zs = [(1 / (2.5 * Kd)) * np.log((np.absolute(0.14 - r)) / 0.013) for (Kd, r) in zip(Kds, rs)]
 
+
+        Zsd_lee = np.empty(width)
+        Zsd_lee[:] = np.nan
+        Zsd_jiang = np.empty(width)
+        Zsd_jiang[:] = np.nan
+        Kda = np.array(Kds)
+        rrsa = np.array(rrs)
+        usa = np.array(us)
+        Kda[Kda < 0] = np.nan
+        non_nan_rows = np.any(Kda > 0, axis=0)
+        if np.any(non_nan_rows == True):
+            minKd_ind = np.nanargmin(Kda[:, non_nan_rows], axis=0)
+
+            # Zsd(broadband) according to Lee et al. (2015)
+            Zsd_lee[non_nan_rows] = (1 / (2.5 * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
+                (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
+
+            # Zsd(broadband) according to Jiang et al.(2019)
+            K_ratio = (1.04 * (1 + 5.4 * usa[:, non_nan_rows][minKd_ind].diagonal()) ** 0.5) / (
+                        1 / (1 - (np.sin(sza[non_nan_rows]) ** 2 / 1.34)) ** 0.5)
+            Zsd_jiang[non_nan_rows] = (1 / ((1 + K_ratio) * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
+                (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
+
         ############################### Decomposition of the total absorption coefficient ###########
 
         ratio = (rrs[1]) / (rrs[4])
@@ -227,7 +255,9 @@ def process(env, params, l1product_path, l2product_files, out_path):
         # phytoplancton pigments:
         a_ph = [a - aw - a_g_s for (a, a_g_s, aw) in zip(a_s, a_g_s, aws)]
         Zs.append(a_g)
-        output = Zs + a_g_s + a_ph + rrs
+        rrs.append(Zsd_lee)
+        rrs.append(Zsd_jiang)
+        output = Zs + a_ph + rrs
 
         # Mark infinite values as NAN
         for bds in output:
