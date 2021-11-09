@@ -30,7 +30,7 @@ Installation
 To install Sencast, run::
 
   git clone git@gitlab.com:eawag-rs/sencast.git
-  pip install -r requirements.txt
+  conda env create -f environment.yml
 
 Many of the Sencast'S processors reply on `SNAP`_ , the SeNtinel Application Platform
 project, funded by the `European Space Agency`_ (ESA) or other 3rd party packages. In order to have
@@ -52,9 +52,9 @@ Getting Started
 Following flow chart illustrates how sencast works.
 
 .. image:: flowchart.png
-    :width: 1000px
+    :width: 800px
     :alt: Sencast Flow Chart
-    :align: middle
+    :align: center
 
 Sencast offers two interfaces to process data.
 
@@ -95,14 +95,14 @@ Sentinel Hndacast. They are stored as polygons in `WKT`_ files, which
 are referenced from the parameter files. Some example perimeters are stored
 in the wkt folder.
 
-Data Processing
+Processors
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Data is processed by a sequence of processors defined in the
 parameters file. Subsequent processors have all outputs of preceding
 processors available and might process these outputs further.
 The user is responsible to ensure that he specifies the processors
-in the parameters file a correct order.
+in the parameters file in the correct order.
 
 Adapters
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -119,9 +119,9 @@ Adapter usually do not produce any new output products.
    :maxdepth: 2
    :caption: Installation
 
-   ubuntu18_install.rst
-   centos8_install.rst
-   windows10_install.rst
+   install/ubuntu18_install.rst
+   install/centos8_install.rst
+   install/windows10_install.rst
 
 .. toctree::
    :maxdepth: 2
@@ -134,40 +134,52 @@ Adapter usually do not produce any new output products.
    :maxdepth: 2
    :caption: Sencast
 
-   main
-   auxil
-   product_fun
+   main.rst
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Utilities
+
+   utils/auxil.rst
+   utils/earthdata.rst
+   utils/product_fun.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Processors
 
-   c2rcc.rst
-   fluo.rst
-   idepix.rst
-   mosaic.rst
-   mph.rst
-   polymer.rst
-   sen2cor.rst
+   processors/acolite.rst
+   processors/c2rcc.rst
+   processors/fluo.rst
+   processors/forelule.rst
+   processors/icor.rst
+   processors/idepix.rst
+   processors/lswt.rst
+   processors/mdn.rst
+   processors/mph.rst
+   processors/ndwi.rst
+   processors/oc3.rst
+   processors/polymer.rst
+   processors/primaryproduction.rst
+   processors/secchidepth.rst
+   processors/sen2cor.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Adapters
 
-   primaryproduction_code
-   merge_code
-   datalakes_code
-   qlrgb_code
-   qlsingleband_code
+   adapters/merge.rst
+   adapters/datalakes.rst
+   adapters/qlrgb.rst
+   adapters/qlsingleband.rst
 
 .. toctree::
    :maxdepth: 2
-   :caption: External API's
+   :caption: DIAS API's
 
-   coah_api
-   creodias_api
-   earthdata_api
-   hda_api
+   apis/coah.rst
+   apis/creodias.rst
+   apis/hda.rst
 
 .. _SURF Remote Sensing group at Eawag: https://www.eawag.ch/en/department/surf/main-focus/remote-sensing/
 .. _jpy: https://github.com/bcdev/jpy/blob/master/README.md

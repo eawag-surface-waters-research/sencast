@@ -1,0 +1,459 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Windows 10 &mdash; Sencast  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Environment File" href="../environment_config.html" />
+    <link rel="prev" title="CentOS 8" href="centos8_install.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Sencast
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Installation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../environment_config.html">Environment File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parameters_config.html">Parameter File</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">main</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../utils/auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/earthdata.html">Earth Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/product_fun.html">product_fun</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Processors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../processors/acolite.html">Acolite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/c2rcc.html">C2RCC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/forelule.html">ForelUle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/icor.html">ICOR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/idepix.html">IDEPIX</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/lswt.html">LSWT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/mph.html">MPH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/ndwi.html">NDWI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/oc3.html">OC3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/polymer.html">Polymer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/secchidepth.html">Secchi Depth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/sen2cor.html">Sen2cor</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Adapters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
+</ul>
+<p class="caption"><span class="caption-text">DIAS API's</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../apis/coah.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/hda.html">HDA API</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sencast</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Windows 10</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/install/windows10_install.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="windows-10">
+<span id="windows10install"></span><h1>Windows 10<a class="headerlink" href="#windows-10" title="Permalink to this headline">¶</a></h1>
+<p>1.) baramundi Kiosk: <a class="reference external" href="http://soft-prd:10080/Softwarekiosk/default.htm">http://soft-prd:10080/Softwarekiosk/default.htm</a></p>
+<blockquote>
+<div><p>Get following programs from baramundi Kiosk:
+- Git
+- OpenJdk 1.8</p>
+</div></blockquote>
+<p>2.) JAVA_HOME:</p>
+<blockquote>
+<div><p>Set JAVA_HOME to “C:\path_to_jdk\” (e.g. C:\Program Files\AdoptOpenJDK\jdk-8.0.242.08-hotspot)</p>
+<p>Add “%JAVA_HOME%\bin” to PATH</p>
+<p>Set JDK_HOME to “%JAVA_HOME%”</p>
+</div></blockquote>
+<p>3.) Maven: <a class="reference external" href="http://maven.apache.org/download.cgi">http://maven.apache.org/download.cgi</a></p>
+<blockquote>
+<div><p>Download Maven 3.6.3</p>
+<p>Unzip installation folder and move it to the desired directory (preferred C:\Program Files (x86)\apache-maven-3.6.3)</p>
+<p>Set MAVEN_HOME to “C:\path_to_maven_folder\” (e.g. C:\Program Files (x86)\apache-maven-3.6.3)</p>
+<p>Add “%MAVEN_HOME%\bin” to PATH</p>
+<p>Check with: mvn –version</p>
+</div></blockquote>
+<p>4.) Visual C++ Build Tools 2015: <a class="reference external" href="https://go.microsoft.com/fwlink/?LinkId=691126">https://go.microsoft.com/fwlink/?LinkId=691126</a></p>
+<p>5.) Anaconda: <a class="reference external" href="https://www.anaconda.com/distribution/">https://www.anaconda.com/distribution/</a></p>
+<blockquote>
+<div><p>Download Anaconda3</p>
+<p>Install Anaconda3 (prefered to C:\Anaconda3)</p>
+<p>Set CONDA_HOME to “C:\path_to_anaconda_installation\” (e.g. C:\Anaconda3)</p>
+<p>Add “%CONDA_HOME%\condabin” to PATH</p>
+</div></blockquote>
+<ol class="arabic" start="6">
+<li><p>Anaconda: sencast environment</p>
+<blockquote>
+<div><dl class="simple">
+<dt>In cmd do following:</dt><dd><p>&gt; conda config –add channels conda-forge
+&gt; conda config –append channels bioconda
+&gt; conda create –name sencast python=3 cartopy=0.19 cdsapi=0.5 colour-science=0.3 cython=0.29 ecmwfapi=1.4 gdal=3.2 glymur=0.9 h5py=3.3 haversine=2.5 matplotlib=3.4 netcdf4=1.5 pkgconfig=1.5 pyepr=1.1 pygrib=2.1 pyhdf=0.10.3 pyproj=3.1 pyresample=1.21 rasterio=1.2 scikit-learn=0.24 statsmodels=0.12 tensorflow=1.15 tensorflow-probability=0.7 wheel=0.37 xarray=0.19 xlrd=1.2</p>
+</dd>
+</dl>
+<p>Set CONDA_ENV_HOME to “%CONDA_HOME%\envs\sencast”</p>
+</div></blockquote>
+</li>
+</ol>
+<p>7.) SNAP: <a class="reference external" href="http://step.esa.int/main/download/">http://step.esa.int/main/download/</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>Uninstall all old versions of SNAP:</dt><dd><ul class="simple">
+<li><p>Uninstall via “Control Panel -&gt; Programs and Features”</p></li>
+<li><p>Choose to delete all user data</p></li>
+<li><p>Check that the SNAP installation folder has been removed completely by uninstalling. Otherwise delete it manually.</p></li>
+<li><p>Delete snappy folder from all your python environments: %PYTHON_HOME%\Lib\site-packages</p></li>
+<li><p>Delete .snap folder from all user accounts: %USERPROFILE%\.snap</p></li>
+<li><p>Delete SNAP Folder from all user accoutns: %USERPROFILE%\AppData\Roaming\SNAP</p></li>
+</ul>
+</dd>
+</dl>
+<p>Download SNAP</p>
+<p>Install SNAP</p>
+<p>Do not configure SNAP for use with Python yet.</p>
+<p>Run SNAP and install available updates.</p>
+<p>Configure: Tools -&gt; Options -&gt; S3TBX -&gt; Check: Read Sentinel-3 OLCI products with per pixel geo-coding instead of using tie-points</p>
+<p>Configure: Tools -&gt; Plugins -&gt; Available Plugins -&gt; Install all IDEPIX Plugins</p>
+<p>Set SNAP_HOME to “C:\path_to_snap_installation\” (e.g. C:\Snap7)</p>
+<p>Close SNAP</p>
+</div></blockquote>
+<p>8.) sencast: <a class="reference external" href="https://renkulab.io/gitlab/odermatt/sentinel-hindcast">https://renkulab.io/gitlab/odermatt/sentinel-hindcast</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>In cmd do following:</dt><dd><p>&gt; cd “C:\Projects”
+&gt; mkdir “DIAS”
+&gt; mkdir “datalakes”
+&gt; git clone <a class="reference external" href="https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git">https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git</a></p>
+</dd>
+</dl>
+</div></blockquote>
+<ol class="arabic" start="9">
+<li><p>Local DIAS</p>
+<blockquote>
+<div><p>Create a folder which you want to use as your local DIAS folder.</p>
+<p>Configure your local DIAS path in your environment file.</p>
+</div></blockquote>
+</li>
+</ol>
+<p>10.) Python - jpy: <a class="reference external" href="https://github.com/jpy-consortium/jpy/blob/master/README.md">https://github.com/jpy-consortium/jpy/blob/master/README.md</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>In cmd do following:</dt><dd><p>&gt; cd “%CONDA_ENV_HOME%\Lib\site-packages”
+&gt; git clone <a class="reference external" href="https://github.com/bcdev/jpy.git">https://github.com/bcdev/jpy.git</a>
+&gt; cd jpy
+&gt; conda activate sencast
+&gt; python setup.py build maven bdist_wheel</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>11.) Python - snappy: <a class="reference external" href="https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md">https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>In cmd do following:</dt><dd><p>&gt; cd “%SNAP_HOME%\bin”
+&gt; xcopy “%CONDA_ENV_HOME%\Lib\site-packages\jpy\dist\*.whl” “%USERPROFILE%\.snap\snap-python\snappy\”
+&gt; snappy-conf “%CONDA_ENV_HOME%\python.exe” “%USERPROFILE%\.snap\snap-python”
+&gt; (I had to end the process after about 30 seconds using “Ctrl+C” at this point)
+&gt; cd “%USERPROFILE%\.snap\snap-python\snappy”
+&gt; conda activate sencast
+&gt; python setup.py install
+&gt; xcopy “%USERPROFILE%\.snap\snap-python\snappy\tests” “%CONDA_ENV_HOME%\Lib\site-packages\snappy\tests\”
+&gt; cd “%CONDA_ENV_HOME%\Lib\site-packages\snappy\tests”
+&gt; curl –url “<a class="reference external" href="https://raw.githubusercontent.com/bcdev/eo-child-gen/master/child-gen-N1/src/test/resources/com/bc/childgen/MER_RR__1P.N1">https://raw.githubusercontent.com/bcdev/eo-child-gen/master/child-gen-N1/src/test/resources/com/bc/childgen/MER_RR__1P.N1</a>” –output “%CONDA_ENV_HOME%\Lib\site-packages\snappy\tests\MER_RR__1P.N1”
+&gt; python test_snappy_mem.py
+&gt; python test_snappy_perf.py
+&gt; python test_snappy_product.py</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>12.) Python - polymer: <a class="reference external" href="https://forum.hygeos.com/viewforum.php?f=5">https://forum.hygeos.com/viewforum.php?f=5</a></p>
+<blockquote>
+<div><p>(Due to some internals of polymer it still does not work on Windows. However the part required for C2RCC (ancillary_era5.py) works on windows.)</p>
+<dl class="simple">
+<dt>In cmd do following:</dt><dd><p>&gt; cd “%USERPROFILE%\AppData\Local\Temp”
+&gt; xcopy “Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.13.zip” “%USERPROFILE%\AppData\Local\Temp”
+&gt; jar xf “polymer-v4.13.zip”
+&gt; cd “polymer-v4.13”
+&gt; conda activate sencast
+&gt; python setup.py build_ext –inplace
+&gt; xcopy “%USERPROFILE%\AppData\Local\Temp\polymer-v4.13\polymer” “%CONDA_ENV_HOME%\Lib\site-packages\polymer\”
+&gt; xcopy “%USERPROFILE%\AppData\Local\Temp\polymer-v4.13\auxdata” “%CONDA_ENV_HOME%\Lib\site-packages\auxdata\”</p>
+</dd>
+</dl>
+<p>In the file site-packagespolymerlevel1_landsat8.py replace line 13 “import osr” by “from osgeo import osr”</p>
+</div></blockquote>
+<p>13.) CDS API: <a class="reference external" href="https://cds.climate.copernicus.eu/api-how-to">https://cds.climate.copernicus.eu/api-how-to</a></p>
+<blockquote>
+<div><dl class="simple">
+<dt>In cmd do following:</dt><dd><p>&gt; echo url: <a class="reference external" href="https://cds.climate.copernicus.eu/api/v2">https://cds.climate.copernicus.eu/api/v2</a> &gt; %USERPROFILE%\.cdsapirc
+&gt; echo key: &lt;uid&gt;:&lt;api-key&gt; &gt;&gt; %USERPROFILE%\.cdsapirc</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>14.) PyCharm CE: <a class="reference external" href="https://www.jetbrains.com/de-de/pycharm/download/#section=windows">https://www.jetbrains.com/de-de/pycharm/download/#section=windows</a></p>
+<blockquote>
+<div><p>Download PyCharm CE from <a class="reference external" href="https://www.jetbrains.com/de-de/pycharm/download/download-thanks.html?platform=windows&amp;code=PCC">https://www.jetbrains.com/de-de/pycharm/download/download-thanks.html?platform=windows&amp;code=PCC</a></p>
+<p>Install PyCharm CE with default settings</p>
+<p>Launch PyCharm CE</p>
+<p>Open -&gt; C:\Projects\sentinel-hindcast</p>
+<dl class="simple">
+<dt>Add a Project Interpreter:</dt><dd><ul class="simple">
+<li><p>File -&gt; Settings -&gt; Project: sencast -&gt; Gearwheel in the upper right -&gt; Show All…</p></li>
+<li><p>Add (+) -&gt; Conda Environment -&gt; Existing environment -&gt; Interpreter: C:\Anaconda3\envs\sencast\python.exe -&gt; OK -&gt; OK -&gt; OK</p></li>
+<li><p>Give it some time to index files (watch processes in the bottom line to finish)</p></li>
+</ul>
+</dd>
+<dt>Define a running configuration:</dt><dd><ul class="simple">
+<li><p>In the top right “Add Configuration…”</p></li>
+<li><p>In the top left Add (+) -&gt; Python</p></li>
+<li><p>Name: sencast</p></li>
+<li><p>Script path: C:\Projects\sentinel-hindcast\sencast.py</p></li>
+<li><p>Python interpreter: Python 3.9 (sencast)</p></li>
+<li><p>OK</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<p>16.) Acolite:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Start a command prompt and do following:</dt><dd><p>&gt; cd C:\Projects
+&gt; git clone <a class="reference external" href="https://github.com/acolite/acolite.git">https://github.com/acolite/acolite.git</a></p>
+</dd>
+<dt>Edit the file acolite_l2w.py and comment-out all usages (and import) of “skimage”.</dt><dd><p>Currently lines 23, 898, 909, 910, 911</p>
+</dd>
+</dl>
+<p>Configure your Acolite path in your environment file.</p>
+</div></blockquote>
+<p>17.) FLUO:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Install the operator in SNAP Desktop:</dt><dd><ul class="simple">
+<li><p>Tools -&gt; Plugins -&gt; Downloaded -&gt; Add Plugins…</p></li>
+<li><p>Choose your <a href="#id1"><span class="problematic" id="id2">*</span></a>.nbm file (Q:AbteilungsprojekteSurfsurf-DDRSSoftwaresentinel-hindcastSNAP Plugins) -&gt; OK</p></li>
+<li><p>Select your new Plugin in the list -&gt; Install -&gt; Accept everything</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<p>18.) iCOR: <a class="reference external" href="https://remotesensing.vito.be/case/icor">https://remotesensing.vito.be/case/icor</a></p>
+<blockquote>
+<div><p>Download iCOR from <a class="reference external" href="https://remotesensing.vito.be/case/icor">https://remotesensing.vito.be/case/icor</a></p>
+<p>Execute downloaded .exe file.</p>
+<p>Installation of SNAP plugin only necessairy if you want to use iCOR from SNAP Desktop. For sencast it is not needed.</p>
+</div></blockquote>
+<p>19.) LSWT:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Install the operator in SNAP Desktop:</dt><dd><ul class="simple">
+<li><p>Tools -&gt; Plugins -&gt; Downloaded -&gt; Add Plugins…</p></li>
+<li><p>Choose your <a href="#id3"><span class="problematic" id="id4">*</span></a>.nbm file (Q:AbteilungsprojekteSurfsurf-DDRSSoftwaresentinel-hindcastSNAP Plugins) -&gt; OK</p></li>
+<li><p>Select your new Plugin in the list -&gt; Install -&gt; Accept everything</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../environment_config.html" class="btn btn-neutral float-right" title="Environment File" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="centos8_install.html" class="btn btn-neutral float-left" title="CentOS 8" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

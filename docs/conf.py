@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'Sencast'
-copyright = '2020, Daniel Odermatt, James Runnalls, Rolf Scheuner'
+copyright = '2021, Daniel Odermatt, James Runnalls, Rolf Scheuner'
 author = 'Daniel Odermatt, James Runnalls, Rolf Scheuner'
 
 
@@ -40,7 +40,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # Explore autodoc imports
 
-autodoc_mock_imports = ["tqdm", "polymer", "cartopy", "matplotlib","haversine","haversine","snappy","numpy","netCDF4","scipy"]
+autodoc_mock_imports = ["tqdm", "polymer", "cartopy", "matplotlib", "haversine", "haversine", "snappy", "numpy", "netCDF4", "scipy", "pandas", "colour", "mdn", "rasterio", "sklearn", "tensorflow"]
 
 
 # -- Options for HTML output -------------------------------------------------
