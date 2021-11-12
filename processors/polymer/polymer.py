@@ -20,6 +20,7 @@ from pyproj import Transformer
 from haversine import haversine
 
 from polymer.ancillary_era5 import Ancillary_ERA5
+from polymer.ancillary import Ancillary_NASA
 from polymer.gsw import GSW
 from polymer.level1_msi import Level1_MSI
 from polymer.level1_olci import Level1_OLCI
@@ -54,9 +55,8 @@ def process(env, params, l1product_path, _, out_path):
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     water_model, validexpression = params['POLYMER']['water_model'], params['POLYMER']['validexpression']
     vicar_version = params['POLYMER']['vicar_version']
-    gsw_path, ancillary_path = env['GSW']['root_path'], env['CDS']['era5_path']
+    gsw_path = env['GSW']['root_path']
     os.makedirs(gsw_path, exist_ok=True)
-    os.makedirs(ancillary_path, exist_ok=True)
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format("ERA5", product_name))
     if os.path.isfile(output_file):
@@ -68,18 +68,30 @@ def process(env, params, l1product_path, _, out_path):
             return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    """try:
-        date = datetime.strptime(date_str, "%Y%m%d")
-        lons, lats = get_lons_lats(wkt)
-        coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
-        ancillary = Ancillary_ERA5(directory=ancillary_path)
-        ozone = round(ancillary.get("ozone", date)[coords])  # Test can retrieve parameters
-        anc_name = "ERA5"
-        log(env["General"]["log"], "Polymer collected ERA5 ancillary data.")
-    except (Exception, ):"""
-    ancillary = None
-    anc_name = "NA"
-    log(env["General"]["log"], "Polymer failed to collect ERA5 ancillary data.")
+    if "ancillary" in params['POLYMER'] and params['POLYMER']['ancillary'] not in ["NASA", "ERA5"]:
+        ancillary = None
+        anc_name = "NA"
+        log(env["General"]["log"], "Polymer not using ancillary data.")
+    else:
+        if "ancillary" in params['POLYMER'] and params['POLYMER']['ancillary'] == "NASA":
+            os.makedirs(env['NASA']['path'], exist_ok=True)
+            ancillary = Ancillary_NASA(directory=env['NASA']['path'])
+            anc_name = "NASA"
+        else:
+            os.makedirs(env['CDS']['era5_path'], exist_ok=True)
+            ancillary = Ancillary_ERA5(directory=env['CDS']['era5_path'])
+            anc_name = "ERA5"
+        try:
+            # Test can retrieve parameters
+            date = datetime.strptime(date_str, "%Y%m%d")
+            lons, lats = get_lons_lats(wkt)
+            coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
+            ozone = round(ancillary.get("ozone", date)[coords])
+            log(env["General"]["log"], "Polymer collected {} ancillary data.".format(anc_name))
+        except (Exception,):
+            ancillary = None
+            anc_name = "NA"
+            log(env["General"]["log"], "Polymer failed to collect ancillary data. If using NASA data ensure authenication is setup according to: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget")
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
     if os.path.isfile(output_file):
