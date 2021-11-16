@@ -94,12 +94,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     satellite = get_satellite_name_from_product_name(product_name)
 
-    # Use a classification to filter water pixels
-    """if "classification" in params[PARAMS_SECTION]:
-        water_band = product.getBand(params[PARAMS_SECTION]["classification"])
-    else:
-        water_band = "None"""
-
     log(env["General"]["log"], "Defining chromaticity and hue angle coefficients.", indent=1)
     if "sensor" in params[PARAMS_SECTION] and "spectral_band_names" in params[PARAMS_SECTION] and "sample_band" in params[PARAMS_SECTION]:
         chromaticity = chromaticity_values(params[PARAMS_SECTION]["sensor"])
@@ -206,7 +200,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     for c in range(len(chunks)):
         log(env["General"]["log"], "Processing chunk {} of {}".format(c+1, len(chunks)), indent=1)
         log(env["General"]["log"], "Reading reflectance values.", indent=2)
-        hue_angle_c, dom_wvl, FU = main_chunk(bands, chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], chromaticity, hue_angle_coeff, env)
+        hue_angle_c, dom_wvl, FU = main_chunk(bands, chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], width, height, chromaticity, hue_angle_coeff, env)
         if len(hue_angle_c) > 0:
             foreluleProduct.getBand("hue_angle").writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], hue_angle_c)
             foreluleProduct.getBand("dominant_wavelength").writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], dom_wvl)
@@ -216,16 +210,17 @@ def process(env, params, l1product_path, l2product_files, out_path):
     return output_file
 
 
-def main_chunk(bands, x, y, w, h, chromaticity, hue_angle_coeff, env):
+def main_chunk(bands, x, y, w, h, width, height, chromaticity, hue_angle_coeff, env):
     input_band_values = []
     input_band_lambdas = []
     for i in range(len(bands)):
-        temp_arr = np.zeros(w * h)
-        bands[i].readPixels(x, y, w, h, temp_arr)
-        if np.all(temp_arr == 0):
-            return [], [], []
-        input_band_values.append(temp_arr)
-        input_band_lambdas.append(bands[i].getSpectralWavelength())
+        if bands[i].getRasterWidth() == width and bands[i].getRasterHeight() == height:
+            temp_arr = np.zeros(w * h)
+            bands[i].readPixels(x, y, w, h, temp_arr)
+            if np.all(temp_arr == 0):
+                return [], [], []
+            input_band_values.append(temp_arr)
+            input_band_lambdas.append(bands[i].getSpectralWavelength())
     input_band_lambdas = np.array(input_band_lambdas)
 
     log(env["General"]["log"], 'Interpolating reflectance spectra to: {}'.format(list(chromaticity["lambda"])),
