@@ -12,7 +12,7 @@ project_path = os.path.dirname(__file__)
 def init_hindcast(env_file, params_file):
     """Initialize a sencast run with an environment file and a parameters file."""
     # load environment and params from file
-    env, env_file = load_environment(env_file)
+    env, env_file, cache = load_environment(env_file)
     params, params_file = load_params(params_file, env['General']['params_path'])
 
     # create output path, if it does not exist yet
@@ -29,7 +29,7 @@ def init_hindcast(env_file, params_file):
     if not os.path.exists(os.path.dirname(log_file)):
         os.makedirs(os.path.dirname(log_file))
     env["General"]["log"] = log_file
-    log(log_file, "Starting SenCast...")
+    log(log_file, "Starting SenCast with GPT cache size set to {}".format(cache))
 
     if os.path.isdir(out_path) and os.listdir(out_path) and os.path.isfile(os.path.join(out_path, os.path.basename(params_file))):
         log(log_file, "Output folder for this run already exists.")
@@ -69,22 +69,23 @@ def load_environment(env_file=None, env_path=os.path.join(project_path, "../envi
         if not os.path.isfile(env_file):
             raise RuntimeError("The evironment file could not be found: {}".format(env_file))
         env.read(env_file)
-        set_gpt_cache_size(env)
-        return env, env_file
+
+        cache = set_gpt_cache_size(env)
+        return env, env_file, cache
 
     # Try to use host and user specific env file
     host_user_env_file = os.path.join(env_path, "{}.{}.ini".format(socket.gethostname(), getpass.getuser()))
     if os.path.isfile(host_user_env_file):
         env.read(host_user_env_file)
-        set_gpt_cache_size(env)
-        return env, host_user_env_file
+        cache = set_gpt_cache_size(env)
+        return env, host_user_env_file, cache
 
     # Try to use host specific env file
     host_env_file = os.path.join(env_path, "{}.ini".format(socket.gethostname()))
     if os.path.isfile(host_env_file):
         env.read(host_env_file)
-        set_gpt_cache_size(env)
-        return env, host_env_file
+        cache = set_gpt_cache_size(env)
+        return env, host_env_file, cache
 
     raise RuntimeError("Could not load any of the following evironments:\n{}\n{}".format(host_user_env_file,
                        host_env_file))
@@ -126,8 +127,8 @@ def set_gpt_cache_size(env):
         if not heap_size:
             raise RuntimeError("Could not read heap size from GPT vmoptions. Set it in your env file!")
         cache_size = str(int(round(int(heap_size) * 0.7, 0,))) + "G"
-        print("Setting GPT cache size to {}".format(cache_size))
         env['General']['gpt_cache_size'] = cache_size
+        return cache_size
 
 
 def load_properties(properties_file, separator_char='=', comment_char='#'):

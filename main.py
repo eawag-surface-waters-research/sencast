@@ -13,7 +13,6 @@ The core functions of Sencast
     python main.py [parameters file] [(optional) environment file]
 """
 import importlib
-import logging
 import os
 import time
 import traceback
@@ -25,9 +24,6 @@ from threading import Semaphore, Thread
 from utils.auxil import init_hindcast, log
 from utils.product_fun import filter_for_timeliness, get_satellite_name_from_product_name, \
     get_sensing_date_from_product_name, get_l1product_path
-
-
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
 
 def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
