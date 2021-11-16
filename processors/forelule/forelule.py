@@ -116,9 +116,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
         elif resolution == "20":
             chromaticity = chromaticity_values("S2 MSI-20 m")
             hue_angle_coeff = hue_angle_coefficients("S2 MSI-20 m")
+            log(env["General"]["log"], "WARNING. If run on raw product must be resampled to 20m", indent=1)
         elif resolution == "60":
             chromaticity = chromaticity_values("S2 MSI-60 m")
             hue_angle_coeff = hue_angle_coefficients("S2 MSI-60 m")
+            log(env["General"]["log"], "WARNING. If run on raw product must be resampled to 60m", indent=1)
         if processor == 'POLYMER':
             raise RuntimeWarning('Forel-Ule not yet configured for S2 POLYMER inputs.')
             spectral_band_names = ["Rw443", "Rw490", "Rw560", "Rw665", "Rw705"]
@@ -229,39 +231,42 @@ def main_chunk(bands, x, y, w, h, chromaticity, hue_angle_coeff, env):
     log(env["General"]["log"], 'Interpolating reflectance spectra to: {}'.format(list(chromaticity["lambda"])),
         indent=2)
     band_values = []
+    band_index = []
     for i in range(len(chromaticity["lambda"])):
-        lbda = chromaticity["lambda"][i]
-        if lbda in input_band_lambdas:
-            log(env["General"]["log"], 'Reflectance {}nm matched exactly.'.format(lbda), indent=3)
-            index = np.where(input_band_lambdas == lbda)[0][0]
-            band_values.append(input_band_values[index])
-        elif lbda > np.amax(input_band_lambdas):
-            log(env["General"]["log"],
-                'Reflectance {}nm larger than max, selecting max: {}nm.'.format(lbda, np.amax(input_band_lambdas)),
-                indent=3)
-            index = np.where(input_band_lambdas == np.amax(input_band_lambdas))[0][0]
-            band_values.append(input_band_values[index])
-        elif lbda < np.amin(input_band_lambdas):
-            log(env["General"]["log"],
-                'Reflectance {}nm smaller than min, selecting min: {}nm.'.format(lbda, np.amin(input_band_lambdas)),
-                indent=3)
-            index = np.where(input_band_lambdas == np.amin(input_band_lambdas))[0][0]
-            band_values.append(input_band_values[index])
-        else:
-            u_lbda = input_band_lambdas[input_band_lambdas > lbda].min()
-            l_lbda = input_band_lambdas[input_band_lambdas < lbda].max()
-            u_index = np.where(input_band_lambdas == u_lbda)[0][0]
-            l_index = np.where(input_band_lambdas == l_lbda)[0][0]
-            log(env["General"]["log"],
-                'Interpolating reflectance {}nm between {}nm and {}nm'.format(lbda, l_lbda, u_lbda), indent=3)
-            f = (lbda - l_lbda) / (u_lbda - l_lbda)
-            band_values.append(
-                input_band_values[l_index] + (input_band_values[u_index] - input_band_values[l_index]) * f)
+        if ~np.isnan(chromaticity["band"][i]):
+            lbda = chromaticity["lambda"][i]
+            band_index.append(i)
+            if lbda in input_band_lambdas:
+                log(env["General"]["log"], 'Reflectance {}nm matched exactly.'.format(lbda), indent=3)
+                index = np.where(input_band_lambdas == lbda)[0][0]
+                band_values.append(input_band_values[index])
+            elif lbda > np.amax(input_band_lambdas):
+                log(env["General"]["log"],
+                    'Reflectance {}nm larger than max, selecting max: {}nm.'.format(lbda, np.amax(input_band_lambdas)),
+                    indent=3)
+                index = np.where(input_band_lambdas == np.amax(input_band_lambdas))[0][0]
+                band_values.append(input_band_values[index])
+            elif lbda < np.amin(input_band_lambdas):
+                log(env["General"]["log"],
+                    'Reflectance {}nm smaller than min, selecting min: {}nm.'.format(lbda, np.amin(input_band_lambdas)),
+                    indent=3)
+                index = np.where(input_band_lambdas == np.amin(input_band_lambdas))[0][0]
+                band_values.append(input_band_values[index])
+            else:
+                u_lbda = input_band_lambdas[input_band_lambdas > lbda].min()
+                l_lbda = input_band_lambdas[input_band_lambdas < lbda].max()
+                u_index = np.where(input_band_lambdas == u_lbda)[0][0]
+                l_index = np.where(input_band_lambdas == l_lbda)[0][0]
+                log(env["General"]["log"],
+                    'Interpolating reflectance {}nm between {}nm and {}nm'.format(lbda, l_lbda, u_lbda), indent=3)
+                f = (lbda - l_lbda) / (u_lbda - l_lbda)
+                band_values.append(
+                    input_band_values[l_index] + (input_band_values[u_index] - input_band_values[l_index]) * f)
 
     log(env["General"]["log"], "Calculating Tristimulus values", indent=2)
-    X = np.sum(np.array([chromaticity["x"][i] * band_values[i] for i in range(len(chromaticity["lambda"]))]), axis=0)
-    Y = np.sum(np.array([chromaticity["y"][i] * band_values[i] for i in range(len(chromaticity["lambda"]))]), axis=0)
-    Z = np.sum(np.array([chromaticity["z"][i] * band_values[i] for i in range(len(chromaticity["lambda"]))]), axis=0)
+    X = np.sum(np.array([chromaticity["x"][band_index[i]] * band_values[i] for i in range(len(band_index))]), axis=0)
+    Y = np.sum(np.array([chromaticity["y"][band_index[i]] * band_values[i] for i in range(len(band_index))]), axis=0)
+    Z = np.sum(np.array([chromaticity["z"][band_index[i]] * band_values[i] for i in range(len(band_index))]), axis=0)
     x_nan = X / (X + Y + Z)
     y_nan = Y / (X + Y + Z)
     x = x_nan[~np.isnan(x_nan)]
