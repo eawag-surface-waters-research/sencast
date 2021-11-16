@@ -128,7 +128,7 @@ def set_gpt_cache_size(env):
             raise RuntimeError("Could not read heap size from GPT vmoptions. Set it in your env file!")
         cache_size = str(int(round(int(heap_size) * 0.7, 0,))) + "G"
         env['General']['gpt_cache_size'] = cache_size
-        return cache_size
+    return env['General']['gpt_cache_size']
 
 
 def load_properties(properties_file, separator_char='=', comment_char='#'):
