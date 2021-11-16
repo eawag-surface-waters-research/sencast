@@ -11,4 +11,5 @@ sys.path.append("/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hi
 
 from main import hindcast
 
-hindcast("oc3_test.ini")
+hindcast("Tshikapa_L1C_S2.ini")
+

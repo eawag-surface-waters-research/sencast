@@ -8,11 +8,15 @@ Adapter authors: Daniel Odermatt, James Runnalls
 """
 
 import os
+import gc
+import sys
+from time import sleep
 import math
 import numpy as np
 from colour import dominant_wavelength
-from snappy import ProductIO, ProductData, Product, ProductUtils
+from snappy import ProductIO, ProductData, Product, ProductUtils, Mask, jpy
 from utils.product_fun import get_satellite_name_from_product_name
+import psutil
 from utils.auxil import log
 
 # key of the params section for this adapter
@@ -80,7 +84,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
     product = ProductIO.readProduct(product_path)
     width = product.getSceneRasterWidth()
     height = product.getSceneRasterHeight()
-    print(width, height)
     name = product.getName()
     description = product.getDescription()
     product_band_names = product.getBandNames()
@@ -90,6 +93,12 @@ def process(env, params, l1product_path, l2product_files, out_path):
     log(env["General"]["log"], 'Bands:       {}'.format(list(product_band_names)), indent=1)
 
     satellite = get_satellite_name_from_product_name(product_name)
+
+    # Use a classification to filter water pixels
+    """if "classification" in params[PARAMS_SECTION]:
+        water_band = product.getBand(params[PARAMS_SECTION]["classification"])
+    else:
+        water_band = "None"""
 
     log(env["General"]["log"], "Defining chromaticity and hue angle coefficients.", indent=1)
     if "sensor" in params[PARAMS_SECTION] and "spectral_band_names" in params[PARAMS_SECTION] and "sample_band" in params[PARAMS_SECTION]:
@@ -107,9 +116,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
         elif resolution == "20":
             chromaticity = chromaticity_values("S2 MSI-20 m")
             hue_angle_coeff = hue_angle_coefficients("S2 MSI-20 m")
+            log(env["General"]["log"], "WARNING. If run on raw product must be resampled to 20m", indent=1)
         elif resolution == "60":
             chromaticity = chromaticity_values("S2 MSI-60 m")
             hue_angle_coeff = hue_angle_coefficients("S2 MSI-60 m")
+            log(env["General"]["log"], "WARNING. If run on raw product must be resampled to 60m", indent=1)
         if processor == 'POLYMER':
             raise RuntimeWarning('Forel-Ule not yet configured for S2 POLYMER inputs.')
             spectral_band_names = ["Rw443", "Rw490", "Rw560", "Rw665", "Rw705"]
@@ -147,7 +158,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
         if band_name in valid_pixel_expression:
             ProductUtils.copyBand(band_name, product, foreluleProduct, True)
 
-    forelule_bands = []
     for forelule_name in forelule_names:
         temp_band = foreluleProduct.addBand(forelule_name, ProductData.TYPE_FLOAT32)
         if 'angle' in forelule_name:
@@ -159,7 +169,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
         temp_band.setNoDataValueUsed(True)
         temp_band.setNoDataValue(np.NaN)
         temp_band.setValidPixelExpression(valid_pixel_expression)
-        forelule_bands.append(temp_band)
 
     writer = ProductIO.getProductWriter('NetCDF4-BEAM')
 
@@ -167,15 +176,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     foreluleProduct.setProductWriter(writer)
     foreluleProduct.writeHeader(output_file)
-
-    # Write valid pixel bands
-    if "valid_pixel_expression" not in params[PARAMS_SECTION] or params[PARAMS_SECTION]["valid_pixel_expression"] == "True":
-        log(env["General"]["log"], "Write valid pixel bands.", indent=1)
-        for band_name in product_band_names:
-            if band_name in valid_pixel_expression:
-                temp_arr = np.zeros(width * height)
-                product.getBand(band_name).readPixels(0, 0, width, height, temp_arr)
-                foreluleProduct.getBand(band_name).writePixels(0, 0, width, height, temp_arr)
 
     if "max_chunk" in params[PARAMS_SECTION]:
         log(env["General"]["log"], "Splitting data into manageable chunks.", indent=1)
@@ -192,32 +192,64 @@ def process(env, params, l1product_path, l2product_files, out_path):
     else:
         chunks = [{"x": 0, "y": 0, "w": width, "h": height}]
 
+    # Write valid pixel bands
+    if "valid_pixel_expression" not in params[PARAMS_SECTION] or params[PARAMS_SECTION]["valid_pixel_expression"] == "True":
+        log(env["General"]["log"], "Write valid pixel bands.", indent=1)
+        for band_name in product_band_names:
+            if band_name in valid_pixel_expression:
+                for i in range(len(chunks)):
+                    log(env["General"]["log"], "Processing chunk {} of {}".format(i, len(chunks)), indent=1)
+                    temp_arr = np.zeros(chunks[i]["w"] * chunks[i]["h"])
+                    product.getBand(band_name).readPixels(chunks[i]["x"], chunks[i]["y"], chunks[i]["w"], chunks[i]["h"], temp_arr)
+                    foreluleProduct.getBand(band_name).writePixels(chunks[i]["x"], chunks[i]["y"], chunks[i]["w"], chunks[i]["h"], temp_arr)
+
     for c in range(len(chunks)):
         log(env["General"]["log"], "Processing chunk {} of {}".format(c+1, len(chunks)), indent=1)
         log(env["General"]["log"], "Reading reflectance values.", indent=2)
-        input_band_values = []
-        input_band_lambdas = []
-        for i in range(len(bands)):
-            temp_arr = np.zeros(chunks[c]["w"] * chunks[c]["h"])
-            bands[i].readPixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], temp_arr)
-            input_band_values.append(temp_arr)
-            input_band_lambdas.append(bands[i].getSpectralWavelength())
-        input_band_lambdas = np.array(input_band_lambdas)
+        hue_angle_c, dom_wvl, FU = main_chunk(bands, chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], chromaticity, hue_angle_coeff, env)
+        if len(hue_angle_c) > 0:
+            foreluleProduct.getBand("hue_angle").writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], hue_angle_c)
+            foreluleProduct.getBand("dominant_wavelength").writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], dom_wvl)
+            foreluleProduct.getBand("forel_ule").writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], FU)
 
-        log(env["General"]["log"], 'Interpolating reflectance spectra to: {}'.format(list(chromaticity["lambda"])), indent=2)
-        band_values = []
-        for i in range(len(chromaticity["lambda"])):
+    foreluleProduct.closeIO()
+    return output_file
+
+
+def main_chunk(bands, x, y, w, h, chromaticity, hue_angle_coeff, env):
+    input_band_values = []
+    input_band_lambdas = []
+    for i in range(len(bands)):
+        temp_arr = np.zeros(w * h)
+        bands[i].readPixels(x, y, w, h, temp_arr)
+        if np.all(temp_arr == 0):
+            return [], [], []
+        input_band_values.append(temp_arr)
+        input_band_lambdas.append(bands[i].getSpectralWavelength())
+    input_band_lambdas = np.array(input_band_lambdas)
+
+    log(env["General"]["log"], 'Interpolating reflectance spectra to: {}'.format(list(chromaticity["lambda"])),
+        indent=2)
+    band_values = []
+    band_index = []
+    for i in range(len(chromaticity["lambda"])):
+        if ~np.isnan(chromaticity["band"][i]):
             lbda = chromaticity["lambda"][i]
+            band_index.append(i)
             if lbda in input_band_lambdas:
                 log(env["General"]["log"], 'Reflectance {}nm matched exactly.'.format(lbda), indent=3)
                 index = np.where(input_band_lambdas == lbda)[0][0]
                 band_values.append(input_band_values[index])
             elif lbda > np.amax(input_band_lambdas):
-                log(env["General"]["log"], 'Reflectance {}nm larger than max, selecting max: {}nm.'.format(lbda, np.amax(input_band_lambdas)), indent=3)
+                log(env["General"]["log"],
+                    'Reflectance {}nm larger than max, selecting max: {}nm.'.format(lbda, np.amax(input_band_lambdas)),
+                    indent=3)
                 index = np.where(input_band_lambdas == np.amax(input_band_lambdas))[0][0]
                 band_values.append(input_band_values[index])
             elif lbda < np.amin(input_band_lambdas):
-                log(env["General"]["log"], 'Reflectance {}nm smaller than min, selecting min: {}nm.'.format(lbda, np.amin(input_band_lambdas)), indent=3)
+                log(env["General"]["log"],
+                    'Reflectance {}nm smaller than min, selecting min: {}nm.'.format(lbda, np.amin(input_band_lambdas)),
+                    indent=3)
                 index = np.where(input_band_lambdas == np.amin(input_band_lambdas))[0][0]
                 band_values.append(input_band_values[index])
             else:
@@ -225,47 +257,63 @@ def process(env, params, l1product_path, l2product_files, out_path):
                 l_lbda = input_band_lambdas[input_band_lambdas < lbda].max()
                 u_index = np.where(input_band_lambdas == u_lbda)[0][0]
                 l_index = np.where(input_band_lambdas == l_lbda)[0][0]
-                log(env["General"]["log"], 'Interpolating reflectance {}nm between {}nm and {}nm'.format(lbda, l_lbda, u_lbda), indent=3)
-                f = (lbda - l_lbda)/(u_lbda - l_lbda)
-                band_values.append(input_band_values[l_index] + (input_band_values[u_index]-input_band_values[l_index])*f)
+                log(env["General"]["log"],
+                    'Interpolating reflectance {}nm between {}nm and {}nm'.format(lbda, l_lbda, u_lbda), indent=3)
+                f = (lbda - l_lbda) / (u_lbda - l_lbda)
+                band_values.append(
+                    input_band_values[l_index] + (input_band_values[u_index] - input_band_values[l_index]) * f)
 
-        log(env["General"]["log"], "Calculating Tristimulus values", indent=2)
-        X = np.sum(np.array([chromaticity["x"][i] * band_values[i] for i in range(len(chromaticity["lambda"]))]), axis=0)
-        Y = np.sum(np.array([chromaticity["y"][i] * band_values[i] for i in range(len(chromaticity["lambda"]))]), axis=0)
-        Z = np.sum(np.array([chromaticity["z"][i] * band_values[i] for i in range(len(chromaticity["lambda"]))]), axis=0)
-        x_nan = X / (X + Y + Z)
-        y_nan = Y / (X + Y + Z)
-        x = x_nan[~np.isnan(x_nan)]
-        y = y_nan[~np.isnan(x_nan)]
+    log(env["General"]["log"], "Calculating Tristimulus values", indent=2)
+    X = np.sum(np.array([chromaticity["x"][band_index[i]] * band_values[i] for i in range(len(band_index))]), axis=0)
+    Y = np.sum(np.array([chromaticity["y"][band_index[i]] * band_values[i] for i in range(len(band_index))]), axis=0)
+    Z = np.sum(np.array([chromaticity["z"][band_index[i]] * band_values[i] for i in range(len(band_index))]), axis=0)
+    x_nan = X / (X + Y + Z)
+    y_nan = Y / (X + Y + Z)
+    x = x_nan[~np.isnan(x_nan)]
+    y = y_nan[~np.isnan(x_nan)]
 
-        hue_angle_c = np.zeros(len(x_nan))
-        dom_wvl = np.zeros(len(x_nan))
-        hue_angle_c[:] = np.nan
-        dom_wvl[:] = np.nan
+    if len(x) == 0:
+        return [], [], []
 
-        log(env["General"]["log"], "Calculating hue angle", indent=2)
-        hue_angle = get_hue_angle(x, y)
-        hue_angle_c[~np.isnan(x_nan)] = (hue_angle_coeff["a5"] * (hue_angle / 100) ** 5) + (hue_angle_coeff["a4"] * (hue_angle / 100) ** 4) +\
-                      (hue_angle_coeff["a3"] * (hue_angle / 100) ** 3) + (hue_angle_coeff["a2"] * (hue_angle / 100) ** 2) + \
-                      (hue_angle_coeff["a"] * (hue_angle / 100)) + hue_angle_coeff["const"] + hue_angle
-        forelule_bands[0].writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], hue_angle_c)
+    hue_angle_c = np.zeros(len(x_nan))
+    dom_wvl = np.zeros(len(x_nan))
+    hue_angle_c[:] = np.nan
+    dom_wvl[:] = np.nan
 
-        log(env["General"]["log"], "Calculating dominant wavelength", indent=2)
-        try:
-            dom_wvl[~np.isnan(x_nan)] = dominant_wavelength(np.swapaxes(np.array([x, y]), 0, 1), [1 / 3, 1 / 3])[0]
-            forelule_bands[1].writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], dom_wvl)
-        except Exception as e:
-            log(env["General"]["log"], e, indent=3)
-            log(env["General"]["log"], "Failed to calculate dominant wavelength", indent=3)
+    log(env["General"]["log"], "Calculating hue angle", indent=2)
+    hue_angle = get_hue_angle(x, y)
+    hue_angle_c[~np.isnan(x_nan)] = (hue_angle_coeff["a5"] * (hue_angle / 100) ** 5) + (
+                hue_angle_coeff["a4"] * (hue_angle / 100) ** 4) + \
+                                    (hue_angle_coeff["a3"] * (hue_angle / 100) ** 3) + (
+                                                hue_angle_coeff["a2"] * (hue_angle / 100) ** 2) + \
+                                    (hue_angle_coeff["a"] * (hue_angle / 100)) + hue_angle_coeff["const"] + hue_angle
 
-        log(env["General"]["log"], "Calculating Forel-Ule", indent=2)
-        FU = get_FU_class(hue_angle_c)
-        forelule_bands[2].writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], FU)
+    log(env["General"]["log"], "Calculating dominant wavelength", indent=2)
+    try:
+        dom_wvl[~np.isnan(x_nan)] = dominant_wavelength_wrapper(x, y)
+    except Exception as e:
+        log(env["General"]["log"], e, indent=3)
+        log(env["General"]["log"], "Failed to calculate dominant wavelength", indent=3)
 
-    log(env["General"]["log"], 'Writing Forel-Ule to file: {}'.format(output_file))
-    foreluleProduct.closeIO()
+    log(env["General"]["log"], "Calculating Forel-Ule", indent=2)
+    FU = get_FU_class(hue_angle_c)
 
-    return output_file
+    return hue_angle_c, dom_wvl, FU
+
+
+def dominant_wavelength_wrapper(x, y, max_chunk=1000):
+    if len(x) > max_chunk:
+        out = np.zeros(len(x))
+        out[:] = np.nan
+        n = math.ceil(len(x) / max_chunk)
+        for i in range(n):
+            start = i * max_chunk
+            end = min(len(x), start + max_chunk)
+            out[start:end] = dominant_wavelength(np.swapaxes(np.array([x[start:end], y[start:end]]), 0, 1), [1 / 3, 1 / 3])[0]
+        return out
+    else:
+        return dominant_wavelength(np.swapaxes(np.array([x, y]), 0, 1), [1 / 3, 1 / 3])[0]
+
 
 
 def get_hue_angle(x, y):

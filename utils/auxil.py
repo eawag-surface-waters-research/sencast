@@ -9,7 +9,6 @@ from datetime import datetime
 
 project_path = os.path.dirname(__file__)
 
-
 def init_hindcast(env_file, params_file):
     """Initialize a sencast run with an environment file and a parameters file."""
     # load environment and params from file
