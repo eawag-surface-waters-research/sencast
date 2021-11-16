@@ -77,8 +77,15 @@ def process(env, params, l1product_path, l2product_files, out_path):
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))
     rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary_obj)
 
+    if "IDEPIX" in l2product_files:
+        log(env["General"]["log"], "Using IDEPIX as input file.", indent=1)
+        input_file = l2product_files['IDEPIX']
+    else:
+        log(env["General"]["log"], "Using L1 product as input file.", indent=1)
+        input_file = l1product_path
+
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
-            "-SsourceFile={}".format(l2product_files['IDEPIX']), "-PoutputFile={}".format(output_file)]
+            "-SsourceFile={}".format(input_file), "-PoutputFile={}".format(output_file)]
     log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
     process = subprocess.Popen(args, stdout=subprocess.PIPE, universal_newlines=True)
     while True:
