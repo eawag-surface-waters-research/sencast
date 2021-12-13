@@ -15,6 +15,14 @@
 					<validExpression>${validPixelExpression}</validExpression>
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
+				<targetBand>
+					<name>swi</name>
+					<type>float32</type>
+					<expression>((B5 - B11) / (B5 + B11))</expression>
+					<unit>dl</unit>
+					<validExpression>${validPixelExpression}</validExpression>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
 			</targetBands>
     	</parameters>
 	</node>

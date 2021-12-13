@@ -8,7 +8,7 @@
 		<parameters>
 			<targetResolution>${resolution}</targetResolution>
 			<upsampling>Nearest</upsampling>
-			<downsampling>Median</downsampling>
+			<downsampling>First</downsampling>
 			<flagDownsampling>First</flagDownsampling>
 			<resampleOnPyramidLevels>false</resampleOnPyramidLevels>
 		</parameters>
