@@ -93,7 +93,9 @@ def search(auth, query, env):
     timelinesss, beginpositions, endpositions = [], [], []
     start, rows = 0, 100
     while True:
-        response = requests.get(search_address.format(query, start, rows), auth=auth)
+        # Problems with the SSL verification? See https://urllib3.readthedocs.io/en/latest/user-guide.html#ssl
+        # In the worst case, add 'verify=False' to requests
+        response = requests.get(search_address.format(query, start, rows), auth=auth, verify=False)
         if response.status_code == codes.OK:
             root = ElementTree.fromstring(response.text)
             for entry in root.findall(prepend_ns("entry")):
@@ -123,7 +125,9 @@ def search(auth, query, env):
 def download(auth, uuid, filename, env):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     log(env["General"]["log"], ("Downloading file from {}.".format(download_address.format(uuid))))
-    response = requests.get(download_address.format(uuid), auth=auth, stream=True)
+    # Problems with the SSL verification? See https://urllib3.readthedocs.io/en/latest/user-guide.html#ssl
+    # In the worst case, add 'verify=False' to requests
+    response = requests.get(download_address.format(uuid), auth=auth, stream=True, verify=False)
     if response.status_code == codes.OK:
         with open(filename + '.zip', 'wb') as down_stream:
             for chunk in response.iter_content(chunk_size=2**20):

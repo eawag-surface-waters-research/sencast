@@ -23,10 +23,10 @@ import matplotlib.ticker as ticker
 import adapters.qlsingleband.colour_scales as colscales
 
 from cartopy.io import PostprocessedRasterSource, LocatedImage
-from haversine import haversine
 from snappy import GPF, HashMap, jpy, Mask, PixelPos, ProductUtils, ProductIO
 
 from utils.product_fun import get_lons_lats
+from utils.auxil import log
 
 plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')
@@ -100,7 +100,7 @@ def plot_map(env, input_file, output_file, layer_str, wkt=None, basemap='srtm_el
     legend_extension = 1
     bar_orientation = 'vertical'
     linewidth = 0.8
-    gridlabel_size = 6
+    gridlabel_size = 5
 
     # Create a new product With the band to plot only
     width = product.getSceneRasterWidth()
@@ -248,45 +248,55 @@ def plot_map(env, input_file, output_file, layer_str, wkt=None, basemap='srtm_el
         lat_ext = 0
         lon_ext = 0
 
-    x_dist = haversine((min_lat, min_lon - lon_ext), (min_lat, max_lon + lon_ext))
-    y_dist = haversine((min_lat - lat_ext, min_lon), (max_lat + lat_ext, min_lon))
+    lon_range = (upprig.lon + lon_ext) - (lowlef.lon - lon_ext)
+    lat_range = (upprig.lat + lat_ext) - (lowlef.lat - lon_ext)
+    aspect_ratio = lon_range / lat_range
 
-    aspect_ratio = x_dist / y_dist
-    if (0.7 < aspect_ratio) and (1.5 > aspect_ratio):
-        orientation = 'square'
-    elif x_dist < y_dist:
-        orientation = 'portrait'
+    # Calculate a suitable grid distance with which the smaller image portion gets three gridlines
+    grid_dist = min(lon_range, lat_range) / 3
+
+    if grid_dist < 0.01:
+        decimal = 0.001
+    elif grid_dist < 0.1:
+        decimal = 0.01
+    elif grid_dist < 1:
+        decimal = 0.1
+    elif grid_dist < 10:
+        decimal = 1
+    elif grid_dist < 100:
+        decimal = 10
     else:
-        orientation = 'landscape'
+        decimal = 100
 
-    # increase the smaller portion until the image aspect ratio is at most 3:2
-    if aspect_balance:
-        if aspect_ratio < 2 / 3:
-            if lon_ext == 0:
-                lon_ext = (max_lon - min_lon) / 20
-            while aspect_ratio < 2 / 3:
-                lon_ext = lon_ext * 1.1
-                x_dist = haversine((min_lat, min_lon - lon_ext), (min_lat, max_lon + lon_ext))
-                aspect_ratio = x_dist / y_dist
-        if aspect_ratio > 3 / 2:
-            if lat_ext == 0:
-                lat_ext = (max_lat - min_lat) / 20
-            while aspect_ratio > 3 / 2:
-                lat_ext = lat_ext * 1.1
-                y_dist = haversine((min_lat - lat_ext, min_lon), (max_lat + lat_ext, min_lon))
-                aspect_ratio = x_dist / y_dist
+    grid_dist = round(grid_dist / decimal) * decimal
 
-    canvas_area = [[min_lon - lon_ext, min_lat - lat_ext], [max_lon + lon_ext, max_lat + lat_ext]]
+    # Calculate a gridline anchor position with a round value, around which the other gridlines are defined
+    lat_center = round((lowlef.lat + (upprig.lat - lowlef.lat) / 2) / ( decimal * 10)) * (decimal * 10)
+    lon_center = round((lowlef.lon + (upprig.lon - lowlef.lon) / 2) / ( decimal * 10)) * (decimal * 10)
+    x_ticks = [lon_center]
+    y_ticks = [lat_center]
+    i=0
+    while (max(x_ticks) <= upprig.lon or min(x_ticks) >= lowlef.lon):
+        i+=1
+        x_ticks.extend((lon_center + (i * grid_dist), lon_center - (i * grid_dist)))
+    x_ticks.sort()
+    i=0
+    while (max(y_ticks) <= upprig.lat or min(y_ticks) >= lowlef.lat):
+        i+=1
+        y_ticks.extend((lat_center + (i * grid_dist), lat_center - (i * grid_dist)))
+    y_ticks.sort()
+
+    canvas_area = [[lowlef.lon - lon_ext, lowlef.lat - lat_ext], [upprig.lon + lon_ext, upprig.lat + lat_ext]]
 
     # Define colour scale
-    title_str, legend_str, log = get_legend_str(layer_str)
-    if log:
+    title_str, legend_str, log_num = get_legend_str(layer_str)
+    if log_num:
         log(env["General"]["log"], 'Transforming log data...')
         masked_param_arr = np.exp(masked_param_arr)
 
     bounds = None
     if ('hue' in title_str) and ('angle' in title_str):
-        color_type = cm.get_cmap(name='viridis')
+        color_type = cm.get_cmap(name='viridis').copy()
         param_range = [20, 230]
         tick_format = '%.0f'
         ticks = [45, 90, 135, 180, 225]
@@ -303,10 +313,10 @@ def plot_map(env, input_file, output_file, layer_str, wkt=None, basemap='srtm_el
         norm = mpl.colors.BoundaryNorm(ticks, color_type)
         tick_format = '%.0f'
     elif 'Secchi' in title_str:
-        color_type = cm.get_cmap(name='viridis_r')
+        color_type = cm.get_cmap(name='viridis_r').copy()
         ticks = False
     else:
-        color_type = cm.get_cmap(name='viridis')
+        color_type = cm.get_cmap(name='viridis').copy()
         ticks = False
     #color_type = colscales.rainbow_king()
     #color_type = colscales.red2blue()
@@ -354,11 +364,11 @@ def plot_map(env, input_file, output_file, layer_str, wkt=None, basemap='srtm_el
 
     if basemap in ['srtm_hillshade', 'srtm_elevation']:
         if canvas_area[1][1] <= 60 and canvas_area[0][1] >= -60:
-            if x_dist < 50 and y_dist < 50:
-                log(env["General"]["log"], '   larger image side is ' + str(round(max(x_dist, y_dist), 1)) + ' km, applying SRTM1')
+            if lat_range < 50 and lon_range < 50:
+                log(env["General"]["log"], '   larger image side is ' + str(round(max(lon_range, lat_range), 1)) + ' km, applying SRTM1')
                 source = srtm.SRTM1Source
             else:
-                log(env["General"]["log"], '   larger image side is ' + str(round(max(x_dist, y_dist), 1)) + ' km, applying SRTM3')
+                log(env["General"]["log"], '   larger image side is ' + str(round(max(lon_range, lat_range), 1)) + ' km, applying SRTM3')
                 source = srtm.SRTM3Source
 
             #  Add shading if requested
@@ -442,18 +452,6 @@ def plot_map(env, input_file, output_file, layer_str, wkt=None, basemap='srtm_el
     if grid:
         gridlines = subplot_axes.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
                                            linestyle=':', zorder=23)  # , n_steps=3)
-        if orientation == 'square':
-            x_n_ticks = 4
-            y_n_ticks = 4
-        elif orientation == 'portrait':
-            x_n_ticks = 3
-            y_n_ticks = 4
-        else:
-            x_n_ticks = 4
-            y_n_ticks = 3
-
-        x_ticks = get_tick_positions(canvas_area[0][0], canvas_area[1][0], x_n_ticks)
-        y_ticks = get_tick_positions(canvas_area[0][1], canvas_area[1][1], y_n_ticks)
         gridlines.xlocator = mpl.ticker.FixedLocator(x_ticks)
         gridlines.ylocator = mpl.ticker.FixedLocator(y_ticks)
 
@@ -517,184 +515,182 @@ def shade(located_elevations):
     return LocatedImage(located_shades[lowe_ind:uppe_ind, left_ind:righ_ind], canvas_extent)
 
 
-def get_tick_positions(lower, upper, n_ticks):
-    coord_range = upper - lower
-    exponent = round(np.log(coord_range))
-    lower_floored = np.floor(lower * pow(10, - exponent)) * pow(10, exponent)
-    upper_ceiled = np.ceil(upper * pow(10, - exponent)) * pow(10, exponent)
-    range_section = (upper_ceiled - lower_floored) / coord_range
-    grid_step = (upper_ceiled - lower_floored) / (n_ticks * range_section)
-    decimal = 1
-    while grid_step < 10:
-        grid_step = grid_step * 10
-        decimal = decimal * 10
-    if grid_step < 20:
-        grid_step_round = 10 / decimal
-    elif grid_step < 50:
-        grid_step_round = 20 / decimal
-    elif grid_step < 100:
-        grid_step_round = 50 / decimal
-    else:
-        grid_step_round = 50 / decimal
-    tick_list = [lower_floored]
-    current = lower_floored + grid_step_round
-    while tick_list[-1] < upper_ceiled:
-        tick_list.append(current)
-        current = current + grid_step_round
-    return tick_list
-
-
 def get_legend_str(layer_str):
 
     # Fluo products
     if layer_str in ['L_CHL']:
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{L-Fluo\/CHL}$'
-        log = False
+        log_num = False
     elif layer_str in ['L_FPH']:
         legend_str = r'$\mathbf{[mW\/m^{-2}\/sr^{-1}\/nm^{-1}]}$'
         title_str = r'$\mathbf{L-Fluo\/phytoplankton\/fluorescence}$'
-        log = False
+        log_num = False
     elif layer_str in ['L_APD']:
         legend_str = r'$\mathbf{[mW\/m^{-2}\/sr^{-1}\/nm^{-1}]}$'
         title_str = r'$\mathbf{L-Fluo\/phytoplankton\/absorption}$'
-        log = False
+        log_num = False
+
+    # Acolite products
+    elif 'TUR_Nechad2016' in layer_str:
+        split_str = layer_str.split('_')
+        legend_str = r'$\mathbf{[FNU]}$'
+        title_str = r'$\mathbf{Acolite\/Nechad\/2016\/turbidity\/(' + split_str[-1] + '\/nm)}$'
+        log_num = False
+    elif layer_str == 'TUR_Dogliotti2015':
+        split_str = layer_str.split('_')
+        legend_str = r'$\mathbf{[FNU]}$'
+        title_str = r'$\mathbf{Acolite\/Dogliotti\/2015\/turbidity\/(' + split_str[-1] + '\/nm)}$'
+        log_num = False
+    elif 'rhow' in layer_str and 'rhown' not in layer_str:
+        split_str = layer_str.split('_')
+        legend_str = r'$\mathbf{[dl]}$'
+        title_str = r'$\mathbf{Acolite\/R_w(' + split_str[-1] + '\/nm)}$'
+        log_num = False
+    elif layer_str == 'hue_angle':
+        legend_str = r'$\mathbf{[°]}$'
+        title_str = r'$\mathbf{Acolite\/hue\/angle}$'
+        log_num = False
+    elif layer_str == 'qaa_v6_Zeu_Lee':
+        legend_str = r'$\mathbf{[m]}$'
+        title_str = r'$\mathbf{Acolite\/QAA\/Secchi\/depth}$'
+        log_num = False
 
     # C2RCC products
     elif 'rhow' in layer_str and 'rhown' not in layer_str:
         lstr = re.findall(r'\d*$', layer_str)[0]
         legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{C2RCC\/\/R_w(' + lstr + ')}$'
-        log = False
+        title_str = r'$\mathbf{C2RCC\/R_w(' + lstr + '\/nm)}$'
+        log_num = False
     elif 'rhown' in layer_str:
         lstr = re.findall(r'\d*$', layer_str)[0]
         legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{C2RCC\/\/R_{w,n}(' + lstr + ')}$'
-        log = False
+        title_str = r'$\mathbf{C2RCC\/R_{w,n}(' + lstr + '\/nm)}$'
+        log_num = False
     elif layer_str in ['kdmin']:
         legend_str = r'$\mathbf{[m^-1]}$'
         title_str = r'$\mathbf{C2RCC\/K_{d}}$'
-        log = False
+        log_num = False
     elif layer_str in ['conc_tsm']:
         legend_str = r'$\mathbf{[g/m^3]}$'
         title_str = r'$\mathbf{C2RCC\/TSM}$'
-        log = False
+        log_num = False
     elif layer_str in ['conc_chl']:
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{C2RCC\/CHL}$'
-        log = False
+        log_num = False
 
     # MPH products
     elif layer_str == 'chl':
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{MPH\/CHL}$'
-        log = False
+        log_num = False
     elif layer_str == 'mph':
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{MPH}$'
-        log = False
+        log_num = False
 
     # sen2cor products
     elif layer_str == 'ndvi':
         legend_str = r'$\mathbf{[dl}$'
         title_str = r'$\mathbf{NDVI}$'
-        log = False
+        log_num = False
     elif layer_str == 'ndmi':
         legend_str = r'$\mathbf{NDMI\/[dl]}$'
         title_str = r'$\mathbf{NDMI}$'
-        log = False
+        log_num = False
     elif layer_str == 'ndwi_gao':
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{Gao\/NDWI}$'
-        log = False
+        log_num = False
     elif layer_str == 'ndwi_mcfeeters':
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{McFeeters\/NDWI}$'
-        log = False
+        log_num = False
 
     # polymer products
     elif 'Rw' in layer_str:
         lstr = re.findall(r'\d{3}', layer_str)[0]
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{Polymer\/\/R_w(' + lstr + ')}$'
-        log = False
+        log_num = False
     elif layer_str == 'bbs':
         legend_str = r'$\mathbf{[m^{-1}]}$'
         title_str = r'$\mathbf{Polymer\/b_{b_{s}}}$'
-        log = False
+        log_num = False
     elif layer_str == 'logchl':
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{Polymer\/\/CHL}$'
-        log = True
+        log_num = True
     elif layer_str == 'tsm_vantrepotte665':
         legend_str = r'$\mathbf{[g/m^3]}$'
         title_str = r'$\mathbf{Vantrepotte\/665\/nm\/TSM}$'
-        log = False
+        log_num = False
     elif layer_str == 'tsm_zhang709':
         legend_str = r'$\mathbf{[g/m^3]}$'
         title_str = r'$\mathbf{Zhang\/709\/nm\/TSM}$'
-        log = False
+        log_num = False
     elif layer_str == 'tsm_binding754':
         legend_str = r'$\mathbf{[g/m^3]}$'
         title_str = r'$\mathbf{Binding\/754\/nm\/TSM}$'
-        log = False
+        log_num = False
     elif layer_str == 'chl_oc2':
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{OC2\/CHL}$'
-        log = False
+        log_num = False
     elif layer_str == 'chl_oc3':
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{OC3\/CHL}$'
-        log = False
+        log_num = False
     elif layer_str == 'chl_2band':
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{2-band\/CHL}$'
-        log = False
+        log_num = False
     elif layer_str == 'chl_gons':
         legend_str = r'$\mathbf{[mg/m^3]}$'
         title_str = r'$\mathbf{Gons\/CHL}$'
-        log = False
+        log_num = False
     elif layer_str == 'chl_ndci':
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{NDCI}$'
-        log = False
+        log_num = False
     elif layer_str == 'rgb_tri':
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{RGB\/reflectance\/triangle\/area}$'
-        log = False
+        log_num = False
     elif layer_str == 'rgb_int':
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{RGB\/reflectance\/integral\/area}$'
-        log = False
+        log_num = False
 
     # QAA products
     elif layer_str.startswith('Z'):
         lstr = re.findall(r'\d{3}', layer_str)[0]
         legend_str = r'$\mathbf{[m]}$'
         title_str = r'$\mathbf{Secchi\/\/depth at ' + lstr + '}$'
-        log = False
+        log_num = False
     elif layer_str == 'bbs':
         legend_str = r'$\mathbf{[m^{-1}]}$'
         title_str = r'$\mathbf{Polymer\/b_{b_{s}}}$'
-        log = False
+        log_num = False
 
     # Forel-Ule products
     elif layer_str == 'forel_ule':
         legend_str = r'$\mathbf{[FU]}$'
         title_str = r'$\mathbf{Forel-Ule\/type}$'
-        log = False
+        log_num = False
     elif layer_str == 'dominant_wavelength':
         legend_str = r'$\mathbf{[nm]}$'
         title_str = r'$\mathbf{dominant\/wavelength}$'
-        log = False
+        log_num = False
     elif layer_str == 'hue_angle':
         legend_str = r'$\mathbf{[deg]}$'
         title_str = r'$\mathbf{hue\/angle}$'
-        log = False
+        log_num = False
 
     # all other products
     else:
         legend_str = 'ND'
         title_str = layer_str
-        log = False
-    return title_str, legend_str, log
+        log_num = False
+    return title_str, legend_str, log_num

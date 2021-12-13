@@ -55,6 +55,7 @@ def process(env, params, l1product_path, _, out_path):
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     water_model, validexpression = params['POLYMER']['water_model'], params['POLYMER']['validexpression']
     vicar_version = params['POLYMER']['vicar_version']
+    altitude = params['POLYMER']['altitude']
     gsw_path = env['GSW']['root_path']
     os.makedirs(gsw_path, exist_ok=True)
 
@@ -82,7 +83,7 @@ def process(env, params, l1product_path, _, out_path):
             ancillary = Ancillary_ERA5(directory=env['CDS']['era5_path'])
             anc_name = "ERA5"
         try:
-            # Test can retrieve parameters
+            # Test the retrieval of parameters
             date = datetime.strptime(date_str, "%Y%m%d")
             lons, lats = get_lons_lats(wkt)
             coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
@@ -91,7 +92,7 @@ def process(env, params, l1product_path, _, out_path):
         except (Exception,):
             ancillary = None
             anc_name = "NA"
-            log(env["General"]["log"], "Polymer failed to collect ancillary data. If using NASA data ensure authenication is setup according to: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget")
+            log(env["General"]["log"], "Polymer failed to collect ancillary data. If using NASA data ensure authentication is setup according to: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget")
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
     if os.path.isfile(output_file):
@@ -116,7 +117,7 @@ def process(env, params, l1product_path, _, out_path):
         sline, scol = [int(floor(i / target_divisor) * target_divisor) for i in [sline, scol]]
         eline, ecol = [int(ceil(i / target_divisor) * target_divisor) for i in [eline, ecol]]
         gsw = GSW(directory=gsw_path)
-        l1 = Level1_MSI(msi_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw, ancillary=ancillary, resolution=resolution)
+        l1 = Level1_MSI(msi_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw, ancillary=ancillary, resolution=resolution)#, altitude=altitude)
         additional_ds = ['sza']
     elif sensor == "OLCI":
         log(env["General"]["log"], "Reading OLCI L1 data...", indent=1)

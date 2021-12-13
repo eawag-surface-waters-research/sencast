@@ -16,7 +16,7 @@ from utils.product_fun import get_lons_lats
 
 PARAMS_SECTION = "ACOLITE"
 # The name of the folder to which the output product will be saved
-OUT_DIR = "ACOLITE"
+OUT_DIR = "L2ACOLITE"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
 OUT_FILENAME = "L2ACOLITE_{}.nc"
 # The name of the settings file for acolite
@@ -35,10 +35,14 @@ def process(env, params, l1product_path, _, out_path):
     l2w_mask_wave = params[PARAMS_SECTION]['l2w_mask_wave']
     l2w_mask_threshold = params[PARAMS_SECTION]['l2w_mask_threshold']
     l2w_mask_smooth = params[PARAMS_SECTION]['l2w_mask_smooth']
+    l2w_mask_cirrus_threshold = params[PARAMS_SECTION]['l2w_mask_cirrus_threshold']
+    l2w_mask_negative_rhow = params[PARAMS_SECTION]['l2w_mask_negative_rhow']
     l2w_parameters = params[PARAMS_SECTION]['l2w_parameters']
     lons, lats = get_lons_lats(wkt)
     limit = "{},{},{},{}".format(min(lats), min(lons), max(lats), max(lons))
     product_name = os.path.basename(l1product_path)
+    os.environ['EARTHDATA_u'] = env['EARTHDATA']['username']
+    os.environ['EARTHDATA_p'] = env['EARTHDATA']['password']
 
     if os.path.isdir(out_path):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
@@ -48,7 +52,7 @@ def process(env, params, l1product_path, _, out_path):
 
     settings_file = os.path.join(out_path, REPROD_DIR, SETTINGS_FILENAME.format(sensor))
     if not os.path.isfile(settings_file):
-        rewrite_settings_file(settings_file, sensor, resolution, limit, l2w_mask_wave, l2w_mask_threshold, l2w_mask_smooth, l2w_parameters)
+        rewrite_settings_file(settings_file, sensor, resolution, limit, l2w_mask_wave, l2w_mask_threshold, l2w_mask_smooth, l2w_mask_cirrus_threshold, l2w_mask_negative_rhow, l2w_parameters)
 
     tmp_path = os.path.join(out_path, "tmp")
     ac.acolite_run(settings_file, l1product_path, tmp_path)
@@ -71,7 +75,7 @@ def process(env, params, l1product_path, _, out_path):
     return out_file
 
 
-def rewrite_settings_file(settings_file, sensor, resolution, limit, l2w_mask_wave, l2w_mask_threshold, l2w_mask_smooth, l2w_parameters):
+def rewrite_settings_file(settings_file, sensor, resolution, limit, l2w_mask_wave, l2w_mask_threshold, l2w_mask_smooth, l2w_mask_cirrus_threshold, l2w_mask_negative_rhow, l2w_parameters):
     with open(os.path.join(os.path.dirname(__file__), SETTINGS_FILENAME.format(sensor)), "r") as f:
         text = f.read()
 
@@ -80,6 +84,8 @@ def rewrite_settings_file(settings_file, sensor, resolution, limit, l2w_mask_wav
     text = text.replace("${l2w_mask_wave}", l2w_mask_wave)
     text = text.replace("${l2w_mask_threshold}", l2w_mask_threshold)
     text = text.replace("${l2w_mask_smooth}", l2w_mask_smooth)
+    text = text.replace("${l2w_mask_cirrus_threshold}", l2w_mask_cirrus_threshold)
+    text = text.replace("${l2w_mask_negative_rhow}", l2w_mask_negative_rhow)
     text = text.replace("${l2w_parameters}", l2w_parameters)
 
     os.makedirs(os.path.dirname(settings_file), exist_ok=True)

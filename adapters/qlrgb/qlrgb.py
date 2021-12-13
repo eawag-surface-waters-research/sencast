@@ -10,10 +10,10 @@ import matplotlib.ticker as ticker
 import numpy as np
 import os
 
-from haversine import haversine
 from PIL import Image
 from snappy import ProductIO, PixelPos
 
+from utils.auxil import log
 from utils.product_fun import get_lons_lats
 
 # key of the params section for this adapter
@@ -67,7 +67,7 @@ def apply(env, params, l2product_files, date):
 
 def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=None, grid=True, max_val=0.10):
     linewidth = 0.8
-    gridlabel_size = 6
+    gridlabel_size = 5
 
     product = ProductIO.readProduct(input_file)
 
@@ -115,8 +115,8 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
 
     # read lat and lon information
     geocoding = product.getSceneGeoCoding()
-    lowlef = geocoding.getGeoPos(PixelPos(0, height - 1), None)
-    upprig = geocoding.getGeoPos(PixelPos(width - 1, 0), None)
+    lowlef = geocoding.getGeoPos(PixelPos(0, height), None)
+    upprig = geocoding.getGeoPos(PixelPos(width, 0), None)
 
     # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
     if crop_ext:
@@ -126,15 +126,42 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
         lat_ext = 0
         lon_ext = 0
 
-    x_dist = haversine((lowlef.lat, lowlef.lon - lon_ext), (lowlef.lat, upprig.lon + lon_ext))
-    y_dist = haversine((lowlef.lat - lat_ext, lowlef.lon), (upprig.lat + lat_ext, lowlef.lon))
-    aspect_ratio = x_dist / y_dist
-    if (0.7 < aspect_ratio) and (1.5 > aspect_ratio):
-        orientation = 'square'
-    elif x_dist < y_dist:
-        orientation = 'portrait'
+    lon_range = (upprig.lon + lon_ext) - (lowlef.lon - lon_ext)
+    lat_range = (upprig.lat + lat_ext) - (lowlef.lat - lon_ext)
+
+    # Calculate a suitable grid distance with which the smaller image portion gets three gridlines
+    grid_dist = min(lon_range, lat_range) / 3
+
+    if grid_dist < 0.01:
+        decimal = 0.001
+    elif grid_dist < 0.1:
+        decimal = 0.01
+    elif grid_dist < 1:
+        decimal = 0.1
+    elif grid_dist < 10:
+        decimal = 1
+    elif grid_dist < 100:
+        decimal = 10
     else:
-        orientation = 'landscape'
+        decimal = 100
+
+    grid_dist = round(grid_dist / decimal) * decimal
+
+    # Calculate a gridline anchor position with a round value, around which the other gridlines are defined
+    lat_center = round((lowlef.lat + (upprig.lat - lowlef.lat) / 2) / ( decimal * 10)) * (decimal * 10)
+    lon_center = round((lowlef.lon + (upprig.lon - lowlef.lon) / 2) / ( decimal * 10)) * (decimal * 10)
+    x_ticks = [lon_center]
+    y_ticks = [lat_center]
+    i=0
+    while (max(x_ticks) <= upprig.lon or min(x_ticks) >= lowlef.lon):
+        i+=1
+        x_ticks.extend((lon_center + (i * grid_dist), lon_center - (i * grid_dist)))
+    x_ticks.sort()
+    i=0
+    while (max(y_ticks) <= upprig.lat or min(y_ticks) >= lowlef.lat):
+        i+=1
+        y_ticks.extend((lat_center + (i * grid_dist), lat_center - (i * grid_dist)))
+    y_ticks.sort()
 
     product_area = [[lowlef.lon - lon_ext, lowlef.lat - lat_ext], [upprig.lon + lon_ext, upprig.lat + lat_ext]]
 
@@ -167,8 +194,8 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
         canvas_area = [[min(lons), min(lats)], [max(lons), max(lats)]]
     else:
         canvas_area = product_area
-    subplot_axes.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
 
+    subplot_axes.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
     subplot_axes.imshow(img, extent=[product_area[0][0], product_area[1][0], product_area[0][1], product_area[1][1]],
                         transform=ccrs.PlateCarree(), origin='upper', interpolation='nearest', zorder=1)
 
@@ -176,18 +203,7 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
     if grid:
         gridlines = subplot_axes.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
                                            linestyle=':', zorder=2)  # , n_steps=3)
-        if orientation == 'square':
-            x_n_ticks = 4
-            y_n_ticks = 4
-        elif orientation == 'portrait':
-            x_n_ticks = 3
-            y_n_ticks = 4
-        else:
-            x_n_ticks = 4
-            y_n_ticks = 3
 
-        x_ticks = get_tick_positions(canvas_area[0][0], canvas_area[1][0], x_n_ticks)
-        y_ticks = get_tick_positions(canvas_area[0][1], canvas_area[1][1], y_n_ticks)
         gridlines.xlocator = mpl.ticker.FixedLocator(x_ticks)
         gridlines.ylocator = mpl.ticker.FixedLocator(y_ticks)
 
@@ -196,33 +212,6 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
 
     # Save plot
     log(env["General"]["log"], 'Saving image {}'.format(os.path.basename(output_file)))
-    plt.savefig(output_file, box_inches='tight', dpi=300)
+    plt.savefig(output_file, dpi=300)
     plt.close()
     product.closeIO()
-
-
-def get_tick_positions(lower, upper, n_ticks):
-    coord_range = upper - lower
-    exponent = round(np.log(coord_range))
-    lower_floored = np.floor(lower * pow(10, - exponent)) * pow(10, exponent)
-    upper_ceiled = np.ceil(upper * pow(10, - exponent)) * pow(10, exponent)
-    range_section = (upper_ceiled - lower_floored) / coord_range
-    grid_step = (upper_ceiled - lower_floored) / (n_ticks * range_section)
-    decimal = 1
-    while grid_step < 10:
-        grid_step = grid_step * 10
-        decimal = decimal * 10
-    if grid_step < 20:
-        grid_step_round = 10 / decimal
-    elif grid_step < 50:
-        grid_step_round = 20 / decimal
-    elif grid_step < 100:
-        grid_step_round = 50 / decimal
-    else:
-        grid_step_round = 50 / decimal
-    tick_list = [lower_floored]
-    current = lower_floored + grid_step_round
-    while tick_list[-1] < upper_ceiled:
-        tick_list.append(current)
-        current = current + grid_step_round
-    return tick_list
