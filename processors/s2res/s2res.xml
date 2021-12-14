@@ -1,0 +1,26 @@
+<graph id="s2resample">
+	<version>1.0</version>
+	<node id="S2Resampling">
+    <operator>S2Resampling</operator>
+    <sources>
+			<sourceProduct>${sourceFile}</sourceProduct>
+	</sources>
+    <parameters class="com.bc.ceres.binding.dom.XppDomElement">
+      <resolution>${resolution}</resolution>
+      <upsampling>Bilinear</upsampling>
+      <downsampling>Mean</downsampling>
+      <flagDownsampling>First</flagDownsampling>
+      <resampleOnPyramidLevels>true</resampleOnPyramidLevels>
+    </parameters>
+  </node>
+	<node id="writeNode">
+		<operator>write</operator>
+		<sources>
+			<source>S2Resampling</source>
+		</sources>
+		<parameters>
+			<file>${outputFile}</file>
+			<formatName>NetCDF4-BEAM</formatName>
+		</parameters>
+	</node>
+</graph>
