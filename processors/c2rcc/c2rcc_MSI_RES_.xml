@@ -1,0 +1,47 @@
+<graph id="c2rcc">
+	<version>1.0</version>
+	<node id="S2Resampling">
+		<operator>S2Resampling</operator>
+		<sources>
+				<sourceProduct>${sourceFile}</sourceProduct>
+		</sources>
+		<parameters class="com.bc.ceres.binding.dom.XppDomElement">
+		  <resolution>${resolution}</resolution>
+		  <upsampling>Bilinear</upsampling>
+		  <downsampling>Mean</downsampling>
+		  <flagDownsampling>First</flagDownsampling>
+		  <resampleOnPyramidLevels>true</resampleOnPyramidLevels>
+		</parameters>
+  	</node>
+	<node id="c2rccNode">
+		<operator>c2rcc.msi</operator>
+		<sources>
+			<source>S2Resampling</source>
+		</sources>
+		<parameters>
+			<validPixelExpression>${validPixelExpression}</validPixelExpression>
+			<salinity>${salinity}</salinity>
+			<temperature>${temperature}</temperature>
+			<ozone>${ozone}</ozone>
+			<press>${press}</press>
+			<TSMfakBpart>${TSMfakBpart}</TSMfakBpart>
+			<TSMfakBwit>${TSMfakBwit}</TSMfakBwit>
+			<CHLexp>${CHLexp}</CHLexp>
+			<CHLfak>${CHLfak}</CHLfak>
+			<thresholdRtosaOOS>${thresholdRtosaOOS}</thresholdRtosaOOS>
+			<thresholdAcReflecOos>${thresholdAcReflecOos}</thresholdAcReflecOos>
+			<thresholdCloudTDown865>${thresholdCloudTDown865}</thresholdCloudTDown865>
+			<alternativeNNPath>${alternativeNNPath}</alternativeNNPath>
+		</parameters>
+	</node>
+	<node id="writeNode">
+		<operator>write</operator>
+		<sources>
+			<source>c2rccNode</source>
+		</sources>
+		<parameters>
+			<file>${outputFile}</file>
+			<formatName>NetCDF4-BEAM</formatName>
+		</parameters>
+	</node>
+</graph>

@@ -37,7 +37,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     """This processor applies c2rcc to the source product and stores the result."""
 
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
-    sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
+    sensor, resolution, wkt, resolution = params['General']['sensor'], params['General']['resolution'], params['General']['wkt'], params['General']['resolution']
     altnn, validexpression = params[PARAMS_SECTION]['altnn'], params[PARAMS_SECTION]['validexpression']
     vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
     date_str = get_sensing_date_from_product_name(product_name)
@@ -75,14 +75,30 @@ def process(env, params, l1product_path, l2product_files, out_path):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))
-    rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary_obj)
 
-    if "IDEPIX" in l2product_files:
-        log(env["General"]["log"], "Using IDEPIX as input file.", indent=1)
-        input_file = l2product_files['IDEPIX']
+
+    if "processor" in params[PARAMS_SECTION]:
+        if params[PARAMS_SECTION]["processor"] == "IDEPIX" and "IDEPIX" in l2product_files:
+            log(env["General"]["log"], "Using IDEPIX as input file.", indent=1)
+            input_file = l2product_files['IDEPIX']
+        elif params[PARAMS_SECTION]["processor"] == "S2RES" and "S2RES" in l2product_files:
+            log(env["General"]["log"], "Using S2RES as input file.", indent=1)
+            input_file = l2product_files['S2RES']
+        else:
+            if params[PARAMS_SECTION]["processor"] in ["IDEPIX", "S2RES"]:
+                raise RuntimeWarning('Processor {} was not found in l2 products. Ensure this processor is run before C2RCC'.format(params[PARAMS_SECTION]["processor"]))
+            else:
+                raise RuntimeWarning(
+                    'Processor {} is not recognised. Please choose from IDEPIX and S2RES'.format(
+                        params[PARAMS_SECTION]["processor"]))
     else:
         log(env["General"]["log"], "Using L1 product as input file.", indent=1)
         input_file = l1product_path
+        if sensor == "MSI":
+            gpt_xml_file = gpt_xml_file.replace("_MSI_", "_MSI_RES_")
+
+    rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary_obj)
+
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(input_file), "-PoutputFile={}".format(output_file)]
