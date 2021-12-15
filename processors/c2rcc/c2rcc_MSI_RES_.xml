@@ -16,7 +16,7 @@
 	<node id="c2rccNode">
 		<operator>c2rcc.msi</operator>
 		<sources>
-			<source>S2Resampling</source>
+			<sourceProduct>S2Resampling</sourceProduct>
 		</sources>
 		<parameters>
 			<validPixelExpression>${validPixelExpression}</validPixelExpression>

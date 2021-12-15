@@ -74,9 +74,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
             return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
-    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))
-
-
     if "processor" in params[PARAMS_SECTION]:
         if params[PARAMS_SECTION]["processor"] == "IDEPIX" and "IDEPIX" in l2product_files:
             log(env["General"]["log"], "Using IDEPIX as input file.", indent=1)
@@ -95,10 +92,10 @@ def process(env, params, l1product_path, l2product_files, out_path):
         log(env["General"]["log"], "Using L1 product as input file.", indent=1)
         input_file = l1product_path
         if sensor == "MSI":
-            gpt_xml_file = gpt_xml_file.replace("_MSI_", "_MSI_RES_")
+            sensor = "MSI_RES"
 
+    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))
     rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary_obj, resolution)
-
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(input_file), "-PoutputFile={}".format(output_file)]
