@@ -97,7 +97,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         if sensor == "MSI":
             gpt_xml_file = gpt_xml_file.replace("_MSI_", "_MSI_RES_")
 
-    rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary_obj)
+    rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary_obj, resolution)
 
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
@@ -116,12 +116,13 @@ def process(env, params, l1product_path, l2product_files, out_path):
     return output_file
 
 
-def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary):
+def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary, resolution):
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor, "")), "r") as f:
         xml = f.read()
     altnn_path = os.path.join(os.path.dirname(__file__), "altnn", altnn) if altnn else ""
 
     xml = xml.replace("${ozone}", ancillary["ozone"])
+    xml = xml.replace("${resolution}", resolution)
     xml = xml.replace("${press}", ancillary["surf_press"])
     xml = xml.replace("${useEcmwfAuxData}", ancillary["useEcmwfAuxData"])
     xml = xml.replace("${validPixelExpression}", validexpression)
