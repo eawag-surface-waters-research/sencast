@@ -97,8 +97,12 @@ def process(env, params, l1product_path, l2product_files, out_path):
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))
     rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary_obj, resolution)
 
-    args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
-            "-SsourceFile={}".format(input_file), "-PoutputFile={}".format(output_file)]
+    if "gpt_use_default" in env['General'] and env['General']['gpt_use_default'] == "True":
+        args = [gpt, gpt_xml_file, "-SsourceFile={}".format(input_file), "-PoutputFile={}".format(output_file)]
+    else:
+        args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
+                "-SsourceFile={}".format(input_file), "-PoutputFile={}".format(output_file)]
+
     log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
     process = subprocess.Popen(args, stdout=subprocess.PIPE, universal_newlines=True)
     while True:

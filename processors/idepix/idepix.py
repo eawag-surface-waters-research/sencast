@@ -50,8 +50,13 @@ def process(env, params, l1product_path, _, out_path):
 
     if sensor == "OLI_TIRS":
         l1product_path = get_main_file_from_product_path(l1product_path)
-    args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(l1product_path),
-            "-PoutputFile={}".format(output_file)]
+
+    if "gpt_use_default" in env['General'] and env['General']['gpt_use_default'] == "True":
+        args = [gpt, gpt_xml_file, "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
+    else:
+        args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
+                "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
+
     log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
 
     process = subprocess.Popen(args, stdout=subprocess.PIPE, universal_newlines=True)
