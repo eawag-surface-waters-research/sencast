@@ -1,0 +1,39 @@
+<graph id="ndwi">
+	<version>1.0</version>
+	<node id="indexNode">
+		<operator>BandMaths</operator>
+		<sources>
+			<source>${sourceFile}</source>
+		</sources>
+		<parameters>
+			<targetBands>
+				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
+					<name>area_bgr</name>
+					<type>float32</type>
+					<expression>0.5*abs(490*10000*Rw560+560*10000*Rw665+665*10000*Rw490-560*10000*Rw490-665*10000*Rw560-490*10000*Rw665)</expression>
+					<unit>dl</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
+					<name>bgr_whit</name>
+					<type>float32</type>
+					<expression>if 0.5*abs(490*10000*Rw560+560*10000*Rw665+665*10000*Rw490-560*10000*Rw490-665*10000*Rw560-490*10000*Rw665) > 13000 then 1 else 0</expression>
+					<unit>dl</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+			</targetBands>
+    	</parameters>
+	</node>
+	<node id="writeNode">
+		<operator>write</operator>
+		<sources>
+			<source>indexNode</source>
+		</sources>
+		<parameters>
+			<file>${outputFile}</file>
+			<formatName>NetCDF4-BEAM</formatName>
+		</parameters>
+	</node>
+</graph>
