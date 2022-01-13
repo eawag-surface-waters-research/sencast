@@ -19,7 +19,7 @@
 					<validExpression>${validPixelExpression}</validExpression>
 					<name>bgr_whit</name>
 					<type>float32</type>
-					<expression>if 0.5*abs(490*10000*Rw560+560*10000*Rw665+665*10000*Rw490-560*10000*Rw490-665*10000*Rw560-490*10000*Rw665) > 13000 then 1 else 0</expression>
+					<expression>if 0.5*abs(490*10000*Rw560+560*10000*Rw665+665*10000*Rw490-560*10000*Rw490-665*10000*Rw560-490*10000*Rw665) &gt; 13000 then 2 else (if 0.5*abs(490*10000*Rw560+560*10000*Rw665+665*10000*Rw490-560*10000*Rw490-665*10000*Rw560-490*10000*Rw665) &lt;= 13000 then 1 else NaN)</expression>
 					<unit>dl</unit>
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
