@@ -63,7 +63,7 @@ def apply(env, params, l2product_files, date):
             bands, bands_min, bands_max = parse_bands(bands_list)
 
             if os.path.exists(output_file_main):
-                if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+                if ("synchronise" in params["General"].keys() and params['General']['synchronise'] == "false") or ("synchronise" in params["DATALAKES"].keys() and params["DATALAKES"]["synchronise"] == "false"):
                     log(env["General"]["log"], "Removing file: ${}".format(output_file_main))
                     os.remove(output_file_main)
                     for idx, val in enumerate(bands):
