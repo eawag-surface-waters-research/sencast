@@ -21,6 +21,15 @@ def parse_s3_name(name):
         return False, False, False, False
 
 
+def parse_date_from_name(name):
+    sensing_time = name.split("_")[7]
+    sensing_year = sensing_time[:4]
+    sensing_month = sensing_time[4:6]
+    sensing_day = sensing_time[6:8]
+    creation_time = datetime.strptime(name.split("_")[9], '%Y%m%dT%H%M%S')
+    return "{}-{}-{}".format(sensing_year, sensing_month, sensing_day), creation_time
+
+
 def get_satellite_name_from_product_name(product_name):
     """Return the satellite name of a given product name."""
     if "S3A" in product_name:
