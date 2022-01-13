@@ -305,17 +305,17 @@
 				</targetBand>
 				<targetBand>
 					<validExpression>${validPixelExpression}</validExpression>
-					<name>rgb_int</name>
+					<name>area_bgr</name>
 					<type>float32</type>
-					<expression>(560 - 490) * ((Rw490 + Rw560) / 2) + (665 - 560) * ((Rw560 + Rw665) / 2)</expression>
+					<expression>0.5*abs(490*10000*Rw560+560*10000*Rw665+665*10000*Rw490-560*10000*Rw490-665*10000*Rw560-490*10000*Rw665)</expression>
 					<unit>dl</unit>
 					<noDataValue>NaN</noDataValue>
 				</targetBand>
 				<targetBand>
 					<validExpression>${validPixelExpression}</validExpression>
-					<name>rgb_tri</name>
+					<name>bgr_whit</name>
 					<type>float32</type>
-					<expression>(560 - 490) * ((Rw490 + Rw560) / 2) + (665 - 560) * ((Rw560 + Rw665) / 2) - (665 - 490) * ((Rw490 + Rw665) / 2)</expression>
+					<expression>if 0.5*abs(490*10000*Rw560+560*10000*Rw665+665*10000*Rw490-560*10000*Rw490-665*10000*Rw560-490*10000*Rw665) > 13000 then 1 else 0</expression>
 					<unit>dl</unit>
 					<noDataValue>NaN</noDataValue>
 				</targetBand>

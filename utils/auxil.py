@@ -153,7 +153,6 @@ def log(file, text, indent=0):
         for t in text:
             if t != "":
                 out = datetime.now().strftime("%H:%M:%S.%f") + (" " * 3 * (indent + 1)) + t
-                print(out)
                 file.write(out + "\n")
 
 

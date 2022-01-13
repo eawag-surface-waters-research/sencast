@@ -184,7 +184,8 @@ Windows 10
 		
 	Edit the file acolite_l2w.py and comment-out all usages (and import) of "skimage".
 		Currently lines 23, 898, 909, 910, 911
-	
+
+    In acolite/config/defaults.txt, row 28 set setting geometry_type=gpt (to avoid a batch processing but as of Dec. '21)
 	Configure your Acolite path in your environment file.
 
 

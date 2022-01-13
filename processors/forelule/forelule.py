@@ -131,7 +131,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         chromaticity = chromaticity_values("OLCI")
         hue_angle_coeff = hue_angle_coefficients("OLCI")
         if processor == 'POLYMER':
-            spectral_band_names = ["Rw400", "Rw412", "Rw443", "Rw490", "Rw510", "Rw560", "Rw620", "Rw665", "Rw681", "Rw681", "Rw709", "Rw709"]
+            spectral_band_names = ["Rw400", "Rw412", "Rw443", "Rw490", "Rw510", "Rw560", "Rw620", "Rw665", "Rw681", "Rw709"]
             sample_band = 'tsm_binding754'
         elif processor == 'C2RCC':
             spectral_band_names = ["rhow_1", "rhow_2", "rhow_3", "rhow_4", "rhow_5", "rhow_6", "rhow_7", "rhow_8", "rhow_9", "rhow_10", "rhow_11", "rhow_12"]
@@ -407,7 +407,7 @@ def chromaticity_values(sensor):
         },
         "OLCI": {
             "lambda": [400, 413, 443, 490, 510, 560, 620, 665, 673.5, 681.25, 708.75, 710],
-            "band": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+            "band": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
             "x": [0.154, 2.957, 10.861, 3.744, 3.750, 34.687, 41.853, 7.323, 0.591, 0.549, 0.189, 0.006],
             "y": [0.004, 0.112, 1.711, 5.672, 23.263, 48.791, 23.949, 2.836, 0.216, 0.199, 0.068, 0.002],
             "z": [0.731, 14.354, 58.356, 28.227, 4.022, 0.618, 0.026, 0.000, 0.000, 0.000, 0.000, 0.000],

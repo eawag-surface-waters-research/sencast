@@ -312,6 +312,10 @@ def plot_map(env, input_file, output_file, layer_str, wkt=None, basemap='srtm_el
         boundaries = [fu - 0.5 for fu in range(1, 23, 1)]#[fu + 0.5 for fu in range(1, 21, 1)]
         norm = mpl.colors.BoundaryNorm(ticks, color_type)
         tick_format = '%.0f'
+    elif 'Whiting' in title_str:
+        color_type = cm.get_cmap(name='Reds').copy()
+        param_range = [0.5, 1.5]
+        ticks = False
     elif 'Secchi' in title_str:
         color_type = cm.get_cmap(name='viridis_r').copy()
         ticks = False
@@ -654,13 +658,13 @@ def get_legend_str(layer_str):
         legend_str = r'$\mathbf{[dl]}$'
         title_str = r'$\mathbf{NDCI}$'
         log_num = False
-    elif layer_str == 'rgb_tri':
+    elif layer_str == 'area_bgr':
         legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{RGB\/reflectance\/triangle\/area}$'
+        title_str = r'$\mathbf{BGR\/Area\/(Heine\/et\/al.,\/2017)}$'
         log_num = False
-    elif layer_str == 'rgb_int':
+    elif layer_str == 'bgr_whit':
         legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{RGB\/reflectance\/integral\/area}$'
+        title_str = r'$\mathbf{Whiting\/area}$'
         log_num = False
 
     # QAA products

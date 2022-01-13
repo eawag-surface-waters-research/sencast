@@ -23,7 +23,7 @@ Prepare
 	In shell do following:
 		$ conda config --add channels conda-forge
 		$ conda config --append channels bioconda
-		$ conda create --name sencast python=3 cartopy=0.19 cdsapi=0.5 colour-science=0.3 cython=0.29 ecmwfapi=1.4 gdal=3.2 glymur=0.9 h5py=3.3 haversine=2.5 matplotlib=3.4 netcdf4=1.5 pkgconfig=1.5 pyepr=1.1 pygrib=2.1 pyhdf=0.10.3 pyproj=3.1 pyresample=1.21 rasterio=1.2 scikit-learn=0.24 statsmodels=0.12 tensorflow=1.15 tensorflow-probability=0.7 wheel=0.37 xarray=0.19 xlrd=1.2
+		$ conda create --name sencast python=3 cartopy=0.19 cdsapi=0.5 colour-science=0.3 cython=0.29 ecmwfapi=1.4 gdal=3.2 glymur=0.9 h5py=3.3 haversine=2.5 matplotlib=3.4 netcdf4=1.5 pkgconfig=1.5 psutil=5.9 pyepr=1.1 pygrib=2.1 pyhdf=0.10.3 pyproj=3.1 pyresample=1.21 rasterio=1.2 scikit-learn=0.24 statsmodels=0.12 tensorflow=1.15 tensorflow-probability=0.7 wheel=0.37 xarray=0.19 xlrd=1.2
 		$ echo export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast >> ~/.bashrc
 		$ export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast >> ~/.bashrc
 		$ echo export CONDA_ENV_SP=$CONDA_ENV_HOME/lib/python3.7/site-packages >> ~/.bashrc
@@ -173,7 +173,8 @@ Prepare
 	
 	Edit the file acolite_l2w.py and comment-out all usages (and import) of "skimage".
 		Currently lines 23, 898, 909, 910, 911
-	
+
+    In acolite/config/defaults.txt, row 28 set setting geometry_type=gpt (to avoid a batch processing but as of Dec. '21)
 	Configure your Acolite path in you environment file.
 
 
