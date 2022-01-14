@@ -120,8 +120,8 @@ def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_
     df["lons"] = np.repeat(_lons[np.newaxis, :], len(_lats), axis=0).flatten()
     df["lats"] = np.repeat(_lats[:, np.newaxis], len(_lons), axis=1).flatten()
     df.dropna(subset=[variable_name], inplace=True)
-    df = df[df[variable_name] > band_min]
-    df = df[df[variable_name] < band_max]
+    df = df[df[variable_name] >= band_min]
+    df = df[df[variable_name] <= band_max]
     df = df.astype(float).round(decimals)
     lonres, latres = float(round(abs(_lons[1] - _lons[0]), 12)), float(round(abs(_lats[1] - _lats[0]), 12))
     if valid_pixel_expression is not None:
