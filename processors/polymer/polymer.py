@@ -264,7 +264,7 @@ def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
     if y is None:
         y = int(lats_height / 2)
     if step is None:
-        step = int(ceil(max(lons_width, lons_height) / 4))
+        step = int(ceil(min(lons_width, lons_height) / 4))
 
     new_coords = [[x, y], [x - step, y - step], [x - step, y], [x - step, y + step], [x, y + step],
                   [x + step, y + step], [x + step, y], [x + step, y - step], [x, y - step]]
