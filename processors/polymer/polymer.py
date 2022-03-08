@@ -55,7 +55,7 @@ def process(env, params, l1product_path, _, out_path):
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     water_model, validexpression = params['POLYMER']['water_model'], params['POLYMER']['validexpression']
     vicar_version = params['POLYMER']['vicar_version']
-    #altitude = params['POLYMER']['altitude']
+    altitude = params['POLYMER']['altitude']
     gsw_path = env['GSW']['root_path']
     os.makedirs(gsw_path, exist_ok=True)
 
