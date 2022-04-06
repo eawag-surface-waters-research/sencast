@@ -90,27 +90,26 @@ def process(env, params, l1product_path, l2product_files, out_path):
     if satellite in ['S2A', 'S2B']:
         # ToDo: values for Sentinel-2 are yet to be configured
         log(env["General"]["log"], '')
-        log(env["General"]["log"], 'QAA Secchi for Sentinel-2 is not quite implemented yet!!')
+        log(env["General"]["log"], 'QAA Secchi for Sentinel-2 should be used with caution. Parameters are not fully validated.')
         log(env["General"]["log"], '')
         # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
-        g0 = 0
-        g1 = 0
+        g0 = 0.08945
+        g1 = 0.1247
         # Pure Water absorption coefficient at 443, 490, 560, 665, 705 nm from Pope and Fry (1997)
-        aws = [0, 0, 0, 0, 0]
+        aws = [0.00696, 0.0150, 0.0619, 0.429, 0.704]
         # Pure Water backscattering at 443, 490, 560, 665, 705 nm from Morel (1974)
-        bws = [0, 0, 0, 0, 0]
+        bws = [0.00349, 0.00222, 0.00149, 0.00109, 0.00047282]
         # Center Wavelenghts
         wvl = [443, 490, 560, 665, 705]
         # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
-        m0 = 0.0 if "m0" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m0"]
-        m1 = 0.0 if "m1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m1"]
-        m2 = 0.0 if "m2" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m2"]
-        m3 = 0.8 if "m3" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m3"]
-        y1 = 0.0 if "y1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["y1"]
+        m0 = 0.005 if "m0" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m0"]
+        m1 = 4.26 if "m1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m1"]
+        m2 = 0.52 if "m2" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m2"]
+        m3 = 10.8 if "m3" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m3"]
+        y1 = 0.265 if "y1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["y1"]
         spectral_band_names = ['Rw443', 'Rw490', 'Rw560', 'Rw665', 'Rw705']
         tsm_band = 'tsm_binding740'
-        a_gelb_band = ''
-
+        a_gelb_band = 'a_gelb443_median'
     elif satellite in ['S3A', 'S3B']:
         # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
         g0 = 0.08945
