@@ -8,16 +8,14 @@ Adapter authors: Daniel Odermatt, James Runnalls
 """
 
 import os
-import gc
-import sys
-from time import sleep
 import math
 import numpy as np
 from colour import dominant_wavelength
-from snappy import ProductIO, ProductData, Product, ProductUtils, Mask, jpy
+from snappy import ProductIO, ProductData, Product, ProductUtils
 from utils.product_fun import get_satellite_name_from_product_name
-import psutil
 from utils.auxil import log
+from utils.product_fun import get_band_names_from_nc, get_name_width_height_from_nc, get_valid_pe_from_nc, get_nc_from_product, get_band_from_nc
+
 
 # key of the params section for this adapter
 PARAMS_SECTION = 'FORELULE'
@@ -82,13 +80,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     log(env["General"]["log"], 'Reading processor output from {}'.format(product_path), indent=1)
     product = ProductIO.readProduct(product_path)
-    width = product.getSceneRasterWidth()
-    height = product.getSceneRasterHeight()
-    name = product.getName()
-    description = product.getDescription()
-    product_band_names = product.getBandNames()
+    nc = get_nc_from_product(product_path)
+    name, width, height = get_name_width_height_from_nc(nc)
+    product_band_names = get_band_names_from_nc(nc)
 
-    log(env["General"]["log"], 'Product:      {}, {}'.format(name, description), indent=1)
+    log(env["General"]["log"], 'Product:      {}'.format(name), indent=1)
     log(env["General"]["log"], 'Raster size: {} x {} pixels'.format(width, height), indent=1)
     log(env["General"]["log"], 'Bands:       {}'.format(list(product_band_names)), indent=1)
 
@@ -142,11 +138,10 @@ def process(env, params, l1product_path, l2product_files, out_path):
         exit('Forel-Ule adapter not implemented for satellite ' + satellite)
 
     log(env["General"]["log"], "Reading input bands and creating output file.", indent=1)
-    bands = [product.getBand(bname) for bname in spectral_band_names]
+    bands = [get_band_from_nc(nc, bname) for bname in spectral_band_names]
     foreluleProduct = Product('Z0', 'Z0', width, height)
     forelule_names = ['hue_angle', 'dominant_wavelength', 'forel_ule']
-    valid_pixel_expression = product.getBand(sample_band).getValidPixelExpression()
-    nodata_value = bands[0].getNoDataValue()
+    valid_pixel_expression = get_valid_pe_from_nc(product_path)
 
     for band_name in product_band_names:
         if band_name in valid_pixel_expression:
