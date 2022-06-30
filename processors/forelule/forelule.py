@@ -19,10 +19,12 @@ from utils.product_fun import get_band_from_nc, get_band_names_from_nc, get_name
 
 # key of the params section for this adapter
 PARAMS_SECTION = 'FORELULE'
-
-# the file name pattern for output file
-FILENAME = 'L2FU_{}'
-FILEFOLDER = 'L2FU'
+# The name of the folder to which the output product will be saved
+OUT_DIR = "L2FU"
+# A pattern for the name of the file to which the output product will be saved (completed with product name)
+OUT_FILENAME = "L2FU_{}"
+# The name of the xml file for gpt
+GPT_XML_FILENAME = "forelule_{}.xml"
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
@@ -66,8 +68,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     # Create folder for file
     product_name = os.path.basename(product_path)
-    product_dir = os.path.join(out_path, FILEFOLDER)
-    output_file = os.path.join(product_dir, FILENAME.format(product_name))
+    product_dir = os.path.join(out_path, OUT_DIR)
+    output_file = os.path.join(product_dir, OUT_FILENAME.format(product_name))
     l2product_files["FORELULE"] = output_file
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
@@ -546,3 +548,14 @@ def hue_angle_coefficients(sensor):
     else:
         raise RuntimeWarning("Sensor: "+sensor+" does not have hue angle coefficients available.")
 
+
+def rewrite_xml(gpt_xml_file, sensor, resolution, wkt):
+    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor)), "r") as f:
+        xml = f.read()
+
+    xml = xml.replace("${wkt}", wkt)
+    xml = xml.replace("${resolution}", resolution)
+
+    os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
+    with open(gpt_xml_file, "w") as f:
+        f.write(xml)
