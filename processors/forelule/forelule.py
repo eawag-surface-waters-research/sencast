@@ -14,7 +14,7 @@ from colour import dominant_wavelength
 from snappy import ProductIO, ProductData, Product, ProductUtils
 from utils.product_fun import get_satellite_name_from_product_name
 from utils.auxil import log
-from utils.product_fun import get_band_names_from_nc, get_name_width_height_from_nc, get_valid_pe_from_nc, get_nc_from_product, get_band_from_nc
+from utils.product_fun import get_band_from_nc, get_band_names_from_nc, get_name_width_height_from_nc, get_valid_pe_from_nc
 
 
 # key of the params section for this adapter
@@ -80,9 +80,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     log(env["General"]["log"], 'Reading processor output from {}'.format(product_path), indent=1)
     product = ProductIO.readProduct(product_path)
-    nc = get_nc_from_product(product_path)
-    name, width, height = get_name_width_height_from_nc(nc)
-    product_band_names = get_band_names_from_nc(nc)
+    name, width, height = get_name_width_height_from_nc(product_path)
+    product_band_names = get_band_names_from_nc(product_path)
 
     log(env["General"]["log"], 'Product:      {}'.format(name), indent=1)
     log(env["General"]["log"], 'Raster size: {} x {} pixels'.format(width, height), indent=1)
@@ -138,7 +137,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         exit('Forel-Ule adapter not implemented for satellite ' + satellite)
 
     log(env["General"]["log"], "Reading input bands and creating output file.", indent=1)
-    bands = [get_band_from_nc(nc, bname) for bname in spectral_band_names]
+    bands = [get_band_from_nc(product_path, bname) for bname in spectral_band_names]
     foreluleProduct = Product('Z0', 'Z0', width, height)
     forelule_names = ['hue_angle', 'dominant_wavelength', 'forel_ule']
     valid_pixel_expression = get_valid_pe_from_nc(product_path)

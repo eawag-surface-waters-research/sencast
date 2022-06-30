@@ -174,11 +174,6 @@ def generate_l8_angle_files(env, l1product_path):
     return subprocess.call(args, cwd=l1product_path)
 
 
-def get_nc_from_product(product_file):
-    with Dataset(product_file) as nc:
-        return nc
-
-
 def get_band_names_from_nc(product_file):
     """Returns a list containing all band names of a given product."""
     bands = []
@@ -192,18 +187,12 @@ def get_band_names_from_nc(product_file):
     return bands
 
 
-def get_name_width_height_from_product(product_file):
+def get_name_width_height_from_nc(product_file):
     """Returns the height and the width of a given product."""
     with Dataset(product_file) as nc:
-        return get_name_width_height_from_nc(nc)
-
-
-def get_name_width_height_from_nc(nc):
-    """Returns the height and the width of a given product."""
-    name = nc.variables['metadata'].__dict__['Manifest:metadataSection:generalProductInformation:productName']
-    for var in nc.variables:
-        if len(nc.variables[var].shape) == 2:
-            return name, nc.dimensions['lon'].size, nc.dimensions['lat'].size
+        for var in nc.variables:
+            if len(nc.variables[var].shape) == 2:
+                return os.path.basename(product_file), nc.dimensions['lon'].size, nc.dimensions['lat'].size
     raise RuntimeWarning('Could not read width and height from product {}.'.format(product_file))
 
 
@@ -212,9 +201,11 @@ def get_valid_pe_from_product(product_file):
         return get_valid_pe_from_nc(nc)
 
 
-def get_valid_pe_from_nc(nc):
-    return nc.variables['metadata'].__dict__['Processing_Graph:node_8:parameters:validPixelExpression']
+def get_valid_pe_from_nc(product_file):
+    with Dataset(product_file) as nc:
+        return nc.variables['metadata'].__dict__['Processing_Graph:node_8:parameters:validPixelExpression']
 
 
-def get_band_from_nc(nc, band_name):
-    return nc.variables[band_name]
+def get_band_from_nc(product_file, band_name):
+    with Dataset(product_file) as nc:
+        return nc.variables[band_name]
