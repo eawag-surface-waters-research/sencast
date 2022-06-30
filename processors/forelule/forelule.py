@@ -10,12 +10,11 @@ Adapter authors: Daniel Odermatt, James Runnalls
 import os
 import math
 import numpy as np
+import shutil
 from colour import dominant_wavelength
 from netCDF4 import Dataset
-from snappy import ProductIO, ProductData, Product, ProductUtils
-from utils.product_fun import get_satellite_name_from_product_name
 from utils.auxil import log
-from utils.product_fun import get_band_from_nc, get_band_names_from_nc, get_name_width_height_from_nc, get_valid_pe_from_nc
+from utils.product_fun import get_band_from_nc, get_band_names_from_nc, get_name_width_height_from_nc, get_satellite_name_from_product_name, get_valid_pe_from_nc, read_pixels_from_band, write_pixels_to_nc
 
 
 # key of the params section for this adapter
@@ -23,7 +22,7 @@ PARAMS_SECTION = 'FORELULE'
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L2FU"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = "L2FU_{}"
+OUT_FILENAME = "L2FU_{}.nc"
 # The name of the xml file for gpt
 GPT_XML_FILENAME = "forelule_{}.xml"
 
@@ -68,23 +67,22 @@ def process(env, params, l1product_path, l2product_files, out_path):
         product_path = l2product_files[processor]
 
     # Create folder for file
-    product_name = os.path.basename(product_path)
+    product_name = os.path.splitext(os.path.basename(product_path))[0]
     product_dir = os.path.join(out_path, OUT_DIR)
     output_file = os.path.join(product_dir, OUT_FILENAME.format(product_name))
-    l2product_files["FORELULE"] = output_file
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
             log(env["General"]["log"], 'Removing file: ${}'.format(output_file))
             os.remove(output_file)
         else:
-            log(env["General"]["log"], 'Skipping Forel-Ule, target already exists: {}'.format(FILENAME.format(product_name)))
+            log(env["General"]["log"], 'Skipping Forel-Ule, target already exists: {}'.format(output_file))
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
     log(env["General"]["log"], 'Reading processor output from {}'.format(product_path), indent=1)
-    with Dataset(product_path) as nc:
-        name, width, height = get_name_width_height_from_nc(nc, product_path)
-        product_band_names = get_band_names_from_nc(nc)
+    with Dataset(product_path) as src, Dataset(output_file, mode='w') as dst:
+        name, width, height = get_name_width_height_from_nc(src, product_path)
+        product_band_names = get_band_names_from_nc(src)
 
         log(env["General"]["log"], 'Product:      {}'.format(name), indent=1)
         log(env["General"]["log"], 'Raster size: {} x {} pixels'.format(width, height), indent=1)
@@ -140,35 +138,27 @@ def process(env, params, l1product_path, l2product_files, out_path):
             exit('Forel-Ule adapter not implemented for satellite ' + satellite)
 
         log(env["General"]["log"], "Reading input bands and creating output file.", indent=1)
-        bands = [get_band_from_nc(nc, bname) for bname in spectral_band_names]
-        foreluleProduct = Product('Z0', 'Z0', width, height)
+        bands = [get_band_from_nc(src, bname) for bname in spectral_band_names]
         forelule_names = ['hue_angle', 'dominant_wavelength', 'forel_ule']
         units = ['rad', 'nm', 'dl']
-        valid_pixel_expression = get_valid_pe_from_nc(nc)
-        vpe_bands = [band for band in product_band_names if band in valid_pixel_expression]
+        valid_pixel_expression = get_valid_pe_from_nc(src)
+        inclusions = [band for band in product_band_names if band in valid_pixel_expression]
+        inclusions.append('metadata')
+        shutil.copy(product_path, output_file)
 
-        for band_name in product_band_names:
-            if band_name in valid_pixel_expression:
-                ProductUtils.copyBand(band_name, product, foreluleProduct, True)
+        dst.setncatts(src.__dict__)
+        for name, dimension in src.dimensions.items():
+            dst.createDimension(name, (len(dimension) if not dimension.isunlimited() else None))
+        for name, variable in src.variables.items():
+            if name in inclusions:
+                dst.createVariable(name, variable.datatype, variable.dimensions)
+                dst[name].setncatts(src[name].__dict__)
+                dst[name][:] = src[name][:]
 
-        for forelule_name in forelule_names:
-            temp_band = foreluleProduct.addBand(forelule_name, ProductData.TYPE_FLOAT32)
-            if 'angle' in forelule_name:
-                temp_band.setUnit('rad')
-            elif 'wavelength' in forelule_name:
-                temp_band.setUnit('nm')
-            else:
-                temp_band.setUnit('dl')
-            temp_band.setNoDataValueUsed(True)
-            temp_band.setNoDataValue(np.NaN)
-            temp_band.setValidPixelExpression(valid_pixel_expression)
-
-        writer = ProductIO.getProductWriter('NetCDF4-BEAM')
-
-        ProductUtils.copyGeoCoding(product, foreluleProduct)
-
-        foreluleProduct.setProductWriter(writer)
-        foreluleProduct.writeHeader(output_file)
+        for forelule_name, unit in zip(forelule_names, units):
+            b = dst.createVariable(forelule_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN)
+            b.units = unit
+            b.valid_pixel_expression = valid_pixel_expression
 
         if "max_chunk" in params[PARAMS_SECTION]:
             log(env["General"]["log"], "Splitting data into manageable chunks.", indent=1)
@@ -185,41 +175,30 @@ def process(env, params, l1product_path, l2product_files, out_path):
         else:
             chunks = [{"x": 0, "y": 0, "w": width, "h": height}]
 
-        # Write valid pixel bands
-        if "valid_pixel_expression" not in params[PARAMS_SECTION] or params[PARAMS_SECTION]["valid_pixel_expression"] == "True":
-            log(env["General"]["log"], "Write valid pixel bands.", indent=1)
-            for band_name in product_band_names:
-                if band_name in valid_pixel_expression:
-                    for i in range(len(chunks)):
-                        log(env["General"]["log"], "Processing chunk {} of {}".format(i, len(chunks)), indent=1)
-                        temp_arr = np.zeros(chunks[i]["w"] * chunks[i]["h"])
-                        product.getBand(band_name).readPixels(chunks[i]["x"], chunks[i]["y"], chunks[i]["w"], chunks[i]["h"], temp_arr)
-                        foreluleProduct.getBand(band_name).writePixels(chunks[i]["x"], chunks[i]["y"], chunks[i]["w"], chunks[i]["h"], temp_arr)
-
         for c in range(len(chunks)):
             log(env["General"]["log"], "Processing chunk {} of {}".format(c+1, len(chunks)), indent=1)
             log(env["General"]["log"], "Reading reflectance values.", indent=2)
             hue_angle_c, dom_wvl, FU = main_chunk(bands, chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], width, height, chromaticity, hue_angle_coeff, env)
             if len(hue_angle_c) > 0:
-                foreluleProduct.getBand("hue_angle").writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], hue_angle_c)
-                foreluleProduct.getBand("dominant_wavelength").writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], dom_wvl)
-                foreluleProduct.getBand("forel_ule").writePixels(chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], FU)
+                write_pixels_to_nc(dst, 'hue_angle', chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], hue_angle_c)
+                write_pixels_to_nc(dst, 'dominant_wavelength', chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], dom_wvl)
+                write_pixels_to_nc(dst, 'forel_ule', chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], FU)
 
-        foreluleProduct.closeIO()
-        return output_file
+    l2product_files["FORELULE"] = output_file
+    return output_file
 
 
 def main_chunk(bands, x, y, w, h, width, height, chromaticity, hue_angle_coeff, env):
     input_band_values = []
     input_band_lambdas = []
     for i in range(len(bands)):
-        if bands[i].getRasterWidth() == width and bands[i].getRasterHeight() == height:
+        if bands[i].shape[1] == width and bands[i].shape[0] == height:
             temp_arr = np.zeros(w * h)
-            bands[i].readPixels(x, y, w, h, temp_arr)
+            read_pixels_from_band(bands[i], x, y, w, h, temp_arr)
             if np.all(temp_arr == 0):
                 return [], [], []
             input_band_values.append(temp_arr)
-            input_band_lambdas.append(bands[i].getSpectralWavelength())
+            input_band_lambdas.append(bands[i].wavelength)
     input_band_lambdas = np.array(input_band_lambdas)
 
     log(env["General"]["log"], 'Interpolating reflectance spectra to: {}'.format(list(chromaticity["lambda"])),
@@ -550,15 +529,3 @@ def hue_angle_coefficients(sensor):
         return data[sensor]
     else:
         raise RuntimeWarning("Sensor: "+sensor+" does not have hue angle coefficients available.")
-
-
-def rewrite_xml(gpt_xml_file, sensor, resolution, wkt):
-    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor)), "r") as f:
-        xml = f.read()
-
-    xml = xml.replace("${wkt}", wkt)
-    xml = xml.replace("${resolution}", resolution)
-
-    os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
-    with open(gpt_xml_file, "w") as f:
-        f.write(xml)

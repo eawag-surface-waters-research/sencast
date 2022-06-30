@@ -195,8 +195,34 @@ def get_name_width_height_from_nc(nc, product_file):
 
 
 def get_valid_pe_from_nc(nc):
-    return nc.variables['metadata'].__dict__['Processing_Graph:node_8:parameters:validPixelExpression']
+    keys = nc.variables['metadata'].__dict__.keys()
+    if 'Processing_Graph:node_8:parameters:validPixelExpression' in keys:
+        return nc.variables['metadata'].__dict__['Processing_Graph:node_8:parameters:validPixelExpression']
+    elif 'Processing_Graph:node_2:parameters:targetBands:targetBand_7:validExpression' in keys:
+        return nc.variables['metadata'].__dict__['Processing_Graph:node_2:parameters:targetBands:targetBand_7:validExpression']
+    raise RuntimeError('Reading valid pixel expression does not seem to be implement it for this kind of product.')
 
 
 def get_band_from_nc(nc, band_name):
     return nc.variables[band_name]
+
+
+def read_pixels_from_nc(nc, band_name, x, y, w, h, data):
+    read_pixels_from_band(nc[band_name], x, y, w, h, data)
+
+
+def read_pixels_from_band(band, x, y, w, h, data):
+    for read_y in range(y, y + h):
+        for read_x in range(x, x + w):
+            print('read_x: {}, read_y: {}'.format(read_x, read_y))
+            data[(read_y - y) * w + read_x - x] = float(band[read_y][read_x])
+
+
+def write_pixels_to_nc(nc, band_name, x, y, w, h, data):
+    write_pixels_to_band(nc[band_name], x, y, w, h, data)
+
+
+def write_pixels_to_band(band, x, y, w, h, data):
+    for write_y in range(y, y + h):
+        for write_x in range(x, x + w):
+            band[write_y][write_x] = data[(write_y - y) * w + write_x - x]
