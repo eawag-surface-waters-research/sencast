@@ -5,10 +5,10 @@
 
 import os
 import numpy as np
-from snappy import ProductIO, ProductData, Product, ProductUtils
 
 from netCDF4 import Dataset
-from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, get_satellite_name_from_product_name, get_valid_pe_from_nc, write_pixels_to_nc
+from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, \
+    get_satellite_name_from_product_name, get_valid_pe_from_nc, write_pixels_to_nc, create_band, read_pixels_from_nc
 
 # key of the params section for this adapter
 PARAMS_SECTION = "OC3"
@@ -69,87 +69,61 @@ def process(env, params, l1product_path, l2product_files, out_path):
     os.makedirs(product_dir, exist_ok=True)
 
     print("Reading POLYMER output from {}".format(product_path))
-    product = ProductIO.readProduct(product_path)
-    width = product.getSceneRasterWidth()
-    height = product.getSceneRasterHeight()
-    name = product.getName()
-    description = product.getDescription()
-    band_names = product.getBandNames()
+    with Dataset(product_path) as src, Dataset(output_file, mode='w') as dst:
+        name, width, height = get_name_width_height_from_nc(src, product_path)
+        product_band_names = get_band_names_from_nc(src)
 
-    print("Product:      {}, {}".format(name, description))
-    print("Raster size: {} x {} pixels".format(width, height))
-    print("Bands:       {}".format(list(band_names)))
+        print("Product:      {}, {}".format(name, description))
+        print("Raster size: {} x {} pixels".format(width, height))
+        print("Bands:       {}".format(list(band_names)))
 
-    oc3_product = Product('Z0', 'Z0', width, height)
+        valid_pixel_expression = get_valid_pe_from_nc(src)
+        inclusions = [band for band in product_band_names if band in valid_pixel_expression]
+        inclusions.append('metadata')
+        copy_nc(src, dst, inclusions)
 
-    valid_pixel_expression = product.getBand('tsm_binding754').getValidPixelExpression()
-    for band_name in band_names:
-        if band_name in valid_pixel_expression:
-            ProductUtils.copyBand(band_name, product, oc3_product, True)
+        chla_band = create_band(dst, "chla", "mg/m3", valid_pixel_expression)
+        maxCos_band = create_band(dst, "maxCos", "", valid_pixel_expression)
+        clusterID_band = create_band(dst, "clusterID", "", valid_pixel_expression)
+        totScore_band = create_band(dst, "totScore", "", valid_pixel_expression)
 
-    chla_band = create_band(oc3_product, "chla", "mg/m3", valid_pixel_expression)
-    maxCos_band = create_band(oc3_product, "maxCos", "", valid_pixel_expression)
-    clusterID_band = create_band(oc3_product, "clusterID", "", valid_pixel_expression)
-    totScore_band = create_band(oc3_product, "totScore", "", valid_pixel_expression)
+        rrs = read_rrs_polymer(src, width, height)
 
-    writer = ProductIO.getProductWriter('NetCDF4-BEAM')
-    ProductUtils.copyGeoCoding(product, oc3_product)
-    oc3_product.setProductWriter(writer)
-    oc3_product.writeHeader(output_file)
+        # Compute chla
+        chla = np.zeros(width * height)
+        chla[:] = np.nan
+        xx_oc3 = np.log10(np.maximum(rrs[2], rrs[3]) / rrs[5])
+        chla[xx_oc3 < -0.16] = ocx(xx_oc3[xx_oc3 < -0.16], *p0_oc3_lin)
+        chla[xx_oc3 >= -0.16] = ocx(xx_oc3[xx_oc3 >= -0.16], *popt_oc3_rev)
+        write_pixels_to_nc(dst, "chla", 0, 0, width, height, chla)
 
-    # Write valid pixel bands
-    for band_name in band_names:
-        if band_name in valid_pixel_expression:
-            temp_arr = np.zeros(width * height)
-            product.getBand(band_name).readPixels(0, 0, width, height, temp_arr)
-            oc3_product.getBand(band_name).writePixels(0, 0, width, height, temp_arr)
+        # Compute qa scores
+        maxCos = np.zeros(width * height)
+        clusterID = np.zeros(width * height)
+        totScore = np.zeros(width * height)
+        maxCos[:] = np.nan
+        clusterID[:] = np.nan
+        totScore[:] = np.nan
 
-    Rrs = read_rrs_polymer(product, width, height)
+        wavelengths = [400, 412, 443, 490, 510, 560, 620, 665, 681, 709, 754, 779, 865, 1020]
+        maxCos, cos, clusterID, totScore = QAscores(rrs, wavelengths)
 
-    # Compute chla
-    chla = np.zeros(width * height)
-    chla[:] = np.nan
-    xx_oc3 = np.log10(np.maximum(Rrs[2], Rrs[3]) / Rrs[5])
-    chla[xx_oc3 < -0.16] = ocx(xx_oc3[xx_oc3 < -0.16], *p0_oc3_lin)
-    chla[xx_oc3 >= -0.16] = ocx(xx_oc3[xx_oc3 >= -0.16], *popt_oc3_rev)
-    chla_band.writePixels(0, 0, width, height, chla)
+        write_pixels_to_nc(dst, "maxCos", 0, 0, width, height, maxCos)
+        write_pixels_to_nc(dst, "clusterID", 0, 0, width, height, clusterID)
+        write_pixels_to_nc(dst, "totScore", 0, 0, width, height, totScore)
 
-    # Compute qa scores
-    maxCos = np.zeros(width * height)
-    clusterID = np.zeros(width * height)
-    totScore = np.zeros(width * height)
-    maxCos[:] = np.nan
-    clusterID[:] = np.nan
-    totScore[:] = np.nan
-
-    wavelengths = [400, 412, 443, 490, 510, 560, 620, 665, 681, 709, 754, 779, 865, 1020]
-    maxCos, cos, clusterID, totScore = QAscores(Rrs, wavelengths)
-
-    maxCos_band.writePixels(0, 0, width, height, maxCos)
-    clusterID_band.writePixels(0, 0, width, height, clusterID)
-    totScore_band.writePixels(0, 0, width, height, totScore)
-
-    oc3_product.closeIO()
     print("Writing OC3 to file: {}".format(output_file))
     return output_file
 
 
-def create_band(product, name, unit, valid_pixel_expression):
-    band = product.addBand(name, ProductData.TYPE_FLOAT32)
-    band.setUnit(unit)
-    band.setNoDataValueUsed(True)
-    band.setNoDataValue(np.NaN)
-    band.setValidPixelExpression(valid_pixel_expression)
-    return band
-
-
-def read_rrs_polymer(product, width, height):
-    polymer_bands = ["Rw400", "Rw412", "Rw443", "Rw490", "Rw510", "Rw560", "Rw620", "Rw665", "Rw681", "Rw709", "Rw754", "Rw779", "Rw865", "Rw1020"]
-    Rrs = []
-    for band in polymer_bands:
+def read_rrs_polymer(nc, width, height):
+    polymer_band_names = ["Rw400", "Rw412", "Rw443", "Rw490", "Rw510", "Rw560", "Rw620", "Rw665", "Rw681", "Rw709", "Rw754", "Rw779", "Rw865", "Rw1020"]
+    rrs = []
+    for band_name in polymer_band_names:
         temp_arr = np.zeros(width * height)
-        Rrs.append(product.getBand(band).readPixels(0, 0, width, height, temp_arr))
-    return Rrs
+        read_pixels_from_nc(nc, band_name, 0, 0, width, height, temp_arr)
+        rrs.append(temp_arr)
+    return rrs
 
 
 def ocx(rsbg, a0, a1, a2, a3, a4):

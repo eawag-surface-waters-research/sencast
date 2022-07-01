@@ -223,6 +223,7 @@ def create_band(dst, band_name, band_unit, valid_pixel_expression):
     b = dst.createVariable(band_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN)
     b.units = band_unit
     b.valid_pixel_expression = valid_pixel_expression
+    return b
 
 
 def read_pixels_from_nc(nc, band_name, x, y, w, h, data):
