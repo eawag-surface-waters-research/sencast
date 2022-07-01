@@ -73,9 +73,9 @@ def process(env, params, l1product_path, l2product_files, out_path):
         name, width, height = get_name_width_height_from_nc(src, product_path)
         product_band_names = get_band_names_from_nc(src)
 
-        print("Product:      {}, {}".format(name, description))
+        print("Product:      {}".format(name))
         print("Raster size: {} x {} pixels".format(width, height))
-        print("Bands:       {}".format(list(band_names)))
+        print("Bands:       {}".format(list(product_band_names)))
 
         valid_pixel_expression = get_valid_pe_from_nc(src)
         inclusions = [band for band in product_band_names if band in valid_pixel_expression]
