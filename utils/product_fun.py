@@ -207,6 +207,17 @@ def get_band_from_nc(nc, band_name):
     return nc.variables[band_name]
 
 
+def copy_nc(src, dst, included_bands):
+    dst.setncatts(src.__dict__)
+    for name, dimension in src.dimensions.items():
+        dst.createDimension(name, (len(dimension) if not dimension.isunlimited() else None))
+    for name, variable in src.variables.items():
+        if name in included_bands:
+            dst.createVariable(name, variable.datatype, variable.dimensions)
+            dst[name].setncatts(src[name].__dict__)
+            dst[name][:] = src[name][:]
+
+
 def read_pixels_from_nc(nc, band_name, x, y, w, h, data):
     read_pixels_from_band(nc[band_name], x, y, w, h, data)
 

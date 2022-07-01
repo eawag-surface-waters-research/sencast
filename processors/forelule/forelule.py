@@ -10,11 +10,10 @@ Adapter authors: Daniel Odermatt, James Runnalls
 import os
 import math
 import numpy as np
-import shutil
 from colour import dominant_wavelength
 from netCDF4 import Dataset
 from utils.auxil import log
-from utils.product_fun import get_band_from_nc, get_band_names_from_nc, get_name_width_height_from_nc, get_satellite_name_from_product_name, get_valid_pe_from_nc, read_pixels_from_band, write_pixels_to_nc
+from utils.product_fun import copy_nc, get_band_from_nc, get_band_names_from_nc, get_name_width_height_from_nc, get_satellite_name_from_product_name, get_valid_pe_from_nc, read_pixels_from_band, write_pixels_to_nc
 
 
 # key of the params section for this adapter
@@ -144,16 +143,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
         valid_pixel_expression = get_valid_pe_from_nc(src)
         inclusions = [band for band in product_band_names if band in valid_pixel_expression]
         inclusions.append('metadata')
-        shutil.copy(product_path, output_file)
 
-        dst.setncatts(src.__dict__)
-        for name, dimension in src.dimensions.items():
-            dst.createDimension(name, (len(dimension) if not dimension.isunlimited() else None))
-        for name, variable in src.variables.items():
-            if name in inclusions:
-                dst.createVariable(name, variable.datatype, variable.dimensions)
-                dst[name].setncatts(src[name].__dict__)
-                dst[name][:] = src[name][:]
+        copy_nc(src, dst, inclusions)
 
         for forelule_name, unit in zip(forelule_names, units):
             b = dst.createVariable(forelule_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN)
