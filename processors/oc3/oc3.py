@@ -9,10 +9,10 @@ from snappy import ProductIO, ProductData, Product, ProductUtils
 
 # key of the params section for this adapter
 PARAMS_SECTION = "OC3"
-
-# the file name pattern for output file
-FILENAME = "L2OC3_{}"
-FILEFOLDER = "L2OC3"
+# The name of the folder to which the output product will be saved
+OUT_DIR = 'L2OC3'
+# A pattern for the name of the file to which the output product will be saved (completed with product name)
+OUT_FILENAME = 'L2OC3_{}.nc'
 
 # Optimised OC3 parameters
 p0_oc3_lin = [0.73, -1.2, 0, 0, 0]
@@ -52,15 +52,15 @@ def process(env, params, l1product_path, l2product_files, out_path):
     # Create folder for file
     product_path = l2product_files[processor]
     product_name = os.path.basename(product_path)
-    product_dir = os.path.join(os.path.dirname(os.path.dirname(product_path)), FILEFOLDER)
-    output_file = os.path.join(product_dir, FILENAME.format(product_name))
+    product_dir = os.path.join(os.path.dirname(os.path.dirname(product_path)), OUT_DIR)
+    output_file = os.path.join(product_dir, OUT_FILENAME.format(product_name))
     l2product_files["OC3"] = output_file
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
             print("Removing file: ${}".format(output_file))
             os.remove(output_file)
         else:
-            print("Skipping OC3, target already exists: {}".format(FILENAME.format(product_name)))
+            print("Skipping OC3, target already exists: {}".format(OUT_FILENAME.format(product_name)))
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 

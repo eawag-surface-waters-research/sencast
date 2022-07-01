@@ -14,10 +14,10 @@ from .MDN import image_estimates, get_tile_data, get_tile_data_polymer
 
 # key of the params section for this adapter
 PARAMS_SECTION = "MDN"
-
-# the file name pattern for output file
-FILENAME = "L2MDN_{}"
-FILEFOLDER = "L2MDN"
+# The name of the folder to which the output product will be saved
+OUT_DIR = 'L2MDN'
+# A pattern for the name of the file to which the output product will be saved (completed with product name)
+OUT_FILENAME = 'L2MDN_{}.nc'
 
 #'MSI': [443, 490, 560, 665, 705, 740, 783],
 #'MSI-rho': [443, 490, 560, 665, 705, 740, 783, 865],
@@ -66,15 +66,15 @@ def process(env, params, l1product_path, l2product_files, out_path):
     # Create folder for file
     product_path = l2product_files[processor]
     product_name = os.path.basename(product_path)
-    product_dir = os.path.join(os.path.dirname(os.path.dirname(product_path)), FILEFOLDER)
-    output_file = os.path.join(product_dir, FILENAME.format(product_name))
+    product_dir = os.path.join(os.path.dirname(os.path.dirname(product_path)), OUT_DIR)
+    output_file = os.path.join(product_dir, OUT_FILENAME.format(product_name))
 
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
             log(env["General"]["log"], "Removing file: ${}".format(output_file))
             os.remove(output_file)
         else:
-            log(env["General"]["log"], "Skipping MDN, target already exists: {}".format(FILENAME.format(product_name)))
+            log(env["General"]["log"], "Skipping MDN, target already exists: {}".format(output_file))
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 

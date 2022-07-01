@@ -19,11 +19,9 @@ from utils.product_fun import copy_nc, get_band_from_nc, get_band_names_from_nc,
 # key of the params section for this adapter
 PARAMS_SECTION = 'FORELULE'
 # The name of the folder to which the output product will be saved
-OUT_DIR = "L2FU"
+OUT_DIR = 'L2FU'
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = "L2FU_{}.nc"
-# The name of the xml file for gpt
-GPT_XML_FILENAME = "forelule_{}.xml"
+OUT_FILENAME = 'L2FU_{}.nc'
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
@@ -74,7 +72,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             log(env["General"]["log"], 'Removing file: ${}'.format(output_file))
             os.remove(output_file)
         else:
-            log(env["General"]["log"], 'Skipping Forel-Ule, target already exists: {}'.format(output_file))
+            log(env["General"]["log"], 'Skipping Forel-Ule, target already exists: {}'.format(OUT_FILENAME.format(product_name)))
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
