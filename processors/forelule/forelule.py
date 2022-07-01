@@ -137,18 +137,18 @@ def process(env, params, l1product_path, l2product_files, out_path):
             exit('Forel-Ule adapter not implemented for satellite ' + satellite)
 
         log(env["General"]["log"], "Reading input bands and creating output file.", indent=1)
+
         bands = [get_band_from_nc(src, bname) for bname in spectral_band_names]
-        forelule_names = ['hue_angle', 'dominant_wavelength', 'forel_ule']
-        units = ['rad', 'nm', 'dl']
         valid_pixel_expression = get_valid_pe_from_nc(src)
         inclusions = [band for band in product_band_names if band in valid_pixel_expression]
         inclusions.append('metadata')
-
         copy_nc(src, dst, inclusions)
 
-        for forelule_name, unit in zip(forelule_names, units):
-            b = dst.createVariable(forelule_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN)
-            b.units = unit
+        fu_band_names = ['hue_angle', 'dominant_wavelength', 'forel_ule']
+        fu_band_units = ['rad', 'nm', 'dl']
+        for band_name, band_unit in zip(fu_band_names, fu_band_units):
+            b = dst.createVariable(band_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN)
+            b.units = band_unit
             b.valid_pixel_expression = valid_pixel_expression
 
         if "max_chunk" in params[PARAMS_SECTION]:
