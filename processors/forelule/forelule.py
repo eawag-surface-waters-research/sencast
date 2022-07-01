@@ -13,7 +13,7 @@ import numpy as np
 from colour import dominant_wavelength
 from netCDF4 import Dataset
 from utils.auxil import log
-from utils.product_fun import copy_nc, get_band_from_nc, get_band_names_from_nc, get_name_width_height_from_nc, get_satellite_name_from_product_name, get_valid_pe_from_nc, read_pixels_from_band, write_pixels_to_nc
+from utils.product_fun import copy_nc, create_band, get_band_from_nc, get_band_names_from_nc, get_name_width_height_from_nc, get_satellite_name_from_product_name, get_valid_pe_from_nc, read_pixels_from_band, write_pixels_to_nc
 
 
 # key of the params section for this adapter
@@ -145,9 +145,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         fu_band_names = ['hue_angle', 'dominant_wavelength', 'forel_ule']
         fu_band_units = ['rad', 'nm', 'dl']
         for band_name, band_unit in zip(fu_band_names, fu_band_units):
-            b = dst.createVariable(band_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN)
-            b.units = band_unit
-            b.valid_pixel_expression = valid_pixel_expression
+            create_band(dst, band_name, band_unit, valid_pixel_expression)
 
         if "max_chunk" in params[PARAMS_SECTION]:
             log(env["General"]["log"], "Splitting data into manageable chunks.", indent=1)

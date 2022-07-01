@@ -7,6 +7,9 @@ import os
 import numpy as np
 from snappy import ProductIO, ProductData, Product, ProductUtils
 
+from netCDF4 import Dataset
+from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, get_satellite_name_from_product_name, get_valid_pe_from_nc, write_pixels_to_nc
+
 # key of the params section for this adapter
 PARAMS_SECTION = "OC3"
 # The name of the folder to which the output product will be saved
@@ -17,6 +20,7 @@ OUT_FILENAME = 'L2OC3_{}.nc'
 # Optimised OC3 parameters
 p0_oc3_lin = [0.73, -1.2, 0, 0, 0]
 popt_oc3_rev = [0.44580314, -2.29314384, 13.17079188, -11.08418745, -408.86537168]
+
 
 def process(env, params, l1product_path, l2product_files, out_path):
     """Apply OC3 adapter.

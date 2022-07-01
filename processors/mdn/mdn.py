@@ -8,7 +8,8 @@ import numpy as np
 
 from netCDF4 import Dataset
 from utils.auxil import log
-from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, get_satellite_name_from_product_name, get_valid_pe_from_nc, write_pixels_to_nc
+from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, \
+    get_satellite_name_from_product_name, get_valid_pe_from_nc, write_pixels_to_nc, create_band
 
 from .MDN import image_estimates, get_tile_data, get_tile_data_polymer
 
@@ -95,9 +96,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         mdn_band_names = ['chla']
         mdn_band_units = ['mg/m3']
         for band_name, band_unit in zip(mdn_band_names, mdn_band_units):
-            b = dst.createVariable(band_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN)
-            b.units = band_unit
-            b.valid_pixel_expression = valid_pixel_expression
+            create_band(dst, band_name, band_unit, valid_pixel_expression)
 
         sensor = "OLCI-poly"
         for band_name in mdn_band_names:

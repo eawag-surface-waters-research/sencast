@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 
+import numpy as np
 from haversine import haversine
 from datetime import datetime
 from utils.auxil import log
@@ -216,6 +217,12 @@ def copy_nc(src, dst, included_bands):
             dst.createVariable(name, variable.datatype, variable.dimensions)
             dst[name].setncatts(src[name].__dict__)
             dst[name][:] = src[name][:]
+
+
+def create_band(dst, band_name, band_unit, valid_pixel_expression):
+    b = dst.createVariable(band_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN)
+    b.units = band_unit
+    b.valid_pixel_expression = valid_pixel_expression
 
 
 def read_pixels_from_nc(nc, band_name, x, y, w, h, data):
