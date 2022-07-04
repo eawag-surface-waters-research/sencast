@@ -151,20 +151,14 @@ def process(env, params, l1product_path, l2product_files, out_path):
                 band.spectralWavelength = float(re.findall(r'\d+', band_name)[0])
             secchi_bands.append(band)
 
-        rs = [np.zeros(width, dtype=np.float32) for _ in range(len(spectral_band_names))]
-
-        sza = np.zeros(width, dtype=np.float32)
-
         log(env["General"]["log"], "Calculating Secchi depth.")
-
         print(secchi_band_names)
-
         for n_row in range(height):
             # Reading the different bands per pixel into arrays
-            rs = [b.readPixels(0, n_row, width, 1, r) for (b, r) in zip(bands, rs)]
+            rs = [read_pixels_from_nc(src, band_name, 0, n_row, width, 1) for band_name in secchi_band_names]
 
             # Reading the solar zenith angle per pixel
-            read_pixels_from_nc(src, 'sza', 0, n_row, width, 1, sza)
+            read_pixels_from_nc(src, 'sza', 0, n_row, width, 1)
 
             ################## Derivation of total absorption and backscattering coefficients ###########
             # Divide r by pi for the conversion of polymer’s water-leaving reflectance output (Rw, unitless) to QAA’s expected remote sensing reflectance input (Rrs, unit per steradian, sr-1)
