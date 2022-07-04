@@ -155,10 +155,10 @@ def process(env, params, l1product_path, l2product_files, out_path):
         print(secchi_band_names)
         for n_row in range(height):
             # Reading the different bands per pixel into arrays
-            rs = [read_pixels_from_nc(src, band_name, 0, n_row, width, 1) for band_name in secchi_band_names]
+            rs = [read_pixels_from_nc(src, band_name, 0, n_row, width, 1) for band_name in spectral_band_names]
 
             # Reading the solar zenith angle per pixel
-            read_pixels_from_nc(src, 'sza', 0, n_row, width, 1)
+            sza = read_pixels_from_nc(src, 'sza', 0, n_row, width, 1)
 
             ################## Derivation of total absorption and backscattering coefficients ###########
             # Divide r by pi for the conversion of polymer’s water-leaving reflectance output (Rw, unitless) to QAA’s expected remote sensing reflectance input (Rrs, unit per steradian, sr-1)
@@ -232,8 +232,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
                 bds[bds == -np.inf] = np.nan
 
             # Write the secchi depth per band
-            for secchi, bds in zip(secchi_bands, output):
-                secchi.writePixels(0, n_row, width, 1, bds)
+            for band_name, bds in zip(secchi_band_names, output):
+                write_pixels_to_nc(dst, band_name, 0, n_row, width, 1, bds)
 
         log(env["General"]["log"], "Writing Secchi depth to file: {}".format(output_file))
         return output_file

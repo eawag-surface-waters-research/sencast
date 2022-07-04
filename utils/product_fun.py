@@ -284,7 +284,7 @@ def create_band(dst, band_name, band_unit, valid_pixel_expression):
 
 
 def read_pixels_from_nc(nc, band_name, x, y, w, h, data=None):
-    return read_pixels_from_band(nc[band_name], x, y, w, h, data)
+    return read_pixels_from_band(nc.variables[band_name], x, y, w, h, data)
 
 
 def read_pixels_from_band(band, x, y, w, h, data=None):
@@ -292,7 +292,6 @@ def read_pixels_from_band(band, x, y, w, h, data=None):
         data = np.zeros(w, dtype=np.float32)
     for read_y in range(y, y + h):
         for read_x in range(x, x + w):
-            print('read_x: {}, read_y: {}'.format(read_x, read_y))
             data[(read_y - y) * w + read_x - x] = float(band[read_y][read_x])
     return data
 
