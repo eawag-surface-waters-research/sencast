@@ -142,7 +142,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
         create_band(dst, 'pp_integral', 'mg C m^-2 h^-1', valid_pixel_expression)
         write_pixels_to_nc(dst, 'pp_integral', 0, 0, width, height, pp_data)
 
-    l2product_files["PRIMARYPRODUCTION"] = output_file
     return output_file
 
 

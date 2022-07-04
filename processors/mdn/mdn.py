@@ -110,5 +110,4 @@ def process(env, params, l1product_path, l2product_files, out_path):
             write_pixels_to_nc(dst, band_name, 0, 0, width, height, np.ravel(band_data))
 
         log(env["General"]["log"], "Writing MDN to file: {}".format(output_file))
-        l2product_files["MDN"] = output_file
         return output_file

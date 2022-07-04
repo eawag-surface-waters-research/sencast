@@ -30,7 +30,7 @@ from polymer.main import run_atm_corr, Level2
 
 from utils.auxil import log
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
-    get_lons_lats, get_sensing_date_from_product_name
+    get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
 # Key of the params section for this processor

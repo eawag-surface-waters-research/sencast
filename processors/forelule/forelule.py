@@ -172,7 +172,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
                 write_pixels_to_nc(dst, 'dominant_wavelength', chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], dom_wvl)
                 write_pixels_to_nc(dst, 'forel_ule', chunks[c]["x"], chunks[c]["y"], chunks[c]["w"], chunks[c]["h"], FU)
 
-    l2product_files["FORELULE"] = output_file
     return output_file
 
 
