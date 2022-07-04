@@ -21,10 +21,9 @@ OUT_FILENAME = "L2MERGE_{}"
 GPT_XML_FILENAME = "merge.xml"
 
 
-# TODO: this should be to util and be called from the processors!
 def apply(env, params, l2product_files, date):
-    """Apply merge adapter.
-    1. Uses snappy to merge multiple L2 files
+    """Apply merge processor.
+    1. Uses gpt to merge multiple L2 files
 
     Parameters
     -------------
@@ -45,15 +44,14 @@ def apply(env, params, l2product_files, date):
     if "merge_nc" not in params[PARAMS_SECTION]:
         raise RuntimeWarning("Merge files must be defined in the parameter file under the merge_nc key.")
 
-    merge_processors = list(filter(None, params[PARAMS_SECTION]["merge_nc"].split(",")))
+    merge_processors = list(filter(None, params[PARAMS_SECTION]["processors"].split(",")))
 
     product_path = l2product_files[merge_processors[0]]
     out_path = os.path.join(os.path.dirname(os.path.dirname(product_path)))
     gpt, product_name = os.path.basename(product_path), env['General']['gpt_path']
-    slave_product_paths = [l2product_files[merge_processor] for merge_processor in merge_processors[1:]]
+    slave_product_paths = ', '.join([l2product_files[merge_processor] for merge_processor in merge_processors[1:]])
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
-    l2product_files["MERGE"] = output_file
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
             log(env["General"]["log"], "Removing file: ${}".format(output_file))
