@@ -8,19 +8,20 @@ in order to derive primary production from Satellite images.
 
 import os
 import numpy as np
-import re
 from scipy.integrate import trapz
-from snappy import ProductIO, PixelPos, jpy, ProductData, Product, ProductUtils
+
+from netCDF4 import Dataset
+from utils.auxil import log
+from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, \
+    get_satellite_name_from_product_name, get_valid_pe_from_nc, write_pixels_to_nc, create_band, read_pixels_from_nc, \
+    get_sensing_date_from_product_name, copy_band
 
 # key of the params section for this adapter
-from utils.auxil import log
-from utils.product_fun import get_sensing_date_from_product_name
-
 PARAMS_SECTION = "PRIMARYPRODUCTION"
-
-# the file name pattern for output file
-FILENAME = "L2PP_{}"
-FILEFOLDER = "L2PP"
+# The name of the folder to which the output product will be saved
+OUT_DIR = 'L2PP'
+# A pattern for the name of the file to which the output product will be saved (completed with product name)
+OUT_FILENAME = 'L2PP_{}.nc'
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
@@ -65,15 +66,14 @@ def process(env, params, l1product_path, l2product_files, out_path):
     # Create folder for file
     product_path = l2product_files[chl_processor]
     product_name = os.path.basename(product_path)
-    product_dir = os.path.join(os.path.dirname(os.path.dirname(product_path)), FILEFOLDER)
-    output_file = os.path.join(product_dir, FILENAME.format(product_name))
-    l2product_files["PRIMARYPRODUCTION"] = output_file
+    product_dir = os.path.join(os.path.dirname(os.path.dirname(product_path)), OUT_DIR)
+    output_file = os.path.join(product_dir, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
             log(env["General"]["log"], "Removing file: ${}".format(output_file))
             os.remove(output_file)
         else:
-            log(env["General"]["log"], "Skipping Primary Production, target already exists: {}".format(FILENAME.format(product_name)))
+            log(env["General"]["log"], "Skipping Primary Production, target already exists: {}".format(OUT_FILENAME.format(product_name)))
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
@@ -84,132 +84,71 @@ def process(env, params, l1product_path, l2product_files, out_path):
     zvals_fine = np.linspace(np.min(zvals), np.max(zvals), 100)  # Fine spaced depths for integration
 
     # Read in chlorophyll band
-    log(env["General"]["log"], "Reading Chlorophyll values from {}".format(product_path))
-    product = ProductIO.readProduct(product_path)
-    all_bns = product.getBandNames()
-    if chl_bandname not in all_bns:
-        raise RuntimeError("{} not in product bands. Edit the parameter file.".format(chl_bandname))
-    chl = product.getBand(chl_bandname)
-    w = chl.getRasterWidth()
-    h = chl.getRasterHeight()
-    chl_data = np.zeros(w * h, np.float32)
-    chl.readPixels(0, 0, w, h, chl_data)
-    chl_valid_pixel_expression = chl.getValidPixelExpression()
-
-    # Convert from PH to CHL if required
-    if "chl_parameter" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["chl_parameter"] == "PH":
-        chl_data = PhytoplanktonToChlorophyll(chl_data)
-
-    # Read in KD band
     kd_product_path = l2product_files[kd_processor]
+    log(env["General"]["log"], "Reading Chlorophyll values from {}".format(product_path))
     log(env["General"]["log"], "Reading kd values from {}".format(kd_product_path))
-    kd_product = ProductIO.readProduct(kd_product_path)
-    all_bns_kd = kd_product.getBandNames()
-    if kd_bandname not in all_bns_kd:
-        raise RuntimeError("{} not in product bands. Edit the parameter file.".format(kd_bandname))
-    kd = kd_product.getBand(kd_bandname)
-    w_kd = kd.getRasterWidth()
-    h_kd = kd.getRasterHeight()
-    kd_data = np.zeros(w_kd * h_kd, np.float32)
-    kd.readPixels(0, 0, w, h, kd_data)
-    kd_valid_pixel_expression = kd.getValidPixelExpression()
+    with Dataset(product_path) as chl_src, Dataset(kd_product_path) as kd_src, Dataset(output_file, mode='w') as dst:
+        chl_band_names = get_band_names_from_nc(chl_src)
+        if chl_bandname not in chl_band_names:
+            raise RuntimeError("{} not in product bands. Edit the parameter file.".format(chl_bandname))
+        _, width, height = get_name_width_height_from_nc(chl_src, product_path)
+        chl_data = np.zeros(width * height, np.float32)
+        read_pixels_from_nc(chl_src, chl_bandname, 0, 0, width, height, chl_data)
+        chl_valid_pixel_expression = get_valid_pe_from_nc(chl_src)
 
-    if chl_data.shape != kd_data.shape:
-        raise RuntimeError("CHl and KD on different grids. Grid interpolation not yet implemented")
+        # Convert from PH to CHL if required
+        if "chl_parameter" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["chl_parameter"] == "PH":
+            chl_data = PhytoplanktonToChlorophyll(chl_data)
 
-    # Create output file
-    out_product = Product('PP', 'PP', w, h)
-    writer = ProductIO.getProductWriter('NetCDF4-BEAM')
-    ProductUtils.copyGeoCoding(product, out_product)
-    out_product.setProductWriter(writer)
+        # Read in KD band
+        kd_band_names = get_band_names_from_nc(kd_src)
+        if kd_bandname not in kd_band_names:
+            raise RuntimeError("{} not in product bands. Edit the parameter file.".format(kd_bandname))
+        _, kd_width, kd_height = get_name_width_height_from_nc(kd_src, product_path)
+        kd_data = np.zeros(kd_width * kd_height, np.float32)
+        read_pixels_from_nc(kd_src, kd_bandname, 0, 0, kd_width, kd_height, kd_data)
+        kd_valid_pixel_expression = get_valid_pe_from_nc(kd_src)
 
-    # Add valid pixel expression bands
-    all_bands = list(dict.fromkeys(list(all_bns) + list(all_bns_kd)))
-    for band_name in all_bands:
-        if band_name in str(chl_valid_pixel_expression):
-            ProductUtils.copyBand(band_name, product, out_product, True)
-        elif band_name in str(kd_valid_pixel_expression):
-            ProductUtils.copyBand(band_name, kd_product, out_product, True)
-    valid_pixel_expression = None
-    if chl_valid_pixel_expression is not None and kd_valid_pixel_expression is not None and chl_valid_pixel_expression != kd_valid_pixel_expression:
-        valid_pixel_expression = chl_valid_pixel_expression + " and " + kd_valid_pixel_expression
-    elif chl_valid_pixel_expression is not None:
-        valid_pixel_expression = chl_valid_pixel_expression
-    elif kd_valid_pixel_expression is not None:
-        valid_pixel_expression = kd_valid_pixel_expression
+        if chl_data.shape != kd_data.shape:
+            raise RuntimeError("CHl and KD on different grids. Grid interpolation not yet implemented")
 
-    # Get PAR
-    date = get_sensing_date_from_product_name(product_name)
-    month = datetomonth(date)
-    qpar0 = qpar0_lookup(month, chl_data)
+        # Add valid pixel expression bands
+        copy_nc(chl_src, dst, ['metadata'])
+        for band_name in chl_band_names + kd_band_names:
+            if band_name in str(chl_valid_pixel_expression) or band_name == chl_bandname:
+                copy_band(chl_src, dst, band_name)
+            elif band_name in str(kd_valid_pixel_expression) or band_name == kd_bandname:
+                copy_band(kd_src, dst, band_name)
+        valid_pixel_expression = None
+        if chl_valid_pixel_expression is not None and kd_valid_pixel_expression is not None and chl_valid_pixel_expression != kd_valid_pixel_expression:
+            valid_pixel_expression = '({}) and (){}'.format(chl_valid_pixel_expression, kd_valid_pixel_expression)
+        elif chl_valid_pixel_expression is not None:
+            valid_pixel_expression = chl_valid_pixel_expression
+        elif kd_valid_pixel_expression is not None:
+            valid_pixel_expression = kd_valid_pixel_expression
 
-    # Get KdMorel
-    KdMorel = 0.0864 + 0.884 * kd_data - 0.00137/kd_data
+        # Get PAR
+        date = get_sensing_date_from_product_name(product_name)
+        month = datetomonth(date)
+        qpar0 = qpar0_lookup(month, chl_data)
 
-    # Calculate primary production
-    pp_tni = pp_trapezoidal_numerical_integration(zvals_fine, qpar0, chl_data, KdMorel)
+        # Get KdMorel
+        KdMorel = 0.0864 + 0.884 * kd_data - 0.00137/kd_data
 
-    # Add new bands
-    pp_band = out_product.addBand('pp_integral', ProductData.TYPE_FLOAT32)
-    pp_band.setUnit('mg C m^-2 h^-1')
-    pp_band.setNoDataValueUsed(True)
-    pp_band.setNoDataValue(np.NaN)
-    pp_band.setValidPixelExpression(valid_pixel_expression)
+        # Calculate primary production
+        pp_data = pp_trapezoidal_numerical_integration(zvals_fine, qpar0, chl_data, KdMorel)
 
-    kd_band = out_product.addBand(kd_bandname, ProductData.TYPE_FLOAT32)
-    kd_band.setUnit(kd.getUnit())
-    kd_band.setNoDataValueUsed(True)
-    kd_band.setNoDataValue(np.NaN)
-    kd_band.setValidPixelExpression(kd_valid_pixel_expression)
-    if len(re.findall('\d+', kd_bandname)) > 0:
-        wavelength = re.findall('\d+', kd_bandname)[0]
-        kd_band.setSpectralWavelength(float(wavelength))
+        # Add new bands
+        create_band(dst, 'pp_integral', 'mg C m^-2 h^-1', valid_pixel_expression)
+        write_pixels_to_nc(dst, 'pp_integral', 0, 0, width, height, pp_data)
 
-    chl_band = out_product.addBand(chl_bandname, ProductData.TYPE_FLOAT32)
-    chl_band.setUnit(chl.getUnit())
-    chl_band.setNoDataValueUsed(True)
-    chl_band.setNoDataValue(np.NaN)
-    chl_band.setValidPixelExpression(chl_valid_pixel_expression)
-    if len(re.findall('\d+', chl_bandname)) > 0:
-        wavelength = re.findall('\d+', chl_bandname)[0]
-        chl_band.setSpectralWavelength(float(wavelength))
-
-    out_product.writeHeader(output_file)
-
-    # Add data to valid pixel expression bands
-    for band_name in all_bands:
-        if band_name in str(chl_valid_pixel_expression):
-            temp_arr = np.zeros(w * h)
-            product.getBand(band_name).readPixels(0, 0, w, h, temp_arr)
-            out_product.getBand(band_name).writePixels(0, 0, w, h, temp_arr)
-        elif band_name in str(kd_valid_pixel_expression):
-            temp_arr = np.zeros(w * h)
-            kd_product.getBand(band_name).readPixels(0, 0, w, h, temp_arr)
-            out_product.getBand(band_name).writePixels(0, 0, w, h, temp_arr)
-
-    # Add other data
-    pp_band.writePixels(0, 0, w, h, pp_tni)
-    kd_band.writePixels(0, 0, w, h, kd_data)
-    chl_band.writePixels(0, 0, w, h, chl_data)
-
-    # Close output file
-    out_product.closeIO()
+    l2product_files["PRIMARYPRODUCTION"] = output_file
     return output_file
 
 
 def PhytoplanktonToChlorophyll(ph):
     # a_CHL = 0.054 CHL ** 0.96
     return (ph / 0.054) ** (1/0.96)
-
-
-def LatLon_from_XY(product, x, y):
-    geoPosType = jpy.get_type('org.esa.snap.core.datamodel.GeoPos')
-    geocoding = product.getSceneGeoCoding()
-    geo_pos = geocoding.getGeoPos(PixelPos(x, y), geoPosType())
-    if str(geo_pos.lat) == 'nan':
-        raise ValueError('x, y pixel coordinates not in this product')
-    else:
-        return geo_pos.lat, geo_pos.lon
 
 
 def pp_trapezoidal_numerical_integration(zvals, qpar0, Cchl, KdMorel):
