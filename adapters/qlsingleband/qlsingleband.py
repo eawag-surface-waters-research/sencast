@@ -6,27 +6,25 @@ The QLSingleBand adapter creates single-band quick looks output as .png files.
 Individual bands are plotted geospatially using matplotlib and exported to .png
 """
 
-import math
-import os
-import re
-
-import numpy as np
 import cartopy.crs as ccrs
 import cartopy.io.srtm as srtm
 import cartopy.io.img_tiles as maps
+import math
 import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import numpy as np
+import os
+import re
+from cartopy.io import PostprocessedRasterSource, LocatedImage
+from netCDF4 import Dataset
 
 import adapters.qlsingleband.colour_scales as colscales
-
-from cartopy.io import PostprocessedRasterSource, LocatedImage
-from snappy import GPF, HashMap, jpy, Mask, PixelPos, ProductUtils, ProductIO
-
-from utils.product_fun import get_lons_lats
 from utils.auxil import log
+from utils.product_fun import get_lons_lats, get_lat_lon_from_x_y, get_band_names_from_nc, \
+    get_name_width_height_from_nc, get_np_data_type, read_pixels_from_nc
 
 plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')
@@ -72,11 +70,13 @@ def apply(env, params, l2product_files, date):
                     if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
                         log(env["General"]["log"], "Removing file: ${}".format(ql_file))
                         os.remove(ql_file)
-                        param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin), float(bandmax)]
+                        param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin),
+                                                                                          float(bandmax)]
                         plot_map(env, l2product_files[processor], ql_file, band, wkt, "srtm_hillshade",
                                  param_range=param_range)
                     else:
-                        log(env["General"]["log"], "Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
+                        log(env["General"]["log"],
+                            "Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
                 else:
                     param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin), float(bandmax)]
                     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
@@ -84,408 +84,346 @@ def apply(env, params, l2product_files, date):
                              param_range=param_range)
 
 
-def plot_map(env, input_file, output_file, layer_str, wkt=None, basemap='srtm_elevation', crop_ext=None,
+def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_elevation', crop_ext=None,
              param_range=None, cloud_layer=None, suspect_layer=None, water_layer=None, grid=True, shadow_layer=None,
              aspect_balance=None):
     """ basemap options are srtm_hillshade, srtm_elevation, quadtree_rgb, nobasemap """
 
-    product = ProductIO.readProduct(input_file)
-
     # mpl.rc('font', family='Times New Roman')
     # mpl.rc('text', usetex=True)
 
-    if layer_str not in product.getBandNames():
-        raise RuntimeError('{} not in product bands. Edit the parameter file.'.format(layer_str))
+    with Dataset(input_file) as src:
+        if band_name not in get_band_names_from_nc(src):
+            raise RuntimeError('{} not in product bands. Edit the parameter file.'.format(band_name))
 
-    legend_extension = 1
-    bar_orientation = 'vertical'
-    linewidth = 0.8
-    gridlabel_size = 5
+        legend_extension = 1
+        bar_orientation = 'vertical'
+        linewidth = 0.8
+        gridlabel_size = 5
 
-    # Create a new product With the band to plot only
-    width = product.getSceneRasterWidth()
-    height = product.getSceneRasterHeight()
-    param_band = product.getBand(layer_str)
+        # Create a new product With the band to plot only
+        _, width, height = get_name_width_height_from_nc(src)
+        param_band = src.variables[band_name]
 
-    mask_array = np.zeros(shape=(height, width), dtype=np.int32)
-    for x in range(0, width):
-        for y in range(0, height):
-            if param_band.isPixelValid(x, y):
-                mask_array[y, x] = 1
-    invalid_mask = np.where(mask_array == 1, 1, 0)
+        mask_array = np.zeros(shape=(height, width), dtype=np.int32)
+        for x in range(0, width):
+            for y in range(0, height):
+                if param_band.isPixelValid(x, y):
+                    mask_array[y, x] = 1
+        invalid_mask = np.where(mask_array == 1, 1, 0)
 
-    param_dt = param_band.getDataType()
-    if param_dt <= 12:
-        data_type = np.int32
-        d_type = 'int32'
-    elif param_dt == 30:
-        data_type = np.float32
-        d_type = 'float32'
-    elif param_dt == 31:
-        data_type = np.float64
-        d_type = 'float64'
-    else:
-        raise ValueError('cannot handle band of data_sh type \'' + param_dt + '\'')
+        data_type, d_type = get_np_data_type(src, band_name)
 
-    GPF.getDefaultInstance().getOperatorSpiRegistry().loadOperatorSpis()
-    BandDescriptor = jpy.get_type('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor')
-    targetBand1 = BandDescriptor()
-    targetBand1.name = layer_str + '_ql'
-    targetBand1.type = d_type
-    targetBand1.expression = layer_str
-    targetBands = jpy.array('org.esa.snap.core.gpf.common.BandMathsOp$BandDescriptor', 1)
-    targetBands[0] = targetBand1
+        # read constituent band
+        param_arr = read_pixels_from_nc(src, band_name, 0, 0, width, height, dtype=data_type)
+        param_arr = param_arr.reshape(height, width)
 
-    parameters = HashMap()
-    parameters.put('targetBands', targetBands)
-    sub_product = GPF.createProduct('BandMaths', parameters, product)
-    ProductUtils.copyGeoCoding(product, sub_product)
-    log(env["General"]["log"], 'Reading Band {}'.format(layer_str))
-    param_band = sub_product.getBand(layer_str + '_ql')
+        # Pixel zählen
+        masked_param_arr = np.ma.array(param_arr, fill_value=np.nan)  # , mask = invalid_mask
+        masked_param_arr = np.ma.masked_where(not invalid_mask, masked_param_arr)
+        # masked_param_arr = np.ma.masked_where(masked_param_arr >= 9999, masked_param_arr)
+        # masked_param_arr = np.ma.masked_where(masked_param_arr < 0.000000000001, masked_param_arr)
+        log(env["General"]["log"],
+            '   applicable values are found in ' + str(masked_param_arr.count()) + ' of ' + str(
+                height * width) + ' pixels')
+        if masked_param_arr.count() == 0:
+            log(env["General"]["log"], 'Image is empty, skipping...')
+            return
 
-    # read constituent band
-    param_arr = np.zeros(width * height, dtype=data_type)
-    param_band.readPixels(0, 0, width, height, param_arr)
-    param_arr = param_arr.reshape(height, width)
+        # load flag bands if requested
+        masked_cloud_arr = None
+        if cloud_layer:
+            cloud_arr = read_pixels_from_nc(src, cloud_layer[0], 0, 0, width, height, dtype=np.int32)
+            cloud_arr = cloud_arr.reshape(height, width)
+            cloud_ind = np.where(cloud_arr == cloud_layer[1])
+            cloud_arr[cloud_ind] = 100
+            masked_cloud_arr = np.ma.masked_where(cloud_arr != 100, cloud_arr)
 
-    # Pixel zählen
-    masked_param_arr = np.ma.array(param_arr, fill_value=np.nan) #, mask = invalid_mask
-    masked_param_arr = np.ma.masked_where(invalid_mask == False, masked_param_arr)
-    #masked_param_arr = np.ma.masked_where(masked_param_arr >= 9999, masked_param_arr)
-    #masked_param_arr = np.ma.masked_where(masked_param_arr < 0.000000000001, masked_param_arr)
-    log(env["General"]["log"],
-        '   applicable values are found in ' + str(masked_param_arr.count()) + ' of ' + str(height * width) + ' pixels')
-    if masked_param_arr.count() == 0:
-        log(env["General"]["log"], 'Image is empty, skipping...')
-        return
+        masked_shadow_arr = None
+        if shadow_layer:
+            shadow_arr = read_pixels_from_nc(src, shadow_layer[0], 0, 0, width, height, dtype=np.int32)
+            shadow_arr = shadow_arr.reshape(height, width)
+            shadow_ind = np.where(shadow_arr == shadow_layer[1])
+            shadow_arr[shadow_ind] = 100
+            masked_shadow_arr = np.ma.masked_where(shadow_arr != 100, shadow_arr)
 
-    # load flag bands if requested
-    masked_cloud_arr = None
-    if cloud_layer:
-        if sub_product.getBand(cloud_layer[0]) is None:
-            cloud_mask = sub_product.getMaskGroup().get(cloud_layer[0])
-            cloud_band = jpy.cast(cloud_mask, Mask)
+        masked_suspect_arr = None
+        if suspect_layer:
+            suspect_arr = read_pixels_from_nc(src, suspect_layer[0], 0, 0, width, height, dtype=np.int32)
+            suspect_arr = suspect_arr.reshape(height, width)
+            suspect_ind = np.where(suspect_arr == suspect_layer[1])
+            suspect_arr[suspect_ind] = 100
+            masked_suspect_arr = np.ma.masked_where(suspect_arr != 100, suspect_arr)
+
+        if water_layer:
+            water_arr = read_pixels_from_nc(src, water_layer[0], 0, 0, width, height, dtype=np.int32)
+            water_arr = water_arr.reshape(height, width)
+            land_arr = np.zeros(width * height, dtype=np.int32)
+            land_arr = land_arr.reshape(height, width)
+            land_ind = np.where(water_arr != water_layer[1])
+            land_arr[land_ind] = 100
+            masked_param_arr = np.ma.masked_where(land_arr != 0, masked_param_arr)
+
+        # read lat and lon information
+        if wkt:
+            global canvas_area
+            lons, lats = get_lons_lats(wkt)
+            max_lat = max(lats)
+            min_lat = min(lats)
+            max_lon = max(lons)
+            min_lon = min(lons)
+            canvas_area = [[min_lon, min_lat], [max_lon, max_lat]]
         else:
-            cloud_band = sub_product.getBand(cloud_layer[0])
-        cloud_arr = np.zeros(width * height, dtype=np.int32)
-        cloud_band.readPixels(0, 0, width, height, cloud_arr)
-        cloud_arr = cloud_arr.reshape(height, width)  # <- Problem: kommen nur Nullen!!
-        cloud_ind = np.where(cloud_arr == cloud_layer[1])
-        cloud_arr[cloud_ind] = 100
-        masked_cloud_arr = np.ma.masked_where(cloud_arr != 100, cloud_arr)
+            min_lat, min_lon = get_lat_lon_from_x_y(src, band_name, 0, height - 1)
+            max_lat, max_lon = get_lat_lon_from_x_y(src, band_name, width - 1, 0)
 
-    masked_shadow_arr = None
-    if shadow_layer:
-        if sub_product.getBand(shadow_layer[0]) is None:
-            shadow_mask = sub_product.getMaskGroup().get(shadow_layer[0])
-            shadow_band = jpy.cast(shadow_mask, Mask)
+        # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
+        if crop_ext:
+            lat_ext = (max_lat - min_lat) / 8
+            lon_ext = (max_lon - min_lon) / 8
         else:
-            shadow_band = sub_product.getBand(shadow_layer[0])
-        shadow_arr = np.zeros(width * height, dtype=np.int32)
-        shadow_band.readPixels(0, 0, width, height, shadow_arr)
-        shadow_arr = shadow_arr.reshape(height, width)
-        shadow_ind = np.where(shadow_arr == shadow_layer[1])
-        shadow_arr[shadow_ind] = 100
-        masked_shadow_arr = np.ma.masked_where(shadow_arr != 100, shadow_arr)
+            lat_ext = 0
+            lon_ext = 0
 
-    masked_suspect_arr = None
-    if suspect_layer:
-        if sub_product.getBand(suspect_layer[0]) is None:
-            suspect_mask = sub_product.getMaskGroup().get(suspect_layer[0])
-            suspect_band = jpy.cast(suspect_mask, Mask)
+        lon_range = (max_lon + lon_ext) - (min_lon - lon_ext)
+        lat_range = (max_lat + lat_ext) - (min_lat - lon_ext)
+        aspect_ratio = lon_range / lat_range
+
+        # Calculate a suitable grid distance with which the smaller image portion gets three gridlines
+        grid_dist = min(lon_range, lat_range) / 3
+
+        if grid_dist < 0.01:
+            decimal = 0.001
+        elif grid_dist < 0.1:
+            decimal = 0.01
+        elif grid_dist < 1:
+            decimal = 0.1
+        elif grid_dist < 10:
+            decimal = 1
+        elif grid_dist < 100:
+            decimal = 10
         else:
-            suspect_band = sub_product.getBand(suspect_layer[0])
-        suspect_arr = np.zeros(width * height, dtype=np.int32)
-        suspect_band.readPixels(0, 0, width, height, suspect_arr)
-        suspect_arr = suspect_arr.reshape(height, width)
-        suspect_ind = np.where(suspect_arr == suspect_layer[1])
-        suspect_arr[suspect_ind] = 100
-        masked_suspect_arr = np.ma.masked_where(suspect_arr != 100, suspect_arr)
+            decimal = 100
 
-    if water_layer:
-        if sub_product.getBand(water_layer[0]) is None:
-            water_mask = sub_product.getMaskGroup().get(water_layer[0])
-            water_band = jpy.cast(water_mask, Mask)
-        else:
-            water_band = sub_product.getBand(water_layer[0])
-        water_arr = np.zeros(width * height, dtype=np.int32)
-        water_band.readPixels(0, 0, width, height, water_arr)
-        water_arr = water_arr.reshape(height, width)
-        land_arr = np.zeros(width * height, dtype=np.int32)
-        land_arr = land_arr.reshape(height, width)
-        land_ind = np.where(water_arr != water_layer[1])
-        land_arr[land_ind] = 100
-        masked_param_arr = np.ma.masked_where(land_arr != 0, masked_param_arr)
+        grid_dist = round(grid_dist / decimal) * decimal
 
-    geocoding = sub_product.getSceneGeoCoding()
-    lowlef = geocoding.getGeoPos(PixelPos(0, height - 1), None)
-    upprig = geocoding.getGeoPos(PixelPos(width - 1, 0), None)
-    prod_max_lat = upprig.lat
-    prod_min_lat = lowlef.lat
-    prod_max_lon = upprig.lon
-    prod_min_lon = lowlef.lon
+        # Calculate a gridline anchor position with a round value, around which the other gridlines are defined
+        lat_center = round((min_lat + (max_lat - min_lat) / 2) / (decimal * 10)) * (decimal * 10)
+        lon_center = round((min_lon + (max_lon - min_lon) / 2) / (decimal * 10)) * (decimal * 10)
+        x_ticks = [lon_center]
+        y_ticks = [lat_center]
+        i = 0
+        while max(x_ticks) <= max_lon or min(x_ticks) >= min_lon:
+            i += 1
+            x_ticks.extend((lon_center + (i * grid_dist), lon_center - (i * grid_dist)))
+        x_ticks.sort()
+        i = 0
+        while max(y_ticks) <= max_lat or min(y_ticks) >= min_lat:
+            i += 1
+            y_ticks.extend((lat_center + (i * grid_dist), lat_center - (i * grid_dist)))
+        y_ticks.sort()
 
-    # read lat and lon information
-    if wkt:
-        global canvas_area
-        lons, lats = get_lons_lats(wkt)
-        max_lat = max(lats)
-        min_lat = min(lats)
-        max_lon = max(lons)
-        min_lon = min(lons)
-        canvas_area = [[min_lon, min_lat], [max_lon, max_lat]]
-    else:
-        max_lat = prod_max_lat
-        min_lat = prod_min_lat
-        max_lon = prod_max_lon
-        min_lon = prod_min_lon
+        canvas_area = [[min_lon - lon_ext, min_lat - lat_ext], [max_lon + lon_ext, max_lat + lat_ext]]
 
-    # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
-    if crop_ext:
-        lat_ext = (max_lat - min_lat) / 8
-        lon_ext = (max_lon - min_lon) / 8
-    else:
-        lat_ext = 0
-        lon_ext = 0
+        # Define colour scale
+        title_str, legend_str, log_num = get_legend_str(band_name)
+        if log_num:
+            log(env["General"]["log"], 'Transforming log data...')
+            masked_param_arr = np.exp(masked_param_arr)
 
-    lon_range = (upprig.lon + lon_ext) - (lowlef.lon - lon_ext)
-    lat_range = (upprig.lat + lat_ext) - (lowlef.lat - lon_ext)
-    aspect_ratio = lon_range / lat_range
-
-    # Calculate a suitable grid distance with which the smaller image portion gets three gridlines
-    grid_dist = min(lon_range, lat_range) / 3
-
-    if grid_dist < 0.01:
-        decimal = 0.001
-    elif grid_dist < 0.1:
-        decimal = 0.01
-    elif grid_dist < 1:
-        decimal = 0.1
-    elif grid_dist < 10:
-        decimal = 1
-    elif grid_dist < 100:
-        decimal = 10
-    else:
-        decimal = 100
-
-    grid_dist = round(grid_dist / decimal) * decimal
-
-    # Calculate a gridline anchor position with a round value, around which the other gridlines are defined
-    lat_center = round((lowlef.lat + (upprig.lat - lowlef.lat) / 2) / ( decimal * 10)) * (decimal * 10)
-    lon_center = round((lowlef.lon + (upprig.lon - lowlef.lon) / 2) / ( decimal * 10)) * (decimal * 10)
-    x_ticks = [lon_center]
-    y_ticks = [lat_center]
-    i=0
-    while (max(x_ticks) <= upprig.lon or min(x_ticks) >= lowlef.lon):
-        i+=1
-        x_ticks.extend((lon_center + (i * grid_dist), lon_center - (i * grid_dist)))
-    x_ticks.sort()
-    i=0
-    while (max(y_ticks) <= upprig.lat or min(y_ticks) >= lowlef.lat):
-        i+=1
-        y_ticks.extend((lat_center + (i * grid_dist), lat_center - (i * grid_dist)))
-    y_ticks.sort()
-
-    canvas_area = [[lowlef.lon - lon_ext, lowlef.lat - lat_ext], [upprig.lon + lon_ext, upprig.lat + lat_ext]]
-
-    # Define colour scale
-    title_str, legend_str, log_num = get_legend_str(layer_str)
-    if log_num:
-        log(env["General"]["log"], 'Transforming log data...')
-        masked_param_arr = np.exp(masked_param_arr)
-
-    bounds = None
-    if ('hue' in title_str) and ('angle' in title_str):
-        color_type = cm.get_cmap(name='viridis').copy()
-        param_range = [20, 230]
-        tick_format = '%.0f'
-        ticks = [45, 90, 135, 180, 225]
-    elif ('dominant' in title_str) and ('wavelength' in title_str):
-        param_range = [400, 700]
-        color_type = colscales.spectral_cie(wvl_min = param_range[0], wvl_max = param_range[1])
-        tick_format = '%.0f'
-        ticks = [400, 450, 500, 550, 600, 650, 700]
-    elif 'Forel-Ule' in title_str:
-        color_type = colscales.forel_ule()
-        param_range = [0.5, 21.5]
-        ticks = [i + 1 for i in range(21)]
-        boundaries = [fu - 0.5 for fu in range(1, 23, 1)]#[fu + 0.5 for fu in range(1, 21, 1)]
-        norm = mpl.colors.BoundaryNorm(ticks, color_type)
-        tick_format = '%.0f'
-    elif 'Whiting' in title_str:
-        color_type = cm.get_cmap(name='Reds').copy()
-        param_range = [0.5, 1.5]
-        ticks = False
-    elif 'Secchi' in title_str:
-        color_type = cm.get_cmap(name='viridis_r').copy()
-        ticks = False
-    else:
-        color_type = cm.get_cmap(name='viridis').copy()
-        ticks = False
-    #color_type = colscales.rainbow_king()
-    #color_type = colscales.red2blue()
-    #color_type = cm.get_cmap(name='magma_r')
-
-    color_type.set_bad(alpha=0)
-    if not param_range:
-        log(env["General"]["log"], 'No range provided. Estimating...')
-        range_intervals = [2000, 1000, 500, 200, 100, 50, 40, 30, 20, 15,
-                           10, 8, 6, 4, 2, 1, 0.5, 0.2, 0.1, 0.08, 0.06,
-                           0.04, 0.02, 0.01, 0.008, 0.006, 0.004, 0.002,
-                           0.001]
-        for n_interval in range(2, len(range_intervals)):
-            if np.nanpercentile(masked_param_arr.compressed(), 90) > range_intervals[n_interval]:
-                param_range = [0, range_intervals[n_interval - 2]]
-                break
-            elif np.nanpercentile(masked_param_arr.compressed(), 90) < range_intervals[-1]:
-                param_range = [0, range_intervals[-1]]
-                break
-    log(env["General"]["log"], 'Parameters range set to: {}'.format(param_range))
-    if not ticks:
-        if param_range[1] >= 10:
+        bounds = None
+        if ('hue' in title_str) and ('angle' in title_str):
+            color_type = cm.get_cmap(name='viridis').copy()
+            param_range = [20, 230]
             tick_format = '%.0f'
-        elif param_range[1] >= 1:
-            tick_format = '%.1f'
-        elif param_range[1] >= 0.1:
-            tick_format = '%.2f'
-        elif param_range[1] >= 0.01:
-            tick_format = '%.3f'
+            ticks = [45, 90, 135, 180, 225]
+        elif ('dominant' in title_str) and ('wavelength' in title_str):
+            param_range = [400, 700]
+            color_type = colscales.spectral_cie(wvl_min=param_range[0], wvl_max=param_range[1])
+            tick_format = '%.0f'
+            ticks = [400, 450, 500, 550, 600, 650, 700]
+        elif 'Forel-Ule' in title_str:
+            color_type = colscales.forel_ule()
+            param_range = [0.5, 21.5]
+            ticks = [i + 1 for i in range(21)]
+            boundaries = [fu - 0.5 for fu in range(1, 23, 1)]  # [fu + 0.5 for fu in range(1, 21, 1)]
+            norm = mpl.colors.BoundaryNorm(ticks, color_type)
+            tick_format = '%.0f'
+        elif 'Whiting' in title_str:
+            color_type = cm.get_cmap(name='Reds').copy()
+            param_range = [0.5, 1.5]
+            ticks = False
+        elif 'Secchi' in title_str:
+            color_type = cm.get_cmap(name='viridis_r').copy()
+            ticks = False
         else:
-            tick_format = '%.4f'
-        rel_ticks = [0.00, 0.2, 0.4, 0.6, 0.8, 1.00]
-        ticks = [rel_tick * (param_range[1] - param_range[0]) + param_range[0] for rel_tick in rel_ticks]
+            color_type = cm.get_cmap(name='viridis').copy()
+            ticks = False
+        # color_type = colscales.rainbow_king()
+        # color_type = colscales.red2blue()
+        # color_type = cm.get_cmap(name='magma_r')
 
-    # Initialize plot
-    fig = plt.figure(figsize=((aspect_ratio * 3) + (2 * legend_extension), 3))
-    subplot_axes = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.PlateCarree()) ccrs.Mercator())
-
-    if wkt:
-        subplot_axes.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
-
-    ##############################
-    # ### SRTM plot version ######
-    ##############################
-
-    if basemap in ['srtm_hillshade', 'srtm_elevation']:
-        if canvas_area[1][1] <= 60 and canvas_area[0][1] >= -60:
-            if lat_range < 50 and lon_range < 50:
-                log(env["General"]["log"], '   larger image side is ' + str(round(max(lon_range, lat_range), 1)) + ' km, applying SRTM1')
-                source = srtm.SRTM1Source
+        color_type.set_bad(alpha=0)
+        if not param_range:
+            log(env["General"]["log"], 'No range provided. Estimating...')
+            range_intervals = [2000, 1000, 500, 200, 100, 50, 40, 30, 20, 15,
+                               10, 8, 6, 4, 2, 1, 0.5, 0.2, 0.1, 0.08, 0.06,
+                               0.04, 0.02, 0.01, 0.008, 0.006, 0.004, 0.002,
+                               0.001]
+            for n_interval in range(2, len(range_intervals)):
+                if np.nanpercentile(masked_param_arr.compressed(), 90) > range_intervals[n_interval]:
+                    param_range = [0, range_intervals[n_interval - 2]]
+                    break
+                elif np.nanpercentile(masked_param_arr.compressed(), 90) < range_intervals[-1]:
+                    param_range = [0, range_intervals[-1]]
+                    break
+        log(env["General"]["log"], 'Parameters range set to: {}'.format(param_range))
+        if not ticks:
+            if param_range[1] >= 10:
+                tick_format = '%.0f'
+            elif param_range[1] >= 1:
+                tick_format = '%.1f'
+            elif param_range[1] >= 0.1:
+                tick_format = '%.2f'
+            elif param_range[1] >= 0.01:
+                tick_format = '%.3f'
             else:
-                log(env["General"]["log"], '   larger image side is ' + str(round(max(lon_range, lat_range), 1)) + ' km, applying SRTM3')
-                source = srtm.SRTM3Source
+                tick_format = '%.4f'
+            rel_ticks = [0.00, 0.2, 0.4, 0.6, 0.8, 1.00]
+            ticks = [rel_tick * (param_range[1] - param_range[0]) + param_range[0] for rel_tick in rel_ticks]
 
-            #  Add shading if requested
-            if basemap == 'srtm_hillshade':
-                log(env["General"]["log"], '   preparing SRTM hillshade basemap')
-                srtm_raster = PostprocessedRasterSource(source(max_nx=8, max_ny=8), shade)
-                color_vals = [[0.8, 0.8, 0.8, 1], [1.0, 1.0, 1.0, 1]]
-                shade_grey = colors.LinearSegmentedColormap.from_list("ShadeGrey", color_vals)
-                base_cols = shade_grey
-            else:  # elif basemap == 'srtm_elevation':
-                log(env["General"]["log"], '   preparing SRTM elevation basemap')
-                srtm_raster = PostprocessedRasterSource(source(max_nx=6, max_ny=6), elevate)
-                color_vals = [[0.7, 0.7, 0.7, 1], [0.90, 0.90, 0.90, 1], [0.97, 0.97, 0.97, 1], [1.0, 1.0, 1.0, 1]]
-                elev_grey = colors.LinearSegmentedColormap.from_list("ElevGrey", color_vals)
-                base_cols = elev_grey
+        # Initialize plot
+        fig = plt.figure(figsize=((aspect_ratio * 3) + (2 * legend_extension), 3))
+        subplot_axes = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.PlateCarree()) ccrs.Mercator())
 
-            # Plot the background
-            subplot_axes.add_raster(srtm_raster, cmap=base_cols)
+        if wkt:
+            subplot_axes.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
 
+        ##############################
+        # ### SRTM plot version ######
+        ##############################
+
+        if basemap in ['srtm_hillshade', 'srtm_elevation']:
+            if canvas_area[1][1] <= 60 and canvas_area[0][1] >= -60:
+                if lat_range < 50 and lon_range < 50:
+                    log(env["General"]["log"],
+                        '   larger image side is ' + str(round(max(lon_range, lat_range), 1)) + ' km, applying SRTM1')
+                    source = srtm.SRTM1Source
+                else:
+                    log(env["General"]["log"],
+                        '   larger image side is ' + str(round(max(lon_range, lat_range), 1)) + ' km, applying SRTM3')
+                    source = srtm.SRTM3Source
+
+                #  Add shading if requested
+                if basemap == 'srtm_hillshade':
+                    log(env["General"]["log"], '   preparing SRTM hillshade basemap')
+                    srtm_raster = PostprocessedRasterSource(source(max_nx=8, max_ny=8), shade)
+                    color_vals = [[0.8, 0.8, 0.8, 1], [1.0, 1.0, 1.0, 1]]
+                    shade_grey = colors.LinearSegmentedColormap.from_list("ShadeGrey", color_vals)
+                    base_cols = shade_grey
+                else:  # elif basemap == 'srtm_elevation':
+                    log(env["General"]["log"], '   preparing SRTM elevation basemap')
+                    srtm_raster = PostprocessedRasterSource(source(max_nx=6, max_ny=6), elevate)
+                    color_vals = [[0.7, 0.7, 0.7, 1], [0.90, 0.90, 0.90, 1], [0.97, 0.97, 0.97, 1], [1.0, 1.0, 1.0, 1]]
+                    elev_grey = colors.LinearSegmentedColormap.from_list("ElevGrey", color_vals)
+                    base_cols = elev_grey
+
+                # Plot the background
+                subplot_axes.add_raster(srtm_raster, cmap=base_cols)
+
+            else:
+                log(env["General"]["log"], '   no SRTM data outside 55 deg N/S, proceeding without basemap')
+                basemap = 'nobasemap'
+
+        ##################################
+        # ### non-SRTM plot version ######
+        ##################################
+
+        if basemap in ['quadtree_rgb', 'nobasemap']:
+
+            if basemap == 'nobasemap':
+                log(env["General"]["log"], '   proceeding without basemap')
+            if basemap == 'quadtree_rgb':
+                log(env["General"]["log"], '   preparing Quadtree tiles basemap')
+
+                # background = maps.GoogleTiles(style='street')
+                # background = maps.GoogleTiles(style='satellite')
+                # background = maps.GoogleTiles(style='terrain')
+                # background = maps.MapQuestOpenAerial()
+                # background = maps.OSM()
+                background = maps.QuadtreeTiles()
+                # crs = maps.GoogleTiles().crs
+                # crs = maps.QuadtreeTiles().crs
+
+                # Add background
+                subplot_axes.add_image(background, 10)
+
+        ##############################
+        # ### both plot versions #####
+        ##############################
+
+        # Plot parameter
+        # Fun fact: interpolation='none' causes interpolation if opened in OSX Preview:
+        # https://stackoverflow.com/questions/54250441/pdf-python-plot-is-blurry-image-interpolation
+        parameter = subplot_axes.imshow(masked_param_arr, extent=[min_lon, max_lon, min_lat, max_lat],
+                                        transform=ccrs.PlateCarree(), origin='upper', cmap=color_type,
+                                        # interpolation='none',
+                                        vmin=param_range[0], vmax=param_range[1], zorder=10)
+
+        # Plot flags
+        if cloud_layer:
+            cloud_colmap = colscales.cloud_color()
+            cloud_colmap.set_bad('w', 0)
+            _ = plt.imshow(masked_cloud_arr, extent=[min_lon, max_lon, min_lat, max_lat],
+                           transform=ccrs.PlateCarree(), origin='upper', cmap=cloud_colmap, interpolation='none',
+                           zorder=20)
+
+        if shadow_layer:
+            shadow_colmap = colscales.shadow_color()
+            shadow_colmap.set_bad('w', 0)
+            _ = plt.imshow(masked_shadow_arr, extent=[min_lon, max_lon, min_lat, max_lat],
+                           transform=ccrs.PlateCarree(), origin='upper', cmap=shadow_colmap, interpolation='none',
+                           zorder=20)
+
+        if suspect_layer:
+            suspect_colmap = colscales.suspect_color()
+            suspect_colmap.set_bad('w', 0)
+            _ = plt.imshow(masked_suspect_arr, extent=[min_lon, max_lon, min_lat, max_lat],
+                           transform=ccrs.PlateCarree(), origin='upper', cmap=suspect_colmap, interpolation='none',
+                           zorder=20)
+
+        # Add gridlines
+        if grid:
+            gridlines = subplot_axes.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
+                                               linestyle=':', zorder=23)  # , n_steps=3)
+            gridlines.xlocator = mpl.ticker.FixedLocator(x_ticks)
+            gridlines.ylocator = mpl.ticker.FixedLocator(y_ticks)
+
+            gridlines.xlabel_style = {'size': gridlabel_size, 'color': 'black'}
+            gridlines.ylabel_style = {'size': gridlabel_size, 'color': 'black'}
+
+        # Create colorbar
+        log(env["General"]["log"], '   creating colorbar')
+        fig = plt.gcf()
+        fig.subplots_adjust(top=1, bottom=0, left=0,
+                            right=(aspect_ratio * 3) / ((aspect_ratio * 3) + (1.2 * legend_extension)),
+                            wspace=0.05, hspace=0.05)
+        cax = fig.add_axes([(aspect_ratio * 3) / ((aspect_ratio * 3) + (0.6 * legend_extension)), 0.15, 0.03, 0.7])
+
+        # discrete colorbar option for Forel-Ule classes
+        if 'Forel-Ule' in title_str:
+            cbar = fig.colorbar(parameter, cax=cax, orientation=bar_orientation, norm=norm, boundaries=boundaries,
+                                ticks=ticks, format=tick_format)
+            cbar.ax.tick_params(labelsize=6)
         else:
-            log(env["General"]["log"], '   no SRTM data outside 55 deg N/S, proceeding without basemap')
-            basemap = 'nobasemap'
+            cbar = fig.colorbar(parameter, cax=cax, ticks=ticks, format=tick_format, orientation=bar_orientation)
+            cbar.ax.tick_params(labelsize=8)
 
-    ##################################
-    # ### non-SRTM plot version ######
-    ##################################
-
-    if basemap in ['quadtree_rgb', 'nobasemap']:
-
-        if basemap == 'nobasemap':
-            log(env["General"]["log"], '   proceeding without basemap')
-        if basemap == 'quadtree_rgb':
-            log(env["General"]["log"], '   preparing Quadtree tiles basemap')
-
-            # background = maps.GoogleTiles(style='street')
-            # background = maps.GoogleTiles(style='satellite')
-            # background = maps.GoogleTiles(style='terrain')
-            # background = maps.MapQuestOpenAerial()
-            # background = maps.OSM()
-            background = maps.QuadtreeTiles()
-            # crs = maps.GoogleTiles().crs
-            # crs = maps.QuadtreeTiles().crs
-
-            # Add background
-            subplot_axes.add_image(background, 10)
-
-    ##############################
-    # ### both plot versions #####
-    ##############################
-
-    # Plot parameter
-    # Fun fact: interpolation='none' causes interpolation if opened in OSX Preview:
-    # https://stackoverflow.com/questions/54250441/pdf-python-plot-is-blurry-image-interpolation
-    parameter = subplot_axes.imshow(masked_param_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
-                                    transform=ccrs.PlateCarree(), origin='upper', cmap=color_type, #interpolation='none',
-                                    vmin=param_range[0], vmax=param_range[1], zorder=10)
-
-    # Plot flags
-    if cloud_layer:
-        cloud_colmap = colscales.cloud_color()
-        cloud_colmap.set_bad('w', 0)
-        _ = plt.imshow(masked_cloud_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
-                       transform=ccrs.PlateCarree(), origin='upper', cmap=cloud_colmap, interpolation='none',
-                       zorder=20)
-
-    if shadow_layer:
-        shadow_colmap = colscales.shadow_color()
-        shadow_colmap.set_bad('w', 0)
-        _ = plt.imshow(masked_shadow_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
-                       transform=ccrs.PlateCarree(), origin='upper', cmap=shadow_colmap, interpolation='none',
-                       zorder=20)
-
-    if suspect_layer:
-        suspect_colmap = colscales.suspect_color()
-        suspect_colmap.set_bad('w', 0)
-        _ = plt.imshow(masked_suspect_arr, extent=[prod_min_lon, prod_max_lon, prod_min_lat, prod_max_lat],
-                       transform=ccrs.PlateCarree(), origin='upper', cmap=suspect_colmap, interpolation='none',
-                       zorder=20)
-
-    # Add gridlines
-    if grid:
-        gridlines = subplot_axes.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
-                                           linestyle=':', zorder=23)  # , n_steps=3)
-        gridlines.xlocator = mpl.ticker.FixedLocator(x_ticks)
-        gridlines.ylocator = mpl.ticker.FixedLocator(y_ticks)
-
-        gridlines.xlabel_style = {'size': gridlabel_size, 'color': 'black'}
-        gridlines.ylabel_style = {'size': gridlabel_size, 'color': 'black'}
-
-    # Create colorbar
-    log(env["General"]["log"], '   creating colorbar')
-    fig = plt.gcf()
-    fig.subplots_adjust(top=1, bottom=0, left=0,
-                        right=(aspect_ratio * 3) / ((aspect_ratio * 3) + (1.2 * legend_extension)),
-                        wspace=0.05, hspace=0.05)
-    cax = fig.add_axes([(aspect_ratio * 3) / ((aspect_ratio * 3) + (0.6 * legend_extension)), 0.15, 0.03, 0.7])
-
-    # discrete colorbar option for Forel-Ule classes
-    if 'Forel-Ule' in title_str:
-        cbar = fig.colorbar(parameter, cax=cax, orientation=bar_orientation, norm=norm, boundaries=boundaries,
-                            ticks=ticks, format=tick_format)
-        cbar.ax.tick_params(labelsize=6)
-    else:
-        cbar = fig.colorbar(parameter, cax=cax, ticks=ticks, format=tick_format, orientation=bar_orientation)
-        cbar.ax.tick_params(labelsize=8)
-
-    # Save plot
-    plt.title(legend_str, y=1.05, fontsize=8)
-    log(env["General"]["log"], 'Writing {}'.format(os.path.basename(output_file)))
-    plt.savefig(output_file, bbox_inches='tight', dpi=300)
-    plt.close()
-    sub_product.closeIO()
-    product.closeIO()
+        # Save plot
+        plt.title(legend_str, y=1.05, fontsize=8)
+        log(env["General"]["log"], 'Writing {}'.format(os.path.basename(output_file)))
+        plt.savefig(output_file, bbox_inches='tight', dpi=300)
+        plt.close()
 
 
 def elevate(located_elevations):
@@ -520,7 +458,6 @@ def shade(located_elevations):
 
 
 def get_legend_str(layer_str):
-
     # Fluo products
     if layer_str in ['L_CHL']:
         legend_str = r'$\mathbf{[mg/m^3]}$'

@@ -187,11 +187,11 @@ def get_band_names_from_nc(nc):
     return bands
 
 
-def get_name_width_height_from_nc(nc, product_file):
+def get_name_width_height_from_nc(nc, product_file=None):
     """Returns the height and the width of a given product."""
     for var in nc.variables:
         if len(nc.variables[var].shape) == 2:
-            return os.path.basename(product_file), nc.dimensions['lon'].size, nc.dimensions['lat'].size
+            return os.path.basename(product_file) if product_file is not None else None, nc.dimensions['lon'].size, nc.dimensions['lat'].size
     raise RuntimeWarning('Could not read width and height from product {}.'.format(product_file))
 
 
@@ -283,13 +283,13 @@ def create_band(dst, band_name, band_unit, valid_pixel_expression):
     return b
 
 
-def read_pixels_from_nc(nc, band_name, x, y, w, h, data=None):
-    return read_pixels_from_band(nc.variables[band_name], x, y, w, h, data)
+def read_pixels_from_nc(nc, band_name, x, y, w, h, data=None, dtype=np.float64):
+    return read_pixels_from_band(nc.variables[band_name], x, y, w, h, data, dtype)
 
 
-def read_pixels_from_band(band, x, y, w, h, data=None):
+def read_pixels_from_band(band, x, y, w, h, data=None, dtype=np.float64):
     if data is None:
-        data = np.zeros(w, dtype=np.float32)
+        data = np.zeros(w, dtype=dtype)
     for read_y in range(y, y + h):
         for read_x in range(x, x + w):
             data[(read_y - y) * w + read_x - x] = float(band[read_y][read_x])
@@ -304,3 +304,20 @@ def write_pixels_to_band(band, x, y, w, h, data):
     for write_y in range(y, y + h):
         for write_x in range(x, x + w):
             band[write_y][write_x] = data[(write_y - y) * w + write_x - x]
+
+
+def get_np_data_type(nc, band_name):
+    dtype_str = nc.variables[band_name].data_type
+    if dtype_str == 'f':
+        return np.float32, 'float64'
+
+    if dtype_str <= 12:
+        return np.int32, 'int32'
+    elif dtype_str == 21:
+        return np.float64, 'float64'
+    elif dtype_str == 30:
+        return np.float32, 'float32'
+    elif dtype_str == 31:
+        return np.float64, 'float64'
+    else:
+        raise ValueError("Cannot handle band of data_sh type '{}'".format(str(dtype_str)))

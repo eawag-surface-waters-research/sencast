@@ -9,12 +9,12 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 import os
-
 from PIL import Image
-from snappy import ProductIO, PixelPos
+from netCDF4 import Dataset
 
 from utils.auxil import log
-from utils.product_fun import get_lons_lats
+from utils.product_fun import get_band_names_from_nc, get_name_width_height_from_nc, \
+    get_band_from_nc, get_lons_lats, get_lat_lon_from_x_y, read_pixels_from_nc, get_np_data_type_of_band
 
 # key of the params section for this adapter
 PARAMS_SECTION = "QLRGB"
@@ -59,7 +59,8 @@ def apply(env, params, l2product_files, date):
                     os.remove(ql_file)
                     plot_pic(env, l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
                 else:
-                    log(env["General"]["log"], "Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)))
+                    log(env["General"]["log"],
+                        "Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)))
             else:
                 os.makedirs(os.path.dirname(ql_file), exist_ok=True)
                 plot_pic(env, l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
@@ -69,149 +70,124 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
     linewidth = 0.8
     gridlabel_size = 5
 
-    product = ProductIO.readProduct(input_file)
+    with Dataset(input_file) as src:
+        product_band_names = get_band_names_from_nc(src)
+        for rgbls in rgb_layers:
+            if rgbls not in product_band_names:
+                raise RuntimeError("{} not in product bands. Edit the parameter file.".format(rgbls))
 
-    all_bns = product.getBandNames()
-    for rgbls in rgb_layers:
-        if rgbls not in all_bns:
-            raise RuntimeError("{} not in product bands. Edit the parameter file.".format(rgbls))
+        # Create a new product With RGB bands only
+        data_type = get_np_data_type_of_band(src, rgb_layers[0])
 
-    # Create a new product With RGB bands only
-    width = product.getSceneRasterWidth()
-    height = product.getSceneRasterHeight()
+        # read rgb bands
+        _, width, height = get_name_width_height_from_nc(src)
+        red_arr = read_pixels_from_nc(src, rgb_layers[0], 0, 0, width, height, dtype=data_type)
+        red_arr = red_arr.reshape(height, width)
+        green_arr = read_pixels_from_nc(src, rgb_layers[1], 0, 0, width, height, dtype=data_type)
+        green_arr = green_arr.reshape(height, width)
+        blue_arr = read_pixels_from_nc(src, rgb_layers[2], 0, 0, width, height, dtype=data_type)
+        blue_arr = blue_arr.reshape(height, width)
 
-    red_band = product.getBand(rgb_layers[0])
-    red_dt = red_band.getDataType()
+        # read lat and lon information
+        lowlef = {}
+        lowlef.lat, lowlef.lon = get_lat_lon_from_x_y(src, 0, height)
+        upprig = {}
+        upprig.lat, upprig.lon = get_lat_lon_from_x_y(src, width, 0)
 
-    if red_dt <= 12:
-        data_type = np.int32
-        # d_type = 'int32'
-    elif red_dt == 21:
-        data_type = np.float64
-        # d_type = 'float64'
-    elif red_dt == 30:
-        data_type = np.float32
-        # d_type = 'float32'
-    elif red_dt == 31:
-        data_type = np.float64
-        # d_type = 'float64'
-    else:
-        raise ValueError("Cannot handle band of data_sh type '{}'".format(str(red_dt)))
+        # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
+        if crop_ext:
+            lat_ext = (upprig.lat - lowlef.lat) / 8
+            lon_ext = (upprig.lon - lowlef.lon) / 8
+        else:
+            lat_ext = 0
+            lon_ext = 0
 
-    red_band = product.getBand(rgb_layers[0])
-    green_band = product.getBand(rgb_layers[1])
-    blue_band = product.getBand(rgb_layers[2])
+        lon_range = (upprig.lon + lon_ext) - (lowlef.lon - lon_ext)
+        lat_range = (upprig.lat + lat_ext) - (lowlef.lat - lon_ext)
 
-    # read rgb bands
-    red_arr = np.zeros(width * height, dtype=data_type)
-    red_band.readPixels(0, 0, width, height, red_arr)
-    red_arr = red_arr.reshape(height, width)
-    green_arr = np.zeros(width * height, dtype=data_type)
-    green_band.readPixels(0, 0, width, height, green_arr)
-    green_arr = green_arr.reshape(height, width)
-    blue_arr = np.zeros(width * height, dtype=data_type)
-    blue_band.readPixels(0, 0, width, height, blue_arr)
-    blue_arr = blue_arr.reshape(height, width)
+        # Calculate a suitable grid distance with which the smaller image portion gets three gridlines
+        grid_dist = min(lon_range, lat_range) / 3
 
-    # read lat and lon information
-    geocoding = product.getSceneGeoCoding()
-    lowlef = geocoding.getGeoPos(PixelPos(0, height), None)
-    upprig = geocoding.getGeoPos(PixelPos(width, 0), None)
+        if grid_dist < 0.01:
+            decimal = 0.001
+        elif grid_dist < 0.1:
+            decimal = 0.01
+        elif grid_dist < 1:
+            decimal = 0.1
+        elif grid_dist < 10:
+            decimal = 1
+        elif grid_dist < 100:
+            decimal = 10
+        else:
+            decimal = 100
 
-    # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
-    if crop_ext:
-        lat_ext = (upprig.lat - lowlef.lat) / 8
-        lon_ext = (upprig.lon - lowlef.lon) / 8
-    else:
-        lat_ext = 0
-        lon_ext = 0
+        grid_dist = round(grid_dist / decimal) * decimal
 
-    lon_range = (upprig.lon + lon_ext) - (lowlef.lon - lon_ext)
-    lat_range = (upprig.lat + lat_ext) - (lowlef.lat - lon_ext)
+        # Calculate a gridline anchor position with a round value, around which the other gridlines are defined
+        lat_center = round((lowlef.lat + (upprig.lat - lowlef.lat) / 2) / (decimal * 10)) * (decimal * 10)
+        lon_center = round((lowlef.lon + (upprig.lon - lowlef.lon) / 2) / (decimal * 10)) * (decimal * 10)
+        x_ticks = [lon_center]
+        y_ticks = [lat_center]
+        i = 0
+        while (max(x_ticks) <= upprig.lon or min(x_ticks) >= lowlef.lon):
+            i += 1
+            x_ticks.extend((lon_center + (i * grid_dist), lon_center - (i * grid_dist)))
+        x_ticks.sort()
+        i = 0
+        while (max(y_ticks) <= upprig.lat or min(y_ticks) >= lowlef.lat):
+            i += 1
+            y_ticks.extend((lat_center + (i * grid_dist), lat_center - (i * grid_dist)))
+        y_ticks.sort()
 
-    # Calculate a suitable grid distance with which the smaller image portion gets three gridlines
-    grid_dist = min(lon_range, lat_range) / 3
+        product_area = [[lowlef.lon - lon_ext, lowlef.lat - lat_ext], [upprig.lon + lon_ext, upprig.lat + lat_ext]]
 
-    if grid_dist < 0.01:
-        decimal = 0.001
-    elif grid_dist < 0.1:
-        decimal = 0.01
-    elif grid_dist < 1:
-        decimal = 0.1
-    elif grid_dist < 10:
-        decimal = 1
-    elif grid_dist < 100:
-        decimal = 10
-    else:
-        decimal = 100
+        # Initialize plot
+        fig = plt.figure()
+        subplot_axes = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.Mercator())
 
-    grid_dist = round(grid_dist / decimal) * decimal
+        # adjust image brightness scaling (empirical...)
+        rgb_array = np.zeros((height, width, 3), 'float32')  # uint8
+        rgb_array[..., 0] = red_arr
+        rgb_array[..., 1] = green_arr
+        rgb_array[..., 2] = blue_arr
 
-    # Calculate a gridline anchor position with a round value, around which the other gridlines are defined
-    lat_center = round((lowlef.lat + (upprig.lat - lowlef.lat) / 2) / ( decimal * 10)) * (decimal * 10)
-    lon_center = round((lowlef.lon + (upprig.lon - lowlef.lon) / 2) / ( decimal * 10)) * (decimal * 10)
-    x_ticks = [lon_center]
-    y_ticks = [lat_center]
-    i=0
-    while (max(x_ticks) <= upprig.lon or min(x_ticks) >= lowlef.lon):
-        i+=1
-        x_ticks.extend((lon_center + (i * grid_dist), lon_center - (i * grid_dist)))
-    x_ticks.sort()
-    i=0
-    while (max(y_ticks) <= upprig.lat or min(y_ticks) >= lowlef.lat):
-        i+=1
-        y_ticks.extend((lat_center + (i * grid_dist), lat_center - (i * grid_dist)))
-    y_ticks.sort()
+        scale_factor = 250 / max_val
 
-    product_area = [[lowlef.lon - lon_ext, lowlef.lat - lat_ext], [upprig.lon + lon_ext, upprig.lat + lat_ext]]
+        for i_rgb in range(rgb_array.shape[-1]):
+            zero_ind = np.where(rgb_array[:, :, i_rgb] == 0)
+            nan_ind = np.where(rgb_array[:, :, i_rgb] == -1)
+            exc_ind = np.where(rgb_array[:, :, i_rgb] > max_val)
+            rgb_array[:, :, i_rgb] = rgb_array[:, :, i_rgb] * scale_factor
+            rgb_array[:, :, i_rgb][zero_ind] = 250
+            rgb_array[:, :, i_rgb][nan_ind] = 250
+            rgb_array[:, :, i_rgb][exc_ind] = 250
 
-    # Initialize plot
-    fig = plt.figure()
-    subplot_axes = fig.add_subplot(111, projection=ccrs.PlateCarree())  # ccrs.Mercator())
+        img = Image.fromarray(rgb_array.astype(np.uint8))
 
-    # adjust image brightness scaling (empirical...)
-    rgb_array = np.zeros((height, width, 3), 'float32')  # uint8
-    rgb_array[..., 0] = red_arr
-    rgb_array[..., 1] = green_arr
-    rgb_array[..., 2] = blue_arr
+        global canvas_area
+        if wkt:
+            lons, lats = get_lons_lats(wkt)
+            canvas_area = [[min(lons), min(lats)], [max(lons), max(lats)]]
+        else:
+            canvas_area = product_area
 
-    scale_factor = 250 / max_val
+        subplot_axes.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
+        subplot_axes.imshow(img,
+                            extent=[product_area[0][0], product_area[1][0], product_area[0][1], product_area[1][1]],
+                            transform=ccrs.PlateCarree(), origin='upper', interpolation='nearest', zorder=1)
 
-    for i_rgb in range(rgb_array.shape[-1]):
-        zero_ind = np.where(rgb_array[:, :, i_rgb] == 0)
-        nan_ind = np.where(rgb_array[:, :, i_rgb] == -1)
-        exc_ind = np.where(rgb_array[:, :, i_rgb] > max_val)
-        rgb_array[:, :, i_rgb] = rgb_array[:, :, i_rgb] * scale_factor
-        rgb_array[:, :, i_rgb][zero_ind] = 250
-        rgb_array[:, :, i_rgb][nan_ind] = 250
-        rgb_array[:, :, i_rgb][exc_ind] = 250
+        # Add gridlines
+        if grid:
+            gridlines = subplot_axes.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
+                                               linestyle=':', zorder=2)  # , n_steps=3)
 
-    img = Image.fromarray(rgb_array.astype(np.uint8))
+            gridlines.xlocator = mpl.ticker.FixedLocator(x_ticks)
+            gridlines.ylocator = mpl.ticker.FixedLocator(y_ticks)
 
-    global canvas_area
-    if wkt:
-        lons, lats = get_lons_lats(wkt)
-        canvas_area = [[min(lons), min(lats)], [max(lons), max(lats)]]
-    else:
-        canvas_area = product_area
+            gridlines.xlabel_style = {'size': gridlabel_size, 'color': 'black'}
+            gridlines.ylabel_style = {'size': gridlabel_size, 'color': 'black'}
 
-    subplot_axes.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
-    subplot_axes.imshow(img, extent=[product_area[0][0], product_area[1][0], product_area[0][1], product_area[1][1]],
-                        transform=ccrs.PlateCarree(), origin='upper', interpolation='nearest', zorder=1)
-
-    # Add gridlines
-    if grid:
-        gridlines = subplot_axes.gridlines(draw_labels=True, linewidth=linewidth, color='black', alpha=1.0,
-                                           linestyle=':', zorder=2)  # , n_steps=3)
-
-        gridlines.xlocator = mpl.ticker.FixedLocator(x_ticks)
-        gridlines.ylocator = mpl.ticker.FixedLocator(y_ticks)
-
-        gridlines.xlabel_style = {'size': gridlabel_size, 'color': 'black'}
-        gridlines.ylabel_style = {'size': gridlabel_size, 'color': 'black'}
-
-    # Save plot
-    log(env["General"]["log"], 'Saving image {}'.format(os.path.basename(output_file)))
-    plt.savefig(output_file, dpi=300)
-    plt.close()
-    product.closeIO()
+        # Save plot
+        log(env["General"]["log"], 'Saving image {}'.format(os.path.basename(output_file)))
+        plt.savefig(output_file, dpi=300)
+        plt.close()
