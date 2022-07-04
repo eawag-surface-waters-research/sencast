@@ -239,47 +239,6 @@ def get_corner_pixels_roi_olci(l1product_path, wkt):
     return ul, ur, lr, ll
 
 
-def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
-    """
-    Returns the coordinates of the pixel [x, y] which cover a certain geo location (lon/lat).
-    :param longitudes: matrix representing the longitude of each pixel
-    :param latitudes: matrix representing the latitude of every pixel
-    :param lon: longitude of the geo location of interest
-    :param lat: latitude of the geo location of interest
-    :param x: starting point of the algorithm
-    :param y: starting point of the algorithm
-    :param step: starting step size of the algorithm
-    :return: [-1, -1] if the geo location is not covered by this product
-    """
-
-    lons_height, lons_width = len(longitudes), len(longitudes[0])
-    lats_height, lats_width = len(latitudes), len(latitudes[0])
-
-    if lats_height != lons_height or lats_width != lons_width:
-        raise RuntimeError("Provided latitudes and longitudes matrices do not have the same size!")
-
-    if x is None:
-        x = int(lons_width / 2)
-    if y is None:
-        y = int(lats_height / 2)
-    if step is None:
-        step = int(ceil(min(lons_width, lons_height) / 4))
-
-    new_coords = [[x, y], [x - step, y - step], [x - step, y], [x - step, y + step], [x, y + step],
-                  [x + step, y + step], [x + step, y], [x + step, y - step], [x, y - step]]
-    distances = [haversine((lat, lon), (latitudes[new_x][new_y], longitudes[new_x][new_y])) for [new_x, new_y] in
-                 new_coords]
-
-    idx = distances.index(min(distances))
-
-    if step == 1:
-        if x <= 0 or x >= lats_width - 1 or y <= 0 or y >= lats_height - 1:
-            return [-1, -1]
-        return new_coords[idx]
-    else:
-        return get_pixel_pos(longitudes, latitudes, lon, lat, new_coords[idx][0], new_coords[idx][1], int(ceil(step / 2)))
-
-
 def get_corner_pixels_roi_oli(l1product_path, wkt):
     """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
 

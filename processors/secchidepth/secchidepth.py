@@ -16,6 +16,7 @@ from utils.auxil import log
 from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, \
     get_satellite_name_from_product_name, get_valid_pe_from_nc, write_pixels_to_nc, create_band, read_pixels_from_nc
 
+
 # key of the params section for this adapter
 PARAMS_SECTION = 'SECCHIDEPTH'
 # The name of the folder to which the output product will be saved

@@ -11,6 +11,7 @@ import os
 import math
 import numpy as np
 from colour import dominant_wavelength
+
 from netCDF4 import Dataset
 from utils.auxil import log
 from utils.product_fun import copy_nc, create_band, get_band_from_nc, get_band_names_from_nc, get_name_width_height_from_nc, get_satellite_name_from_product_name, get_valid_pe_from_nc, read_pixels_from_band, write_pixels_to_nc
