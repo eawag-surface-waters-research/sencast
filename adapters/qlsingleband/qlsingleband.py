@@ -24,7 +24,7 @@ from netCDF4 import Dataset
 import adapters.qlsingleband.colour_scales as colscales
 from utils.auxil import log
 from utils.product_fun import get_lons_lats, get_lat_lon_from_x_y, get_band_names_from_nc, \
-    get_name_width_height_from_nc, get_np_data_type, read_pixels_from_nc
+    get_name_width_height_from_nc, read_pixels_from_nc
 
 plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')
@@ -85,8 +85,7 @@ def apply(env, params, l2product_files, date):
 
 
 def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_elevation', crop_ext=None,
-             param_range=None, cloud_layer=None, suspect_layer=None, water_layer=None, grid=True, shadow_layer=None,
-             aspect_balance=None):
+             param_range=None, cloud_layer=None, suspect_layer=None, water_layer=None, grid=True, shadow_layer=None):
     """ basemap options are srtm_hillshade, srtm_elevation, quadtree_rgb, nobasemap """
 
     # mpl.rc('font', family='Times New Roman')
@@ -103,7 +102,6 @@ def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_el
 
         # Create a new product With the band to plot only
         _, width, height = get_name_width_height_from_nc(src)
-        data_type, d_type = get_np_data_type(src, band_name)
         band_arr = read_pixels_from_nc(src, band_name, 0, 0, width, height, dtype=np.float64)
         band_arr[band_arr == 0] = np.nan
 
@@ -219,7 +217,6 @@ def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_el
             log(env["General"]["log"], 'Transforming log data...')
             band_arr = np.exp(band_arr)
 
-        bounds = None
         if ('hue' in title_str) and ('angle' in title_str):
             color_type = cm.get_cmap(name='viridis').copy()
             param_range = [20, 230]
@@ -464,17 +461,17 @@ def get_legend_str(layer_str):
     elif 'TUR_Nechad2016' in layer_str:
         split_str = layer_str.split('_')
         legend_str = r'$\mathbf{[FNU]}$'
-        title_str = r'$\mathbf{Acolite\/Nechad\/2016\/turbidity\/(' + split_str[-1] + '\/nm)}$'
+        title_str = r'$\mathbf{Acolite\/Nechad\/2016\/turbidity\/(' + split_str[-1] + r'\/nm)}$'
         log_num = False
     elif layer_str == 'TUR_Dogliotti2015':
         split_str = layer_str.split('_')
         legend_str = r'$\mathbf{[FNU]}$'
-        title_str = r'$\mathbf{Acolite\/Dogliotti\/2015\/turbidity\/(' + split_str[-1] + '\/nm)}$'
+        title_str = r'$\mathbf{Acolite\/Dogliotti\/2015\/turbidity\/(' + split_str[-1] + r'\/nm)}$'
         log_num = False
     elif 'rhow' in layer_str and 'rhown' not in layer_str:
         split_str = layer_str.split('_')
         legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{Acolite\/R_w(' + split_str[-1] + '\/nm)}$'
+        title_str = r'$\mathbf{Acolite\/R_w(' + split_str[-1] + r'\/nm)}$'
         log_num = False
     elif layer_str == 'hue_angle':
         legend_str = r'$\mathbf{[°]}$'
@@ -489,12 +486,12 @@ def get_legend_str(layer_str):
     elif 'rhow' in layer_str and 'rhown' not in layer_str:
         lstr = re.findall(r'\d*$', layer_str)[0]
         legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{C2RCC\/R_w(' + lstr + '\/nm)}$'
+        title_str = r'$\mathbf{C2RCC\/R_w(' + lstr + r'\/nm)}$'
         log_num = False
     elif 'rhown' in layer_str:
         lstr = re.findall(r'\d*$', layer_str)[0]
         legend_str = r'$\mathbf{[dl]}$'
-        title_str = r'$\mathbf{C2RCC\/R_{w,n}(' + lstr + '\/nm)}$'
+        title_str = r'$\mathbf{C2RCC\/R_{w,n}(' + lstr + r'\/nm)}$'
         log_num = False
     elif layer_str in ['kdmin']:
         legend_str = r'$\mathbf{[m^-1]}$'
