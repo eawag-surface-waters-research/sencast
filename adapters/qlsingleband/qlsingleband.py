@@ -103,32 +103,20 @@ def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_el
 
         # Create a new product With the band to plot only
         _, width, height = get_name_width_height_from_nc(src)
-        param_band = src.variables[band_name]
-
-        mask_array = np.zeros(shape=(height, width), dtype=np.int32)
-        for x in range(0, width):
-            for y in range(0, height):
-                if param_band.isPixelValid(x, y):
-                    mask_array[y, x] = 1
-        invalid_mask = np.where(mask_array == 1, 1, 0)
-
         data_type, d_type = get_np_data_type(src, band_name)
+        band_arr = read_pixels_from_nc(src, band_name, 0, 0, width, height, dtype=np.float64)
+        band_arr[band_arr == 0] = np.nan
 
-        # read constituent band
-        param_arr = read_pixels_from_nc(src, band_name, 0, 0, width, height, dtype=data_type)
-        param_arr = param_arr.reshape(height, width)
-
-        # Pixel zählen
-        masked_param_arr = np.ma.array(param_arr, fill_value=np.nan)  # , mask = invalid_mask
-        masked_param_arr = np.ma.masked_where(not invalid_mask, masked_param_arr)
-        # masked_param_arr = np.ma.masked_where(masked_param_arr >= 9999, masked_param_arr)
-        # masked_param_arr = np.ma.masked_where(masked_param_arr < 0.000000000001, masked_param_arr)
-        log(env["General"]["log"],
-            '   applicable values are found in ' + str(masked_param_arr.count()) + ' of ' + str(
-                height * width) + ' pixels')
-        if masked_param_arr.count() == 0:
+        # Count pixels with applicable values
+        applicable_values = np.count_nonzero(~np.isnan(band_arr))
+        log(env["General"]["log"], 'Applicable values are found in {} of {} pixels'
+            .format(str(applicable_values), str(height * width)))
+        if applicable_values == 0:
             log(env["General"]["log"], 'Image is empty, skipping...')
             return
+
+        # read constituent band
+        band_arr = band_arr.reshape(height, width)
 
         # load flag bands if requested
         masked_cloud_arr = None
@@ -162,7 +150,7 @@ def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_el
             land_arr = land_arr.reshape(height, width)
             land_ind = np.where(water_arr != water_layer[1])
             land_arr[land_ind] = 100
-            masked_param_arr = np.ma.masked_where(land_arr != 0, masked_param_arr)
+            band_arr = np.ma.masked_where(land_arr != 0, band_arr)
 
         # read lat and lon information
         if wkt:
@@ -229,7 +217,7 @@ def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_el
         title_str, legend_str, log_num = get_legend_str(band_name)
         if log_num:
             log(env["General"]["log"], 'Transforming log data...')
-            masked_param_arr = np.exp(masked_param_arr)
+            band_arr = np.exp(band_arr)
 
         bounds = None
         if ('hue' in title_str) and ('angle' in title_str):
@@ -271,10 +259,10 @@ def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_el
                                0.04, 0.02, 0.01, 0.008, 0.006, 0.004, 0.002,
                                0.001]
             for n_interval in range(2, len(range_intervals)):
-                if np.nanpercentile(masked_param_arr.compressed(), 90) > range_intervals[n_interval]:
+                if np.nanpercentile(band_arr, 90) > range_intervals[n_interval]:
                     param_range = [0, range_intervals[n_interval - 2]]
                     break
-                elif np.nanpercentile(masked_param_arr.compressed(), 90) < range_intervals[-1]:
+                elif np.nanpercentile(band_arr, 90) < range_intervals[-1]:
                     param_range = [0, range_intervals[-1]]
                     break
         log(env["General"]["log"], 'Parameters range set to: {}'.format(param_range))
@@ -365,7 +353,7 @@ def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_el
         # Plot parameter
         # Fun fact: interpolation='none' causes interpolation if opened in OSX Preview:
         # https://stackoverflow.com/questions/54250441/pdf-python-plot-is-blurry-image-interpolation
-        parameter = subplot_axes.imshow(masked_param_arr, extent=[min_lon, max_lon, min_lat, max_lat],
+        parameter = subplot_axes.imshow(band_arr, extent=[min_lon, max_lon, min_lat, max_lat],
                                         transform=ccrs.PlateCarree(), origin='upper', cmap=color_type,
                                         # interpolation='none',
                                         vmin=param_range[0], vmax=param_range[1], zorder=10)
