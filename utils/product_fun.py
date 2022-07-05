@@ -245,8 +245,8 @@ def get_valid_pe_from_nc(nc):
     raise RuntimeError('Reading valid pixel expression does not seem to be implement it for this kind of product.')
 
 
-def get_lat_lon_from_x_y(nc, x, y, lat_dimension_name='lat', lon_dimension_name='lon'):
-    return nc.dimensions[lat_dimension_name][y], nc.dimensions[lon_dimension_name][x]
+def get_lat_lon_from_x_y(nc, x, y, lat_var_name='latitude', lon_var_name='longitude'):
+    return nc.variables[lat_var_name][y][x], nc.variables[lon_var_name][y][x]
 
 
 def get_pixel_value_xy(nc, band_name, x, y):
@@ -289,10 +289,10 @@ def read_pixels_from_nc(nc, band_name, x, y, w, h, data=None, dtype=np.float64):
 
 def read_pixels_from_band(band, x, y, w, h, data=None, dtype=np.float64):
     if data is None:
-        data = np.zeros(w, dtype=dtype)
+        data = np.zeros(w * h, dtype=dtype)
     for read_y in range(y, y + h):
         for read_x in range(x, x + w):
-            data[(read_y - y) * w + read_x - x] = float(band[read_y][read_x])
+            data[(read_y - y) * w + read_x - x] = float(np.ma.getdata(band[read_y])[read_x])
     return data
 
 
@@ -307,17 +307,16 @@ def write_pixels_to_band(band, x, y, w, h, data):
 
 
 def get_np_data_type(nc, band_name):
-    dtype_str = nc.variables[band_name].data_type
-    if dtype_str == 'f':
-        return np.float32, 'float64'
-
-    if dtype_str <= 12:
+    dtype = nc.variables[band_name].datatype
+    if dtype in [np.int8, np.int16, np.int32, np.int64, np.float32, np.float64]:
+        return dtype, dtype.name
+    elif dtype <= 12:
         return np.int32, 'int32'
-    elif dtype_str == 21:
+    elif dtype == 21:
         return np.float64, 'float64'
-    elif dtype_str == 30:
+    elif dtype == 30:
         return np.float32, 'float32'
-    elif dtype_str == 31:
+    elif dtype == 31:
         return np.float64, 'float64'
     else:
-        raise ValueError("Cannot handle band of data_sh type '{}'".format(str(dtype_str)))
+        raise ValueError("Cannot handle band of data_sh type '{}'".format(str(dtype)))

@@ -14,7 +14,7 @@ from netCDF4 import Dataset
 
 from utils.auxil import log
 from utils.product_fun import get_band_names_from_nc, get_name_width_height_from_nc, \
-    get_band_from_nc, get_lons_lats, get_lat_lon_from_x_y, read_pixels_from_nc, get_np_data_type_of_band
+    get_lons_lats, get_lat_lon_from_x_y, read_pixels_from_nc, get_np_data_type
 
 # key of the params section for this adapter
 PARAMS_SECTION = "QLRGB"
@@ -77,7 +77,7 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
                 raise RuntimeError("{} not in product bands. Edit the parameter file.".format(rgbls))
 
         # Create a new product With RGB bands only
-        data_type = get_np_data_type_of_band(src, rgb_layers[0])
+        data_type = get_np_data_type(src, rgb_layers[0])
 
         # read rgb bands
         _, width, height = get_name_width_height_from_nc(src)
@@ -89,21 +89,19 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
         blue_arr = blue_arr.reshape(height, width)
 
         # read lat and lon information
-        lowlef = {}
-        lowlef.lat, lowlef.lon = get_lat_lon_from_x_y(src, 0, height)
-        upprig = {}
-        upprig.lat, upprig.lon = get_lat_lon_from_x_y(src, width, 0)
+        lat_min, lon_min = get_lat_lon_from_x_y(src, 0, height-1)
+        lat_max, lon_max = get_lat_lon_from_x_y(src, width-1, 0)
 
         # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
         if crop_ext:
-            lat_ext = (upprig.lat - lowlef.lat) / 8
-            lon_ext = (upprig.lon - lowlef.lon) / 8
+            lat_ext = (lat_max - lat_min) / 8
+            lon_ext = (lon_max - lon_min) / 8
         else:
             lat_ext = 0
             lon_ext = 0
 
-        lon_range = (upprig.lon + lon_ext) - (lowlef.lon - lon_ext)
-        lat_range = (upprig.lat + lat_ext) - (lowlef.lat - lon_ext)
+        lon_range = (lon_max + lon_ext) - (lon_min - lon_ext)
+        lat_range = (lat_max + lat_ext) - (lat_min - lon_ext)
 
         # Calculate a suitable grid distance with which the smaller image portion gets three gridlines
         grid_dist = min(lon_range, lat_range) / 3
@@ -124,22 +122,22 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
         grid_dist = round(grid_dist / decimal) * decimal
 
         # Calculate a gridline anchor position with a round value, around which the other gridlines are defined
-        lat_center = round((lowlef.lat + (upprig.lat - lowlef.lat) / 2) / (decimal * 10)) * (decimal * 10)
-        lon_center = round((lowlef.lon + (upprig.lon - lowlef.lon) / 2) / (decimal * 10)) * (decimal * 10)
+        lat_center = round((lat_min + (lat_max - lat_min) / 2) / (decimal * 10)) * (decimal * 10)
+        lon_center = round((lon_min + (lon_max - lon_min) / 2) / (decimal * 10)) * (decimal * 10)
         x_ticks = [lon_center]
         y_ticks = [lat_center]
         i = 0
-        while (max(x_ticks) <= upprig.lon or min(x_ticks) >= lowlef.lon):
+        while max(x_ticks) <= lon_max or min(x_ticks) >= lon_min:
             i += 1
             x_ticks.extend((lon_center + (i * grid_dist), lon_center - (i * grid_dist)))
         x_ticks.sort()
         i = 0
-        while (max(y_ticks) <= upprig.lat or min(y_ticks) >= lowlef.lat):
+        while max(y_ticks) <= lat_max or min(y_ticks) >= lat_min:
             i += 1
             y_ticks.extend((lat_center + (i * grid_dist), lat_center - (i * grid_dist)))
         y_ticks.sort()
 
-        product_area = [[lowlef.lon - lon_ext, lowlef.lat - lat_ext], [upprig.lon + lon_ext, upprig.lat + lat_ext]]
+        product_area = [[lon_min - lon_ext, lat_min - lat_ext], [lon_max + lon_ext, lat_max + lat_ext]]
 
         # Initialize plot
         fig = plt.figure()
