@@ -139,8 +139,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
         bands = [get_band_from_nc(src, bname) for bname in spectral_band_names]
         valid_pixel_expression = get_valid_pe_from_nc(src)
-        inclusions = [band for band in product_band_names if band in valid_pixel_expression]
-        inclusions.append('metadata')
+        inclusions = ['crs', 'lat', 'lon']
+        inclusions += [band for band in product_band_names if band in valid_pixel_expression]
         copy_nc(src, dst, inclusions)
 
         fu_band_names = ['hue_angle', 'dominant_wavelength', 'forel_ule']

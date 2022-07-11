@@ -90,8 +90,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
         log(env["General"]["log"], "Bands:       {}".format(list(product_band_names)))
 
         valid_pixel_expression = get_valid_pe_from_nc(src)
-        inclusions = [band for band in product_band_names if band in valid_pixel_expression]
-        inclusions.append('metadata')
+        inclusions = ['crs', 'lat', 'lon']
+        inclusions += [band for band in product_band_names if band in valid_pixel_expression]
         copy_nc(src, dst, inclusions)
 
         mdn_band_names = ['chla']
