@@ -191,7 +191,8 @@ def get_name_width_height_from_nc(nc, product_file=None):
     """Returns the height and the width of a given product."""
     for var in nc.variables:
         if len(nc.variables[var].shape) == 2:
-            return os.path.basename(product_file) if product_file is not None else None, nc.dimensions['lon'].size, nc.dimensions['lat'].size
+            return os.path.basename(product_file) if product_file is not None else None, nc.dimensions['lon'].size, \
+                   nc.dimensions['lat'].size
     raise RuntimeWarning('Could not read width and height from product {}.'.format(product_file))
 
 
@@ -233,7 +234,8 @@ def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
             return [-1, -1]
         return new_coords[idx]
     else:
-        return get_pixel_pos(longitudes, latitudes, lon, lat, new_coords[idx][0], new_coords[idx][1], int(ceil(step / 2)))
+        return get_pixel_pos(longitudes, latitudes, lon, lat, new_coords[idx][0], new_coords[idx][1],
+                             int(ceil(step / 2)))
 
 
 def get_valid_pe_from_nc(nc):
@@ -241,7 +243,8 @@ def get_valid_pe_from_nc(nc):
     if 'Processing_Graph:node_8:parameters:validPixelExpression' in keys:
         return nc.variables['metadata'].__dict__['Processing_Graph:node_8:parameters:validPixelExpression']
     elif 'Processing_Graph:node_2:parameters:targetBands:targetBand_7:validExpression' in keys:
-        return nc.variables['metadata'].__dict__['Processing_Graph:node_2:parameters:targetBands:targetBand_7:validExpression']
+        return nc.variables['metadata'].__dict__[
+            'Processing_Graph:node_2:parameters:targetBands:targetBand_7:validExpression']
     raise RuntimeError('Reading valid pixel expression does not seem to be implement it for this kind of product.')
 
 
@@ -301,9 +304,7 @@ def write_pixels_to_nc(nc, band_name, x, y, w, h, data):
 
 
 def write_pixels_to_band(band, x, y, w, h, data):
-    for write_y in range(y, y + h):
-        for write_x in range(x, x + w):
-            band[write_y][write_x] = data[(write_y - y) * w + write_x - x]
+    band[range(y, y + h), range(x, x + w)] = data.reshape(h, w)
 
 
 def get_np_data_type(nc, band_name):
