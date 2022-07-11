@@ -275,7 +275,6 @@ def dominant_wavelength_wrapper(x, y, max_chunk=1000):
         return dominant_wavelength(np.swapaxes(np.array([x, y]), 0, 1), [1 / 3, 1 / 3])[0]
 
 
-
 def get_hue_angle(x, y):
     """ Yields values for FU 1-21: [229.45, 224.79, 217.12, 203.09, 178.91, 147.64, 118.289, 99.75, 88.37, 78.25, 71.08, 65.06, 59.56, 53.64, 47.89, 42.18, 37.23, 32.63, 28.38, 24.3, 20.98]
         See also Table 6 in Novoa et al. (2013): https://www.jeos.org/index.php/jeos_rp/article/view/13057"""
