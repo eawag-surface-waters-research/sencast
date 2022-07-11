@@ -8,15 +8,11 @@ Adapter authors: Daniel Odermatt, James Runnalls
 """
 
 import os
-import gc
-import sys
-from time import sleep
 import math
 import numpy as np
 from colour import dominant_wavelength
 from snappy import ProductIO, ProductData, Product, ProductUtils, Mask, jpy
 from utils.product_fun import get_satellite_name_from_product_name
-import psutil
 from utils.auxil import log
 
 # key of the params section for this adapter
