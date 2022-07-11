@@ -264,6 +264,7 @@ def copy_nc(src, dst, included_bands):
     dst.setncatts(src.__dict__)
     for name, dimension in src.dimensions.items():
         dst.createDimension(name, (len(dimension) if not dimension.isunlimited() else None))
+    included_bands = ['crs', 'lat', 'lon'] + included_bands
     for name, variable in src.variables.items():
         if name in included_bands:
             dst.createVariable(name, variable.datatype, variable.dimensions)

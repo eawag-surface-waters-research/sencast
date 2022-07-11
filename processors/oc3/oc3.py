@@ -78,8 +78,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         print("Bands:       {}".format(list(product_band_names)))
 
         valid_pixel_expression = get_valid_pe_from_nc(src)
-        inclusions = ['crs', 'lat', 'lon']
-        inclusions += [band for band in product_band_names if band in valid_pixel_expression]
+        inclusions = [band for band in product_band_names if band in valid_pixel_expression]
         copy_nc(src, dst, inclusions)
 
         chla_band = create_band(dst, "chla", "mg/m3", valid_pixel_expression)

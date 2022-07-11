@@ -113,7 +113,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             raise RuntimeError("CHl and KD on different grids. Grid interpolation not yet implemented")
 
         # Add valid pixel expression bands
-        copy_nc(chl_src, dst, ['crs', 'lat', 'lon'])
+        copy_nc(chl_src, dst, [])
         for band_name in chl_band_names + kd_band_names:
             if band_name in str(chl_valid_pixel_expression) or band_name == chl_bandname:
                 copy_band(chl_src, dst, band_name)
