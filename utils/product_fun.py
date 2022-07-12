@@ -238,14 +238,12 @@ def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
                              int(ceil(step / 2)))
 
 
-def get_valid_pe_from_nc(nc):
-    keys = nc.variables['metadata'].__dict__.keys()
-    if 'Processing_Graph:node_8:parameters:validPixelExpression' in keys:
-        return nc.variables['metadata'].__dict__['Processing_Graph:node_8:parameters:validPixelExpression']
-    elif 'Processing_Graph:node_2:parameters:targetBands:targetBand_7:validExpression' in keys:
-        return nc.variables['metadata'].__dict__[
-            'Processing_Graph:node_2:parameters:targetBands:targetBand_7:validExpression']
-    raise RuntimeError('Reading valid pixel expression does not seem to be implement it for this kind of product.')
+def get_valid_pe_from_nc(nc, band_name):
+    return get_valid_pe_from_band(nc.variables[band_name])
+
+
+def get_valid_pe_from_band(band):
+    return band.valid_pixel_expression
 
 
 def get_lat_lon_from_x_y(nc, x, y, lat_var_name='latitude', lon_var_name='longitude'):

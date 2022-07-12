@@ -94,7 +94,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         _, width, height = get_name_width_height_from_nc(chl_src, product_path)
         chl_data = np.zeros(width * height, np.float32)
         read_pixels_from_nc(chl_src, chl_bandname, 0, 0, width, height, chl_data)
-        chl_valid_pixel_expression = get_valid_pe_from_nc(chl_src)
+        chl_valid_pixel_expression = get_valid_pe_from_nc(chl_src, chl_bandname)
 
         # Convert from PH to CHL if required
         if "chl_parameter" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["chl_parameter"] == "PH":
@@ -107,7 +107,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         _, kd_width, kd_height = get_name_width_height_from_nc(kd_src, product_path)
         kd_data = np.zeros(kd_width * kd_height, np.float32)
         read_pixels_from_nc(kd_src, kd_bandname, 0, 0, kd_width, kd_height, kd_data)
-        kd_valid_pixel_expression = get_valid_pe_from_nc(kd_src)
+        kd_valid_pixel_expression = get_valid_pe_from_nc(kd_src, kd_bandname)
 
         if chl_data.shape != kd_data.shape:
             raise RuntimeError("CHl and KD on different grids. Grid interpolation not yet implemented")
