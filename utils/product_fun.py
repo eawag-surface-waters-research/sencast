@@ -250,14 +250,18 @@ def get_lat_lon_from_x_y_from_nc(nc, x, y, lat_var_name=None, lon_var_name=None)
     if lat_var_name is None:
         if 'latitude' in nc.variables.keys():
             lat_var_name = 'latitude'
-        else:
+        elif 'lat' in nc.variables.keys():
             lat_var_name = 'lat'
+        else:
+            raise RuntimeError('Cannot guess the name of the latitude variable for this product, please implement.')
 
     if lon_var_name is None:
         if 'longitude' in nc.variables.keys():
             lon_var_name = 'longitude'
-        else:
+        elif 'lon' in nc.variables.keys():
             lon_var_name = 'lon'
+        else:
+            raise RuntimeError('Cannot guess the name of the longitude variable for this product, please implement.')
 
     return get_lat_lon_from_x_y(nc.variables[lat_var_name], nc.variables[lon_var_name], x, y)
 
@@ -265,8 +269,11 @@ def get_lat_lon_from_x_y_from_nc(nc, x, y, lat_var_name=None, lon_var_name=None)
 def get_lat_lon_from_x_y(lat_var, lon_var, x, y):
     if len(lat_var.dimensions) == 1:
         return lat_var[y], lon_var[x]
-    else:
+    elif len(lat_var.dimensions) == 2:
         return lat_var[y][x], lon_var[y][x]
+    else:
+        raise RuntimeError('Lat an Lon could not be extracted from the provided lat and lon variables because the'
+                           ' dimensions do not match')
 
 
 def get_pixel_value_xy(nc, band_name, x, y):
