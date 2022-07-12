@@ -191,8 +191,8 @@ def get_name_width_height_from_nc(nc, product_file=None):
     """Returns the height and the width of a given product."""
     for var in nc.variables:
         if len(nc.variables[var].shape) == 2:
-            return os.path.basename(product_file) if product_file is not None else None, nc.dimensions['lon'].size, \
-                   nc.dimensions['lat'].size
+            return os.path.splitext(os.path.basename(product_file))[0] if product_file is not None else None,\
+                   nc.variables[var].shape[1], nc.variables[var].shape[0]
     raise RuntimeWarning('Could not read width and height from product {}.'.format(product_file))
 
 
@@ -246,8 +246,27 @@ def get_valid_pe_from_band(band):
     return band.valid_pixel_expression
 
 
-def get_lat_lon_from_x_y(nc, x, y, lat_var_name='latitude', lon_var_name='longitude'):
-    return nc.variables[lat_var_name][y][x], nc.variables[lon_var_name][y][x]
+def get_lat_lon_from_x_y_from_nc(nc, x, y, lat_var_name=None, lon_var_name=None):
+    if lat_var_name is None:
+        if 'latitude' in nc.variables.keys():
+            lat_var_name = 'latitude'
+        else:
+            lat_var_name = 'lat'
+
+    if lon_var_name is None:
+        if 'longitude' in nc.variables.keys():
+            lon_var_name = 'longitude'
+        else:
+            lon_var_name = 'lon'
+
+    return get_lat_lon_from_x_y(nc.variables[lat_var_name], nc.variables[lon_var_name], x, y)
+
+
+def get_lat_lon_from_x_y(lat_var, lon_var, x, y):
+    if len(lat_var.dimensions) == 1:
+        return lat_var[y], lon_var[x]
+    else:
+        return lat_var[y][x], lon_var[y][x]
 
 
 def get_pixel_value_xy(nc, band_name, x, y):

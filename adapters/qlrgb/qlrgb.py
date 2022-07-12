@@ -14,7 +14,7 @@ from netCDF4 import Dataset
 
 from utils.auxil import log
 from utils.product_fun import get_band_names_from_nc, get_name_width_height_from_nc, \
-    get_lons_lats, get_lat_lon_from_x_y, read_pixels_from_nc, get_np_data_type
+    get_lons_lats, get_lat_lon_from_x_y_from_nc, read_pixels_from_nc, get_np_data_type
 
 # key of the params section for this adapter
 PARAMS_SECTION = "QLRGB"
@@ -89,8 +89,8 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
         blue_arr = blue_arr.reshape(height, width)
 
         # read lat and lon information
-        lat_min, lon_min = get_lat_lon_from_x_y(src, 0, height-1)
-        lat_max, lon_max = get_lat_lon_from_x_y(src, width-1, 0)
+        lat_min, lon_min = get_lat_lon_from_x_y_from_nc(src, 0, height-1)
+        lat_max, lon_max = get_lat_lon_from_x_y_from_nc(src, width-1, 0)
 
         # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
         if crop_ext:

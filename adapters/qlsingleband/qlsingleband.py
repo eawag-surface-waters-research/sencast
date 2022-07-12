@@ -23,7 +23,7 @@ from netCDF4 import Dataset
 
 import adapters.qlsingleband.colour_scales as colscales
 from utils.auxil import log
-from utils.product_fun import get_lons_lats, get_lat_lon_from_x_y, get_band_names_from_nc, \
+from utils.product_fun import get_lons_lats, get_lat_lon_from_x_y_from_nc, get_band_names_from_nc, \
     get_name_width_height_from_nc, read_pixels_from_nc
 
 plt.switch_backend('agg')
@@ -160,8 +160,8 @@ def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_el
             min_lon = min(lons)
             canvas_area = [[min_lon, min_lat], [max_lon, max_lat]]
         else:
-            min_lat, min_lon = get_lat_lon_from_x_y(src, band_name, 0, height - 1)
-            max_lat, max_lon = get_lat_lon_from_x_y(src, band_name, width - 1, 0)
+            min_lat, min_lon = get_lat_lon_from_x_y_from_nc(src, band_name, 0, height - 1)
+            max_lat, max_lon = get_lat_lon_from_x_y_from_nc(src, band_name, width - 1, 0)
 
         # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
         if crop_ext:
