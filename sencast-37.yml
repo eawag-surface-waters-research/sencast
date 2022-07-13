@@ -27,7 +27,7 @@ dependencies:
   - scikit-learn=1.0.*
   - statsmodels=0.13.*
   - tensorflow=1.15.0
-  - tensorflow_probability=0.7.0
+  - tensorflow-probability=0.7
   - tqdm=4.64.*
   - xarray=0.20.*
   - xlrd=2.0.*
