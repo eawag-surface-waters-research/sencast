@@ -37,6 +37,7 @@ In shell do following:
     $ git checkout <branchname> (if not master)
 ..
 
+
 2.) Anaconda:
 
 To install Anaconda, in your shell do following:
@@ -58,6 +59,7 @@ Create sencast environment:
     $ echo "export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast-37" >> ~/.bashrc
     $ export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast-37
 ..
+
 
 3.) SNAP: http://step.esa.int/main/download/
 
@@ -137,21 +139,27 @@ Configure path to l8_angles in your environment file.
 	$ chmod 600 ~/.cdsapirc
 ..
 
+
 8.) NASA Earthdata API: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget
 
 Have a NASA Earthdata account ready, otherwise create one: https://urs.earthdata.nasa.gov/
 
 In shell do following:
+.. code-block::
     $ touch ~/.netrc
     $ touch ~/.urs_cookies
     $ echo "machine urs.earthdata.nasa.gov login <earthdata user> password <earthdata password>" >> ~/.netrc
     $ chmod 0600 ~/.netrc
+..
+
 
 9.) Acolite: https://github.com/acolite/acolite.git
 
 In shell do following:
+.. code-block::
     $ cd $CONDA_ENV_HOME/lib/python3.7/site-packages
     $ git clone https://github.com/acolite/acolite.git
+..
 
 Edit the file acolite_l2w.py and comment-out all usages (and import) of "skimage".
     Currently lines 23, 898, 909, 910, 911
@@ -165,21 +173,26 @@ Configure your Acolite path in you environment file.
 Somehow bring the installation file snap-eum-fluo-1.0.nbm to the directory ~/setup/
 
 In shell do following:
+.. code-block::
     $ mkdir ~/setup/snap-eum-fluo-1.0
     $ unzip snap-eum-fluo-1.0.nbm -d ~/setup/snap-eum-fluo-1.0
     $ cp ~/setup/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
+..
 
 
 11.) iCOR: https://remotesensing.vito.be/case/icor
 
 In shell do following:
+.. code-block::
     $ wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin
     $ chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin
     $ sudo mkdir /opt/vito
     $ sudo chown sencast:sencast /opt/vito
     $ ./icor_install_ubuntu_20_04_x64_3.0.0.bin
+..
 
 Installation of SNAP plugin only necessairy if you want to use iCOR from SNAP Desktop:
+.. code-block::
     $ mkdir ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
     $ mkdir ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
     $ mkdir ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX
@@ -189,7 +202,7 @@ Installation of SNAP plugin only necessairy if you want to use iCOR from SNAP De
     $ cp -r ~/setup/iCOR-landsat8-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
     $ cp -r ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
     $ cp -r ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
-
+..
 Configure your iCOR path in you environment file.
 
 
@@ -198,6 +211,8 @@ Configure your iCOR path in you environment file.
 Somehow bring the installation file snap-musenalp-processor-1.0.5.nbm to the directory ~/setup/
 
 In shell do following:
+.. code-block::
     $ ~/setup/snap-musenalp-processor-1.0.5
     $ unzip snap-musenalp-processor-1.0.5.nbm -d ~/setup/snap-musenalp-processor-1.0.5
     $ cp ~/setup/snap-musenalp-processor-1.0.5/netbeans/* ~/.snap/system
+..
