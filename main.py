@@ -49,12 +49,13 @@ def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_
         | **Default: 1**
         | Maximum number of adapters to run in parallel
     """
-
+    l2product_files = {}
     env, params, l2_path = init_hindcast(env_file, params_file)
-    do_hindcast(env, params, l2_path, max_parallel_downloads, max_parallel_processors, max_parallel_adapters)
+    do_hindcast(env, params, l2_path, l2product_files, max_parallel_downloads, max_parallel_processors, max_parallel_adapters)
+    return l2product_files
 
 
-def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
+def do_hindcast(env, params, l2_path, l2product_files, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
     """
     Threading function for running Sencast.
     1. Calls API to find available data for given query
@@ -70,6 +71,8 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
         Dictionary of parameters, loaded from input file
     l2_path
         The output folder in which to save the output files
+    l2product_files
+        A dictionary to return the outputs (produced l2 product files)
     max_parallel_downloads
         | **Default: 1**
         | Maximum number of parallel downloads of satellite images
@@ -142,7 +145,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     # do hindcast for every product group
     hindcast_threads = []
     for group, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
-        args = (env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path, semaphores, group)
+        args = (env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path, l2product_files, semaphores, group)
         hindcast_threads.append(Thread(target=hindcast_product_group, args=args, name="Thread-{}".format(group)))
         hindcast_threads[-1].start()
 
@@ -153,7 +156,7 @@ def do_hindcast(env, params, l2_path, max_parallel_downloads=1, max_parallel_pro
     log(env["General"]["log"], "Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
 
 
-def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, semaphores, group):
+def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path, l2product_files_outer, semaphores, group):
     """
     Run Sencast for given thread.
     1. Downloads required products
@@ -243,6 +246,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 log(env["General"]["log"], "Adapter {} failed on product group {}.".format(adapter, group))
                 log(env["General"]["log"], sys.exc_info()[0])
                 traceback.print_exc()
+
+    l2product_files_outer[group] = l2product_files
 
 
 if len(sys.argv) == 2:
