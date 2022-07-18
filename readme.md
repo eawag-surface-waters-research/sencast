@@ -4,10 +4,17 @@ Sencast is a toolbox to derive water quality factors by processing images from t
 It is develeoped and maintained by the [SURF Remote Sensing group at Eawag](https://www.eawag.ch/en/department/surf/main-focus/remote-sensing/).
 
 ## Installation
-
+You are expected to have Anaconda and SNAP installed.
 ```
+cd ~
 git clone git@gitlab.com:eawag-rs/sencast.git
-pip install -r requirements.txt
+conda env create -f ~/sencast/sencast-37.yml
+```
+Then create your environment file and test your installation as follows:
+```
+cd ~/sencast
+conda activate sencast-37
+python3 tests/test_installation.py
 ```
 
 ## Documentation
