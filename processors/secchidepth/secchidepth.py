@@ -16,7 +16,6 @@ from utils.auxil import log
 from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, \
     get_satellite_name_from_product_name, get_valid_pe_from_nc, write_pixels_to_nc, create_band, read_pixels_from_nc
 
-
 # key of the params section for this adapter
 PARAMS_SECTION = 'SECCHIDEPTH'
 # The name of the folder to which the output product will be saved
@@ -45,11 +44,12 @@ def process(env, params, l1product_path, l2product_files, out_path):
     """
 
     if not params.has_section(PARAMS_SECTION):
-        raise RuntimeWarning('Secchi depth was not configured in parameters.')
-    log(env["General"]["log"], "Applying Secchi Depth...")
+        raise RuntimeWarning('Secchi depth ({}) was not configured in parameters.'.format(PARAMS_SECTION))
 
     if "processor" not in params[PARAMS_SECTION]:
-        raise RuntimeWarning('processor must be defined in the parameter file.')
+        raise RuntimeWarning('processor must be defined in the parameter file under {}.'.format(PARAMS_SECTION))
+
+    log(env["General"]["log"], "Applying Secchi Depth...")
 
     processor = params[PARAMS_SECTION]['processor']
     if processor != 'POLYMER':
@@ -110,6 +110,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             spectral_band_names = ['Rw443', 'Rw490', 'Rw560', 'Rw665', 'Rw705']
             tsm_band = 'tsm_binding740'
             a_gelb_band = 'a_gelb443_median'
+            secchi_row = secchi_s2_row
         elif satellite in ['S3A', 'S3B']:
             # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
             g0 = 0.08945
@@ -130,7 +131,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             spectral_band_names = ['Rw412', 'Rw443', 'Rw490', 'Rw510', 'Rw560', 'Rw620', 'Rw665', 'Rw681']
             tsm_band = 'tsm_binding754'
             a_gelb_band = 'a_gelb443'
-
+            secchi_row = secchi_s3_row
         else:
             raise RuntimeError('Secchi adapter not implemented for satellite ' + satellite)
 
@@ -152,6 +153,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
         log(env["General"]["log"], "Calculating Secchi depth.")
         print(secchi_band_names)
+
         for n_row in range(height):
             # Reading the different bands per pixel into arrays
             rs = [read_pixels_from_nc(src, band_name, 0, n_row, width, 1) for band_name in spectral_band_names]
@@ -163,76 +165,154 @@ def process(env, params, l1product_path, l2product_files, out_path):
             # Divide r by pi for the conversion of polymer’s water-leaving reflectance output (Rw, unitless) to QAA’s expected remote sensing reflectance input (Rrs, unit per steradian, sr-1)
             rrs = [(r / np.pi) / (0.52 + (1.7 * (r / np.pi))) for r in rs]
             us = [(-g0 + (np.sqrt((g0 ** 2) + (4 * g1) * rr))) / (2 * g1) for rr in rrs]
-            ratioChi = rrs[6] / rrs[2]
-            chi = np.log10((rrs[1] + rrs[2]) / (rrs[4] + 5 * ratioChi * rrs[6]))
-            # Absorption ref. band:
-            a0 = aws[4] + (10 ** (-1.146 - (1.366 * chi) - (0.469 * (chi ** 2))))
-            # Backscattering suspended particles ref. band:
-            bbp0 = ((us[4] * a0) / (1 - us[4])) - bws[4]
-            ration = rrs[1] / rrs[4]
-            Y = 2.0 * (1 - 1.2 * np.exp(-0.9 * ration))  # Lee et al. (update)
-            # Backscattering susp. particles all bands
-            bbps = [bbp0 * (wvl[4] / wv) ** Y for wv in wvl]
-            # Absorption per band:
-            a_s = [(1 - u) * (bw + bbp) / u for (u, bw, bbp) in zip(us, bws, bbps)]
-            # Total backscatter per band:
-            bbs = [bw + bbp for bw, bbp in zip(bws, bbps)]
-
-            ################## Diffuse attenuation coefficient and Secchi Depth retrieval ###############
-            # Kd per band:
-            Kds = [(1 + m0 * sza) * a + (1 - y1 * (bw / bb)) * m1 * (1 - m2 * np.exp(-m3 * a)) * bb for (a, bw, bb) in
-                   zip(a_s, bws, bbs)]
-            np.seterr(over='ignore')
-            # Secchi depth per band:
-            Zs = [(1 / (2.5 * Kd)) * np.log((np.absolute(0.14 - r)) / 0.013) for (Kd, r) in zip(Kds, rs)]
-
-            Zsd_lee = np.empty(width)
-            Zsd_lee[:] = np.nan
-            Zsd_jiang = np.empty(width)
-            Zsd_jiang[:] = np.nan
-            Kda = np.array(Kds)
-            rrsa = np.array(rrs)
-            usa = np.array(us)
-            Kda[Kda < 0] = np.nan
-            non_nan_rows = np.any(Kda > 0, axis=0)
-            if np.any(non_nan_rows == True):
-                minKd_ind = np.nanargmin(Kda[:, non_nan_rows], axis=0)
-
-                # Zsd(broadband) according to Lee et al. (2015)
-                Zsd_lee[non_nan_rows] = (1 / (2.5 * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
-                    (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
-
-                # Zsd(broadband) according to Jiang et al.(2019)
-                K_ratio = (1.04 * (1 + 5.4 * usa[:, non_nan_rows][minKd_ind].diagonal()) ** 0.5) / (
-                        1 / (1 - (np.sin(sza[non_nan_rows]) ** 2 / 1.34)) ** 0.5)
-                Zsd_jiang[non_nan_rows] = (1 / ((1 + K_ratio) * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
-                    (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
-
-            ############################### Decomposition of the total absorption coefficient ###########
-
-            ratio = (rrs[1]) / (rrs[4])
-            zeta = 0.74 + (0.2 / (0.8 + ratio))
-            s = 0.015 + (0.002 / (0.6 + ratio))
-            xi = np.exp(s * (442.5 - 412.5))
-            # gelbstoff and detritus for 442.5 nm:
-            a_g = ((a_s[0] - (zeta * a_s[1])) / (xi - zeta)) - ((aws[0] - (zeta * aws[1])) / (xi - zeta))
-            # a_g for whole spectrum:
-            a_g_s = [a_g * np.exp(-s * (wv - 442.5)) for wv in wvl]
-            # phytoplancton pigments:
-            a_ph = [a - aw - a_g_s for (a, a_g_s, aw) in zip(a_s, a_g_s, aws)]
-            Zs.append(a_g)
-            rrs.append(Zsd_lee)
-            rrs.append(Zsd_jiang)
-            output = Zs + a_ph + rrs
-
-            # Mark infinite values as NAN
-            for bds in output:
-                bds[bds == np.inf] = np.nan
-                bds[bds == -np.inf] = np.nan
-
-            # Write the secchi depth per band
-            for band_name, bds in zip(secchi_band_names, output):
-                write_pixels_to_nc(dst, band_name, 0, n_row, width, 1, bds)
+            secchi_row(dst, n_row, secchi_band_names, width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1)
 
         log(env["General"]["log"], "Writing Secchi depth to file: {}".format(output_file))
         return output_file
+
+
+def secchi_s2_row(dst, n_row, secchi_band_names, width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
+    # ToDo: values for Sentinel-2 are yet to be configured
+    ratioChi = rrs[3] / rrs[1]
+    chi = np.log10((rrs[0] + rrs[1]) / (rrs[2] + 5 * ratioChi * rrs[3]))
+    # Absorption ref. band:
+    a0 = aws[2] + (10 ** (-1.146 - (1.366 * chi) - (0.469 * (chi ** 2))))
+    # Backscattering suspended particles ref. band:
+    bbp0 = ((us[2] * a0) / (1 - us[2])) - bws[2]
+    ration = rrs[0] / rrs[2]
+    Y = 2.0 * (1 - 1.2 * np.exp(-0.9 * ration))  # Lee et al. (update)
+    # Backscattering susp. particles all bands
+    bbps = [bbp0 * (wvl[2] / wv) ** Y for wv in wvl]
+    # Absorption per band:
+    a_s = [(1 - u) * (bw + bbp) / u for (u, bw, bbp) in zip(us, bws, bbps)]
+    # Total backscatter per band:
+    bbs = [bw + bbp for bw, bbp in zip(bws, bbps)]
+
+    ################## Diffuse attenuation coefficient and Secchi Depth retrieval ###############
+    # Kd per band:
+    Kds = [(1 + m0 * sza) * a + (1 - y1 * (bw / bb)) * m1 * (1 - m2 * np.exp(-m3 * a)) * bb for (a, bw, bb) in
+           zip(a_s, bws, bbs)]
+    np.seterr(over='ignore')
+    # Secchi depth per band:
+    Zs = [(1 / (2.5 * Kd)) * np.log((np.absolute(0.14 - r)) / 0.013) for (Kd, r) in zip(Kds, rs)]
+
+    Zsd_lee = np.empty(width)
+    Zsd_lee[:] = np.nan
+    Zsd_jiang = np.empty(width)
+    Zsd_jiang[:] = np.nan
+    Kda = np.array(Kds)
+    rrsa = np.array(rrs)
+    usa = np.array(us)
+    Kda[Kda < 0] = np.nan
+    non_nan_rows = np.any(Kda > 0, axis=0)
+    if np.any(non_nan_rows is True):
+        minKd_ind = np.nanargmin(Kda[:, non_nan_rows], axis=0)
+
+        # Zsd(broadband) according to Lee et al. (2015)
+        Zsd_lee[non_nan_rows] = (1 / (2.5 * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
+            (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
+
+        # Zsd(broadband) according to Jiang et al.(2019)
+        K_ratio = (1.04 * (1 + 5.4 * usa[:, non_nan_rows][minKd_ind].diagonal()) ** 0.5) / (
+                1 / (1 - (np.sin(sza[non_nan_rows]) ** 2 / 1.34)) ** 0.5)
+        Zsd_jiang[non_nan_rows] = (1 / ((1 + K_ratio) * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
+            (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
+
+    ############################### Decomposition of the total absorption coefficient ###########
+
+    ratio = (rrs[0]) / (rrs[2])
+    zeta = 0.74 + (0.2 / (0.8 + ratio))
+    s = 0.015 + (0.002 / (0.6 + ratio))
+    xi = np.exp(s * (442.5 - 412.5))
+    # gelbstoff and detritus for 442.5 nm:
+    a_g = ((a_s[0] - (zeta * a_s[0])) / (xi - zeta)) - ((aws[0] - (zeta * aws[0])) / (xi - zeta))
+    # a_g for whole spectrum:
+    a_g_s = [a_g * np.exp(-s * (wv - 442.5)) for wv in wvl]
+    # phytoplancton pigments:
+    a_ph = [a - aw - a_g_s for (a, a_g_s, aw) in zip(a_s, a_g_s, aws)]
+    Zs.append(a_g)
+    rrs.append(Zsd_lee)
+    rrs.append(Zsd_jiang)
+    output = Zs + a_ph + rrs
+
+    # Mark infinite values as NAN
+    for bds in output:
+        bds[bds == np.inf] = np.nan
+        bds[bds == -np.inf] = np.nan
+
+    # Write the secchi depth per band
+    for band_name, bds in zip(secchi_band_names, output):
+        write_pixels_to_nc(dst, band_name, 0, n_row, width, 1, bds)
+
+
+def secchi_s3_row(dst, n_row, secchi_band_names, width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
+    ratioChi = rrs[6] / rrs[2]
+    chi = np.log10((rrs[1] + rrs[2]) / (rrs[4] + 5 * ratioChi * rrs[6]))
+    # Absorption ref. band:
+    a0 = aws[4] + (10 ** (-1.146 - (1.366 * chi) - (0.469 * (chi ** 2))))
+    # Backscattering suspended particles ref. band:
+    bbp0 = ((us[4] * a0) / (1 - us[4])) - bws[4]
+    ration = rrs[1] / rrs[4]
+    Y = 2.0 * (1 - 1.2 * np.exp(-0.9 * ration))  # Lee et al. (update)
+    # Backscattering susp. particles all bands
+    bbps = [bbp0 * (wvl[4] / wv) ** Y for wv in wvl]
+    # Absorption per band:
+    a_s = [(1 - u) * (bw + bbp) / u for (u, bw, bbp) in zip(us, bws, bbps)]
+    # Total backscatter per band:
+    bbs = [bw + bbp for bw, bbp in zip(bws, bbps)]
+
+    ################## Diffuse attenuation coefficient and Secchi Depth retrieval ###############
+    # Kd per band:
+    Kds = [(1 + m0 * sza) * a + (1 - y1 * (bw / bb)) * m1 * (1 - m2 * np.exp(-m3 * a)) * bb for (a, bw, bb) in
+           zip(a_s, bws, bbs)]
+    np.seterr(over='ignore')
+    # Secchi depth per band:
+    Zs = [(1 / (2.5 * Kd)) * np.log((np.absolute(0.14 - r)) / 0.013) for (Kd, r) in zip(Kds, rs)]
+
+    Zsd_lee = np.empty(width)
+    Zsd_lee[:] = np.nan
+    Zsd_jiang = np.empty(width)
+    Zsd_jiang[:] = np.nan
+    Kda = np.array(Kds)
+    rrsa = np.array(rrs)
+    usa = np.array(us)
+    Kda[Kda < 0] = np.nan
+    non_nan_rows = np.any(Kda > 0, axis=0)
+    if np.any(non_nan_rows == True):
+        minKd_ind = np.nanargmin(Kda[:, non_nan_rows], axis=0)
+
+        # Zsd(broadband) according to Lee et al. (2015)
+        Zsd_lee[non_nan_rows] = (1 / (2.5 * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
+            (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
+
+        # Zsd(broadband) according to Jiang et al.(2019)
+        K_ratio = (1.04 * (1 + 5.4 * usa[:, non_nan_rows][minKd_ind].diagonal()) ** 0.5) / (
+                1 / (1 - (np.sin(sza[non_nan_rows]) ** 2 / 1.34)) ** 0.5)
+        Zsd_jiang[non_nan_rows] = (1 / ((1 + K_ratio) * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
+            (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
+
+    ############################### Decomposition of the total absorption coefficient ###########
+
+    ratio = (rrs[1]) / (rrs[4])
+    zeta = 0.74 + (0.2 / (0.8 + ratio))
+    s = 0.015 + (0.002 / (0.6 + ratio))
+    xi = np.exp(s * (442.5 - 412.5))
+    # gelbstoff and detritus for 442.5 nm:
+    a_g = ((a_s[0] - (zeta * a_s[1])) / (xi - zeta)) - ((aws[0] - (zeta * aws[1])) / (xi - zeta))
+    # a_g for whole spectrum:
+    a_g_s = [a_g * np.exp(-s * (wv - 442.5)) for wv in wvl]
+    # phytoplancton pigments:
+    a_ph = [a - aw - a_g_s for (a, a_g_s, aw) in zip(a_s, a_g_s, aws)]
+    Zs.append(a_g)
+    rrs.append(Zsd_lee)
+    rrs.append(Zsd_jiang)
+    output = Zs + a_ph + rrs
+
+    # Mark infinite values as NAN
+    for bds in output:
+        bds[bds == np.inf] = np.nan
+        bds[bds == -np.inf] = np.nan
+
+    # Write the secchi depth per band
+    for band_name, bds in zip(secchi_band_names, output):
+        write_pixels_to_nc(dst, band_name, 0, n_row, width, 1, bds)
