@@ -11,6 +11,9 @@ from math import ceil, floor
 
 from haversine import haversine
 from datetime import datetime
+
+from netCDF4 import Dataset
+
 from utils.auxil import log
 
 
@@ -177,6 +180,10 @@ def generate_l8_angle_files(env, l1product_path):
 
 def get_band_names_from_nc(nc):
     """Returns a list containing all band names of a given product."""
+    if type(nc) is str:
+        with Dataset(nc) as nc:
+            return get_band_names_from_nc(nc)
+
     bands = []
     for var in nc.variables:
         if len(nc.variables[var].shape) == 2:
