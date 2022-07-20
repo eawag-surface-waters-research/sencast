@@ -213,7 +213,7 @@ def get_corner_pixels_roi_msi(l1product_path, wkt):
 def get_pixel_pos_msi(dataset, lon, lat):
     transformer = Transformer.from_crs("epsg:4326", dataset.crs)
     row, col = transformer.transform(lat, lon)
-    x, y = dataset.index(row, col)
+    y, x = dataset.index(row, col)
     return [-1, -1] if x < 0 or y < 0 else [x, y]
 
 
@@ -265,6 +265,6 @@ def get_corner_pixels_roi_oli(l1product_path, wkt):
 def get_pixel_pos_oli(dataset, lon, lat):
     transformer = Transformer.from_crs("epsg:4326", dataset.crs)
     row, col = transformer.transform(lat, lon)
-    x, y = dataset.index(row, col)
+    y, x = dataset.index(row, col)
     return [-1, -1] if x < 0 or y < 0 else [x, y]
     
