@@ -69,7 +69,7 @@ def process(env, params, l1product_path, _, out_path):
             log(env["General"]["log"], "Renaming Acolite L2W output file.")
             os.rename(os.path.join(tmp_path, aco_file), out_file)
 
-    if not os.path.isfile(out_file):
+    if not os.path.exists(out_file):
         raise RuntimeError("The expected output file is not present: {}".format(out_file))
 
     shutil.rmtree(tmp_path)
