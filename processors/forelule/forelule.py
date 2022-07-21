@@ -133,7 +133,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             else:
                 raise RuntimeWarning('Forel-Ule not yet configured for S3 processor: ' + processor)
         else:
-            exit('Forel-Ule adapter not implemented for satellite ' + satellite)
+            raise RuntimeError('Forel-Ule processor not implemented for satellite ' + satellite)
 
         log(env["General"]["log"], "Reading input bands and creating output file.", indent=1)
 
