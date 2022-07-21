@@ -17,7 +17,7 @@ In case you have gzip version "jammy 1.10-4ubuntu4 amd64", do this to prevent pr
 
     $ wget http://archive.ubuntu.com/ubuntu/pool/main/g/gzip/gzip_1.10-4ubuntu1.1_amd64.deb && sudo dpkg -i gzip_1.10-4ubuntu1.1_amd64.deb && rm gzip_1.10-4ubuntu1.1_amd64.deb
 
-If you want to use graphical tools with WSL1::
+If you want to use graphical tools with WSL1 (Windows Subsystem for Linux)::
 
     $ echo "export DISPLAY=:0" >> ~/.bashrc
     $ export DISPLAY=:0
@@ -34,9 +34,11 @@ In shell do following::
     $ git checkout <branchname> (if not master)
 
 
-2.) Anaconda:
+2.) Anaconda3: https://docs.anaconda.com/anaconda/install/linux/
 
-To install Anaconda, in your shell do following::
+We use Anaconda because it delivers all packages with eventually required external libraries. With PIP you would have to install some GDAL stuff manually.
+
+In  shell do following::
 
     $ curl https://repo.anaconda.com/archive/Anaconda3-2022.05-Linux-x86_64.sh -o ~/Anaconda3-2022.05-Linux-x86_64.sh && sudo chmod 755 ~/Anaconda3-2022.05-Linux-x86_64.sh && ~/Anaconda3-2022.05-Linux-x86_64.sh && rm ~/Anaconda3-2022.05-Linux-x86_64.sh
         > [Enter]
@@ -95,16 +97,17 @@ To remove warning "SEVERE: org.esa.s2tbx.dataio.gdal.activator.GDALDistributionI
     $ echo "export LD_LIBRARY_PATH=." >> ~/.bashrc
 
 
-5.) Pycharm Community (if you want to be able to write your own processors)
+4.) Pycharm Community (if you want to be able to write your own processors)
 
 In shell do following::
+
 	$ cd ~
 	$ sudo apt install openjdk-11-jdk -y
 	$ wget https://download.jetbrains.com/python/pycharm-community-2022.1.3.tar.gz && tar -xvzf ~/pycharm-community-2022.1.3.tar.gz && rm ~/pycharm-community-2022.1.3.tar.gz
 	$ nohup ~/pycharm-community-2022.1.3/bin/pycharm.sh &
 
 
-6.) polymer: https://forum.hygeos.com/viewforum.php?f=5
+5.) polymer: https://forum.hygeos.com/viewforum.php?f=5
 
 Somehow bring the polymer install tar.gz file to your system, then do following::
 
@@ -118,7 +121,7 @@ Somehow bring the polymer install tar.gz file to your system, then do following:
 Note: On some systems you will need following change: In the file $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer/level1_landsat8.py replace line 13 "import osr" by "from osgeo import osr"
 
 
-7.) l8_angles: https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con
+6.) l8_angles: https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con
 	
 To use polymer with L8 data you must install l8_angles according to: https://forum.hygeos.com/viewtopic.php?f=7&t=136
 
@@ -133,14 +136,14 @@ In shell do following::
 Configure path to l8_angles in your environment file.
 
 
-8.) CDS API: https://cds.climate.copernicus.eu/api-how-to ::
+7.) CDS API: https://cds.climate.copernicus.eu/api-how-to ::
 
 	$ echo "url: https://cds.climate.copernicus.eu/api/v2" > ~/.cdsapirc
 	$ echo key: [uid]:[api-key] >> ~/.cdsapirc (Note: replace [uid] and [api-key] by your actual credentials, see https://cds.climate.copernicus.eu/api-how-to )
 	$ chmod 600 ~/.cdsapirc
 
 
-9.) NASA Earthdata API: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget
+8.) NASA Earthdata API: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget
 
 Have a NASA Earthdata account ready, otherwise create one: https://urs.earthdata.nasa.gov/
 
@@ -152,7 +155,7 @@ In shell do following::
     $ chmod 0600 ~/.netrc
 
 
-10.) Acolite: https://github.com/acolite/acolite.git
+9.) Acolite: https://github.com/acolite/acolite.git
 
 In shell do following::
 
@@ -165,18 +168,18 @@ In acolite/config/defaults.txt, row 28 set setting geometry_type=gpt (to avoid a
 Configure your Acolite path in you environment file.
 
 
-11.) FLUO:
+10.) FLUO:
 
 Somehow bring the installation file snap-eum-fluo-1.0.nbm to the directory ~/setup/
 
 In shell do following::
 
-    $ mkdir ~/setup/snap-eum-fluo-1.0
-    $ unzip snap-eum-fluo-1.0.nbm -d ~/setup/snap-eum-fluo-1.0
-    $ cp ~/setup/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
+    $ wget https://www.dropbox.com/s/ub3i66l4zqw51cs/snap-eum-fluo-1.0.nbm && unzip ~/snap-eum-fluo-1.0.nbm -d ~/snap-eum-fluo-1.0 && rm ~/snap-eum-fluo-1.0.nbm
+    $ cp -r ~/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
+    $ rm -rf ~/snap-eum-fluo-1.0
 
 
-12.) iCOR: https://remotesensing.vito.be/case/icor
+11.) iCOR: https://remotesensing.vito.be/case/icor
 
 In shell do following::
 
@@ -198,12 +201,12 @@ Installation of SNAP plugin only necessairy if you want to use iCOR from SNAP De
 Configure your iCOR path in you environment file.
 
 
-13.) Sen2Cor:
+12.) Sen2Cor:
 
-	First you must try to run it from SNAP GUI. It will then prompt you to install some bundle. Only after that the processor will work from GPT. https://forum.step.esa.int/t/error-processing-template-after-execution-for-parameter-postexecutetemplate/6591
+First you must try to run it from SNAP GUI. It will then prompt you to install some bundle. Only after that the processor will work from GPT. https://forum.step.esa.int/t/error-processing-template-after-execution-for-parameter-postexecutetemplate/6591
 
 
-14.) LSWT:
+13.) LSWT:
 
 Somehow bring the installation file snap-musenalp-processor-1.0.5.nbm to the directory ~/setup/
 
@@ -212,3 +215,4 @@ In shell do following::
     $ ~/setup/snap-musenalp-processor-1.0.5
     $ unzip snap-musenalp-processor-1.0.5.nbm -d ~/setup/snap-musenalp-processor-1.0.5
     $ cp ~/setup/snap-musenalp-processor-1.0.5/netbeans/* ~/.snap/system
+
