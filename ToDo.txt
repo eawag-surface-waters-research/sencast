@@ -18,6 +18,8 @@ Other:
 - MPH immersed_cyanobacteria is transparent instead of dark blue at zero values (QL)
 - Add Loisel IOP algorithm
 - RGB output?
+- improve L8 integration
+- chunked S2 processing for large areas
 
 
 Newly discovered by Dani:
