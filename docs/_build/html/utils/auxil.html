@@ -82,10 +82,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Configuration</span></p>
@@ -113,17 +116,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../processors/idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/lswt.html">LSWT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/secchidepth.html">Secchi Depth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/whiting.html">Whiting</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
@@ -213,13 +218,13 @@
 
 <dl class="py function">
 <dt id="utils.auxil.load_environment">
-<code class="sig-prename descclassname">utils.auxil.</code><code class="sig-name descname">load_environment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env_file</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">env_path</span><span class="o">=</span><span class="default_value">'/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast/utils/../environments'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.auxil.load_environment" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">utils.auxil.</code><code class="sig-name descname">load_environment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env_file</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">env_path</span><span class="o">=</span><span class="default_value">'/home/jamesrunnalls/git/sentinel-hindcast/utils/../environments'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.auxil.load_environment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load the environment configuration from a ini file. If no ini file is provided, it tries to automatically pick one.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt id="utils.auxil.load_params">
-<code class="sig-prename descclassname">utils.auxil.</code><code class="sig-name descname">load_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params_file</span></em>, <em class="sig-param"><span class="n">params_path</span><span class="o">=</span><span class="default_value">'/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast/utils/../parameters'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.auxil.load_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">utils.auxil.</code><code class="sig-name descname">load_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params_file</span></em>, <em class="sig-param"><span class="n">params_path</span><span class="o">=</span><span class="default_value">'/home/jamesrunnalls/git/sentinel-hindcast/utils/../parameters'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.auxil.load_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the parameters from a ini file.</p>
 </dd></dl>
 
@@ -231,7 +236,7 @@
 
 <dl class="py function">
 <dt id="utils.auxil.load_wkt">
-<code class="sig-prename descclassname">utils.auxil.</code><code class="sig-name descname">load_wkt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wkt_file</span></em>, <em class="sig-param"><span class="n">wkt_path</span><span class="o">=</span><span class="default_value">'/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast/utils/../wkt'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.auxil.load_wkt" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">utils.auxil.</code><code class="sig-name descname">load_wkt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wkt_file</span></em>, <em class="sig-param"><span class="n">wkt_path</span><span class="o">=</span><span class="default_value">'/home/jamesrunnalls/git/sentinel-hindcast/utils/../wkt'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.auxil.load_wkt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read the perimeter from a given wkt file.</p>
 </dd></dl>
 
@@ -269,7 +274,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+        &copy; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner
 
     </p>
   </div>

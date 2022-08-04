@@ -82,10 +82,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Configuration</span></p>
@@ -113,17 +116,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../processors/idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/lswt.html">LSWT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/secchidepth.html">Secchi Depth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/whiting.html">Whiting</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
@@ -202,6 +207,21 @@
 <span id="product-fun"></span><h1>product_fun<a class="headerlink" href="#module-utils.product_fun" title="Permalink to this headline">¶</a></h1>
 <p>This module bundles utility functions regarding satellite products.</p>
 <dl class="py function">
+<dt id="utils.product_fun.copy_band">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">copy_band</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span></em>, <em class="sig-param"><span class="n">dst</span></em>, <em class="sig-param"><span class="n">band_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.copy_band" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.copy_nc">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">copy_nc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span></em>, <em class="sig-param"><span class="n">dst</span></em>, <em class="sig-param"><span class="n">included_bands</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.copy_nc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.create_band">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">create_band</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dst</span></em>, <em class="sig-param"><span class="n">band_name</span></em>, <em class="sig-param"><span class="n">band_unit</span></em>, <em class="sig-param"><span class="n">valid_pixel_expression</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.create_band" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="utils.product_fun.filter_for_timeliness">
 <code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">filter_for_timeliness</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">download_requests</span></em>, <em class="sig-param"><span class="n">product_names</span></em>, <em class="sig-param"><span class="n">env</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.filter_for_timeliness" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -213,8 +233,13 @@
 </dd></dl>
 
 <dl class="py function">
+<dt id="utils.product_fun.get_band_from_nc">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_band_from_nc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc</span></em>, <em class="sig-param"><span class="n">band_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_band_from_nc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="utils.product_fun.get_band_names_from_nc">
-<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_band_names_from_nc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">product_file</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_band_names_from_nc" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_band_names_from_nc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_band_names_from_nc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list containing all band names of a given product.</p>
 </dd></dl>
 
@@ -223,6 +248,16 @@
 <code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_l1product_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">product_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_l1product_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fills the placeholders in the configured DIAS path with actual values.</p>
 </dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.get_lat_lon_from_x_y">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_lat_lon_from_x_y</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat_var</span></em>, <em class="sig-param"><span class="n">lon_var</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_lat_lon_from_x_y" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.get_lat_lon_from_x_y_from_nc">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_lat_lon_from_x_y_from_nc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">lat_var_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">lon_var_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_lat_lon_from_x_y_from_nc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt id="utils.product_fun.get_lons_lats">
@@ -235,6 +270,36 @@
 <code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_main_file_from_product_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">l1product_path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_main_file_from_product_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the path to the file to be read by third-party software in order to open a L1 product.</p>
 </dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.get_name_width_height_from_nc">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_name_width_height_from_nc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc</span></em>, <em class="sig-param"><span class="n">product_file</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_name_width_height_from_nc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the height and the width of a given product.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.get_np_data_type">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_np_data_type</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc</span></em>, <em class="sig-param"><span class="n">band_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_np_data_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.get_pixel_pos">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_pixel_pos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">longitudes</span></em>, <em class="sig-param"><span class="n">latitudes</span></em>, <em class="sig-param"><span class="n">lon</span></em>, <em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">step</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_pixel_pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the coordinates of the pixel [x, y] which cover a certain geo location (lon/lat).
+:param longitudes: matrix representing the longitude of each pixel
+:param latitudes: matrix representing the latitude of every pixel
+:param lon: longitude of the geo location of interest
+:param lat: latitude of the geo location of interest
+:param x: starting point of the algorithm
+:param y: starting point of the algorithm
+:param step: starting step size of the algorithm
+:return: [-1, -1] if the geo location is not covered by this product</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.get_pixel_value_xy">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_pixel_value_xy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc</span></em>, <em class="sig-param"><span class="n">band_name</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_pixel_value_xy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt id="utils.product_fun.get_reproject_params_from_wkt">
@@ -266,8 +331,38 @@
 </dd></dl>
 
 <dl class="py function">
+<dt id="utils.product_fun.get_valid_pe_from_nc">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">get_valid_pe_from_nc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc</span></em>, <em class="sig-param"><span class="n">band_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_valid_pe_from_nc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.parse_date_from_name">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">parse_date_from_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.parse_date_from_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="utils.product_fun.parse_s3_name">
 <code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">parse_s3_name</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.parse_s3_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.read_pixels_from_band">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">read_pixels_from_band</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">band</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">w</span></em>, <em class="sig-param"><span class="n">h</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">numpy.float64</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.read_pixels_from_band" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.read_pixels_from_nc">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">read_pixels_from_nc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc</span></em>, <em class="sig-param"><span class="n">band_name</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">w</span></em>, <em class="sig-param"><span class="n">h</span></em>, <em class="sig-param"><span class="n">data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">numpy.float64</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.read_pixels_from_nc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.write_pixels_to_band">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">write_pixels_to_band</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">band</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">w</span></em>, <em class="sig-param"><span class="n">h</span></em>, <em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.write_pixels_to_band" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="utils.product_fun.write_pixels_to_nc">
+<code class="sig-prename descclassname">utils.product_fun.</code><code class="sig-name descname">write_pixels_to_nc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc</span></em>, <em class="sig-param"><span class="n">band_name</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">w</span></em>, <em class="sig-param"><span class="n">h</span></em>, <em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.write_pixels_to_nc" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -293,7 +388,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+        &copy; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner
 
     </p>
   </div>

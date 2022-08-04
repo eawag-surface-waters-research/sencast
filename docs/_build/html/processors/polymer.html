@@ -82,10 +82,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Configuration</span></p>
@@ -113,17 +116,19 @@
 <li class="toctree-l1"><a class="reference internal" href="idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lswt.html">LSWT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="oc3.html">OC3</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="secchidepth.html">Secchi Depth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="whiting.html">Whiting</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
@@ -223,20 +228,6 @@ or for more details: <a class="reference external" href="https://forum.hygeos.co
 </dd></dl>
 
 <dl class="py function">
-<dt id="processors.polymer.polymer.get_pixel_pos">
-<code class="sig-prename descclassname">processors.polymer.polymer.</code><code class="sig-name descname">get_pixel_pos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">longitudes</span></em>, <em class="sig-param"><span class="n">latitudes</span></em>, <em class="sig-param"><span class="n">lon</span></em>, <em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">step</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.get_pixel_pos" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the coordinates of the pixel [x, y] which cover a certain geo location (lon/lat).
-:param longitudes: matrix representing the longitude of each pixel
-:param latitudes: matrix representing the latitude of every pixel
-:param lon: longitude of the geo location of interest
-:param lat: latitude of the geo location of interest
-:param x: starting point of the algorithm
-:param y: starting point of the algorithm
-:param step: starting step size of the algorithm
-:return: [-1, -1] if the geo location is not covered by this product</p>
-</dd></dl>
-
-<dl class="py function">
 <dt id="processors.polymer.polymer.get_pixel_pos_msi">
 <code class="sig-prename descclassname">processors.polymer.polymer.</code><code class="sig-name descname">get_pixel_pos_msi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">lon</span></em>, <em class="sig-param"><span class="n">lat</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.get_pixel_pos_msi" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -280,7 +271,7 @@ or for more details: <a class="reference external" href="https://forum.hygeos.co
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+        &copy; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner
 
     </p>
   </div>

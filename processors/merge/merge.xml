@@ -1,0 +1,21 @@
+<graph id="mph">
+	<version>1.0</version>
+	<node id="mergeNode">
+		<operator>Merge</operator>
+		<sources>
+			<masterProduct>${masterProduct}</masterProduct>
+			<sourceProducts>${slaveProducts}</sourceProducts>
+		</sources>
+		<parameters></parameters>
+	</node>
+	<node id="writeNode">
+		<operator>write</operator>
+		<sources>
+			<source>mphNode</source>
+		</sources>
+		<parameters>
+			<file>${outputFile}</file>
+			<formatName>NetCDF4-BEAM</formatName>
+		</parameters>
+	</node>
+</graph>

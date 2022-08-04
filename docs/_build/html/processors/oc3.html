@@ -82,10 +82,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Configuration</span></p>
@@ -113,17 +116,19 @@
 <li class="toctree-l1"><a class="reference internal" href="idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lswt.html">LSWT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ndwi.html">NDWI</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="secchidepth.html">Secchi Depth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="whiting.html">Whiting</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
@@ -229,11 +234,6 @@ James Runnalls, Eawag</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="processors.oc3.oc3.create_band">
-<code class="sig-prename descclassname">processors.oc3.oc3.</code><code class="sig-name descname">create_band</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">product</span></em>, <em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">unit</span></em>, <em class="sig-param"><span class="n">valid_pixel_expression</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.oc3.oc3.create_band" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
 <dt id="processors.oc3.oc3.interpolate_spectra">
 <code class="sig-prename descclassname">processors.oc3.oc3.</code><code class="sig-name descname">interpolate_spectra</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spectra</span></em>, <em class="sig-param"><span class="n">wavelengths</span></em>, <em class="sig-param"><span class="n">ref</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.oc3.oc3.interpolate_spectra" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -262,7 +262,7 @@ James Runnalls, Eawag</p>
 
 <dl class="py function">
 <dt id="processors.oc3.oc3.read_rrs_polymer">
-<code class="sig-prename descclassname">processors.oc3.oc3.</code><code class="sig-name descname">read_rrs_polymer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">product</span></em>, <em class="sig-param"><span class="n">width</span></em>, <em class="sig-param"><span class="n">height</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.oc3.oc3.read_rrs_polymer" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">processors.oc3.oc3.</code><code class="sig-name descname">read_rrs_polymer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc</span></em>, <em class="sig-param"><span class="n">width</span></em>, <em class="sig-param"><span class="n">height</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.oc3.oc3.read_rrs_polymer" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -288,7 +288,7 @@ James Runnalls, Eawag</p>
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+        &copy; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner
 
     </p>
   </div>

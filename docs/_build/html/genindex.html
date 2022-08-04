@@ -80,10 +80,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Configuration</span></p>
@@ -111,17 +114,19 @@
 <li class="toctree-l1"><a class="reference internal" href="processors/idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/lswt.html">LSWT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/secchidepth.html">Secchi Depth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/whiting.html">Whiting</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="adapters/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/datalakes.html">Datalakes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlsingleband.html">QLSingleBand</a></li>
@@ -234,13 +239,6 @@
 </li>
       </ul></li>
       <li>
-    adapters.merge.merge
-
-      <ul>
-        <li><a href="adapters/merge.html#module-adapters.merge.merge">module</a>
-</li>
-      </ul></li>
-      <li>
     adapters.qlrgb.qlrgb
 
       <ul>
@@ -259,11 +257,11 @@
       <li><a href="adapters/datalakes.html#adapters.datalakes.datalakes.apply">apply() (in module adapters.datalakes.datalakes)</a>
 
       <ul>
-        <li><a href="adapters/merge.html#adapters.merge.merge.apply">(in module adapters.merge.merge)</a>
-</li>
         <li><a href="adapters/qlrgb.html#adapters.qlrgb.qlrgb.apply">(in module adapters.qlrgb.qlrgb)</a>
 </li>
         <li><a href="adapters/qlsingleband.html#adapters.qlsingleband.qlsingleband.apply">(in module adapters.qlsingleband.qlsingleband)</a>
+</li>
+        <li><a href="processors/merge.html#processors.merge.merge.apply">(in module processors.merge.merge)</a>
 </li>
       </ul></li>
       <li><a href="apis/coah.html#dias_apis.coah.coah.authenticate">authenticate() (in module dias_apis.coah.coah)</a>
@@ -286,15 +284,19 @@
 </li>
       <li><a href="adapters/datalakes.html#adapters.datalakes.datalakes.convert_valid_pixel_expression">convert_valid_pixel_expression() (in module adapters.datalakes.datalakes)</a>
 </li>
-      <li><a href="processors/icor.html#processors.icor.icor.create_args_msi">create_args_msi() (in module processors.icor.icor)</a>
+      <li><a href="utils/product_fun.html#utils.product_fun.copy_band">copy_band() (in module utils.product_fun)</a>
+</li>
+      <li><a href="utils/product_fun.html#utils.product_fun.copy_nc">copy_nc() (in module utils.product_fun)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="processors/icor.html#processors.icor.icor.create_args_msi">create_args_msi() (in module processors.icor.icor)</a>
+</li>
       <li><a href="processors/icor.html#processors.icor.icor.create_args_olci">create_args_olci() (in module processors.icor.icor)</a>
 </li>
       <li><a href="processors/icor.html#processors.icor.icor.create_args_oli_tirs">create_args_oli_tirs() (in module processors.icor.icor)</a>
 </li>
-      <li><a href="processors/oc3.html#processors.oc3.oc3.create_band">create_band() (in module processors.oc3.oc3)</a>
+      <li><a href="utils/product_fun.html#utils.product_fun.create_band">create_band() (in module utils.product_fun)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -320,8 +322,6 @@
         <li><a href="apis/creodias.html#module-dias_apis.creodias.creodias">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     dias_apis.hda.hda
 
@@ -329,6 +329,8 @@
         <li><a href="apis/hda.html#module-dias_apis.hda.hda">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apis/coah.html#dias_apis.coah.coah.do_download">do_download() (in module dias_apis.coah.coah)</a>
 
       <ul>
@@ -338,6 +340,8 @@
 </li>
       </ul></li>
       <li><a href="main.html#main.do_hindcast">do_hindcast() (in module main)</a>
+</li>
+      <li><a href="processors/forelule.html#processors.forelule.forelule.dominant_wavelength_wrapper">dominant_wavelength_wrapper() (in module processors.forelule.forelule)</a>
 </li>
       <li><a href="apis/coah.html#dias_apis.coah.coah.download">download() (in module dias_apis.coah.coah)</a>
 </li>
@@ -375,6 +379,8 @@
 </li>
       <li><a href="apis/hda.html#dias_apis.hda.hda.get_access_token">get_access_token() (in module dias_apis.hda.hda)</a>
 </li>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_band_from_nc">get_band_from_nc() (in module utils.product_fun)</a>
+</li>
       <li><a href="utils/product_fun.html#utils.product_fun.get_band_names_from_nc">get_band_names_from_nc() (in module utils.product_fun)</a>
 </li>
       <li><a href="processors/polymer.html#processors.polymer.polymer.get_corner_pixels_roi_msi">get_corner_pixels_roi_msi() (in module processors.polymer.polymer)</a>
@@ -405,9 +411,13 @@
 </li>
       <li><a href="processors/forelule.html#processors.forelule.forelule.get_hue_angle">get_hue_angle() (in module processors.forelule.forelule)</a>
 </li>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_l1product_path">get_l1product_path() (in module utils.product_fun)</a>
+</li>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_lat_lon_from_x_y">get_lat_lon_from_x_y() (in module utils.product_fun)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="utils/product_fun.html#utils.product_fun.get_l1product_path">get_l1product_path() (in module utils.product_fun)</a>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_lat_lon_from_x_y_from_nc">get_lat_lon_from_x_y_from_nc() (in module utils.product_fun)</a>
 </li>
       <li><a href="adapters/qlsingleband.html#adapters.qlsingleband.qlsingleband.get_legend_str">get_legend_str() (in module adapters.qlsingleband.qlsingleband)</a>
 </li>
@@ -415,11 +425,17 @@
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.get_main_file_from_product_path">get_main_file_from_product_path() (in module utils.product_fun)</a>
 </li>
-      <li><a href="processors/polymer.html#processors.polymer.polymer.get_pixel_pos">get_pixel_pos() (in module processors.polymer.polymer)</a>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_name_width_height_from_nc">get_name_width_height_from_nc() (in module utils.product_fun)</a>
+</li>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_np_data_type">get_np_data_type() (in module utils.product_fun)</a>
+</li>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_pixel_pos">get_pixel_pos() (in module utils.product_fun)</a>
 </li>
       <li><a href="processors/polymer.html#processors.polymer.polymer.get_pixel_pos_msi">get_pixel_pos_msi() (in module processors.polymer.polymer)</a>
 </li>
       <li><a href="processors/polymer.html#processors.polymer.polymer.get_pixel_pos_oli">get_pixel_pos_oli() (in module processors.polymer.polymer)</a>
+</li>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_pixel_value_xy">get_pixel_value_xy() (in module utils.product_fun)</a>
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.get_reproject_params_from_wkt">get_reproject_params_from_wkt() (in module utils.product_fun)</a>
 </li>
@@ -431,15 +447,11 @@
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.get_south_east_north_west_bound">get_south_east_north_west_bound() (in module utils.product_fun)</a>
 </li>
-      <li><a href="adapters/qlrgb.html#adapters.qlrgb.qlrgb.get_tick_positions">get_tick_positions() (in module adapters.qlrgb.qlrgb)</a>
-
-      <ul>
-        <li><a href="adapters/qlsingleband.html#adapters.qlsingleband.qlsingleband.get_tick_positions">(in module adapters.qlsingleband.qlsingleband)</a>
-</li>
-      </ul></li>
       <li><a href="apis/creodias.html#dias_apis.creodias.creodias.get_token">get_token() (in module dias_apis.creodias.creodias)</a>
 </li>
       <li><a href="apis/creodias.html#dias_apis.creodias.creodias.get_updated_files">get_updated_files() (in module dias_apis.creodias.creodias)</a>
+</li>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_valid_pe_from_nc">get_valid_pe_from_nc() (in module utils.product_fun)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -473,8 +485,6 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="processors/primaryproduction.html#processors.primaryproduction.primaryproduction.LatLon_from_XY">LatLon_from_XY() (in module processors.primaryproduction.primaryproduction)</a>
-</li>
       <li><a href="utils/auxil.html#utils.auxil.load_environment">load_environment() (in module utils.auxil)</a>
 </li>
       <li><a href="utils/auxil.html#utils.auxil.load_params">load_params() (in module utils.auxil)</a>
@@ -502,13 +512,13 @@
         <li><a href="main.html#module-main">module</a>
 </li>
       </ul></li>
+      <li><a href="processors/forelule.html#processors.forelule.forelule.main_chunk">main_chunk() (in module processors.forelule.forelule)</a>
+</li>
       <li>
     module
 
       <ul>
         <li><a href="adapters/datalakes.html#module-adapters.datalakes.datalakes">adapters.datalakes.datalakes</a>
-</li>
-        <li><a href="adapters/merge.html#module-adapters.merge.merge">adapters.merge.merge</a>
 </li>
         <li><a href="adapters/qlrgb.html#module-adapters.qlrgb.qlrgb">adapters.qlrgb.qlrgb</a>
 </li>
@@ -536,6 +546,10 @@
 </li>
         <li><a href="processors/lswt.html#module-processors.lswt.lswt">processors.lswt.lswt</a>
 </li>
+        <li><a href="processors/mdn.html#module-processors.mdn.mdn">processors.mdn.mdn</a>
+</li>
+        <li><a href="processors/merge.html#module-processors.merge.merge">processors.merge.merge</a>
+</li>
         <li><a href="processors/mph.html#module-processors.mph.mph">processors.mph.mph</a>
 </li>
         <li><a href="processors/ndwi.html#module-processors.ndwi.ndwi">processors.ndwi.ndwi</a>
@@ -548,9 +562,13 @@
 </li>
         <li><a href="processors/fluo.html#module-processors.r_fluo.r_fluo">processors.r_fluo.r_fluo</a>
 </li>
+        <li><a href="processors/s2res.html#module-processors.s2res.s2res">processors.s2res.s2res</a>
+</li>
         <li><a href="processors/secchidepth.html#module-processors.secchidepth.secchidepth">processors.secchidepth.secchidepth</a>
 </li>
         <li><a href="processors/sen2cor.html#module-processors.sen2cor.sen2cor">processors.sen2cor.sen2cor</a>
+</li>
+        <li><a href="processors/whiting.html#module-processors.whiting.whiting">processors.whiting.whiting</a>
 </li>
         <li><a href="utils/auxil.html#module-utils.auxil">utils.auxil</a>
 </li>
@@ -589,6 +607,8 @@
 </li>
       <li><a href="apis/creodias.html#dias_apis.creodias.creodias.parse_date">parse_date() (in module dias_apis.creodias.creodias)</a>
 </li>
+      <li><a href="utils/product_fun.html#utils.product_fun.parse_date_from_name">parse_date_from_name() (in module utils.product_fun)</a>
+</li>
       <li><a href="apis/creodias.html#dias_apis.creodias.creodias.parse_filename">parse_filename() (in module dias_apis.creodias.creodias)</a>
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.parse_s3_name">parse_s3_name() (in module utils.product_fun)</a>
@@ -626,6 +646,8 @@
 </li>
         <li><a href="processors/lswt.html#processors.lswt.lswt.process">(in module processors.lswt.lswt)</a>
 </li>
+        <li><a href="processors/mdn.html#processors.mdn.mdn.process">(in module processors.mdn.mdn)</a>
+</li>
         <li><a href="processors/mph.html#processors.mph.mph.process">(in module processors.mph.mph)</a>
 </li>
         <li><a href="processors/ndwi.html#processors.ndwi.ndwi.process">(in module processors.ndwi.ndwi)</a>
@@ -638,9 +660,13 @@
 </li>
         <li><a href="processors/fluo.html#processors.r_fluo.r_fluo.process">(in module processors.r_fluo.r_fluo)</a>
 </li>
+        <li><a href="processors/s2res.html#processors.s2res.s2res.process">(in module processors.s2res.s2res)</a>
+</li>
         <li><a href="processors/secchidepth.html#processors.secchidepth.secchidepth.process">(in module processors.secchidepth.secchidepth)</a>
 </li>
         <li><a href="processors/sen2cor.html#processors.sen2cor.sen2cor.process">(in module processors.sen2cor.sen2cor)</a>
+</li>
+        <li><a href="processors/whiting.html#processors.whiting.whiting.process">(in module processors.whiting.whiting)</a>
 </li>
       </ul></li>
       <li>
@@ -650,8 +676,6 @@
         <li><a href="processors/acolite.html#module-processors.acolite.acolite">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     processors.c2rcc.c2rcc
 
@@ -659,6 +683,8 @@
         <li><a href="processors/c2rcc.html#module-processors.c2rcc.c2rcc">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     processors.forelule.forelule
 
@@ -692,6 +718,20 @@
 
       <ul>
         <li><a href="processors/lswt.html#module-processors.lswt.lswt">module</a>
+</li>
+      </ul></li>
+      <li>
+    processors.mdn.mdn
+
+      <ul>
+        <li><a href="processors/mdn.html#module-processors.mdn.mdn">module</a>
+</li>
+      </ul></li>
+      <li>
+    processors.merge.merge
+
+      <ul>
+        <li><a href="processors/merge.html#module-processors.merge.merge">module</a>
 </li>
       </ul></li>
       <li>
@@ -737,6 +777,13 @@
 </li>
       </ul></li>
       <li>
+    processors.s2res.s2res
+
+      <ul>
+        <li><a href="processors/s2res.html#module-processors.s2res.s2res">module</a>
+</li>
+      </ul></li>
+      <li>
     processors.secchidepth.secchidepth
 
       <ul>
@@ -748,6 +795,13 @@
 
       <ul>
         <li><a href="processors/sen2cor.html#module-processors.sen2cor.sen2cor">module</a>
+</li>
+      </ul></li>
+      <li>
+    processors.whiting.whiting
+
+      <ul>
+        <li><a href="processors/whiting.html#module-processors.whiting.whiting">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -774,6 +828,10 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils/product_fun.html#utils.product_fun.read_pixels_from_band">read_pixels_from_band() (in module utils.product_fun)</a>
+</li>
+      <li><a href="utils/product_fun.html#utils.product_fun.read_pixels_from_nc">read_pixels_from_nc() (in module utils.product_fun)</a>
+</li>
       <li><a href="processors/oc3.html#processors.oc3.oc3.read_rrs_polymer">read_rrs_polymer() (in module processors.oc3.oc3)</a>
 </li>
       <li><a href="processors/acolite.html#processors.acolite.acolite.rewrite_settings_file">rewrite_settings_file() (in module processors.acolite.acolite)</a>
@@ -787,6 +845,8 @@
 </li>
         <li><a href="processors/lswt.html#processors.lswt.lswt.rewrite_xml">(in module processors.lswt.lswt)</a>
 </li>
+        <li><a href="processors/merge.html#processors.merge.merge.rewrite_xml">(in module processors.merge.merge)</a>
+</li>
         <li><a href="processors/mph.html#processors.mph.mph.rewrite_xml">(in module processors.mph.mph)</a>
 </li>
         <li><a href="processors/ndwi.html#processors.ndwi.ndwi.rewrite_xml">(in module processors.ndwi.ndwi)</a>
@@ -795,7 +855,11 @@
 </li>
         <li><a href="processors/fluo.html#processors.r_fluo.r_fluo.rewrite_xml">(in module processors.r_fluo.r_fluo)</a>
 </li>
+        <li><a href="processors/s2res.html#processors.s2res.s2res.rewrite_xml">(in module processors.s2res.s2res)</a>
+</li>
         <li><a href="processors/sen2cor.html#processors.sen2cor.sen2cor.rewrite_xml">(in module processors.sen2cor.sen2cor)</a>
+</li>
+        <li><a href="processors/whiting.html#processors.whiting.whiting.rewrite_xml">(in module processors.whiting.whiting)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -810,8 +874,12 @@
         <li><a href="apis/creodias.html#dias_apis.creodias.creodias.search">(in module dias_apis.creodias.creodias)</a>
 </li>
       </ul></li>
+      <li><a href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s2_row">secchi_s2_row() (in module processors.secchidepth.secchidepth)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s3_row">secchi_s3_row() (in module processors.secchidepth.secchidepth)</a>
+</li>
       <li><a href="utils/auxil.html#utils.auxil.set_gpt_cache_size">set_gpt_cache_size() (in module utils.auxil)</a>
 </li>
       <li><a href="adapters/qlsingleband.html#adapters.qlsingleband.qlsingleband.shade">shade() (in module adapters.qlsingleband.qlsingleband)</a>
@@ -865,9 +933,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apis/hda.html#dias_apis.hda.hda.wait_for_dataorder_to_complete">wait_for_dataorder_to_complete() (in module dias_apis.hda.hda)</a>
 </li>
+      <li><a href="apis/hda.html#dias_apis.hda.hda.wait_for_datarequest_to_complete">wait_for_datarequest_to_complete() (in module dias_apis.hda.hda)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="apis/hda.html#dias_apis.hda.hda.wait_for_datarequest_to_complete">wait_for_datarequest_to_complete() (in module dias_apis.hda.hda)</a>
+      <li><a href="utils/product_fun.html#utils.product_fun.write_pixels_to_band">write_pixels_to_band() (in module utils.product_fun)</a>
+</li>
+      <li><a href="utils/product_fun.html#utils.product_fun.write_pixels_to_nc">write_pixels_to_nc() (in module utils.product_fun)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -885,7 +957,7 @@
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+        &copy; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner
 
     </p>
   </div>

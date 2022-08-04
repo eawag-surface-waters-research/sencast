@@ -82,10 +82,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Configuration</span></p>
@@ -113,17 +116,19 @@
 <li class="toctree-l1"><a class="reference internal" href="processors/idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/lswt.html">LSWT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/secchidepth.html">Secchi Depth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/whiting.html">Whiting</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="adapters/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/datalakes.html">Datalakes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlsingleband.html">QLSingleBand</a></li>
@@ -213,7 +218,7 @@
 </div>
 <dl class="py function">
 <dt id="main.do_hindcast">
-<code class="sig-prename descclassname">main.</code><code class="sig-name descname">do_hindcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">l2_path</span></em>, <em class="sig-param"><span class="n">max_parallel_downloads</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_parallel_processors</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_parallel_adapters</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.do_hindcast" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">main.</code><code class="sig-name descname">do_hindcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">l2_path</span></em>, <em class="sig-param"><span class="n">l2product_files</span></em>, <em class="sig-param"><span class="n">max_parallel_downloads</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_parallel_processors</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_parallel_adapters</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.do_hindcast" title="Permalink to this definition">¶</a></dt>
 <dd><p>Threading function for running Sencast.
 1. Calls API to find available data for given query
 2. Splits the processing into threads based on date and satellite
@@ -224,6 +229,8 @@
 <dt>params</dt><dd><p>Dictionary of parameters, loaded from input file</p>
 </dd>
 <dt>l2_path</dt><dd><p>The output folder in which to save the output files</p>
+</dd>
+<dt>l2product_files</dt><dd><p>A dictionary to return the outputs (produced l2 product files)</p>
 </dd>
 <dt>max_parallel_downloads</dt><dd><div class="line-block">
 <div class="line"><strong>Default: 1</strong></div>
@@ -276,7 +283,7 @@
 
 <dl class="py function">
 <dt id="main.hindcast_product_group">
-<code class="sig-prename descclassname">main.</code><code class="sig-name descname">hindcast_product_group</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">do_download</span></em>, <em class="sig-param"><span class="n">auth</span></em>, <em class="sig-param"><span class="n">download_requests</span></em>, <em class="sig-param"><span class="n">l1product_paths</span></em>, <em class="sig-param"><span class="n">l2_path</span></em>, <em class="sig-param"><span class="n">semaphores</span></em>, <em class="sig-param"><span class="n">group</span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.hindcast_product_group" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">main.</code><code class="sig-name descname">hindcast_product_group</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">do_download</span></em>, <em class="sig-param"><span class="n">auth</span></em>, <em class="sig-param"><span class="n">download_requests</span></em>, <em class="sig-param"><span class="n">l1product_paths</span></em>, <em class="sig-param"><span class="n">l2_path</span></em>, <em class="sig-param"><span class="n">l2product_files_outer</span></em>, <em class="sig-param"><span class="n">semaphores</span></em>, <em class="sig-param"><span class="n">group</span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.hindcast_product_group" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run Sencast for given thread.
 1. Downloads required products
 2. Runs processors
@@ -328,7 +335,7 @@ The output folder in which to save the output files</p>
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+        &copy; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner
 
     </p>
   </div>

@@ -84,8 +84,7 @@
             
               <p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Configuration</span></p>
@@ -198,27 +197,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-adapters.merge.merge">
-<span id="merge"></span><h1>Merge<a class="headerlink" href="#module-adapters.merge.merge" title="Permalink to this headline">¶</a></h1>
-<p>The Merge adapter combines multiple L2 products into a single file with multiple bands.
-The merge is only valid for files with identical geospatial information, it is not for merging geospatially distinct regions.</p>
-<dl class="py function">
-<dt id="adapters.merge.merge.apply">
-<code class="sig-prename descclassname">adapters.merge.merge.</code><code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env</span></em>, <em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">l2product_files</span></em>, <em class="sig-param"><span class="n">date</span></em><span class="sig-paren">)</span><a class="headerlink" href="#adapters.merge.merge.apply" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply merge adapter.
-1. Uses snappy to merge multiple L2 files</p>
-<dl class="simple">
-<dt>env</dt><dd><p>Dictionary of environment parameters, loaded from input file</p>
-</dd>
-<dt>params</dt><dd><p>Dictionary of parameters, loaded from input file</p>
-</dd>
-<dt>l2product_files</dt><dd><p>Dictionary of Level 2 product files created by processors</p>
-</dd>
-<dt>date</dt><dd><p>Run date</p>
-</dd>
-</dl>
-</dd></dl>
-
+  <div class="section" id="merge">
+<h1>Merge<a class="headerlink" href="#merge" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
@@ -242,7 +222,7 @@ The merge is only valid for files with identical geospatial information, it is n
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+        &copy; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner
 
     </p>
   </div>

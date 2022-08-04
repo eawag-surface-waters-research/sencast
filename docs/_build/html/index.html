@@ -36,7 +36,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Ubuntu 18.04, 20.04" href="install/ubuntu18_install.html" /> 
+    <link rel="next" title="Ubuntu 18.04, 20.04, 22.04" href="install/ubuntu18_install.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -81,10 +81,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Configuration</span></p>
@@ -112,17 +115,19 @@
 <li class="toctree-l1"><a class="reference internal" href="processors/idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/lswt.html">LSWT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/secchidepth.html">Secchi Depth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/whiting.html">Whiting</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="adapters/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/datalakes.html">Datalakes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlsingleband.html">QLSingleBand</a></li>
@@ -200,9 +205,9 @@
   <div class="section" id="sencast">
 <h1>Sencast<a class="headerlink" href="#sencast" title="Permalink to this headline">¶</a></h1>
 <a class="reference internal image-reference" href="_images/logo.png"><img alt="Eawag logo" class="align-left" src="_images/logo.png" style="width: 120px;" /></a>
-<p>Sencast is a python toolbox that forms a framework around existing packages for processing
-Sentinel 2 &amp; Sentinel 3 satellite images in order facilitates processing pipelines for deriving water
-quality parameters such as Chlorophyll A, Turbidity, etc.</p>
+<p>Sencast is a toolbox to download and derive water quality parameters from satellite images. It acts as a framework for
+the use a variety of processors such as Idepix, Polymer, Sen2Cor and Acolite. It supports ESA satellites Sentinel 2 and
+Sentinel 3 and USGS satellite Landsat 8.</p>
 <p>It is developed and maintained by the <a class="reference external" href="https://www.eawag.ch/en/department/surf/main-focus/remote-sensing/">SURF Remote Sensing group at Eawag</a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -221,8 +226,8 @@ the release of a stable v1.0, however for the moment this project remains pre-v1
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <p>To install Sencast, run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@gitlab</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">eawag</span><span class="o">-</span><span class="n">rs</span><span class="o">/</span><span class="n">sencast</span><span class="o">.</span><span class="n">git</span>
-<span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">environment</span><span class="o">.</span><span class="n">yml</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">gitlab</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">eawag</span><span class="o">-</span><span class="n">rs</span><span class="o">/</span><span class="n">sencast</span><span class="o">.</span><span class="n">git</span>
+<span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="o">~/</span><span class="n">sencast</span><span class="o">/</span><span class="n">sencast</span><span class="o">-</span><span class="mf">37.</span><span class="n">yml</span>
 </pre></div>
 </div>
 <p>Many of the Sencast’S processors reply on <a class="reference external" href="http://step.esa.int/main/toolboxes/snap/">SNAP</a> , the SeNtinel Application Platform
@@ -230,17 +235,18 @@ project, funded by the <a class="reference external" href="http://www.esa.int/">
 access to all of Sencast’s processors follow the installation instructions below in order to
 correctly configure your environment.</p>
 <p>This process will require registering accounts with data providers.</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="install/ubuntu18_install.html#ubuntu18install"><span class="std std-ref">Ubuntu 18.04, 20.04</span></a></p></li>
-<li><p><a class="reference internal" href="install/centos8_install.html#centos8install"><span class="std std-ref">CentOS 8</span></a></p></li>
-<li><p><a class="reference internal" href="install/windows10_install.html#windows10install"><span class="std std-ref">Windows 10</span></a></p></li>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
 </ul>
+</div>
 <p>For issues with installation, please contact <a class="reference external" href="https://www.eawag.ch/de/ueberuns/portraet/organisation/mitarbeitende/profile/daniel-odermatt/show/">Daniel
 Odermatt</a>.</p>
 </div>
 <div class="section" id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
-<p>Following flow chart illustrates how sencast works.</p>
+<p>Following flow chart illustrates how Sencast works.</p>
 <a class="reference internal image-reference" href="_images/flowchart.png"><img alt="Sencast Flow Chart" class="align-center" src="_images/flowchart.png" style="width: 800px;" /></a>
 <p>Sencast offers two interfaces to process data.</p>
 <ul class="simple">
@@ -291,11 +297,21 @@ validating outputs, sending processed outputs to some webservice,
 creating quicklooks, notifying some webservice about the finished
 sencast run.</p>
 <p>Adapter usually do not produce any new output products.</p>
+</div>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>To test your installation run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">sencast</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">sencast</span><span class="o">-</span><span class="mi">37</span>
+<span class="n">python3</span> <span class="n">tests</span><span class="o">/</span><span class="n">test_installation</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>This will report which processors are successfully installed and producing meaning-full outputs.</p>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
 </ul>
 </div>
@@ -331,19 +347,21 @@ sencast run.</p>
 <li class="toctree-l1"><a class="reference internal" href="processors/idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/lswt.html">LSWT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/secchidepth.html">Secchi Depth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/whiting.html">Whiting</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="adapters/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/datalakes.html">Datalakes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlsingleband.html">QLSingleBand</a></li>
@@ -356,7 +374,6 @@ sencast run.</p>
 <li class="toctree-l1"><a class="reference internal" href="apis/creodias.html">CREODIAS API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="apis/hda.html">HDA API</a></li>
 </ul>
-</div>
 </div>
 </div>
 </div>
@@ -377,7 +394,7 @@ sencast run.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="install/ubuntu18_install.html" class="btn btn-neutral float-right" title="Ubuntu 18.04, 20.04" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="install/ubuntu18_install.html" class="btn btn-neutral float-right" title="Ubuntu 18.04, 20.04, 22.04" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>
@@ -388,7 +405,7 @@ sencast run.</p>
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+        &copy; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner
 
     </p>
   </div>

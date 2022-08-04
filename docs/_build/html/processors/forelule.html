@@ -82,10 +82,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Configuration</span></p>
@@ -113,17 +116,19 @@
 <li class="toctree-l1"><a class="reference internal" href="idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lswt.html">LSWT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="secchidepth.html">Secchi Depth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="whiting.html">Whiting</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
@@ -209,6 +214,11 @@ Adapter authors: Daniel Odermatt, James Runnalls</p>
 <dd></dd></dl>
 
 <dl class="py function">
+<dt id="processors.forelule.forelule.dominant_wavelength_wrapper">
+<code class="sig-prename descclassname">processors.forelule.forelule.</code><code class="sig-name descname">dominant_wavelength_wrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">max_chunk</span><span class="o">=</span><span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.dominant_wavelength_wrapper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="processors.forelule.forelule.get_FU_class">
 <code class="sig-prename descclassname">processors.forelule.forelule.</code><code class="sig-name descname">get_FU_class</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hue_angle</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.get_FU_class" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -223,6 +233,11 @@ See also Table 6 in Novoa et al. (2013): <a class="reference external" href="htt
 <dl class="py function">
 <dt id="processors.forelule.forelule.hue_angle_coefficients">
 <code class="sig-prename descclassname">processors.forelule.forelule.</code><code class="sig-name descname">hue_angle_coefficients</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sensor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.hue_angle_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="processors.forelule.forelule.main_chunk">
+<code class="sig-prename descclassname">processors.forelule.forelule.</code><code class="sig-name descname">main_chunk</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bands</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">w</span></em>, <em class="sig-param"><span class="n">h</span></em>, <em class="sig-param"><span class="n">width</span></em>, <em class="sig-param"><span class="n">height</span></em>, <em class="sig-param"><span class="n">chromaticity</span></em>, <em class="sig-param"><span class="n">hue_angle_coeff</span></em>, <em class="sig-param"><span class="n">env</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.main_chunk" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -267,7 +282,7 @@ See also Table 6 in Novoa et al. (2013): <a class="reference external" href="htt
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+        &copy; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner
 
     </p>
   </div>

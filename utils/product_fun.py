@@ -3,14 +3,18 @@
 
 """This module bundles utility functions regarding satellite products."""
 
+import numpy as np
 import os
 import re
 import subprocess
+from math import ceil, floor
 
 from haversine import haversine
 from datetime import datetime
-from utils.auxil import log
+
 from netCDF4 import Dataset
+
+from utils.auxil import log
 
 
 def parse_s3_name(name):
@@ -174,15 +178,180 @@ def generate_l8_angle_files(env, l1product_path):
     return subprocess.call(args, cwd=l1product_path)
 
 
-def get_band_names_from_nc(product_file):
+def get_band_names_from_nc(nc):
     """Returns a list containing all band names of a given product."""
+    if type(nc) is str:
+        with Dataset(nc) as nc:
+            return get_band_names_from_nc(nc)
+
     bands = []
-    with Dataset(product_file) as nc:
-        for var in nc.variables:
-            if len(nc.variables[var].shape) == 2:
-                if hasattr(nc.variables[var], 'orig_name'):
-                    bands.append(nc.variables[var].orig_name)
-                else:
-                    bands.append(var)
+    for var in nc.variables:
+        if len(nc.variables[var].shape) == 2:
+            if hasattr(nc.variables[var], 'orig_name'):
+                bands.append(nc.variables[var].orig_name)
+            else:
+                bands.append(var)
     return bands
 
+
+def get_name_width_height_from_nc(nc, product_file=None):
+    """Returns the height and the width of a given product."""
+    for var in nc.variables:
+        if len(nc.variables[var].shape) == 2:
+            return os.path.splitext(os.path.basename(product_file))[0] if product_file is not None else None,\
+                   nc.variables[var].shape[1], nc.variables[var].shape[0]
+    raise RuntimeWarning('Could not read width and height from product {}.'.format(product_file))
+
+
+def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
+    """
+    Returns the coordinates of the pixel [x, y] which cover a certain geo location (lon/lat).
+    :param longitudes: matrix representing the longitude of each pixel
+    :param latitudes: matrix representing the latitude of every pixel
+    :param lon: longitude of the geo location of interest
+    :param lat: latitude of the geo location of interest
+    :param x: starting point of the algorithm
+    :param y: starting point of the algorithm
+    :param step: starting step size of the algorithm
+    :return: [-1, -1] if the geo location is not covered by this product
+    """
+
+    lons_height, lons_width = len(longitudes), len(longitudes[0])
+    lats_height, lats_width = len(latitudes), len(latitudes[0])
+
+    if lats_height != lons_height or lats_width != lons_width:
+        raise RuntimeError("Provided latitudes and longitudes matrices do not have the same size!")
+
+    if x is None:
+        x = int(lons_width / 2)
+    if y is None:
+        y = int(lats_height / 2)
+    if step is None:
+        step = int(ceil(min(lons_width, lons_height) / 4))
+
+    new_coords = [[x, y], [x - step, y - step], [x - step, y], [x - step, y + step], [x, y + step],
+                  [x + step, y + step], [x + step, y], [x + step, y - step], [x, y - step]]
+    distances = [haversine((lat, lon), (latitudes[new_x][new_y], longitudes[new_x][new_y])) for [new_x, new_y] in
+                 new_coords]
+
+    idx = distances.index(min(distances))
+
+    if step == 1:
+        if x <= 0 or x >= lats_width - 1 or y <= 0 or y >= lats_height - 1:
+            return [-1, -1]
+        return new_coords[idx]
+    else:
+        return get_pixel_pos(longitudes, latitudes, lon, lat, new_coords[idx][0], new_coords[idx][1],
+                             int(ceil(step / 2)))
+
+
+def get_valid_pe_from_nc(nc, band_name=None):
+    if band_name is None:
+        for band_name in nc.variables:
+            if 'valid_pixel_expression' in nc.variables[band_name].__dict__.keys():
+                return nc.variables[band_name].valid_pixel_expression
+    elif 'valid_pixel_expression' in nc.variables[band_name].__dict__.keys():
+        return nc.variables[band_name].valid_pixel_expression
+    raise RuntimeError('Unable to read valid pixel expression from provided product. Please implement!')
+
+
+def get_lat_lon_from_x_y_from_nc(nc, x, y, lat_var_name=None, lon_var_name=None):
+    if lat_var_name is None:
+        if 'latitude' in nc.variables.keys():
+            lat_var_name = 'latitude'
+        elif 'lat' in nc.variables.keys():
+            lat_var_name = 'lat'
+        else:
+            raise RuntimeError('Cannot guess the name of the latitude variable for this product, please implement.')
+
+    if lon_var_name is None:
+        if 'longitude' in nc.variables.keys():
+            lon_var_name = 'longitude'
+        elif 'lon' in nc.variables.keys():
+            lon_var_name = 'lon'
+        else:
+            raise RuntimeError('Cannot guess the name of the longitude variable for this product, please implement.')
+
+    return get_lat_lon_from_x_y(nc.variables[lat_var_name], nc.variables[lon_var_name], x, y)
+
+
+def get_lat_lon_from_x_y(lat_var, lon_var, x, y):
+    if len(lat_var.dimensions) == 1:
+        return lat_var[y], lon_var[x]
+    elif len(lat_var.dimensions) == 2:
+        return lat_var[y][x], lon_var[y][x]
+    else:
+        raise RuntimeError('Lat an Lon could not be extracted from the provided lat and lon variables because the'
+                           ' dimensions do not match')
+
+
+def get_pixel_value_xy(nc, band_name, x, y):
+    return nc.variables[band_name][y][x]
+
+
+def get_band_from_nc(nc, band_name):
+    return nc.variables[band_name]
+
+
+def copy_nc(src, dst, included_bands):
+    dst.setncatts(src.__dict__)
+    for name, dimension in src.dimensions.items():
+        dst.createDimension(name, (len(dimension) if not dimension.isunlimited() else None))
+    included_bands = ['crs', 'lat', 'lon'] + included_bands
+    for name, variable in src.variables.items():
+        if name in included_bands:
+            dst.createVariable(name, variable.datatype, variable.dimensions)
+            dst[name].setncatts(src[name].__dict__)
+            dst[name][:] = src[name][:]
+
+
+def copy_band(src, dst, band_name):
+    for name, variable in src.variables.items():
+        if name == band_name:
+            dst.createVariable(name, variable.datatype, variable.dimensions)
+            dst[name].setncatts(src[name].__dict__)
+            dst[name][:] = src[name][:]
+
+
+def create_band(dst, band_name, band_unit, valid_pixel_expression):
+    b = dst.createVariable(band_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN)
+    b.units = band_unit
+    b.valid_pixel_expression = valid_pixel_expression
+    return b
+
+
+def read_pixels_from_nc(nc, band_name, x, y, w, h, data=None, dtype=np.float64):
+    return read_pixels_from_band(nc.variables[band_name], x, y, w, h, data, dtype)
+
+
+def read_pixels_from_band(band, x, y, w, h, data=None, dtype=np.float64):
+    if data is None:
+        data = np.zeros(w * h, dtype=dtype)
+    for read_y in range(y, y + h):
+        for read_x in range(x, x + w):
+            data[(read_y - y) * w + read_x - x] = float(np.ma.getdata(band[read_y])[read_x])
+    return data
+
+
+def write_pixels_to_nc(nc, band_name, x, y, w, h, data):
+    write_pixels_to_band(nc[band_name], x, y, w, h, data)
+
+
+def write_pixels_to_band(band, x, y, w, h, data):
+    band[range(y, y + h), range(x, x + w)] = data.reshape(h, w)
+
+
+def get_np_data_type(nc, band_name):
+    dtype = nc.variables[band_name].datatype
+    if dtype in [np.int8, np.int16, np.int32, np.int64, np.float32, np.float64]:
+        return dtype, dtype.name
+    elif dtype <= 12:
+        return np.int32, 'int32'
+    elif dtype == 21:
+        return np.float64, 'float64'
+    elif dtype == 30:
+        return np.float32, 'float32'
+    elif dtype == 31:
+        return np.float64, 'float64'
+    else:
+        raise ValueError("Cannot handle band of data_sh type '{}'".format(str(dtype)))

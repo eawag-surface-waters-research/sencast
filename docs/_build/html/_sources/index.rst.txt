@@ -6,9 +6,9 @@ Sencast
     :alt: Eawag logo
     :align: left
 
-Sencast is a python toolbox that forms a framework around existing packages for processing
-Sentinel 2 & Sentinel 3 satellite images in order facilitates processing pipelines for deriving water
-quality parameters such as Chlorophyll A, Turbidity, etc.
+Sencast is a toolbox to download and derive water quality parameters from satellite images. It acts as a framework for
+the use a variety of processors such as Idepix, Polymer, Sen2Cor and Acolite. It supports ESA satellites Sentinel 2 and
+Sentinel 3 and USGS satellite Landsat 8.
 
 It is developed and maintained by the `SURF Remote Sensing group at Eawag`_.
 
@@ -29,8 +29,8 @@ Installation
 
 To install Sencast, run::
 
-  git clone git@gitlab.com:eawag-rs/sencast.git
-  conda env create -f environment.yml
+  git clone https://gitlab.com/eawag-rs/sencast.git
+  conda env create -f ~/sencast/sencast-37.yml
 
 Many of the Sencast'S processors reply on `SNAP`_ , the SeNtinel Application Platform
 project, funded by the `European Space Agency`_ (ESA) or other 3rd party packages. In order to have
@@ -39,9 +39,11 @@ correctly configure your environment.
 
 This process will require registering accounts with data providers.
 
-- :ref:`ubuntu18install`
-- :ref:`centos8install`
-- :ref:`windows10install`
+.. toctree::
+   :maxdepth: 2
+
+   install/ubuntu18_install.rst
+   install/windows10_install.rst
 
 For issues with installation, please contact `Daniel
 Odermatt`_.
@@ -49,7 +51,7 @@ Odermatt`_.
 Getting Started
 ---------------
 
-Following flow chart illustrates how sencast works.
+Following flow chart illustrates how Sencast works.
 
 .. image:: flowchart.png
     :width: 800px
@@ -115,12 +117,22 @@ sencast run.
 
 Adapter usually do not produce any new output products.
 
+Testing
+--------
+
+To test your installation run::
+
+  cd ~/sencast
+  conda activate sencast-37
+  python3 tests/test_installation.py
+
+This will report which processors are successfully installed and producing meaning-full outputs.
+
 .. toctree::
    :maxdepth: 2
    :caption: Installation
 
    install/ubuntu18_install.rst
-   install/centos8_install.rst
    install/windows10_install.rst
 
 .. toctree::
@@ -156,19 +168,21 @@ Adapter usually do not produce any new output products.
    processors/idepix.rst
    processors/lswt.rst
    processors/mdn.rst
+   processors/merge.rst
    processors/mph.rst
    processors/ndwi.rst
    processors/oc3.rst
    processors/polymer.rst
    processors/primaryproduction.rst
+   processors/s2res.rst
    processors/secchidepth.rst
    processors/sen2cor.rst
+   processors/whiting.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Adapters
 
-   adapters/merge.rst
    adapters/datalakes.rst
    adapters/qlrgb.rst
    adapters/qlsingleband.rst
@@ -182,14 +196,11 @@ Adapter usually do not produce any new output products.
    apis/hda.rst
 
 .. _SURF Remote Sensing group at Eawag: https://www.eawag.ch/en/department/surf/main-focus/remote-sensing/
-.. _jpy: https://github.com/bcdev/jpy/blob/master/README.md
-.. _snappy: https://github.com/senbox-org/snap-engine/blob/master/snap-python/src/main/resources/README.md
 .. _polymer: https://forum.hygeos.com/viewtopic.php?f=5&t=56
 .. _SNAP: http://step.esa.int/main/toolboxes/snap/
 .. _European Space Agency: http://www.esa.int/
 .. _Daniel Odermatt: https://www.eawag.ch/de/ueberuns/portraet/organisation/mitarbeitende/profile/daniel-odermatt/show/
 .. _example.ini: https://renkulab.io/gitlab/odermatt/sentinel-hindcast/blob/master/environments/example.ini
-.. _parameters_template_S3.ini: https://renkulab.io/gitlab/odermatt/sentinel-hindcast/blob/master/parameters/parameters_template_S3.ini
 .. _WKT: https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
 
 

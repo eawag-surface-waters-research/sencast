@@ -37,7 +37,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Sen2cor" href="sen2cor.html" />
-    <link rel="prev" title="Primary Production" href="primaryproduction.html" /> 
+    <link rel="prev" title="S2Res" href="s2res.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -82,10 +82,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/centos8_install.html">CentOS 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Configuration</span></p>
@@ -113,17 +116,19 @@
 <li class="toctree-l1"><a class="reference internal" href="idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lswt.html">LSWT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="s2res.html">S2Res</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Secchi Depth</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="whiting.html">Whiting</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
@@ -222,6 +227,16 @@ Authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt id="processors.secchidepth.secchidepth.secchi_s2_row">
+<code class="sig-prename descclassname">processors.secchidepth.secchidepth.</code><code class="sig-name descname">secchi_s2_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dst</span></em>, <em class="sig-param"><span class="n">n_row</span></em>, <em class="sig-param"><span class="n">secchi_band_names</span></em>, <em class="sig-param"><span class="n">width</span></em>, <em class="sig-param"><span class="n">rs</span></em>, <em class="sig-param"><span class="n">rrs</span></em>, <em class="sig-param"><span class="n">us</span></em>, <em class="sig-param"><span class="n">sza</span></em>, <em class="sig-param"><span class="n">aws</span></em>, <em class="sig-param"><span class="n">bws</span></em>, <em class="sig-param"><span class="n">wvl</span></em>, <em class="sig-param"><span class="n">m0</span></em>, <em class="sig-param"><span class="n">m1</span></em>, <em class="sig-param"><span class="n">m2</span></em>, <em class="sig-param"><span class="n">m3</span></em>, <em class="sig-param"><span class="n">y1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.secchi_s2_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="processors.secchidepth.secchidepth.secchi_s3_row">
+<code class="sig-prename descclassname">processors.secchidepth.secchidepth.</code><code class="sig-name descname">secchi_s3_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dst</span></em>, <em class="sig-param"><span class="n">n_row</span></em>, <em class="sig-param"><span class="n">secchi_band_names</span></em>, <em class="sig-param"><span class="n">width</span></em>, <em class="sig-param"><span class="n">rs</span></em>, <em class="sig-param"><span class="n">rrs</span></em>, <em class="sig-param"><span class="n">us</span></em>, <em class="sig-param"><span class="n">sza</span></em>, <em class="sig-param"><span class="n">aws</span></em>, <em class="sig-param"><span class="n">bws</span></em>, <em class="sig-param"><span class="n">wvl</span></em>, <em class="sig-param"><span class="n">m0</span></em>, <em class="sig-param"><span class="n">m1</span></em>, <em class="sig-param"><span class="n">m2</span></em>, <em class="sig-param"><span class="n">m3</span></em>, <em class="sig-param"><span class="n">y1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.secchi_s3_row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 
 
@@ -235,7 +250,7 @@ Authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt</p>
         <a href="sen2cor.html" class="btn btn-neutral float-right" title="Sen2cor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="primaryproduction.html" class="btn btn-neutral float-left" title="Primary Production" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="s2res.html" class="btn btn-neutral float-left" title="S2Res" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -245,7 +260,7 @@ Authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt</p>
   <div role="contentinfo">
     <p>
         
-        &copy; Copyright 2021, Daniel Odermatt, James Runnalls, Rolf Scheuner
+        &copy; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner
 
     </p>
   </div>
