@@ -231,7 +231,10 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 log(env["General"]["log"], traceback.format_exc(), indent=1)
         del processor_outputs
         for l1product_path in l1product_paths:
-            del(l2product_files[l1product_path])
+            try:
+                del(l2product_files[l1product_path])
+            except:
+                log(env["General"]["log"], "Failed to delete: {}".format(l1product_path))
         log(env["General"]["log"], "All processors finished! {}".format(str(l2product_files)))
 
     # apply adapters

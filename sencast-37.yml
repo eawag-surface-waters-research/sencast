@@ -1,4 +1,4 @@
-name: sencast-37
+name: sencast-372
 channels:
   - conda-forge
   - bioconda
@@ -7,7 +7,7 @@ dependencies:
   - cartopy=0.20.*
   - cdsapi=0.5.*
   - colour-science=0.3.*
-  - cython=0.*
+  - cython=0.29.32
   - ecmwfapi=1.4.1
   - gdal=3.2.2
   - geos=3.9.1

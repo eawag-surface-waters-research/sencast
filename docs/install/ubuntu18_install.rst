@@ -36,7 +36,7 @@ In shell do following::
 
 We use Anaconda because it delivers all packages with eventually required external libraries. With PIP you would have to install some GDAL stuff manually.
 
-In  shell do following::
+In  shell do following after editing the conda path to match your installation::
 
     $ curl https://repo.anaconda.com/archive/Anaconda3-2022.05-Linux-x86_64.sh -o ~/Anaconda3-2022.05-Linux-x86_64.sh && sudo chmod 755 ~/Anaconda3-2022.05-Linux-x86_64.sh && ~/Anaconda3-2022.05-Linux-x86_64.sh && rm ~/Anaconda3-2022.05-Linux-x86_64.sh
         > [Enter]
@@ -44,8 +44,8 @@ In  shell do following::
         > yes
         > [Enter]
         > yes
-    $ echo "export CONDA_HOME=/opt/conda" >> ~/.bashrc
-    $ export CONDA_HOME=/opt/conda
+    $ echo "export CONDA_HOME=/home/username/anaconda3" >> ~/.bashrc
+    $ export CONDA_HOME=/home/username/anaconda3
 
 Create sencast environment::
 
@@ -70,8 +70,8 @@ Then do following::
         [n, Enter]
         [n, Enter]
         [n, Enter]
-    $ echo "export SNAP_HOME=/opt/snap" >> ~/.bashrc
-    $ export SNAP_HOME=/opt/snap
+    $ echo "export SNAP_HOME=/home/username/snap" >> ~/.bashrc
+    $ export SNAP_HOME=/home/username/snap
     $ $SNAP_HOME/bin/snap --nosplash --nogui --modules --update-all
     $ $SNAP_HOME/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi
     $ echo "#SNAP configuration 's3tbx'" >> ~/.snap/etc/s3tbx.properties
@@ -182,16 +182,16 @@ In shell do following::
 In shell do following::
 
     $ cd ~
-    $ wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin && chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin && sudo mkdir /opt/vito && sudo ./icor_install_ubuntu_20_04_x64_3.0.0.bin && rm icor_install_ubuntu_20_04_x64_3.0.0.bin
+    $ wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin && chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin && sudo mkdir /home/username/vito && sudo ./icor_install_ubuntu_20_04_x64_3.0.0.bin && rm icor_install_ubuntu_20_04_x64_3.0.0.bin
 
-Installation of SNAP plugin only necessairy if you want to use iCOR from SNAP Desktop::
+Installation of SNAP plugin only necessary if you want to use iCOR from SNAP Desktop::
 
     $ mkdir ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
     $ mkdir ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
     $ mkdir ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX
-    $ unzip /opt/vito/icor/sta/iCOR-landsat8-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
-    $ unzip /opt/vito/icor/sta/iCOR-sentinel2-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
-    $ unzip /opt/vito/icor/sta/iCOR-sentinel3-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX
+    $ unzip /home/username/vito/icor/sta/iCOR-landsat8-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
+    $ unzip /home/username/vito/icor/sta/iCOR-sentinel2-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
+    $ unzip /home/username/vito/icor/sta/iCOR-sentinel3-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX
     $ cp -r ~/setup/iCOR-landsat8-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
     $ cp -r ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
     $ cp -r ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX/netbeans/* ~/.snap/system

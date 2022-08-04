@@ -232,15 +232,15 @@ $ git checkout &lt;branchname&gt; (if not master)
 </div>
 <p>2.) Anaconda3: <a class="reference external" href="https://docs.anaconda.com/anaconda/install/linux/">https://docs.anaconda.com/anaconda/install/linux/</a></p>
 <p>We use Anaconda because it delivers all packages with eventually required external libraries. With PIP you would have to install some GDAL stuff manually.</p>
-<p>In  shell do following:</p>
+<p>In  shell do following after editing the conda path to match your installation:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ curl https://repo.anaconda.com/archive/Anaconda3-2022.05-Linux-x86_64.sh -o ~/Anaconda3-2022.05-Linux-x86_64.sh &amp;&amp; sudo chmod 755 ~/Anaconda3-2022.05-Linux-x86_64.sh &amp;&amp; ~/Anaconda3-2022.05-Linux-x86_64.sh &amp;&amp; rm ~/Anaconda3-2022.05-Linux-x86_64.sh
     &gt; [Enter]
     &gt; s
     &gt; yes
     &gt; [Enter]
     &gt; yes
-$ echo &quot;export CONDA_HOME=/opt/conda&quot; &gt;&gt; ~/.bashrc
-$ export CONDA_HOME=/opt/conda
+$ echo &quot;export CONDA_HOME=/home/username/anaconda3&quot; &gt;&gt; ~/.bashrc
+$ export CONDA_HOME=/home/username/anaconda3
 </pre></div>
 </div>
 <p>Create sencast environment:</p>
@@ -262,8 +262,8 @@ $ curl -O http://step.esa.int/downloads/9.0/installers/esa-snap_all_unix_9_0_0.s
     [n, Enter]
     [n, Enter]
     [n, Enter]
-$ echo &quot;export SNAP_HOME=/opt/snap&quot; &gt;&gt; ~/.bashrc
-$ export SNAP_HOME=/opt/snap
+$ echo &quot;export SNAP_HOME=/home/username/snap&quot; &gt;&gt; ~/.bashrc
+$ export SNAP_HOME=/home/username/snap
 $ $SNAP_HOME/bin/snap --nosplash --nogui --modules --update-all
 $ $SNAP_HOME/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi
 $ echo &quot;#SNAP configuration &#39;s3tbx&#39;&quot; &gt;&gt; ~/.snap/etc/s3tbx.properties
@@ -350,16 +350,16 @@ $ rm -rf ~/snap-eum-fluo-1.0
 <p>11.) iCOR: <a class="reference external" href="https://remotesensing.vito.be/case/icor">https://remotesensing.vito.be/case/icor</a></p>
 <p>In shell do following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd ~
-$ wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin &amp;&amp; chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin &amp;&amp; sudo mkdir /opt/vito &amp;&amp; sudo ./icor_install_ubuntu_20_04_x64_3.0.0.bin &amp;&amp; rm icor_install_ubuntu_20_04_x64_3.0.0.bin
+$ wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin &amp;&amp; chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin &amp;&amp; sudo mkdir /home/username/vito &amp;&amp; sudo ./icor_install_ubuntu_20_04_x64_3.0.0.bin &amp;&amp; rm icor_install_ubuntu_20_04_x64_3.0.0.bin
 </pre></div>
 </div>
-<p>Installation of SNAP plugin only necessairy if you want to use iCOR from SNAP Desktop:</p>
+<p>Installation of SNAP plugin only necessary if you want to use iCOR from SNAP Desktop:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ mkdir ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
 $ mkdir ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
 $ mkdir ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX
-$ unzip /opt/vito/icor/sta/iCOR-landsat8-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
-$ unzip /opt/vito/icor/sta/iCOR-sentinel2-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
-$ unzip /opt/vito/icor/sta/iCOR-sentinel3-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX
+$ unzip /home/username/vito/icor/sta/iCOR-landsat8-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
+$ unzip /home/username/vito/icor/sta/iCOR-sentinel2-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
+$ unzip /home/username/vito/icor/sta/iCOR-sentinel3-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX
 $ cp -r ~/setup/iCOR-landsat8-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
 $ cp -r ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
 $ cp -r ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX/netbeans/* ~/.snap/system

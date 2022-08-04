@@ -19,7 +19,7 @@ cd ~/sencast
 conda activate sencast-37
 python3 tests/test_installation.py
 ```
-This will output a log of which processors are functioning. After the above steps it is normal that only ... 
+This will output a log of which processors are functioning. After the above steps it is normal that only Idepix and MPH 
 processors function. For installation of the additional processors refer to the full documentation below:
 
 ## Documentation
