@@ -26,7 +26,7 @@ search_address = "https://finder.creodias.eu/resto/api/collections/{}/search.jso
 download_address = "https://zipper.creodias.eu/download/{}?token={}"
 
 # token address
-token_address = 'https://auth.creodias.eu/auth/realms/DIAS/protocol/openid-connect/token'
+token_address = 'https://identity.cloudferro.com/auth/realms/dias/protocol/openid-connect/token'
 
 
 def authenticate(env):
