@@ -11,3 +11,4 @@ __pycache__
 !/parameters/datalakes_sui_S3.ini
 !/environments/example.ini
 /environments/SUR-CLINB008-N.scheunro.ini
+docker
