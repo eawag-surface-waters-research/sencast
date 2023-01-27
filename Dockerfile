@@ -14,7 +14,8 @@ COPY ./dias_apis /sencast/dias_apis
 COPY ./mosaic /sencast/mosaic
 COPY ./postprocess /sencast/postprocess
 COPY ./processors /sencast/processors
-COPY ./parameters/test_* /sencast/parameters
+RUN mkdir /sencast/parameters
+COPY ./parameters/test_* /sencast/parameters/
 COPY ./utils /sencast/utils
 COPY ./wkt /sencast/wkt
 COPY ./constants.py /sencast/
