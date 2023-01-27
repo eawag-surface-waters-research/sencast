@@ -1,22 +1,10 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
-"""
-The core functions of Sencast
-.. note::
-    Download API's, processors, and adapters are imported dynamically to make Sencast also work on systems,
-    where some of them might not be available.
-
-    Usage
-    -----
-
-    python main.py [parameters file] [(optional) environment file]
-"""
-import importlib
 import os
-import time
-import traceback
 import sys
+import time
+import argparse
+import importlib
+import traceback
 
 from utils import earthdata
 from threading import Semaphore, Thread
@@ -26,7 +14,7 @@ from utils.product_fun import filter_for_timeliness, get_satellite_name_from_pro
     get_sensing_date_from_product_name, get_l1product_path
 
 
-def hindcast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
+def sencast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
     """
     File-based interface for Sencast.
 
@@ -253,7 +241,19 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
     l2product_files_outer[group] = l2product_files
 
 
-if len(sys.argv) == 2:
-    hindcast(params_file=sys.argv[1])
-elif len(sys.argv) == 3:
-    hindcast(params_file=sys.argv[1], env_file=sys.argv[2])
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--parameters', '-p', help="Absolute path to parameter file", type=str)
+    parser.add_argument('--environment', '-e', help="Absolute path to environment file", type=str, default=None)
+    parser.add_argument('--downloads', '-d', help="Maximum number of parallel downloads of satellite images", type=int, default=1)
+    parser.add_argument('--processors', '-r', help="Maximum number of processors to run in parallel", type=int, default=1)
+    parser.add_argument('--adapters', '-a', help="Maximum number of adapters to run in parallel", type=int, default=1)
+    args = parser.parse_args()
+    variables = vars(args)
+    if variables["parameters"] is None:
+        raise ValueError("Sencast FAILED. Link to parameters file must be provided.")
+    sencast(variables["parameters"],
+             env_file=variables["environment"],
+             max_parallel_downloads=variables["downloads"],
+             max_parallel_processors=variables["processors"],
+             max_parallel_adapters=variables["adapters"])

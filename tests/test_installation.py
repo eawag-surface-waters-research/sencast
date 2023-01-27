@@ -1,5 +1,8 @@
-import os.path
+import sys
 import shutil
+import os.path
+
+sys.path.append("/sencast")
 
 from main import hindcast
 from utils.auxil import init_hindcast

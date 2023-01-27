@@ -1,4 +1,4 @@
-name: sencast-372
+name: sencast
 channels:
   - conda-forge
   - bioconda

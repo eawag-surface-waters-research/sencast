@@ -11,12 +11,12 @@ Anaconda and Snap Desktop are required to install Sencast
 - [SNAP Desktop](https://step.esa.int/main/download/snap-download/)
 ```
 git clone git@gitlab.com:eawag-rs/sencast.git
-conda env create -f ~/sencast/sencast-37.yml
+conda env create -f ~/sencast/sencast.yml
 ```
 Then create your **environment file** (use environments/example.ini as a template) and test your installation as follows:
 ```
 cd ~/sencast
-conda activate sencast-37
+conda activate sencast
 python3 tests/test_installation.py
 ```
 This will output a log of which processors are functioning. After the above steps it is normal that only Idepix and MPH 
