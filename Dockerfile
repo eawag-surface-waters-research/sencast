@@ -35,4 +35,6 @@ RUN cd /programfiles/POLYMER/polymer-v4.15 && make all
 RUN cp -avr /programfiles/POLYMER/polymer-v4.15/polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
 RUN cp -avr /programfiles/POLYMER/polymer-v4.15/auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
 
-ENTRYPOINT ["conda", "run", "-n", "sencast", "python", "/sencast/main.py"]
+RUN cd /opt && git clone --depth 1 https://github.com/acolite/acolite.git --branch 20221114.0
+
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "sencast", "python", "/sencast/main.py"]

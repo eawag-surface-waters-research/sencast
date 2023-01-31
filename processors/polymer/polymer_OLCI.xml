@@ -94,13 +94,6 @@
 				</targetBand>
 				<targetBand>
 					<validExpression>${validPixelExpression}</validExpression>
-					<name>bbs</name>
-					<type>float32</type>
-					<expression>bbs</expression>
-					<noDataValue>NaN</noDataValue>
-				</targetBand>
-				<targetBand>
-					<validExpression>${validPixelExpression}</validExpression>
 					<name>Rw400</name>
 					<type>float32</type>
 					<expression>Rw400</expression>

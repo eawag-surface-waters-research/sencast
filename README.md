@@ -40,7 +40,7 @@ Full documentation is available at [ReadTheDocs](https://sencast.readthedocs.io/
 
 ### Run Tests
 
-docker run -v /media/jamesrunnalls/JamesSSD1/Eawag/DIAS:/DIAS -v $(pwd):/sencast eawag/sencast:0.0.1 -e docker.ini -t
+docker run -v /media/jamesrunnalls/JamesSSD/Eawag/DIAS:/DIAS -v $(pwd):/sencast eawag/sencast:0.0.1 -e docker_test.ini -t
 
 `docker run -v /DIAS:/DIAS -v $(pwd):/sencast eawag/sencast:0.0.1 -e docker.ini -t`
 

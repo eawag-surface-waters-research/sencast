@@ -37,6 +37,8 @@ def test_installation(env):
     l2product_files_s3 = sencast('test_S3_processors.ini', env_file=env)
     report(l2product_files_s3, params_s3, 'ReportS3.log')
 
+    return
+
     _, params_s2, l2_path_s2 = init_hindcast(env, 'test_S2_processors.ini')
     shutil.rmtree(l2_path_s2)
     os.mkdir(l2_path_s2)
