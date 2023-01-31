@@ -25,8 +25,8 @@ from polymer.gsw import GSW
 from polymer.level1_msi import Level1_MSI
 from polymer.level1_olci import Level1_OLCI
 from polymer.level1_landsat8 import Level1_OLI
-from polymer.level2 import default_datasets
-from polymer.main import run_atm_corr, Level2
+from polymer.level2 import default_datasets, Level2
+from polymer.main import run_atm_corr
 
 from utils.auxil import log
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \

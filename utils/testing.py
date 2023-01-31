@@ -1,10 +1,8 @@
 import sys
 import shutil
 import os.path
-
-sys.path.append("/sencast")
-
-from main import hindcast
+import argparse
+from main import sencast
 from utils.auxil import init_hindcast
 
 MIN_EXPETED_FILE_SIZE_BYTES = 4 * 1024
@@ -32,21 +30,31 @@ def report(l2product_files, params, report_name):
                     report_file.write('Processor: {} successful!\n'.format(processor))
 
 
-_, params_s3, l2_path_s3 = init_hindcast(None, 'test_S3_processors.ini')
-shutil.rmtree(l2_path_s3)
-os.mkdir(l2_path_s3)
-l2product_files_s3 = hindcast('test_S3_processors.ini')
-report(l2product_files_s3, params_s3, 'ReportS3.log')
+def test_installation(env):
+    _, params_s3, l2_path_s3 = init_hindcast(env, 'test_S3_processors.ini')
+    shutil.rmtree(l2_path_s3)
+    os.mkdir(l2_path_s3)
+    l2product_files_s3 = sencast('test_S3_processors.ini', env_file=env)
+    report(l2product_files_s3, params_s3, 'ReportS3.log')
 
-_, params_s2, l2_path_s2 = init_hindcast(None, 'test_S2_processors.ini')
-shutil.rmtree(l2_path_s2)
-os.mkdir(l2_path_s2)
-l2product_files_s2 = hindcast('test_S2_processors.ini')
-report(l2product_files_s2, params_s2, 'ReportS2.log')
+    _, params_s2, l2_path_s2 = init_hindcast(env, 'test_S2_processors.ini')
+    shutil.rmtree(l2_path_s2)
+    os.mkdir(l2_path_s2)
+    l2product_files_s2 = sencast('test_S2_processors.ini', env_file=env)
+    report(l2product_files_s2, params_s2, 'ReportS2.log')
 
-_, params_l8, l2_path_l8 = init_hindcast(None, 'test_L8_processors.ini')
-shutil.rmtree(l2_path_l8)
-os.mkdir(l2_path_l8)
-l2product_files_l8 = hindcast('test_L8_processors.ini')
-report(l2product_files_l8, params_l8, 'ReportL8.log')
+    _, params_l8, l2_path_l8 = init_hindcast(env, 'test_L8_processors.ini')
+    shutil.rmtree(l2_path_l8)
+    os.mkdir(l2_path_l8)
+    l2product_files_l8 = sencast('test_L8_processors.ini', env_file=env)
+    report(l2product_files_l8, params_l8, 'ReportL8.log')
 
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--environment', '-e', help="Absolute path to environment file", type=str, default=None)
+    args = parser.parse_args()
+    variables = vars(args)
+    if variables["environment"] is None:
+        raise ValueError("Sencast test FAILED. Link to environment file must be provided.")
+    test_installation(variables["environment"])

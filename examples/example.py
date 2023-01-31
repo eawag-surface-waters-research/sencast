@@ -7,9 +7,9 @@
 import netCDF4
 import cartopy.crs as ccrs
 import sys
-sys.path.append("/home/jamesrunnalls/eawagrs/sentinel-hindcast/build/sentinel-hindcast")
+sys.path.append("/sencast")
 
-from main import hindcast
+from main import sencast
 
-hindcast("Tshikapa_L1C_S2.ini")
+sencast("example.ini")
 

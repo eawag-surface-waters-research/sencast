@@ -17,7 +17,7 @@ Then create your **environment file** (use environments/example.ini as a templat
 ```
 cd ~/sencast
 conda activate sencast
-python3 tests/test_installation.py
+python3 utils/testing.py
 ```
 This will output a log of which processors are functioning. After the above steps it is normal that only Idepix and MPH 
 processors function. For installation of the additional processors refer to the full documentation below:
@@ -31,3 +31,23 @@ Full documentation is available at [ReadTheDocs](https://sencast.readthedocs.io/
 **SenCast: Copernicus Satellite Data on Demand**  
 *D. Odermatt, J. Runnalls, J. Sturm, A. Damm*  
 [German](https://www.dora.lib4ri.ch/eawag/islandora/object/eawag%3A21549/datastream/PDF4/Odermatt-2020-SenCast-%28accepted_version%29.pdf) [English](https://www.dora.lib4ri.ch/eawag/islandora/object/eawag%3A21549/datastream/PDF3/Odermatt-2020-SenCast-%28unspecified_8a1c1609%29.pdf)
+
+## Docker
+
+### Build
+
+`docker build -t eawag/sencast:0.0.1 .`
+
+### Run Tests
+
+docker run -v /media/jamesrunnalls/JamesSSD1/Eawag/DIAS:/DIAS -v $(pwd):/sencast eawag/sencast:0.0.1 -e docker.ini -t
+
+`docker run -v /DIAS:/DIAS -v $(pwd):/sencast eawag/sencast:0.0.1 -e docker.ini -t`
+
+### Run script
+
+`docker run -v /DIAS:/DIAS -v $(pwd):/sencast eawag/sencast:0.0.1 -e docker.ini -p example.ini`
+
+### Run Container
+
+`docker run -it --entrypoint /bin/bash eawag/sencast:0.0.1`

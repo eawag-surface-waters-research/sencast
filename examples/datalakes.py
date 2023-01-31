@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta
 sys.path.append("/prj/sentinel-hindcast")
 
 from utils.auxil import load_params
-from main import hindcast
+from main import sencast
 from dias_apis.creodias.creodias import get_updated_files
 from utils.auxil import load_environment, load_wkt
 from utils.product_fun import parse_date_from_name
@@ -21,7 +21,7 @@ params['General']['start'] = finalStart
 params['General']['end'] = finalEnd
 with open(params_file, "w") as f:
     params.write(f)
-hindcast(params_file, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1)
+sencast(params_file, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1)
 
 # Re-process old data (2 weeks ago)
 old_date = datetime.today() - timedelta(days=14)
@@ -32,7 +32,7 @@ params['General']['start'] = finalStart
 params['General']['end'] = finalEnd
 with open(params_file, "w") as f:
     params.write(f)
-hindcast(params_file, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1)
+sencast(params_file, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1)
 
 # Re-process old data
 env, env_file = load_environment()
@@ -54,6 +54,6 @@ for run_date in dates:
     params['General']['end'] = "{}T23:59:59.999Z".format(run_date)
     with open(params_file, "w") as f:
         params.write(f)
-    hindcast(params_file, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1)
+    sencast(params_file, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1)
 
 
