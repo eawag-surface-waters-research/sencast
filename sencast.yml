@@ -24,6 +24,7 @@ dependencies:
   - pyhdf=0.*
   - rasterio=1.2.6
   - requests=2.28.*
+  - scikit-image==0.19.*
   - scikit-learn=1.0.*
   - statsmodels=0.13.*
   - tensorflow=1.15.0

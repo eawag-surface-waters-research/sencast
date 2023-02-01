@@ -27,14 +27,22 @@ RUN conda env create -f /sencast/sencast.yml
 ENV CONDA_HOME=/opt/conda
 ENV CONDA_ENV_HOME=$CONDA_HOME/envs/sencast
 
-RUN mkdir /programfiles/POLYMER
-COPY ./docker_dependencies/polymer-v4.15.tar.gz /programfiles/POLYMER/
-RUN tar -xvzf /programfiles/POLYMER/polymer-v4.15.tar.gz -C /programfiles/POLYMER/
+RUN mkdir /opt/POLYMER
+COPY ./docker_dependencies/polymer-v4.15.tar.gz /opt/POLYMER/
+RUN tar -xvzf /opt/POLYMER/polymer-v4.15.tar.gz -C /opt/POLYMER/
 SHELL ["conda", "run", "-n", "sencast", "/bin/bash", "-c"]
-RUN cd /programfiles/POLYMER/polymer-v4.15 && make all
-RUN cp -avr /programfiles/POLYMER/polymer-v4.15/polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
-RUN cp -avr /programfiles/POLYMER/polymer-v4.15/auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
+RUN cd /opt/POLYMER/polymer-v4.15 && make all
+RUN cp -avr /opt/POLYMER/polymer-v4.15/polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
+RUN cp -avr /opt/POLYMER/polymer-v4.15/auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
 
-RUN cd /opt && git clone --depth 1 https://github.com/acolite/acolite.git --branch 20221114.0
+RUN cd /opt &&  git clone --depth 1 --branch python37 https://github.com/JamesRunnalls/acolite.git
+
+RUN mkdir /opt/FLUO
+RUN apt-get install unzip
+RUN cd /opt/FLUO && wget https://www.dropbox.com/s/ub3i66l4zqw51cs/snap-eum-fluo-1.0.nbm && unzip /opt/FLUO/snap-eum-fluo-1.0.nbm -d /opt/FLUO/snap-eum-fluo-1.0 && rm /opt/FLUO/snap-eum-fluo-1.0.nbm
+RUN cp -r /opt/FLUO/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
+
+RUN mkdir /opt/ICOR
+# RUN cd /opt/ICOR && wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin && chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin && ./icor_install_ubuntu_20_04_x64_3.0.0.bin && rm icor_install_ubuntu_20_04_x64_3.0.0.bin
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "sencast", "python", "/sencast/main.py"]
