@@ -45,13 +45,17 @@ def process(env, params, l1product_path, _, out_path):
     product_name = os.path.basename(l1product_path)
     os.environ['EARTHDATA_u'] = env['EARTHDATA']['username']
     os.environ['EARTHDATA_p'] = env['EARTHDATA']['password']
+    out_file = os.path.join(out_path, OUT_FILENAME.format(product_name))
 
-    if os.path.isdir(out_path):
+    if os.path.isfile(out_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            log(env["General"]["log"], "Removing file: ${}".format(out_path))
+            log(env["General"]["log"], "Removing file: ${}".format(out_file))
             os.remove(out_path)
-    os.makedirs(out_path, exist_ok=True)
+        else:
+            log(env["General"]["log"], "Skipping ACOLITE, target already exists: {}".format(os.path.basename(out_file)))
+            return out_file
 
+    os.makedirs(out_path, exist_ok=True)
     settings_file = os.path.join(out_path, REPROD_DIR, SETTINGS_FILENAME.format(sensor))
     if not os.path.isfile(settings_file):
         rewrite_settings_file(settings_file, sensor, resolution, limit, l2w_mask_wave, l2w_mask_threshold,
@@ -61,7 +65,6 @@ def process(env, params, l1product_path, _, out_path):
     tmp_path = os.path.join(out_path, "tmp")
     ac.acolite_run(settings_file, l1product_path, tmp_path)
 
-    out_file = os.path.join(out_path, OUT_FILENAME.format(product_name))
     for aco_file in os.listdir(tmp_path):
         if aco_file == REPROD_DIR:
             continue

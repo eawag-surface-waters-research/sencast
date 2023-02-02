@@ -9,7 +9,7 @@ import subprocess
 GPT_XML_FILENAME = "pixelextraction.xml"
 
 # key of the params section for this adapter
-PARAMS_SECTION = "PIXEL"
+PARAMS_SECTION = "PIXELEXTRACTION"
 OUT_DIR = "PixelExtraction"
 
 
@@ -40,21 +40,25 @@ def apply(env, params, l2product_files, date):
 
     if "coordinates" not in params[PARAMS_SECTION]:
         raise ValueError("Coordinates must be defined in the PIXEL section.")
-    coords = params[PARAMS_SECTION]["coordinates"].split(",")
+    coords = params[PARAMS_SECTION]["coordinates"].replace(" ", "").split("],[")
+    coords = [coord.replace("[", "").replace("]", "").split(",") for coord in coords]
 
     if "products" not in params[PARAMS_SECTION]:
         raise ValueError("Products must be defined in the PIXEL section.")
 
     files = []
-    for product in params[PARAMS_SECTION]["products"]:
+    print(l2product_files.keys())
+    for product in params[PARAMS_SECTION]["products"].replace(" ", "").split(","):
+        print(product.upper())
         if product.upper() in l2product_files.keys():
             files.append(l2product_files[product.upper()])
 
     if len(files) == 0:
         return
 
-    out_path = os.path.dirname(files[0])
+    out_path = os.path.dirname(os.path.dirname(files[0]))
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME)
+
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, files, os.path.join(out_path, OUT_DIR), coords, window_size)
 

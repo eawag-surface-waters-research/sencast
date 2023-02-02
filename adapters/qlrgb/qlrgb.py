@@ -18,7 +18,7 @@ from utils.product_fun import get_band_names_from_nc, get_name_width_height_from
 
 # key of the params section for this adapter
 PARAMS_SECTION = "QLRGB"
-
+QL_PATH = "{}/QuickLooks/{}-{}"
 plt.switch_backend('agg')
 mpl.pyplot.switch_backend('agg')
 canvas_area = []
@@ -50,7 +50,10 @@ def apply(env, params, l2product_files, date):
             bandmax = list(filter(None, params[PARAMS_SECTION][key].split(",")))[-1]
             if params['General']['sensor'] == "OLCI":
                 bands = [band.replace('radiance', 'reflectance') for band in bands]
-            ql_path = os.path.dirname(l2product_files[processor]) + "-" + ql_name
+
+            folder = os.path.basename(os.path.dirname(l2product_files[processor]))
+            path = os.path.dirname(os.path.dirname(l2product_files[processor]))
+            ql_path = QL_PATH.format(path, folder, ql_name)
             product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
             ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, ql_name))
             if os.path.exists(ql_file):

@@ -32,6 +32,7 @@ canvas_area = []
 
 # key of the params section for this adapter
 PARAMS_SECTION = "QLSINGLEBAND"
+QL_PATH = "{}/QuickLooks/{}-{}"
 
 
 def apply(env, params, l2product_files, date):
@@ -64,7 +65,11 @@ def apply(env, params, l2product_files, date):
                     processor = 'SECCHIDEPTH'
                 elif band == 'forelule':
                     processor = 'FORELULE'
-                ql_path = os.path.dirname(l2product_files[processor]) + "-" + band
+
+                folder = os.path.basename(os.path.dirname(l2product_files[processor]))
+                path = os.path.dirname(os.path.dirname(l2product_files[processor]))
+                ql_path = QL_PATH.format(path, folder, band)
+
                 ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, band))
                 if os.path.exists(ql_file):
                     if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
