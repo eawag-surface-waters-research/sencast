@@ -264,6 +264,7 @@ if __name__ == "__main__":
     parser.add_argument('--tests', '-t', help="Run test scripts to check Sencast installation", action='store_true')
     args = parser.parse_args()
     variables = vars(args)
+    sys.argv = [sys.argv[0]]
     if variables["tests"]:
         testing.test_installation(variables["environment"])
     else:
