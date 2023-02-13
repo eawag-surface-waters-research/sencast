@@ -9,8 +9,7 @@ For an overview of the processor: https://www.brockmann-consult.de/portfolio/ide
 """
 
 import os
-import subprocess
-from utils.auxil import log
+from utils.auxil import log, gpt_subprocess
 from utils.product_fun import get_reproject_params_from_wkt, get_main_file_from_product_path
 
 # Key of the params section for this processor
@@ -25,6 +24,10 @@ QL_DIR = "L1P-{}"
 QL_FILENAME = "reproj_idepix_subset_{}_{}.png"
 # The name of the xml file for gpt
 GPT_XML_FILENAME = "idepix_{}.xml"
+# Default number of attempts for the GPT
+DEFAULT_ATTEMPTS = 2
+# Default timeout for the GPT (doesn't apply to last attempt) in seconds
+DEFAULT_TIMEOUT = 240
 
 
 def process(env, params, l1product_path, _, out_path):
@@ -59,16 +62,14 @@ def process(env, params, l1product_path, _, out_path):
 
     log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
 
-    try:
-        result = subprocess.run(args, capture_output=True, text=True, check=True)
-    except:
+    if gpt_subprocess(args, env["General"]["log"], retries=DEFAULT_ATTEMPTS, timeout=DEFAULT_TIMEOUT):
+        log(env["General"]["log"], "Idepix completed.", indent=2)
+        return output_file
+    else:
         if os.path.exists(output_file):
             os.remove(output_file)
             log(env["General"]["log"], "Removed corrupted output file.", indent=2)
         raise RuntimeError("GPT Failed.")
-
-    log(env["General"]["log"], "Idepix completed.", indent=2)
-    return output_file
 
 
 def rewrite_xml(gpt_xml_file, sensor, resolution, wkt):

@@ -8,7 +8,6 @@ RUN apt-get install -y fonts-dejavu fontconfig
 
 RUN mkdir /DIAS
 RUN mkdir /sencast
-RUN mkdir /programfiles
 
 RUN curl -O http://step.esa.int/downloads/9.0/installers/esa-snap_all_unix_9_0_0.sh
 RUN chmod 755 esa-snap_all_unix_9_0_0.sh
@@ -21,12 +20,14 @@ RUN echo "#Fri Mar 27 12:55:00 CET 2020" >> /opt/snap/etc/s3tbx.properties
 RUN echo "s3tbx.reader.olci.pixelGeoCoding=true" >> /opt/snap/etc/s3tbx.properties
 RUN echo "s3tbx.reader.meris.pixelGeoCoding=true" >> /opt/snap/etc/s3tbx.properties
 RUN echo "s3tbx.reader.slstrl1b.pixelGeoCodings=true" >> /opt/snap/etc/s3tbx.properties
+RUN echo 'use.openjp2.jna=true' >> /root/.snap/etc/s2tbx.properties
 
 COPY ./sencast.yml /sencast/
 RUN conda env create -f /sencast/sencast.yml
 ENV CONDA_HOME=/opt/conda
 ENV CONDA_ENV_HOME=$CONDA_HOME/envs/sencast
-
+ENV PYTHONUNBUFFERED=1
+cd 
 RUN mkdir /opt/POLYMER
 COPY ./docker_dependencies/polymer-v4.15.tar.gz /opt/POLYMER/
 RUN tar -xvzf /opt/POLYMER/polymer-v4.15.tar.gz -C /opt/POLYMER/
@@ -45,7 +46,7 @@ RUN cp -r /opt/FLUO/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
 RUN mkdir /opt/ICOR
 # RUN cd /opt/ICOR && wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin && chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin && ./icor_install_ubuntu_20_04_x64_3.0.0.bin && rm icor_install_ubuntu_20_04_x64_3.0.0.bin
 
-RUN echo 'use.openjp2.jna=true' >> /root/.snap/etc/s2tbx.properties
-ENV PYTHONUNBUFFERED=1
+RUN mkdir /opt/SEN2COR
+RUN cd /opt/SEN2COR && wget https://step.esa.int/thirdparties/sen2cor/2.11.0/Sen2Cor-02.11.00-Linux64.run && chmod 755 Sen2Cor-02.11.00-Linux64.run && ./Sen2Cor-02.11.00-Linux64.run && rm Sen2Cor-02.11.00-Linux64.run
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "sencast", "python", "-u", "/sencast/main.py"]

@@ -1,10 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import configparser
-import getpass
 import os
 import socket
+import getpass
+import subprocess
+import configparser
 from datetime import datetime
 
 project_path = os.path.dirname(__file__)
@@ -110,6 +111,27 @@ def load_wkt(wkt_file, wkt_path=os.path.join(project_path, "../wkt")):
         raise RuntimeError("The wkt file could not be found: {}".format(wkt_file))
     with open(wkt_file, "r") as file:
         return file.read(), wkt_file
+
+
+def gpt_subprocess(cmd, log_path, retries=2, timeout=120):
+    while retries > 0:
+        try:
+            if retries != 1:
+                result = subprocess.run(cmd, capture_output=True, check=True, text=True, timeout=timeout)
+            else:
+                result = subprocess.run(cmd, capture_output=True, check=True, text=True)
+            for info_line in result.stdout.splitlines():
+                log(log_path, info_line, indent=2)
+            for err_line in result.stderr.splitlines():
+                log(log_path, err_line, indent=2)
+            return True
+        except Exception as e:
+            log(log_path, str(e), indent=2)
+            if retries == 1:
+                return False
+            else:
+                log(log_path, "GPT failed, retrying..", indent=2)
+                retries = retries - 1
 
 
 def set_gpt_cache_size(env):
