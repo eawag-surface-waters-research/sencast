@@ -73,23 +73,25 @@ def process(env, params, l1product_path, _, out_path):
         anc_name = "NA"
         log(env["General"]["log"], "Polymer not using ancillary data.")
     else:
-        if "ancillary" in params['POLYMER'] and params['POLYMER']['ancillary'] == "NASA":
-            os.makedirs(env['NASA']['path'], exist_ok=True)
-            ancillary = Ancillary_NASA(directory=env['NASA']['path'])
-            with open(os.path.join(os.path.expanduser("~"), '.netrc'), 'w') as f:
-                f.write("machine urs.earthdata.nasa.gov login {} password {}".format(env['NASA']['username'], env['NASA']['password']))
-            os.chmod(os.path.join(os.path.expanduser("~"), '.netrc'), 600)
-            with open(os.path.join(os.path.expanduser("~"), '.urs_cookies'), 'w') as f:
-                f.write("")
-            anc_name = "NASA"
-        else:
-            os.makedirs(env['CDS']['era5_path'], exist_ok=True)
-            ancillary = Ancillary_ERA5(directory=env['CDS']['era5_path'])
-            with open(os.path.join(os.path.expanduser("~"), '.cdsapirc'), 'w') as f:
-                f.write("url: https://cds.climate.copernicus.eu/api/v2")
-                f.write("key: {}:{}".format(env['CDS']['uid'], env['CDS']['api-key']))
-            os.chmod(os.path.join(os.path.expanduser("~"), '.cdsapirc'), 600)
-            anc_name = "ERA5"
+        if "ancillary" in params['POLYMER']:
+            if params['POLYMER']['ancillary'] == "NASA":
+                os.makedirs(env['NASA']['path'], exist_ok=True)
+                ancillary = Ancillary_NASA(directory=env['NASA']['path'])
+                if not os.path.isfile(os.path.join(os.path.expanduser("~"), '.netrc')):
+                    with open(os.path.join(os.path.expanduser("~"), '.netrc'), 'w') as f:
+                        f.write("machine urs.earthdata.nasa.gov login {} password {}".format(env['NASA']['username'], env['NASA']['password']))
+                if not os.path.isfile(os.path.join(os.path.expanduser("~"), '.urs_cookies')):
+                    with open(os.path.join(os.path.expanduser("~"), '.urs_cookies'), 'w') as f:
+                        f.write("")
+                anc_name = "NASA"
+            else:
+                os.makedirs(env['CDS']['era5_path'], exist_ok=True)
+                ancillary = Ancillary_ERA5(directory=env['CDS']['era5_path'])
+                if not os.path.isfile(os.path.join(os.path.expanduser("~"), '.cdsapirc')):
+                    with open(os.path.join(os.path.expanduser("~"), '.cdsapirc'), 'w') as f:
+                        f.write("url: https://cds.climate.copernicus.eu/api/v2")
+                        f.write("key: {}:{}".format(env['CDS']['uid'], env['CDS']['api-key']))
+                anc_name = "ERA5"
         try:
             # Test the retrieval of parameters
             date = datetime.strptime(date_str, "%Y%m%d")

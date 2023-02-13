@@ -96,7 +96,7 @@ def load_params(params_file, params_path=os.path.join(project_path, "../paramete
     if not os.path.isabs(params_file) and params_path:
         params_file = os.path.join(params_path, params_file)
     if not os.path.isfile(params_file):
-        raise RuntimeError("The parameter file could not be found: {}".format(params_file))
+        raise RuntimeError("The parameter file could not be found: {}".format(os.path.abspath(params_file)))
     params = configparser.ConfigParser()
     params.read(params_file)
     return params, params_file

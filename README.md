@@ -40,14 +40,16 @@ Full documentation is available at [ReadTheDocs](https://sencast.readthedocs.io/
 
 ### Run Tests
 
-docker run -v /media/jamesrunnalls/JamesSSD/Eawag/DIAS:/DIAS -v $(pwd):/sencast eawag/sencast:0.0.1 -e docker_test.ini -t
+docker run -v /media/jamesrunnalls/JamesSSD/Eawag/DIAS:/DIAS -v $(pwd):/sencast -it eawag/sencast:0.0.1 -e docker_test.ini -p test_S2_processors.ini
 
-`docker run -v /DIAS:/DIAS -v $(pwd):/sencast eawag/sencast:0.0.1 -e docker.ini -t`
+`docker run -v /DIAS:/DIAS -v $(pwd):/sencast -it eawag/sencast:0.0.1 -e docker.ini -t`
 
 ### Run script
 
-`docker run -v /DIAS:/DIAS -v $(pwd):/sencast eawag/sencast:0.0.1 -e docker.ini -p example.ini`
+`docker run -v /DIAS:/DIAS -v $(pwd):/sencast -it eawag/sencast:0.0.1 -e docker.ini -p example.ini`
 
 ### Run Container
 
 `docker run -it --entrypoint /bin/bash eawag/sencast:0.0.1`
+
+docker run -v /media/jamesrunnalls/JamesSSD/Eawag/DIAS:/DIAS -v $(pwd):/sencast -it --entrypoint /bin/bash eawag/sencast:0.0.1

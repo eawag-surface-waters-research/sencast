@@ -13,6 +13,9 @@ from utils.auxil import init_hindcast, log
 from utils.product_fun import filter_for_timeliness, get_satellite_name_from_product_name, \
     get_sensing_date_from_product_name, get_l1product_path
 
+global summary
+summary = []
+
 
 def sencast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
     """
@@ -148,7 +151,16 @@ def do_hindcast(env, params, l2_path, l2product_files, max_parallel_downloads=1,
     starttime = time.time()
     for hindcast_thread in hindcast_threads:
         hindcast_thread.join()
+
     log(env["General"]["log"], "Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
+
+    failed = []
+    for s in summary:
+        if not s["succeeded"]:
+            failed.append("{} {} {}".format(s["group"], s["type"], s["name"]))
+    if len(failed) > 0:
+        raise RuntimeError("Sencast failed for {}/{} processes. The following processes failed: {}"
+                           .format(len(failed), len(summary), ", ".join(failed)))
 
 
 def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path,
@@ -224,9 +236,11 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                     except (Exception,):
                         log(env["General"]["log"], "Mosaicing outputs of processor {} failed.".format(processor))
                         traceback.print_exc()
+                summary.append({"group": group, "type": "processor", "name": processor, "succeeded": True})
             except (Exception,):
                 log(env["General"]["log"], "Processor {} failed on product {}.".format(processor, l1product_path))
                 log(env["General"]["log"], traceback.format_exc(), indent=1)
+                summary.append({"group": group, "type": "processor", "name": processor, "succeeded": False})
         del processor_outputs
         for l1product_path in l1product_paths:
             try:
@@ -244,10 +258,12 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                                 "apply")
                 apply(env, params, l2product_files, group)
                 log(env["General"]["log"], "Adapter {} finished.".format(adapter))
+                summary.append({"group": group, "type": "adapter", "name": adapter, "succeeded": True})
             except (Exception,):
                 log(env["General"]["log"], "Adapter {} failed on product group {}.".format(adapter, group))
                 log(env["General"]["log"], sys.exc_info()[0])
                 traceback.print_exc()
+                summary.append({"group": group, "type": "adapter", "name": adapter, "succeeded": False})
 
     l2product_files_outer[group] = l2product_files
 

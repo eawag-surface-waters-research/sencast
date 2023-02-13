@@ -47,9 +47,7 @@ def apply(env, params, l2product_files, date):
         raise ValueError("Products must be defined in the PIXEL section.")
 
     files = []
-    print(l2product_files.keys())
     for product in params[PARAMS_SECTION]["products"].replace(" ", "").split(","):
-        print(product.upper())
         if product.upper() in l2product_files.keys():
             files.append(l2product_files[product.upper()])
 

@@ -59,19 +59,15 @@ def process(env, params, l1product_path, _, out_path):
 
     log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
 
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, universal_newlines=True)
-    while True:
-        output = process.stdout.readline()
-        log(env["General"]["log"], output.strip(), indent=2)
-        return_code = process.poll()
-        if return_code is not None:
-            if return_code != 0:
-                if os.path.exists(output_file):
-                    os.remove(output_file)
-                    log(env["General"]["log"], "Removed corrupted output file.", indent=2)
-                raise RuntimeError("GPT Failed.")
-            break
+    try:
+        result = subprocess.run(args, capture_output=True, text=True, check=True)
+    except:
+        if os.path.exists(output_file):
+            os.remove(output_file)
+            log(env["General"]["log"], "Removed corrupted output file.", indent=2)
+        raise RuntimeError("GPT Failed.")
 
+    log(env["General"]["log"], "Idepix completed.", indent=2)
     return output_file
 
 

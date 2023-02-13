@@ -45,4 +45,7 @@ RUN cp -r /opt/FLUO/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
 RUN mkdir /opt/ICOR
 # RUN cd /opt/ICOR && wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin && chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin && ./icor_install_ubuntu_20_04_x64_3.0.0.bin && rm icor_install_ubuntu_20_04_x64_3.0.0.bin
 
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "sencast", "python", "/sencast/main.py"]
+RUN echo 'use.openjp2.jna=true' >> /root/.snap/etc/s2tbx.properties
+ENV PYTHONUNBUFFERED=1
+
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "sencast", "python", "-u", "/sencast/main.py"]
