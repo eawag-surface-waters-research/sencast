@@ -34,22 +34,44 @@ Full documentation is available at [ReadTheDocs](https://sencast.readthedocs.io/
 
 ## Docker
 
+Manual installation of all the processors is challenging and can be simplified through the use of a docker container.
+
+As this container contains non-open source code, the pre-build image is only available internally at Eawag. However, external parties can build the image
+themselves by including `docker_dependencies/polymer-v4.15.tar.gz` in the repository.
+
+Users should first ensure they have a functioning docker installation.
+
 ### Build
+
+The docker image can be built using the following command:
 
 `docker build -t eawag/sencast:0.0.1 .`
 
 ### Run Tests
 
-docker run -v /media/jamesrunnalls/JamesSSD/Eawag/DIAS:/DIAS -v $(pwd):/sencast -it eawag/sencast:0.0.1 -e docker_test.ini -p test_S2_processors.ini
+In order to test the setup is working the following command can be run which will output a report on the 
+functioning of the processors. This must be run from inside the sencast repository. 
+
+The option `-v /DIAS:/DIAS` maps the input/ output folders to a location outside the container. This should be updated to 
+the appropriate location, e.g. `-v /home/user/DIAS:/DIAS`
 
 `docker run -v /DIAS:/DIAS -v $(pwd):/sencast -it eawag/sencast:0.0.1 -e docker.ini -t`
 
+`-e` name of the environment file in `sencast/environments`
+`-t` flag to indicate a test should be run 
+
 ### Run script
+
+In order to run a parameters file it can be passed to the command as follows using the `-p` flag.
 
 `docker run -v /DIAS:/DIAS -v $(pwd):/sencast -it eawag/sencast:0.0.1 -e docker.ini -p example.ini`
 
-### Run Container
+`-p` name of the parameter file in `sencast/parameters`
 
-`docker run -it --entrypoint /bin/bash eawag/sencast:0.0.1`
+### Run Interactive Container
 
-docker run -v /media/jamesrunnalls/JamesSSD/Eawag/DIAS:/DIAS -v $(pwd):/sencast -it --entrypoint /bin/bash eawag/sencast:0.0.1
+Sometimes it is desirable to interact directly with the container, this can be achieved with the following command:
+
+`docker run -v /DIAS:/DIAS -v $(pwd):/sencast -it --entrypoint /bin/bash eawag/sencast:0.0.1`
+
+
