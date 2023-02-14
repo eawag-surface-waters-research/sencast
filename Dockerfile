@@ -27,7 +27,7 @@ RUN conda env create -f /sencast/sencast.yml
 ENV CONDA_HOME=/opt/conda
 ENV CONDA_ENV_HOME=$CONDA_HOME/envs/sencast
 ENV PYTHONUNBUFFERED=1
-cd 
+cd
 RUN mkdir /opt/POLYMER
 COPY ./docker_dependencies/polymer-v4.15.tar.gz /opt/POLYMER/
 RUN tar -xvzf /opt/POLYMER/polymer-v4.15.tar.gz -C /opt/POLYMER/
