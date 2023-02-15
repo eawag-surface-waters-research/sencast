@@ -13,8 +13,8 @@ RUN curl -O http://step.esa.int/downloads/9.0/installers/esa-snap_all_unix_9_0_0
 RUN chmod 755 esa-snap_all_unix_9_0_0.sh
 RUN echo "o\n1\n\n\nn\nn\nn\n" | bash esa-snap_all_unix_9_0_0.sh
 ENV SNAP_HOME=/opt/snap
-# RUN $SNAP_HOME/bin/snap --nosplash --nogui --modules --update-all
-RUN (timeout 120 $SNAP_HOME/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi ; exit 0)
+RUN (timeout 250 $SNAP_HOME/bin/snap --nosplash --nogui --modules --update-all; exit 0)
+RUN (timeout 250 $SNAP_HOME/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi ; exit 0)
 RUN echo "#SNAP configuration 's3tbx'" >> /opt/snap/etc/s3tbx.properties
 RUN echo "#Fri Mar 27 12:55:00 CET 2020" >> /opt/snap/etc/s3tbx.properties
 RUN echo "s3tbx.reader.olci.pixelGeoCoding=true" >> /opt/snap/etc/s3tbx.properties
@@ -27,7 +27,7 @@ RUN conda env create -f /sencast/sencast.yml
 ENV CONDA_HOME=/opt/conda
 ENV CONDA_ENV_HOME=$CONDA_HOME/envs/sencast
 ENV PYTHONUNBUFFERED=1
-cd
+
 RUN mkdir /opt/POLYMER
 COPY ./docker_dependencies/polymer-v4.15.tar.gz /opt/POLYMER/
 RUN tar -xvzf /opt/POLYMER/polymer-v4.15.tar.gz -C /opt/POLYMER/

@@ -278,11 +278,12 @@ if __name__ == "__main__":
                         default=1)
     parser.add_argument('--adapters', '-a', help="Maximum number of adapters to run in parallel", type=int, default=1)
     parser.add_argument('--tests', '-t', help="Run test scripts to check Sencast installation", action='store_true')
+    parser.add_argument('--delete_tests', '-x', help="Delete previous test run.", action='store_true')
     args = parser.parse_args()
     variables = vars(args)
     sys.argv = [sys.argv[0]]
     if variables["tests"]:
-        testing.test_installation(variables["environment"])
+        testing.test_installation(variables["environment"], variables["delete_tests"])
     else:
         if variables["parameters"] is None:
             raise ValueError("Sencast FAILED. Link to parameters file must be provided.")
