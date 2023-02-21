@@ -84,9 +84,9 @@ def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endposi
 
 def get_dataset_id(sensor, resolution):
     if sensor == 'OLCI' and int(resolution) < 1000:
-        return 'Sentinel3', 'OL', 'EFR', ''
+        return 'Sentinel3', 'OLCI', 'EFR', ''
     elif sensor == 'OLCI' and int(resolution) >= 1000:
-        return 'Sentinel3', 'OL', 'ERR', ''
+        return 'Sentinel3', 'OLCI', 'ERR', ''
     elif sensor == 'MSI':
         return 'Sentinel2', 'MSI', '', 'LEVEL1C'
     elif sensor == 'MSI-L2A':
@@ -102,6 +102,7 @@ def search(satellite, query, env):
     uuids, filenames = [], []
     timelinesss, beginpositions, endpositions = [], [], []
     while True:
+        print(requests.get(search_address.format(satellite, query)))
         response = requests.get(search_address.format(satellite, query))
         if response.status_code == codes.OK:
             root = response.json()
