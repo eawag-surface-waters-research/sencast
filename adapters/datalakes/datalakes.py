@@ -7,6 +7,7 @@ in the Datalakes data portal https://www.datalakes-eawag.ch/.
 """
 
 import os
+import boto3
 import numpy as np
 import pandas as pd
 import requests
@@ -16,12 +17,12 @@ from netCDF4 import Dataset
 from utils.product_fun import get_satellite_name_from_product_name, get_sensing_datetime_from_product_name
 
 
-# the url of the datalakes api
-API_URL = "https://api.datalakes-eawag.ch"
 # the url to post new data notification to
-NOTIFY_URL = API_URL + "/externaldata/sync/remotesensing"
+NOTIFY_URL = "https://api.datalakes-eawag.ch/externaldata/sync/remotesensing"
 # key of the params section for this adapter
 PARAMS_SECTION = "DATALAKES"
+# name of output directory
+OUT_DIR = "DATALAKES"
 # the file name pattern for json output files
 JSON_FILENAME = "{}_{}_{}_{}.json"
 # the file name pattern for json output files
@@ -31,7 +32,7 @@ NC_FILENAME = "{}_{}_{}.nc"
 def apply(env, params, l2product_files, date):
     """Apply datalakes adapter.
     1. Converts specified band in NetCDF to JSON format
-    2. Saves files to S3 storage
+    2. Save files to S3 storage
     3. Hits Datalakes endpoint to inform server of new data
 
     Parameters
@@ -46,27 +47,31 @@ def apply(env, params, l2product_files, date):
     date
         Run date
     """
-    if not env.has_section("DATALAKES"):
-        raise RuntimeWarning("Datalakes integration was not configured in this environment.")
-    log(env["General"]["log"], "Applying datalakes...")
+
+    if PARAMS_SECTION not in params:
+        raise ValueError("Datalakes selection must be defined in the parameters file.")
+
+    log(env["General"]["log"], "Applying datalakes")
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
+            log(env["General"]["log"], "Processing {} to Datalakes product".format(processor), indent=1)
             l2product_file = l2product_files[processor]
             satellite = get_satellite_name_from_product_name(os.path.basename(l2product_file))
             date = get_sensing_datetime_from_product_name(os.path.basename(l2product_file))
-            out_path = os.path.join(env['DATALAKES']['root_path'], params['General']['wkt_name'],
-                                    satellite + "_" + date)
+            out_path = os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR, params['General']['wkt_name'], satellite + "_" + date)
             output_file_main = os.path.join(out_path, NC_FILENAME.format(processor, satellite, date))
             os.makedirs(out_path, exist_ok=True)
             bands_list = list(filter(None, params[PARAMS_SECTION][key].split(",")))
             bands, bands_min, bands_max = parse_bands(bands_list)
 
             if os.path.exists(output_file_main):
-                if ("synchronise" in params["General"].keys() and params['General']['synchronise'] == "false") or ("synchronise" in params["DATALAKES"].keys() and params["DATALAKES"]["synchronise"] == "false"):
-                    log(env["General"]["log"], "Removing file: ${}".format(output_file_main))
+                if ("synchronise" in params["General"].keys() and params['General']['synchronise'] == "false") or \
+                        ("synchronise" in params["DATALAKES"].keys() and params["DATALAKES"]["synchronise"] == "false"):
+                    log(env["General"]["log"], "Removing file: ${}".format(output_file_main), indent=2)
                     os.remove(output_file_main)
                     for idx, val in enumerate(bands):
+                        log(env["General"]["log"], "Converting {} band {} to JSON".format(processor, val), indent=2)
                         output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
                         nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
                     with open(l2product_file, "rb") as f:
@@ -74,9 +79,10 @@ def apply(env, params, l2product_files, date):
                     with open(output_file_main, "wb") as f:
                         f.write(nc_bytes)
                 else:
-                    log(env["General"]["log"], "Skipping Datalakes. Target already exists")
+                    log(env["General"]["log"], "Skipping processor {}. Target already exists".format(processor), indent=2)
             else:
                 for idx, val in enumerate(bands):
+                    log(env["General"]["log"], "Converting {} band {} to JSON".format(processor, val), indent=2)
                     output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
                     nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
                 with open(l2product_file, "rb") as f:
@@ -84,7 +90,21 @@ def apply(env, params, l2product_files, date):
                 with open(output_file_main, "wb") as f:
                     f.write(nc_bytes)
 
-    notify_datalakes(env['DATALAKES']['api_key'], env)
+            if "bucket" not in params[PARAMS_SECTION]:
+                raise ValueError("S3 Bucket must be defined in parameters file")
+
+            if not env.has_section(PARAMS_SECTION):
+                raise ValueError("{} section required in envrionment file.".format(PARAMS_SECTION))
+
+            if "aws_access_key_id" not in env[PARAMS_SECTION] or "aws_secret_access_key" not in env[PARAMS_SECTION]:
+                raise ValueError("aws_access_key_id and aws_secret_access_key must be defined in environment file")
+
+    if l2product_file:
+        log(env["General"]["log"], "Uploading files to {}".format(params[PARAMS_SECTION]["bucket"]), indent=1)
+        upload_directory(os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR), params[PARAMS_SECTION]["bucket"], env[PARAMS_SECTION]["aws_access_key_id"], env[PARAMS_SECTION]["aws_secret_access_key"], env["General"]["log"])
+
+        log(env["General"]["log"], "Notifying Datalakes API of updated data.", indent=1)
+        requests.get(NOTIFY_URL)
 
 
 def convert_valid_pixel_expression(vpe, variables):
@@ -100,7 +120,6 @@ def convert_valid_pixel_expression(vpe, variables):
 
 
 def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_max, satellite, date, env):
-    log(env["General"]["log"], "Converting {} to JSON".format(variable_name))
     nc = Dataset(input_file, "r", format="NETCDF4")
     _lons, _lats, _values = np.array(nc.variables['lon'][:]), np.array(nc.variables['lat'][:]), np.array(nc.variables[variable_name][:])
     valid_pixel_expression = None
@@ -134,11 +153,6 @@ def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_
         dump({'lonres': lonres, 'latres': latres, 'lon': list(df["lons"]), 'lat': list(df["lats"]), 'v': list(df[variable_name]), 'vp': list(df["valid_pixels"]), 'vpe': valid_pixel_expression, 'satellite': satellite, 'datetime': date}, f, separators=(',', ':'))
 
 
-def notify_datalakes(api_key, env):
-    log(env["General"]["log"], "Notifying Datalakes about new data...")
-    requests.get(NOTIFY_URL, auth=api_key)
-
-
 def parse_bands(bands):
     bands_min = []
     bands_max = []
@@ -152,3 +166,23 @@ def parse_bands(bands):
             bands_min.append(None)
             bands_max.append(None)
     return bands, bands_min, bands_max
+
+
+def upload_directory(path, bucket, aws_access_key_id, aws_secret_access_key, logger, failed=False):
+    """Upload a file to an S3 bucket"""
+
+    client = boto3.client(
+        's3',
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key
+    )
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            try:
+                log(logger, "Uploading {}".format(file), indent=2)
+                client.upload_file(os.path.join(root, file), bucket, os.path.relpath(os.path.join(root, file), path))
+            except:
+                failed = True
+                log(logger, "Failed to upload: {}".format(file), indent=2)
+    if failed:
+        raise RuntimeError("Failed to upload all files to {}".format(bucket))
