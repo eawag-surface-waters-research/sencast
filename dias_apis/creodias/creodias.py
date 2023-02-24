@@ -102,7 +102,6 @@ def search(satellite, query, env):
     uuids, filenames = [], []
     timelinesss, beginpositions, endpositions = [], [], []
     while True:
-        print(requests.get(search_address.format(satellite, query)))
         response = requests.get(search_address.format(satellite, query))
         if response.status_code == codes.OK:
             root = response.json()
