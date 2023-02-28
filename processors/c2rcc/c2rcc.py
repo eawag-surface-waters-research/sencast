@@ -16,7 +16,7 @@ import subprocess
 
 from datetime import datetime
 from polymer.ancillary_era5 import Ancillary_ERA5
-from utils.auxil import load_properties, log
+from utils.auxil import load_properties, log, gpt_subprocess
 from utils.product_fun import get_lons_lats, get_sensing_date_from_product_name
 
 # Key of the params section for this processor
@@ -31,6 +31,10 @@ QL_DIR = "L2C2RCC-{}"
 QL_FILENAME = "L2C2RCC_{}_{}.png"
 # The name of the xml file for gpt
 GPT_XML_FILENAME = "c2rcc_{}_{}.xml"
+# Default number of attempts for the GPT
+DEFAULT_ATTEMPTS = 1
+# Default timeout for the GPT (doesn't apply to last attempt) in seconds
+DEFAULT_TIMEOUT = False
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
@@ -103,16 +107,23 @@ def process(env, params, l1product_path, l2product_files, out_path):
         args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
                 "-SsourceFile={}".format(input_file), "-PoutputFile={}".format(output_file)]
 
-    log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, universal_newlines=True)
-    while True:
-        output = process.stdout.readline()
-        log(env["General"]["log"], output.strip(), indent=2)
-        return_code = process.poll()
-        if return_code is not None:
-            if return_code != 0:
-                raise RuntimeError("GPT Failed.")
-            break
+    if PARAMS_SECTION in params and "attempts" in params[PARAMS_SECTION]:
+        attempts = int(params[PARAMS_SECTION]["attempts"])
+    else:
+        attempts = DEFAULT_ATTEMPTS
+
+    if PARAMS_SECTION in params and "timeout" in params[PARAMS_SECTION]:
+        timeout = int(params[PARAMS_SECTION]["timeout"])
+    else:
+        timeout = DEFAULT_TIMEOUT
+
+    if gpt_subprocess(args, env["General"]["log"], attempts=attempts, timeout=timeout):
+        return output_file
+    else:
+        if os.path.exists(output_file):
+            os.remove(output_file)
+            log(env["General"]["log"], "Removed corrupted output file.", indent=2)
+        raise RuntimeError("GPT Failed.")
 
     return output_file
 

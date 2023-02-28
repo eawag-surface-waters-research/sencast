@@ -49,10 +49,10 @@ def process(env, params, l1product_path, _, out_path):
 
     if os.path.isfile(out_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            log(env["General"]["log"], "Removing file: ${}".format(out_file))
+            log(env["General"]["log"], "Removing file: ${}".format(out_file), indent=1)
             os.remove(out_path)
         else:
-            log(env["General"]["log"], "Skipping ACOLITE, target already exists: {}".format(os.path.basename(out_file)))
+            log(env["General"]["log"], "Skipping ACOLITE, target already exists: {}".format(os.path.basename(out_file)), indent=1)
             return out_file
 
     os.makedirs(out_path, exist_ok=True)

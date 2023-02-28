@@ -300,7 +300,7 @@ def copy_nc(src, dst, included_bands):
     included_bands = ['crs', 'lat', 'lon'] + included_bands
     for name, variable in src.variables.items():
         if name in included_bands:
-            dst.createVariable(name, variable.datatype, variable.dimensions)
+            dst.createVariable(name, variable.datatype, variable.dimensions, compression='zlib', complevel=6)
             dst[name].setncatts(src[name].__dict__)
             dst[name][:] = src[name][:]
 
@@ -308,13 +308,13 @@ def copy_nc(src, dst, included_bands):
 def copy_band(src, dst, band_name):
     for name, variable in src.variables.items():
         if name == band_name:
-            dst.createVariable(name, variable.datatype, variable.dimensions)
+            dst.createVariable(name, variable.datatype, variable.dimensions, compression='zlib', complevel=6)
             dst[name].setncatts(src[name].__dict__)
             dst[name][:] = src[name][:]
 
 
 def create_band(dst, band_name, band_unit, valid_pixel_expression):
-    b = dst.createVariable(band_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN)
+    b = dst.createVariable(band_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN, compression='zlib', complevel=6)
     b.units = band_unit
     b.valid_pixel_expression = valid_pixel_expression
     return b
@@ -327,9 +327,8 @@ def read_pixels_from_nc(nc, band_name, x, y, w, h, data=None, dtype=np.float64):
 def read_pixels_from_band(band, x, y, w, h, data=None, dtype=np.float64):
     if data is None:
         data = np.zeros(w * h, dtype=dtype)
-    for read_y in range(y, y + h):
-        for read_x in range(x, x + w):
-            data[(read_y - y) * w + read_x - x] = float(np.ma.getdata(band[read_y])[read_x])
+    arr = np.array(band[y:y + h, x:x + w], dtype=dtype).flatten()
+    data[~np.isnan(arr)] = arr[~np.isnan(arr)]
     return data
 
 

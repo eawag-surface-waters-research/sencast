@@ -213,6 +213,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
         # apply processors to all products
         for processor in list(filter(None, params['General']['processors'].split(","))):
             try:
+                log(env["General"]["log"], "", blank=True)
                 log(env["General"]["log"], "Processor {} starting...".format(processor))
                 process = getattr(
                     importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
@@ -223,8 +224,7 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                     output_file = process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
                     l2product_files[l1product_path][processor] = output_file
                     processor_outputs.append(output_file)
-                log(env["General"]["log"],
-                    "Processor {} finished: [{}].".format(processor, ", ".join(processor_outputs)))
+                log(env["General"]["log"], "Processor {} finished: [{}].".format(processor, ", ".join(processor_outputs)))
                 if len(processor_outputs) == 1:
                     l2product_files[processor] = processor_outputs[0]
                 elif len(processor_outputs) > 1:
@@ -247,12 +247,14 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 del (l2product_files[l1product_path])
             except:
                 log(env["General"]["log"], "Failed to delete: {}".format(l1product_path))
+        log(env["General"]["log"], "", blank=True)
         log(env["General"]["log"], "All processors finished! {}".format(str(l2product_files)))
 
     # apply adapters
     with semaphores['adapt']:
         for adapter in list(filter(None, params['General']['adapters'].split(","))):
             try:
+                log(env["General"]["log"], "", blank=True)
                 log(env["General"]["log"], "Adapter {} starting...".format(adapter))
                 apply = getattr(importlib.import_module("adapters.{}.{}".format(adapter.lower(), adapter.lower())),
                                 "apply")

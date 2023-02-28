@@ -28,7 +28,7 @@ from polymer.level1_landsat8 import Level1_OLI
 from polymer.level2 import default_datasets, Level2
 from polymer.main import run_atm_corr
 
-from utils.auxil import log
+from utils.auxil import log, gpt_subprocess
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
     get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
@@ -45,6 +45,10 @@ QL_DIR = "L2POLY-{}"
 QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
 # The name of the xml file for gpt
 GPT_XML_FILENAME = "polymer_{}.xml"
+# Default number of attempts for the GPT
+DEFAULT_ATTEMPTS = 1
+# Default timeout for the GPT (doesn't apply to last attempt) in seconds
+DEFAULT_TIMEOUT = False
 
 
 def process(env, params, l1product_path, _, out_path):
@@ -58,20 +62,10 @@ def process(env, params, l1product_path, _, out_path):
     gsw_path = env['GSW']['root_path']
     os.makedirs(gsw_path, exist_ok=True)
 
-    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format("ERA5", product_name))
-    if os.path.isfile(output_file):
-        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print("Removing file: ${}".format(output_file))
-            os.remove(output_file)
-        else:
-            print("Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format("ERA5", product_name)))
-            return output_file
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-
     if "ancillary" in params['POLYMER'] and params['POLYMER']['ancillary'] not in ["NASA", "ERA5"]:
         ancillary = None
         anc_name = "NA"
-        log(env["General"]["log"], "Polymer not using ancillary data.")
+        log(env["General"]["log"], "Polymer not using ancillary data.", indent=1)
     else:
         if "ancillary" in params['POLYMER']:
             if params['POLYMER']['ancillary'] == "NASA":
@@ -98,7 +92,7 @@ def process(env, params, l1product_path, _, out_path):
             lons, lats = get_lons_lats(wkt)
             coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
             ozone = round(ancillary.get("ozone", date)[coords])
-            log(env["General"]["log"], "Polymer collected {} ancillary data.".format(anc_name))
+            log(env["General"]["log"], "Polymer collected {} ancillary data.".format(anc_name), indent=1)
         except (Exception,):
             ancillary = None
             anc_name = "NA"
@@ -107,10 +101,10 @@ def process(env, params, l1product_path, _, out_path):
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            log(env["General"]["log"], "Removing file: ${}".format(output_file))
+            log(env["General"]["log"], "Removing file: ${}".format(output_file), indent=1)
             os.remove(output_file)
         else:
-            log(env["General"]["log"], "Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
+            log(env["General"]["log"], "Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)), indent=1)
             return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
@@ -164,17 +158,24 @@ def process(env, params, l1product_path, _, out_path):
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(poly_tmp_file),
             "-PoutputFile={}".format(output_file)]
-    log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
 
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, universal_newlines=True)
-    while True:
-        output = process.stdout.readline()
-        log(env["General"]["log"], output.strip(), indent=2)
-        return_code = process.poll()
-        if return_code is not None:
-            if return_code != 0:
-                raise RuntimeError("GPT Failed.")
-            break
+    if PARAMS_SECTION in params and "attempts" in params[PARAMS_SECTION]:
+        attempts = int(params[PARAMS_SECTION]["attempts"])
+    else:
+        attempts = DEFAULT_ATTEMPTS
+
+    if PARAMS_SECTION in params and "timeout" in params[PARAMS_SECTION]:
+        timeout = int(params[PARAMS_SECTION]["timeout"])
+    else:
+        timeout = DEFAULT_TIMEOUT
+
+    if gpt_subprocess(args, env["General"]["log"], attempts=attempts, timeout=timeout):
+        return output_file
+    else:
+        if os.path.exists(output_file):
+            os.remove(output_file)
+            log(env["General"]["log"], "Removed corrupted output file.", indent=2)
+        raise RuntimeError("GPT Failed.")
 
     return output_file
 

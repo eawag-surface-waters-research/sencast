@@ -5,8 +5,9 @@
 
 import os
 import numpy as np
-
+import matplotlib.pyplot as plt
 from netCDF4 import Dataset
+from utils.auxil import log
 from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, \
     get_satellite_name_from_product_name, get_valid_pe_from_nc, write_pixels_to_nc, create_band, read_pixels_from_nc
 
@@ -41,7 +42,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
         """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("OC3 was not configured in parameters.")
-    print("Applying OC3...")
 
     if "processor" not in params[PARAMS_SECTION]:
         raise RuntimeWarning("OC3 processor must be defined in the parameter file.")
@@ -61,34 +61,37 @@ def process(env, params, l1product_path, l2product_files, out_path):
     output_file = os.path.join(product_dir, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            print("Removing file: ${}".format(output_file))
+            log(env["General"]["log"], "Removing file: ${}".format(output_file), indent=1)
             os.remove(output_file)
         else:
-            print("Skipping OC3, target already exists: {}".format(OUT_FILENAME.format(product_name)))
+            log(env["General"]["log"], "Skipping OC3, target already exists: {}".format(OUT_FILENAME.format(product_name)), indent=1)
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
-    print("Reading POLYMER output from {}".format(product_path))
+    log(env["General"]["log"], "Reading POLYMER output from {}".format(product_path), indent=1)
     with Dataset(product_path) as src, Dataset(output_file, mode='w') as dst:
         name, width, height = get_name_width_height_from_nc(src, product_path)
         product_band_names = get_band_names_from_nc(src)
 
-        print("Product:      {}".format(name))
-        print("Raster size: {} x {} pixels".format(width, height))
-        print("Bands:       {}".format(list(product_band_names)))
+        log(env["General"]["log"], "Product:      {}".format(name), indent=1)
+        log(env["General"]["log"], "Raster size: {} x {} pixels".format(width, height), indent=1)
+        log(env["General"]["log"], "Bands:       {}".format(list(product_band_names)), indent=1)
 
+        log(env["General"]["log"], "Copying relevant bands from source product.", indent=2)
         valid_pixel_expression = get_valid_pe_from_nc(src)
         inclusions = [band for band in product_band_names if band in valid_pixel_expression]
         copy_nc(src, dst, inclusions)
 
-        chla_band = create_band(dst, "chla", "mg/m3", valid_pixel_expression)
-        maxCos_band = create_band(dst, "maxCos", "", valid_pixel_expression)
-        clusterID_band = create_band(dst, "clusterID", "", valid_pixel_expression)
-        totScore_band = create_band(dst, "totScore", "", valid_pixel_expression)
+        log(env["General"]["log"], "Creating new bands.", indent=2)
+        create_band(dst, "chla", "mg/m3", valid_pixel_expression)
+        create_band(dst, "maxCos", "", valid_pixel_expression)
+        create_band(dst, "clusterID", "", valid_pixel_expression)
+        create_band(dst, "totScore", "", valid_pixel_expression)
 
+        log(env["General"]["log"], "Reading input RRS data.", indent=2)
         rrs = read_rrs_polymer(src, width, height)
 
-        # Compute chla
+        log(env["General"]["log"], "Computing ChlA", indent=2)
         chla = np.zeros(width * height)
         chla[:] = np.nan
         xx_oc3 = np.log10(np.maximum(rrs[2], rrs[3]) / rrs[5])
@@ -96,7 +99,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         chla[xx_oc3 >= -0.16] = ocx(xx_oc3[xx_oc3 >= -0.16], *popt_oc3_rev)
         write_pixels_to_nc(dst, "chla", 0, 0, width, height, chla)
 
-        # Compute qa scores
+        log(env["General"]["log"], "Computing QA Scores", indent=2)
         maxCos = np.zeros(width * height)
         clusterID = np.zeros(width * height)
         totScore = np.zeros(width * height)
@@ -111,7 +114,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
         write_pixels_to_nc(dst, "clusterID", 0, 0, width, height, clusterID)
         write_pixels_to_nc(dst, "totScore", 0, 0, width, height, totScore)
 
-    print("Writing OC3 to file: {}".format(output_file))
     return output_file
 
 

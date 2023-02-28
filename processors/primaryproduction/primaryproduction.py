@@ -44,7 +44,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
     """
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning("Primary Production was not configured in parameters.")
-    log(env["General"]["log"], "Applying Primary Production...")
 
     if "chl_processor" not in params[PARAMS_SECTION] or "chl_bandname" not in params[PARAMS_SECTION]:
         raise RuntimeWarning("chl_processor and chl_bandname must be defined in the parameter file.")
@@ -65,29 +64,27 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     # Create folder for file
     product_path = l2product_files[chl_processor]
+    kd_product_path = l2product_files[kd_processor]
     product_name = os.path.basename(product_path)
     product_dir = os.path.join(os.path.dirname(os.path.dirname(product_path)), OUT_DIR)
     output_file = os.path.join(product_dir, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            log(env["General"]["log"], "Removing file: ${}".format(output_file))
+            log(env["General"]["log"], "Removing file: ${}".format(output_file), indent=1)
             os.remove(output_file)
         else:
-            log(env["General"]["log"], "Skipping Primary Production, target already exists: {}".format(OUT_FILENAME.format(product_name)))
+            log(env["General"]["log"], "Skipping Primary Production, target already exists: {}".format(OUT_FILENAME.format(product_name)), indent=1)
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
-    # Get depths
+    log(env["General"]["log"], "Collecting depths", indent=1)
     zvals = np.array([0, 1, 2, 3.5, 5, 7.5, 10, 15, 20, 30])
     if "depths" in params[PARAMS_SECTION]:
         zvals = np.array(params[PARAMS_SECTION]["depths"])
     zvals_fine = np.linspace(np.min(zvals), np.max(zvals), 100)  # Fine spaced depths for integration
 
-    # Read in chlorophyll band
-    kd_product_path = l2product_files[kd_processor]
-    log(env["General"]["log"], "Reading Chlorophyll values from {}".format(product_path))
-    log(env["General"]["log"], "Reading kd values from {}".format(kd_product_path))
     with Dataset(product_path) as chl_src, Dataset(kd_product_path) as kd_src, Dataset(output_file, mode='w') as dst:
+        log(env["General"]["log"], "Reading Chlorophyll values from {}".format(product_path), indent=1)
         chl_band_names = get_band_names_from_nc(chl_src)
         if chl_bandname not in chl_band_names:
             raise RuntimeError("{} not in product bands. Edit the parameter file.".format(chl_bandname))
@@ -96,11 +93,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
         read_pixels_from_nc(chl_src, chl_bandname, 0, 0, width, height, chl_data)
         chl_valid_pixel_expression = get_valid_pe_from_nc(chl_src, chl_bandname)
 
-        # Convert from PH to CHL if required
         if "chl_parameter" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["chl_parameter"] == "PH":
+            log(env["General"]["log"], "Convert from PH to CHL", indent=1)
             chl_data = PhytoplanktonToChlorophyll(chl_data)
 
-        # Read in KD band
+        log(env["General"]["log"], "Reading kd values from {}".format(kd_product_path), indent=1)
         kd_band_names = get_band_names_from_nc(kd_src)
         if kd_bandname not in kd_band_names:
             raise RuntimeError("{} not in product bands. Edit the parameter file.".format(kd_bandname))
@@ -112,7 +109,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         if chl_data.shape != kd_data.shape:
             raise RuntimeError("CHl and KD on different grids. Grid interpolation not yet implemented")
 
-        # Add valid pixel expression bands
+        log(env["General"]["log"], "Add valid pixel expression bands.", indent=1)
         copy_nc(chl_src, dst, [])
         for band_name in list(dict.fromkeys(chl_band_names + kd_band_names)):
             if band_name in str(chl_valid_pixel_expression) or band_name == chl_bandname:
@@ -127,18 +124,18 @@ def process(env, params, l1product_path, l2product_files, out_path):
         elif kd_valid_pixel_expression is not None:
             valid_pixel_expression = kd_valid_pixel_expression
 
-        # Get PAR
+        log(env["General"]["log"], "Looking up PAR values.", indent=1)
         date = get_sensing_date_from_product_name(product_name)
         month = datetomonth(date)
         qpar0 = qpar0_lookup(month, chl_data)
 
-        # Get KdMorel
+        log(env["General"]["log"], "Calculating KdMorel.", indent=1)
         KdMorel = 0.0864 + 0.884 * kd_data - 0.00137/kd_data
 
-        # Calculate primary production
+        log(env["General"]["log"], "Calculating Primary Production.", indent=1)
         pp_data = pp_trapezoidal_numerical_integration(zvals_fine, qpar0, chl_data, KdMorel)
 
-        # Add new bands
+        log(env["General"]["log"], "Writing new bands to file.", indent=1)
         create_band(dst, 'pp_integral', 'mg C m^-2 h^-1', valid_pixel_expression)
         write_pixels_to_nc(dst, 'pp_integral', 0, 0, width, height, pp_data)
 

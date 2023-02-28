@@ -126,7 +126,7 @@ def nc_to_json(input_file, output_file, variable_name, decimals, band_min, band_
     try:
         valid_pixel_expression = nc.variables[variable_name].valid_pixel_expression
     except:
-        log(env["General"]["log"], "No valid pixel expression for {}".format(variable_name))
+        log(env["General"]["log"], "No valid pixel expression for {}".format(variable_name), indent=2)
     variables = nc.variables.keys()
     variables_dict = {}
     for variable in variables:

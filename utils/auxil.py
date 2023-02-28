@@ -6,6 +6,7 @@ import socket
 import getpass
 import subprocess
 import configparser
+from threading import Timer
 from datetime import datetime
 
 project_path = os.path.dirname(__file__)
@@ -113,25 +114,39 @@ def load_wkt(wkt_file, wkt_path=os.path.join(project_path, "../wkt")):
         return file.read(), wkt_file
 
 
-def gpt_subprocess(cmd, log_path, retries=2, timeout=120):
-    while retries > 0:
-        try:
-            if retries != 1:
-                result = subprocess.run(cmd, capture_output=True, check=True, text=True, timeout=timeout)
-            else:
-                result = subprocess.run(cmd, capture_output=True, check=True, text=True)
-            for info_line in result.stdout.splitlines():
-                log(log_path, info_line, indent=2)
-            for err_line in result.stderr.splitlines():
-                log(log_path, err_line, indent=2)
+def log_output(res, log_path, indent=2):
+    for line in res.split("\n"):
+        if line != "":
+            log(log_path, line.strip(), indent=indent)
+
+
+def gpt_subprocess(cmd, log_path, attempts=1, timeout=False):
+    log(log_path, "Calling '{}'".format(cmd), indent=1)
+    log(log_path, "Running with {} attempts".format(attempts), indent=1)
+    if timeout and attempts > 1:
+        log(log_path, "Using timeout of {} seconds for initial attempts".format(timeout), indent=1)
+    while attempts > 0:
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        if attempts != 1 and timeout:
+            timer = Timer(timeout, process.kill)
+            timer.start()
+        res = process.communicate()
+        if attempts != 1 and timeout:
+            timer.cancel()
+        if process.returncode == 0:
+            log_output(res[0], log_path)
+            log(log_path, "GPT operation completed.".format(timeout), indent=1)
             return True
-        except Exception as e:
-            log(log_path, str(e), indent=2)
-            if retries == 1:
-                return False
+        else:
+            log_output(res[0], log_path)
+            log_output(res[1], log_path)
+            if process.returncode == -9:
+                log(log_path, "GPT was killed. Retrying...".format(timeout), indent=1)
             else:
-                log(log_path, "GPT failed, retrying..", indent=2)
-                retries = retries - 1
+                if attempts != 1:
+                    log(log_path, "GPT failed. Retrying...", indent=1)
+            attempts = attempts - 1
+    return False
 
 
 def set_gpt_cache_size(env):
@@ -169,12 +184,15 @@ def load_properties(properties_file, separator_char='=', comment_char='#'):
     return properties_dict
 
 
-def log(file, text, indent=0):
+def log(file, text, indent=0, blank=False):
     text = str(text).split(r"\n")
     with open(file, "a") as file:
         for t in text:
-            if t != "":
-                out = datetime.now().strftime("%H:%M:%S.%f") + (" " * 3 * (indent + 1)) + t
+            if t != "" or blank:
+                if blank:
+                    out = t
+                else:
+                    out = datetime.now().strftime("%H:%M:%S.%f") + (" " * 3 * (indent + 1)) + t
                 print(out)
                 file.write(out + "\n")
 

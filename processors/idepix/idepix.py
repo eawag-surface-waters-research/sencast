@@ -25,9 +25,9 @@ QL_FILENAME = "reproj_idepix_subset_{}_{}.png"
 # The name of the xml file for gpt
 GPT_XML_FILENAME = "idepix_{}.xml"
 # Default number of attempts for the GPT
-DEFAULT_ATTEMPTS = 2
+DEFAULT_ATTEMPTS = 1
 # Default timeout for the GPT (doesn't apply to last attempt) in seconds
-DEFAULT_TIMEOUT = 240
+DEFAULT_TIMEOUT = False
 
 
 def process(env, params, l1product_path, _, out_path):
@@ -40,10 +40,10 @@ def process(env, params, l1product_path, _, out_path):
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            log(env["General"]["log"], "Removing file: ${}".format(output_file))
+            log(env["General"]["log"], "Removing file: ${}".format(output_file), indent=1)
             os.remove(output_file)
         else:
-            log(env["General"]["log"], "Skipping IDEPIX, target already exists: {}".format(os.path.basename(output_file)))
+            log(env["General"]["log"], "Skipping IDEPIX, target already exists: {}".format(os.path.basename(output_file)), indent=1)
             return output_file
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
@@ -60,10 +60,17 @@ def process(env, params, l1product_path, _, out_path):
         args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
                 "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
 
-    log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
+    if PARAMS_SECTION in params and "attempts" in params[PARAMS_SECTION]:
+        attempts = int(params[PARAMS_SECTION]["attempts"])
+    else:
+        attempts = DEFAULT_ATTEMPTS
 
-    if gpt_subprocess(args, env["General"]["log"], retries=DEFAULT_ATTEMPTS, timeout=DEFAULT_TIMEOUT):
-        log(env["General"]["log"], "Idepix completed.", indent=2)
+    if PARAMS_SECTION in params and "timeout" in params[PARAMS_SECTION]:
+        timeout = int(params[PARAMS_SECTION]["timeout"])
+    else:
+        timeout = DEFAULT_TIMEOUT
+
+    if gpt_subprocess(args, env["General"]["log"], attempts=attempts, timeout=timeout):
         return output_file
     else:
         if os.path.exists(output_file):

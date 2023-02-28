@@ -49,8 +49,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
     if "processor" not in params[PARAMS_SECTION]:
         raise RuntimeWarning('processor must be defined in the parameter file under {}.'.format(PARAMS_SECTION))
 
-    log(env["General"]["log"], "Applying Secchi Depth...")
-
     processor = params[PARAMS_SECTION]['processor']
     if processor != 'POLYMER':
         raise RuntimeWarning('Secchi depth adapter only works with Polymer processor output')
@@ -66,11 +64,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
     output_file = os.path.join(product_dir, OUT_FILENAME.format(product_name))
     if os.path.isfile(output_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            log(env["General"]["log"], 'Removing file: ${}'.format(output_file))
+            log(env["General"]["log"], 'Removing file: ${}'.format(output_file), indent=1)
             os.remove(output_file)
         else:
             log(env["General"]["log"],
-                'Skipping Secchi Depth, target already exists: {}'.format(OUT_FILENAME.format(product_name)))
+                'Skipping Secchi Depth, target already exists: {}'.format(OUT_FILENAME.format(product_name)), indent=1)
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
@@ -79,19 +77,16 @@ def process(env, params, l1product_path, l2product_files, out_path):
         name, width, height = get_name_width_height_from_nc(src, product_path)
         product_band_names = get_band_names_from_nc(src)
 
-        log(env["General"]["log"], 'Product:      {}'.format(name))
-        log(env["General"]["log"], 'Raster size: {} x {} pixels'.format(width, height))
-        log(env["General"]["log"], 'Bands:       {}'.format(list(product_band_names)))
+        log(env["General"]["log"], 'Product:      {}'.format(name), indent=1)
+        log(env["General"]["log"], 'Raster size: {} x {} pixels'.format(width, height), indent=1)
+        log(env["General"]["log"], 'Bands:       {}'.format(list(product_band_names)), indent=1)
 
         satellite = get_satellite_name_from_product_name(product_name)
 
         ################## Setup band configuration for Sentinel-2 or Sentinel-3 ##################
         if satellite in ['S2A', 'S2B']:
             # ToDo: values for Sentinel-2 are yet to be configured
-            log(env["General"]["log"], '')
-            log(env["General"]["log"],
-                'QAA Secchi for Sentinel-2 should be used with caution. Parameters are not fully validated.')
-            log(env["General"]["log"], '')
+            log(env["General"]["log"], 'QAA Secchi for Sentinel-2 should be used with caution. Parameters are not fully validated.', indent=1)
             # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
             g0 = 0.08945
             g1 = 0.1247
@@ -151,8 +146,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
                 band.spectralWavelength = float(re.findall(r'\d+', band_name)[0])
             secchi_bands.append(band)
 
-        log(env["General"]["log"], "Calculating Secchi depth.")
-        print(secchi_band_names)
+        log(env["General"]["log"], "Calculating Secchi depth.", indent=1)
 
         for n_row in range(height):
             # Reading the different bands per pixel into arrays
@@ -167,7 +161,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
             us = [(-g0 + (np.sqrt((g0 ** 2) + (4 * g1) * rr))) / (2 * g1) for rr in rrs]
             secchi_row(dst, n_row, secchi_band_names, width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1)
 
-        log(env["General"]["log"], "Writing Secchi depth to file: {}".format(output_file))
         return output_file
 
 

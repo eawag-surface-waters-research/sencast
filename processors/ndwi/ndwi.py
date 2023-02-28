@@ -6,9 +6,7 @@ Near-Infrared (NIR) and Short Wave Infrared (SWIR) channels.
 """
 
 import os
-import subprocess
-from utils.auxil import log
-from utils.product_fun import get_reproject_params_from_wkt
+from utils.auxil import log, gpt_subprocess
 
 # Key of the params section for this processor
 PARAMS_SECTION = "NDWI"
@@ -18,7 +16,10 @@ OUT_DIR = "L2NDWI"
 OUT_FILENAME = "L2NDWI_{}.nc"
 # The name of the xml file for gpt
 GPT_XML_FILENAME = "ndwi.xml"
-
+# Default number of attempts for the GPT
+DEFAULT_ATTEMPTS = 1
+# Default timeout for the GPT (doesn't apply to last attempt) in seconds
+DEFAULT_TIMEOUT = False
 
 def process(env, params, l1product_path, l2product_files, out_path):
     """ This processor applies NDWI to the source product and stores the result. """
@@ -68,16 +69,24 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
             "-SsourceFile={}".format(source_file), "-PoutputFile={}".format(output_file)]
-    log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, universal_newlines=True)
-    while True:
-        output = process.stdout.readline()
-        log(env["General"]["log"], output.strip(), indent=2)
-        return_code = process.poll()
-        if return_code is not None:
-            if return_code != 0:
-                raise RuntimeError("GPT Failed.")
-            break
+
+    if PARAMS_SECTION in params and "attempts" in params[PARAMS_SECTION]:
+        attempts = int(params[PARAMS_SECTION]["attempts"])
+    else:
+        attempts = DEFAULT_ATTEMPTS
+
+    if PARAMS_SECTION in params and "timeout" in params[PARAMS_SECTION]:
+        timeout = int(params[PARAMS_SECTION]["timeout"])
+    else:
+        timeout = DEFAULT_TIMEOUT
+
+    if gpt_subprocess(args, env["General"]["log"], attempts=attempts, timeout=timeout):
+        return output_file
+    else:
+        if os.path.exists(output_file):
+            os.remove(output_file)
+            log(env["General"]["log"], "Removed corrupted output file.", indent=2)
+        raise RuntimeError("GPT Failed.")
 
     return output_file
 
