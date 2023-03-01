@@ -293,6 +293,12 @@ def get_band_from_nc(nc, band_name):
     return nc.variables[band_name]
 
 
+def get_pixels_from_nc(nc_path, band_name):
+    with Dataset(nc_path) as src:
+        band = src.variables[band_name][:]
+    return band
+
+
 def copy_nc(src, dst, included_bands):
     dst.setncatts(src.__dict__)
     for name, dimension in src.dimensions.items():
@@ -338,6 +344,18 @@ def write_pixels_to_nc(nc, band_name, x, y, w, h, data):
 
 def write_pixels_to_band(band, x, y, w, h, data):
     band[range(y, y + h), range(x, x + w)] = data.reshape(h, w)
+
+
+def write_all_pixels_to_nc(nc, band_name, data):
+    nc[band_name][:] = data
+
+
+def append_to_valid_pixel_expression(nc, vpe):
+    for band_name in nc.variables.keys():
+        band_properties = nc.variables[band_name].__dict__
+        if "valid_pixel_expression" in band_properties:
+            if vpe not in band_properties["valid_pixel_expression"] and band_properties["valid_pixel_expression"] != "":
+                nc.variables[band_name].valid_pixel_expression = band_properties["valid_pixel_expression"] + " and {}".format(vpe)
 
 
 def get_np_data_type(nc, band_name):

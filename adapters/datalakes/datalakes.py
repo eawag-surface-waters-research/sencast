@@ -14,7 +14,8 @@ import requests
 from utils.auxil import log
 from json import dump
 from netCDF4 import Dataset
-from utils.product_fun import get_satellite_name_from_product_name, get_sensing_datetime_from_product_name
+from utils.product_fun import get_satellite_name_from_product_name, get_sensing_datetime_from_product_name, \
+    get_pixels_from_nc, write_all_pixels_to_nc, create_band, append_to_valid_pixel_expression
 
 
 # the url to post new data notification to
@@ -50,8 +51,6 @@ def apply(env, params, l2product_files, date):
 
     if PARAMS_SECTION not in params:
         raise ValueError("Datalakes selection must be defined in the parameters file.")
-
-    log(env["General"]["log"], "Applying datalakes")
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
@@ -59,7 +58,7 @@ def apply(env, params, l2product_files, date):
             l2product_file = l2product_files[processor]
             satellite = get_satellite_name_from_product_name(os.path.basename(l2product_file))
             date = get_sensing_datetime_from_product_name(os.path.basename(l2product_file))
-            out_path = os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR, params['General']['wkt_name'], satellite + "_" + date)
+            out_path = os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR, "datalakes", params['General']['wkt_name'], satellite + "_" + date)
             output_file_main = os.path.join(out_path, NC_FILENAME.format(processor, satellite, date))
             os.makedirs(out_path, exist_ok=True)
             bands_list = list(filter(None, params[PARAMS_SECTION][key].split(",")))
@@ -70,25 +69,30 @@ def apply(env, params, l2product_files, date):
                         ("synchronise" in params["DATALAKES"].keys() and params["DATALAKES"]["synchronise"] == "false"):
                     log(env["General"]["log"], "Removing file: ${}".format(output_file_main), indent=2)
                     os.remove(output_file_main)
-                    for idx, val in enumerate(bands):
-                        log(env["General"]["log"], "Converting {} band {} to JSON".format(processor, val), indent=2)
-                        output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
-                        nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
-                    with open(l2product_file, "rb") as f:
-                        nc_bytes = f.read()
-                    with open(output_file_main, "wb") as f:
-                        f.write(nc_bytes)
-                else:
-                    log(env["General"]["log"], "Skipping processor {}. Target already exists".format(processor), indent=2)
+
+            if os.path.exists(output_file_main):
+                log(env["General"]["log"], "Skipping processor {}. Target already exists".format(processor), indent=2)
             else:
-                for idx, val in enumerate(bands):
-                    log(env["General"]["log"], "Converting {} band {} to JSON".format(processor, val), indent=2)
-                    output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
-                    nc_to_json(l2product_file, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
+                log(env["General"]["log"], "Copying {} to Datalakes folder.".format(os.path.basename(l2product_file)), indent=2)
                 with open(l2product_file, "rb") as f:
                     nc_bytes = f.read()
                 with open(output_file_main, "wb") as f:
                     f.write(nc_bytes)
+
+                try:
+                    log(env["General"]["log"], "Merging {} with lake_mask_sui_S3.nc".format(os.path.basename(output_file_main)), indent=2)
+                    lake_mask = get_pixels_from_nc(os.path.join(os.path.abspath(os.path.dirname(__file__)), "lake_mask_sui_S3.nc"), "Swiss_S3_water")
+                    with Dataset(output_file_main, mode='r+') as dst:
+                        create_band(dst, "lake_mask", "", "lake_mask>0")
+                        write_all_pixels_to_nc(dst, "lake_mask", lake_mask)
+                        append_to_valid_pixel_expression(dst, "lake_mask>0")
+                except:
+                    log(env["General"]["log"], "Failed to merge with lake_mask_sui_S3.nc", indent=2)
+
+                for idx, val in enumerate(bands):
+                    log(env["General"]["log"], "Converting {} band {} to JSON".format(processor, val), indent=3)
+                    output_file = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
+                    nc_to_json(output_file_main, output_file, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
 
             if "bucket" not in params[PARAMS_SECTION]:
                 raise ValueError("S3 Bucket must be defined in parameters file")

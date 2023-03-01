@@ -55,9 +55,9 @@ def process(env, params, l1product_path, _, out_path):
         l1product_path = get_main_file_from_product_path(l1product_path)
 
     if "gpt_use_default" in env['General'] and env['General']['gpt_use_default'] == "True":
-        args = [gpt, "-Dsnap.gpf.disableTileCache=true", gpt_xml_file, "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
+        args = [gpt, gpt_xml_file, "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
     else:
-        args = [gpt, "-Dsnap.gpf.disableTileCache=true", gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
+        args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
                 "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
 
     if PARAMS_SECTION in params and "attempts" in params[PARAMS_SECTION]:

@@ -10,4 +10,5 @@ __pycache__
 !/parameters/parameters_template_S2.ini
 !/parameters/parameters_template_S3.ini
 !/parameters/datalakes_sui_S3.ini
+!/parameters/datalakes_sui_S2.ini
 !/environments/example.ini
