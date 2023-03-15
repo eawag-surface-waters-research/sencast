@@ -9,6 +9,7 @@ import re
 import subprocess
 from math import ceil, floor
 
+import pandas as pd
 from haversine import haversine
 from datetime import datetime
 
@@ -47,6 +48,38 @@ def get_satellite_name_from_product_name(product_name):
     elif "LC08" in product_name:
         return "L8"
     raise RuntimeError("Could not read satellite name from product name [{}]".format(product_name))
+
+
+def filter_for_baseline(download_requests, product_names, sensor, env):
+    filtered_download_requests = []
+    filtered_product_names = []
+    if sensor == "MSI":
+        log(env["General"]["log"], "Filtering for most recent baseline", indent=1)
+        data = []
+        for i in range(len(download_requests)):
+            p = product_names[i].split("_")
+            data.append([p[0] + p[1] + p[2] + p[4] + p[5], p[3], i])
+        df = pd.DataFrame(data, columns=["id", "baseline", "index"])
+        df = df.sort_values(by=['id', 'baseline'], ascending=False)
+        df = df.groupby('id').first()
+        for i in df["index"].values:
+            filtered_download_requests.append(download_requests[i])
+            filtered_product_names.append(product_names[i])
+        return filtered_download_requests, filtered_product_names
+    else:
+        return download_requests, product_names
+
+
+def filter_for_tiles(download_requests, product_names, tiles, env):
+    log(env["General"]["log"], "Filtering to only include the following tiles: {}.".format(", ".join(tiles)), indent=1)
+    filtered_download_requests = []
+    filtered_product_names = []
+    for i in range(len(download_requests)):
+        for tile in tiles:
+            if "_{}_".format(tile) in product_names[i]:
+                filtered_download_requests.append(download_requests[i])
+                filtered_product_names.append(product_names[i])
+    return filtered_download_requests, filtered_product_names
 
 
 def filter_for_timeliness(download_requests, product_names, env):
