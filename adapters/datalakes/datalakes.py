@@ -272,7 +272,7 @@ def upload_directory(path, bucket, aws_access_key_id, aws_secret_access_key, log
             if extension == False or file[-len(extension):] == extension:
                 try:
                     log(logger, "Uploading {}".format(file), indent=2)
-                    # client.upload_file(os.path.join(root, file), bucket, os.path.relpath(os.path.join(root, file), path))
+                    client.upload_file(os.path.join(root, file), bucket, os.path.relpath(os.path.join(root, file), path))
                 except:
                     failed = True
                     log(logger, "Failed to upload: {}".format(file), indent=2)
