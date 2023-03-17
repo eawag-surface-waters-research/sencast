@@ -11,7 +11,7 @@ from threading import Semaphore, Thread
 
 from utils.auxil import init_hindcast, log
 from utils.product_fun import filter_for_timeliness, get_satellite_name_from_product_name, \
-    get_sensing_date_from_product_name, get_l1product_path
+    get_sensing_date_from_product_name, get_l1product_path, filter_for_tiles, filter_for_baseline
 
 global summary
 summary = []
@@ -94,6 +94,14 @@ def do_hindcast(env, params, l2_path, l2product_files, max_parallel_downloads=1,
 
     # filter for timeliness
     download_requests, product_names = filter_for_timeliness(download_requests, product_names, env)
+
+    # filter for tiles
+    if "tiles" in params['General']:
+        tiles = params['General']["tiles"].replace(" ", "").split(",")
+        download_requests, product_names = filter_for_tiles(download_requests, product_names, tiles, env)
+
+    # filter for baseline
+    download_requests, product_names = filter_for_baseline(download_requests, product_names, sensor, env)
 
     # set up inputs for product hindcast
     l1product_paths = [get_l1product_path(env, product_name) for product_name in product_names]
@@ -228,14 +236,17 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                 if len(processor_outputs) == 1:
                     l2product_files[processor] = processor_outputs[0]
                 elif len(processor_outputs) > 1:
-                    try:
-                        log(env["General"]["log"], "Mosaicing outputs of processor {}...".format(processor))
-                        from mosaic.mosaic import mosaic
-                        l2product_files[processor] = mosaic(env, params, processor_outputs)
-                        log(env["General"]["log"], "Mosaiced outputs of processor {}.".format(processor))
-                    except (Exception,):
-                        log(env["General"]["log"], "Mosaicing outputs of processor {} failed.".format(processor))
-                        traceback.print_exc()
+                    if "mosaic" in params["General"] and params["General"]["mosaic"] == "False":
+                        log(env["General"]["log"], "Mosaic outputs set to false, not mosaicing {}".format(processor))
+                    else:
+                        try:
+                            log(env["General"]["log"], "Mosaicing outputs of processor {}...".format(processor))
+                            from mosaic.mosaic import mosaic
+                            l2product_files[processor] = mosaic(env, params, processor_outputs)
+                            log(env["General"]["log"], "Mosaiced outputs of processor {}.".format(processor))
+                        except (Exception,):
+                            log(env["General"]["log"], "Mosaicing outputs of processor {} failed.".format(processor))
+                            traceback.print_exc()
                 summary.append({"group": group, "type": "processor", "name": processor, "succeeded": True})
             except (Exception,):
                 log(env["General"]["log"], "Processor {} failed on product {}.".format(processor, l1product_path))

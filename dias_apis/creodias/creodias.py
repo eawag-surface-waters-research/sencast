@@ -101,6 +101,7 @@ def search(satellite, query, env):
     log(env["General"]["log"], "Search for products: {}".format(query))
     uuids, filenames = [], []
     timelinesss, beginpositions, endpositions = [], [], []
+    log(env["General"]["log"], "Calling: {}".format(search_address.format(satellite, query)), indent=1)
     while True:
         response = requests.get(search_address.format(satellite, query))
         if response.status_code == codes.OK:
