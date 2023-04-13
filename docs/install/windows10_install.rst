@@ -4,6 +4,11 @@
 Windows 10
 ------------------------------------------------------------------------------------------
 
+.. warning::
+
+  The windows version of this installation has a number of issues, it is suggested to use linux or the
+  windows subsystem for linux for installing and using Sencast.
+
 1.) Install prerequisites
 
 - Git: https://git-scm.com/downloads
@@ -33,11 +38,11 @@ Set CONDA_HOME to "C:\path_to_anaconda_installation\" (e.g. C:\Program Files\Con
 
 Add "%CONDA_HOME%\bin" to PATH  (could need to be "%CONDA_HOME%\condabin")
 
-Start a new cmd sencast-37 environment::
+Start a new cmd sencast environment::
 
-    > conda env create -f %USERPROFILE%\Projects\sencast\sencast-37.yml
+    > conda env create -f %USERPROFILE%\Projects\sencast\sencast.yml
 
-Set CONDA_ENV_HOME to "%CONDA_HOME%\envs\sencast-37"
+Set CONDA_ENV_HOME to "%CONDA_HOME%\envs\sencast"
 
 
 4.) SNAP: http://step.esa.int/main/download/
@@ -79,15 +84,15 @@ Open -> %USERPROFILE%\Projects\sencast
 
 Add a Project Interpreter:
     - File -> Settings -> Project: sencast -> Gearwheel in the upper right -> Show All...
-    - Add (+) -> Conda Environment -> Existing environment -> Interpreter: C:\Program Files\Conda\envs\sencast-37\python.exe -> OK -> OK -> OK
+    - Add (+) -> Conda Environment -> Existing environment -> Interpreter: C:\Program Files\Conda\envs\sencast\python.exe -> OK -> OK -> OK
     - Give it some time to index files (watch processes in the bottom line to finish)
 
 Define a running configuration:
     - In the top right "Add Configuration..."
     - In the top left Add (+) -> Python
-    - Name: sencast-37
+    - Name: sencast
     - Script path: %USERPROFILE%\Projects\sencast\main.py
-    - Python interpreter: Python 3.7 (sencast-37)
+    - Python interpreter: Python 3.7 (sencast)
     - OK
 
 
@@ -102,7 +107,7 @@ Start a command prompt and do following::
     > xcopy "Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.14.zip" "%USERPROFILE%\AppData\Local\Temp"
     > jar xf "polymer-v4.14.zip"
     > cd "polymer-v4.14"
-    > conda activate sencast-37
+    > conda activate sencast
     > python setup.py build_ext --inplace
     > xcopy "%USERPROFILE%\AppData\Local\Temp\polymer-v4.14\polymer" "%CONDA_ENV_HOME%\Lib\site-packages\polymer\"
     > xcopy "%USERPROFILE%\AppData\Local\Temp\polymer-v4.14\auxdata" "%CONDA_ENV_HOME%\Lib\site-packages\auxdata\"
@@ -160,5 +165,5 @@ Extract the content of "Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\sentinel-
 
 Install the operator in SNAP Desktop:
     - Tools -> Plugins -> Downloaded -> Add Plugins...
-    - Choose your *.nbm file (Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\sentinel-hindcast\SNAP Plugins) -> OK
+    - Choose your .nbm file (Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\sentinel-hindcast\SNAP Plugins) -> OK
     - Select your new Plugin in the list -> Install -> Accept everything

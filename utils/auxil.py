@@ -121,7 +121,7 @@ def log_output(res, log_path, indent=2):
 
 
 def gpt_subprocess(cmd, log_path, attempts=1, timeout=False):
-    log(log_path, "Calling '{}'".format(cmd), indent=1)
+    log(log_path, "Calling '{}'".format(' '.join(cmd)), indent=1)
     log(log_path, "Running with {} attempts".format(attempts), indent=1)
     if timeout and attempts > 1:
         log(log_path, "Using timeout of {} seconds for initial attempts".format(timeout), indent=1)

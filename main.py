@@ -2,13 +2,13 @@
 import os
 import sys
 import time
+import shutil
 import argparse
 import importlib
 import traceback
-
-from utils import earthdata, testing
 from threading import Semaphore, Thread
 
+from utils import earthdata
 from utils.auxil import init_hindcast, log
 from utils.product_fun import filter_for_timeliness, get_satellite_name_from_product_name, \
     get_sensing_date_from_product_name, get_l1product_path, filter_for_tiles, filter_for_baseline
@@ -17,19 +17,19 @@ global summary
 summary = []
 
 
-def sencast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1):
+def sencast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1,
+            max_parallel_adapters=1):
     """
     File-based interface for Sencast.
 
     Parameters
-    ----------
+    ------------
 
     params_file
         File to read the parameters for this run from
     env_file
         | **Default: None**
-        | Environment settings read from the environment .ini file, if None provided Sencast will search for file in
-        environments folder.
+        | Environment settings read from the environment .ini file, if None provided Sencast will search for file in environments folder.
     max_parallel_downloads
         | **Default: 1**
         | Maximum number of parallel downloads of satellite images
@@ -42,13 +42,13 @@ def sencast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_p
     """
     l2product_files = {}
     env, params, l2_path = init_hindcast(env_file, params_file)
-    do_hindcast(env, params, l2_path, l2product_files, max_parallel_downloads, max_parallel_processors,
-                max_parallel_adapters)
+    sencast_thread(env, params, l2_path, l2product_files, max_parallel_downloads, max_parallel_processors,
+                   max_parallel_adapters)
     return l2product_files
 
 
-def do_hindcast(env, params, l2_path, l2product_files, max_parallel_downloads=1, max_parallel_processors=1,
-                max_parallel_adapters=1):
+def sencast_thread(env, params, l2_path, l2product_files, max_parallel_downloads=1, max_parallel_processors=1,
+                   max_parallel_adapters=1):
     """
     Threading function for running Sencast.
     1. Calls API to find available data for given query
@@ -150,9 +150,10 @@ def do_hindcast(env, params, l2_path, l2product_files, max_parallel_downloads=1,
     hindcast_threads = []
     for group, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
         args = (
-        env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path, l2product_files,
-        semaphores, group)
-        hindcast_threads.append(Thread(target=hindcast_product_group, args=args, name="Thread-{}".format(group)))
+            env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path,
+            l2product_files,
+            semaphores, group)
+        hindcast_threads.append(Thread(target=sencast_product_group, args=args, name="Thread-{}".format(group)))
         hindcast_threads[-1].start()
 
     # wait for all hindcast threads to terminate
@@ -171,8 +172,8 @@ def do_hindcast(env, params, l2_path, l2product_files, max_parallel_downloads=1,
                            .format(len(failed), len(summary), ", ".join(failed)))
 
 
-def hindcast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path,
-                           l2product_files_outer, semaphores, group):
+def sencast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path,
+                          l2product_files_outer, semaphores, group):
     """
     Run Sencast for given thread.
     1. Downloads required products
@@ -232,7 +233,8 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
                     output_file = process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
                     l2product_files[l1product_path][processor] = output_file
                     processor_outputs.append(output_file)
-                log(env["General"]["log"], "Processor {} finished: [{}].".format(processor, ", ".join(processor_outputs)))
+                log(env["General"]["log"],
+                    "Processor {} finished: [{}].".format(processor, ", ".join(processor_outputs)))
                 if len(processor_outputs) == 1:
                     l2product_files[processor] = processor_outputs[0]
                 elif len(processor_outputs) > 1:
@@ -281,6 +283,35 @@ def hindcast_product_group(env, params, do_download, auth, download_requests, l1
     l2product_files_outer[group] = l2product_files
 
 
+def test_installation(env, delete):
+    if delete:
+        _, params_s3, l2_path_s3 = init_hindcast(env, 'test_S3_processors.ini')
+        shutil.rmtree(l2_path_s3)
+    try:
+        sencast('test_S3_processors.ini', env_file=env)
+    except Exception as e:
+        print("Some S3 processors failed")
+        print(e)
+
+    if delete:
+        _, params_s2, l2_path_s2 = init_hindcast(env, 'test_S2_processors.ini')
+        shutil.rmtree(l2_path_s2)
+    try:
+        sencast('test_S2_processors.ini', env_file=env)
+    except Exception as e:
+        print("Some S2 processors failed")
+        print(e)
+
+    if delete:
+        _, params_l8, l2_path_l8 = init_hindcast(env, 'test_L8_processors.ini')
+        shutil.rmtree(l2_path_l8)
+    try:
+        sencast('test_L8_processors.ini', env_file=env)
+    except Exception as e:
+        print("Some L8 processors failed.")
+        print(e)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--parameters', '-p', help="Absolute path to parameter file", type=str)
@@ -296,7 +327,7 @@ if __name__ == "__main__":
     variables = vars(args)
     sys.argv = [sys.argv[0]]
     if variables["tests"]:
-        testing.test_installation(variables["environment"], variables["delete_tests"])
+        test_installation(variables["environment"], variables["delete_tests"])
     else:
         if variables["parameters"] is None:
             raise ValueError("Sencast FAILED. Link to parameters file must be provided.")

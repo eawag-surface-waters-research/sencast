@@ -40,7 +40,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # Explore autodoc imports
 
-autodoc_mock_imports = ["tqdm", "polymer", "cartopy", "matplotlib", "haversine", "haversine", "snappy", "numpy", "netCDF4", "scipy", "pandas", "colour", "mdn", "rasterio", "sklearn", "tensorflow", "tensorflow_probability"]
+autodoc_mock_imports = ["osgeo", "PIL", "tqdm", "polymer", "cartopy", "matplotlib", "haversine", "haversine", "snappy", "numpy", "netCDF4", "scipy", "pandas", "colour", "mdn", "rasterio", "sklearn", "tensorflow", "tensorflow_probability", "pyproj", "boto3"]
 
 
 # -- Options for HTML output -------------------------------------------------

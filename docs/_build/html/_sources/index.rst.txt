@@ -27,10 +27,12 @@ Publications
 Installation
 -------------
 
-To install Sencast, run::
+To install Sencast, run
+
+.. code-block:: bash
 
   git clone https://gitlab.com/eawag-rs/sencast.git
-  conda env create -f ~/sencast/sencast-37.yml
+  conda env create -f ~/sencast/sencast.yml
 
 Many of the Sencast'S processors reply on `SNAP`_ , the SeNtinel Application Platform
 project, funded by the `European Space Agency`_ (ESA) or other 3rd party packages. In order to have
@@ -51,26 +53,49 @@ Odermatt`_.
 Getting Started
 ---------------
 
+Sencast can be run in two ways:
+
+1. By calling the ``main.py`` script with command line arguments
+
+.. code-block:: python
+
+    python main.py -p parameters.ini -e environment.ini
+
+
++-------------------+---------------------+-------------------------------------------------------------------+
+| Parameters        | Default             | Description                                                       |
++===================+=====================+===================================================================+
+| -t --tests        | False               | run test processing to check setup                                |
++-------------------+---------------------+-------------------------------------------------------------------+
+| -x --delete_tests | False               | delete previous test run                                          |
++-------------------+---------------------+-------------------------------------------------------------------+
+| -p --parameters   | Required            | link to the parameters.ini file (required except for tests)       |
++-------------------+---------------------+-------------------------------------------------------------------+
+| -e  --environment | ${machine-name}.ini | link to the environment.ini file                                  |
++-------------------+---------------------+-------------------------------------------------------------------+
+| -d -–downloads    | 1                   | number of parallell downloads                                     |
++-------------------+---------------------+-------------------------------------------------------------------+
+| -p --processors   | 1                   | number of parallell processors                                    |
++-------------------+---------------------+-------------------------------------------------------------------+
+| -a --adapters     | 1                   | number of parallell adapters                                      |
++-------------------+---------------------+-------------------------------------------------------------------+
+
+2. By importing Sencast as a function
+
+.. code-block:: python
+
+    from sencast.main import sencast
+
+    sencast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1)
+
+For this options you can pass objects as the params_file and env_file as well as links to the text files.
+
 Following flow chart illustrates how Sencast works.
 
 .. image:: flowchart.png
     :width: 800px
     :alt: Sencast Flow Chart
     :align: center
-
-Sencast offers two interfaces to process data.
-
--  The file-based interface takes a parameter file and an optional
-   environment file as input. It reads the file contents and calls the
-   object based interface with the read configurations.
--  The object-based interface directly takes an environment and a
-   parameters object as well as a path for the L1 (input) products and a
-   path for the L2 (output) products.
-
-From the command line only the file-based interface is available.
-Use it as follows:
-
-python main.py [parameters file] [(optional) environment file]
 
 Environment File
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -123,8 +148,8 @@ Testing
 To test your installation run::
 
   cd ~/sencast
-  conda activate sencast-37
-  python3 tests/test_installation.py
+  conda activate sencast
+  python main.py -t
 
 This will report which processors are successfully installed and producing meaning-full outputs.
 

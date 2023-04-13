@@ -17,14 +17,31 @@ Then create your **environment file** (use environments/example.ini as a templat
 ```
 cd ~/sencast
 conda activate sencast
-python3 utils/testing.py
+python main.py -t
 ```
-This will output a log of which processors are functioning. After the above steps it is normal that only Idepix and MPH 
-processors function. For installation of the additional processors refer to the full documentation below:
+This will output a log of which processors are functioning. After the above steps it is normal that only the image download functions. 
+For installation of the processors refer to the full documentation below:
 
 ## Documentation
 
 Full documentation is available at [ReadTheDocs](https://sencast.readthedocs.io/en/latest/?).
+
+
+## Arguments
+
+```
+python main.py
+```
+
+| Parameter         |       Default       | Description                                                       |	
+|:------------------|:-------------------:|:------------------------------------------------------------------|
+| -t --tests 	      |       	False        | run test processing to check setup                                |
+| -x --delete_tests |       	False        | delete previous test run                                          |
+| -p --parameters 	 |      	Required      | link to the parameters.ini file (required when not running tests) |
+| -e  --environment | ${machine-name}.ini | link to the environment.ini file                                  |
+| -d -–downloads 	  |         	1	         | number of parallell downloads                                     |
+| -p --processors   |         1	          | number of parallell processors                                    |
+| -a --adapters	    |          1          | number of parallell adapters                                      |
 
 ## Papers
 
