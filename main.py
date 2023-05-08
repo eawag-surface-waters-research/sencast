@@ -90,7 +90,11 @@ def sencast_thread(env, params, l2_path, l2product_files, max_parallel_downloads
     # find products which match the criterias from params
     start, end = params['General']['start'], params['General']['end']
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
-    download_requests, product_names = get_download_requests(auth, start, end, sensor, resolution, wkt, env)
+    try:
+        download_requests, product_names = get_download_requests(auth, start, end, sensor, resolution, wkt, env)
+    except:
+        raise ValueError("Unable to access {} API, please check your internet conectivity or try using an alternative API".format(api))
+
 
     # filter for timeliness
     download_requests, product_names = filter_for_timeliness(download_requests, product_names, env)
@@ -210,7 +214,6 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
             with semaphores['download']:
                 log(env["General"]["log"], "Downloading file: " + l1product_path)
                 do_download(auth, download_request, l1product_path, env)
-                log(env["General"]["log"], "Completed downloading file: " + l1product_path)
 
     # ensure all products have been downloaded
     for l1product_path in l1product_paths:
@@ -254,7 +257,7 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
                 log(env["General"]["log"], "Processor {} failed on product {}.".format(processor, l1product_path))
                 log(env["General"]["log"], traceback.format_exc(), indent=1)
                 summary.append({"group": group, "type": "processor", "name": processor, "succeeded": False})
-        del processor_outputs
+                del processor_outputs
         for l1product_path in l1product_paths:
             try:
                 del (l2product_files[l1product_path])

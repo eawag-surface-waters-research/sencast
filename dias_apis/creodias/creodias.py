@@ -9,7 +9,7 @@ Documentation for CREODIAS API can be found `here. <https://creodias.eu/eo-data-
 
 import os
 import requests
-
+import json
 from requests.status_codes import codes
 from tqdm import tqdm
 from zipfile import ZipFile
@@ -28,6 +28,8 @@ download_address = "https://zipper.creodias.eu/download/{}?token={}"
 # token address
 token_address = 'https://identity.cloudferro.com/auth/realms/dias/protocol/openid-connect/token'
 
+max_records = 500
+
 
 def authenticate(env):
     return [env['username'], env['password']]
@@ -35,10 +37,9 @@ def authenticate(env):
 
 def get_download_requests(auth, startDate, completionDate, sensor, resolution, wkt, env):
     query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}&processingLevel={}"
-    maxRecords = 1000
     geometry = wkt.replace(" ", "", 1).replace(" ", "+")
     satellite, instrument, productType, processingLevel = get_dataset_id(sensor, resolution)
-    query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType, processingLevel)
+    query = query.format(max_records, startDate, completionDate, instrument, geometry, productType, processingLevel)
     uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query, env)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
@@ -46,13 +47,13 @@ def get_download_requests(auth, startDate, completionDate, sensor, resolution, w
 
 def get_updated_files(auth, startDate, completionDate, sensor, resolution, wkt, publishedAfter):
     query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}&processingLevel={}&publishedAfter={}"
-    maxRecords = 1000
     geometry = wkt.replace(" ", "", 1).replace(" ", "+")
     satellite, instrument, productType, processingLevel = get_dataset_id(sensor, resolution)
-    query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType, processingLevel, publishedAfter)
+    query = query.format(max_records, startDate, completionDate, instrument, geometry, productType, processingLevel, publishedAfter)
     uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
+
 
 
 def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions):
@@ -101,9 +102,11 @@ def search(satellite, query, env):
     log(env["General"]["log"], "Search for products: {}".format(query))
     uuids, filenames = [], []
     timelinesss, beginpositions, endpositions = [], [], []
-    log(env["General"]["log"], "Calling: {}".format(search_address.format(satellite, query)), indent=1)
+    page = 1
     while True:
-        response = requests.get(search_address.format(satellite, query))
+        qu = query + "&page={}".format(page)
+        log(env["General"]["log"], "Calling: {}".format(search_address.format(satellite, qu)), indent=1)
+        response = requests.get(search_address.format(satellite, qu))
         if response.status_code == codes.OK:
             root = response.json()
             for feature in root['features']:
@@ -112,7 +115,10 @@ def search(satellite, query, env):
                 timelinesss.append(feature['properties']['timeliness'] if satellite != "Landsat8" else feature['properties']['title'][-2:])
                 beginpositions.append(feature['properties']['startDate'])
                 endpositions.append(feature['properties']['completionDate'])
-            return uuids, filenames, timelinesss, beginpositions, endpositions
+            if root["properties"]["totalResults"] > root["properties"]["startIndex"] + max_records:
+                page = page + 1
+            else:
+                return uuids, filenames, timelinesss, beginpositions, endpositions
         else:
             raise RuntimeError("Unexpected response: {}".format(response.text))
 
