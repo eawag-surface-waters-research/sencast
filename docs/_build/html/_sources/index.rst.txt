@@ -84,7 +84,10 @@ Sencast can be run in two ways:
 
 .. code-block:: python
 
-    from sencast.main import sencast
+    import sys
+    sys.path.append("/sencast") # Path to sencast repository
+
+    from main import sencast
 
     sencast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1, max_parallel_adapters=1)
 
