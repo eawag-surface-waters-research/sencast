@@ -20,6 +20,7 @@
 		</sources>
 		<parameters>
 			<geoRegion>${wkt}</geoRegion>
+			<tiePointGridNames>,</tiePointGridNames>
 		</parameters>
 	</node>
 	<node id="idepixNode">
