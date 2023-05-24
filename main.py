@@ -267,21 +267,22 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
         log(env["General"]["log"], "All processors finished! {}".format(str(l2product_files)))
 
     # apply adapters
-    with semaphores['adapt']:
-        for adapter in list(filter(None, params['General']['adapters'].split(","))):
-            try:
-                log(env["General"]["log"], "", blank=True)
-                log(env["General"]["log"], "Adapter {} starting...".format(adapter))
-                apply = getattr(importlib.import_module("adapters.{}.{}".format(adapter.lower(), adapter.lower())),
-                                "apply")
-                apply(env, params, l2product_files, group)
-                log(env["General"]["log"], "Adapter {} finished.".format(adapter))
-                summary.append({"group": group, "type": "adapter", "name": adapter, "succeeded": True})
-            except (Exception,):
-                log(env["General"]["log"], "Adapter {} failed on product group {}.".format(adapter, group))
-                log(env["General"]["log"], sys.exc_info()[0])
-                traceback.print_exc()
-                summary.append({"group": group, "type": "adapter", "name": adapter, "succeeded": False})
+    if "adapters" in params["General"]:
+        with semaphores['adapt']:
+            for adapter in list(filter(None, params['General']['adapters'].split(","))):
+                try:
+                    log(env["General"]["log"], "", blank=True)
+                    log(env["General"]["log"], "Adapter {} starting...".format(adapter))
+                    apply = getattr(importlib.import_module("adapters.{}.{}".format(adapter.lower(), adapter.lower())),
+                                    "apply")
+                    apply(env, params, l2product_files, group)
+                    log(env["General"]["log"], "Adapter {} finished.".format(adapter))
+                    summary.append({"group": group, "type": "adapter", "name": adapter, "succeeded": True})
+                except (Exception,):
+                    log(env["General"]["log"], "Adapter {} failed on product group {}.".format(adapter, group))
+                    log(env["General"]["log"], sys.exc_info()[0])
+                    traceback.print_exc()
+                    summary.append({"group": group, "type": "adapter", "name": adapter, "succeeded": False})
 
     l2product_files_outer[group] = l2product_files
 

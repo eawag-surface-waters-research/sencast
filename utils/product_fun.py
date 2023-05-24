@@ -262,6 +262,16 @@ def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
     if step is None:
         step = int(ceil(min(lons_width, lons_height) / 4))
 
+    if x + step > lons_height:
+        x = int(lons_height - step - 1)
+    if y + step > lons_width:
+        y = int(lons_width - step - 1)
+
+    if x - step < 0:
+        x = step
+    if y - step < 0:
+        y = step
+
     new_coords = [[x, y], [x - step, y - step], [x - step, y], [x - step, y + step], [x, y + step],
                   [x + step, y + step], [x + step, y], [x + step, y - step], [x, y - step]]
     distances = [haversine((lat, lon), (latitudes[new_x][new_y], longitudes[new_x][new_y])) for [new_x, new_y] in
