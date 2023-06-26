@@ -72,7 +72,7 @@ functioning of the processors. This must be run from inside the sencast reposito
 The option `-v /DIAS:/DIAS` maps the input/ output folders to a location outside the container. This should be updated to 
 the appropriate location, e.g. `-v /home/user/DIAS:/DIAS`
 
-`docker run -v /DIAS:/DIAS -v $(pwd):/sencast -it eawag/sencast:0.0.1 -e docker.ini -t`
+`docker run -v /DIAS:/DIAS -v $(pwd):/sencast -rm -it eawag/sencast:0.0.1 -e docker.ini -t`
 
 `-e` name of the environment file in `sencast/environments`
 `-t` flag to indicate a test should be run 
@@ -81,7 +81,7 @@ the appropriate location, e.g. `-v /home/user/DIAS:/DIAS`
 
 In order to run a parameters file it can be passed to the command as follows using the `-p` flag.
 
-`docker run -v /DIAS:/DIAS -v $(pwd):/sencast -it eawag/sencast:0.0.1 -e docker.ini -p example.ini`
+`docker run -v /DIAS:/DIAS -v $(pwd):/sencast -rm -it eawag/sencast:0.0.1 -e docker.ini -p example.ini`
 
 `-p` name of the parameter file in `sencast/parameters`
 
@@ -89,6 +89,6 @@ In order to run a parameters file it can be passed to the command as follows usi
 
 Sometimes it is desirable to interact directly with the container, this can be achieved with the following command:
 
-`docker run -v /DIAS:/DIAS -v $(pwd):/sencast -it --entrypoint /bin/bash eawag/sencast:0.0.1`
+`docker run -v /DIAS:/DIAS -v $(pwd):/sencast -rm -it --entrypoint /bin/bash eawag/sencast:0.0.1`
 
 
