@@ -5,6 +5,9 @@ RUN apt-get install -y gcc
 RUN apt-get install -y curl
 RUN apt-get install -y make
 RUN apt-get install -y fonts-dejavu fontconfig
+RUN apt-get install -y gcc
+RUN apt-get install -y gpg2
+RUN apt-get install -y oathtool
 
 RUN mkdir /DIAS
 RUN mkdir /sencast
