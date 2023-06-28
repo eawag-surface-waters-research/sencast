@@ -5,6 +5,8 @@ RUN apt-get install -y gcc
 RUN apt-get install -y curl
 RUN apt-get install -y make
 RUN apt-get install -y fonts-dejavu fontconfig
+RUN apt-get install -y gnupg2
+RUN apt-get install -y oathtool
 
 RUN mkdir /DIAS
 RUN mkdir /sencast
@@ -12,9 +14,10 @@ RUN mkdir /sencast
 RUN curl -O http://step.esa.int/downloads/9.0/installers/esa-snap_all_unix_9_0_0.sh
 RUN chmod 755 esa-snap_all_unix_9_0_0.sh
 RUN echo "o\n1\n\n\nn\nn\nn\n" | bash esa-snap_all_unix_9_0_0.sh
+
+ADD snap_modules.tar.gz  /opt/snap/snap/
 ENV SNAP_HOME=/opt/snap
 RUN (timeout 250 $SNAP_HOME/bin/snap --nosplash --nogui --modules --update-all; exit 0)
-RUN (timeout 250 $SNAP_HOME/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi ; exit 0)
 RUN echo "#SNAP configuration 's3tbx'" >> /opt/snap/etc/s3tbx.properties
 RUN echo "#Fri Mar 27 12:55:00 CET 2020" >> /opt/snap/etc/s3tbx.properties
 RUN echo "s3tbx.reader.olci.pixelGeoCoding=true" >> /opt/snap/etc/s3tbx.properties
@@ -49,4 +52,7 @@ RUN mkdir /opt/ICOR
 RUN mkdir /opt/SEN2COR
 RUN cd /opt/SEN2COR && wget https://step.esa.int/thirdparties/sen2cor/2.11.0/Sen2Cor-02.11.00-Linux64.run && chmod 755 Sen2Cor-02.11.00-Linux64.run && ./Sen2Cor-02.11.00-Linux64.run && rm Sen2Cor-02.11.00-Linux64.run
 
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "sencast", "python", "-u", "/sencast/main.py"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

@@ -123,10 +123,10 @@ def do_download(auth, download_request, product_path, env):
      # Generate the TOTP
     totp = get_totp(totp_key)
 
-    # DEBUG Print the credentials 
-    print(f"Usename: {username}")
-    print(f"Password: {password}")
-    print(f"Generated TOTP: {totp}")
+  ## DEBUG Print the credentials 
+  #  print(f"Usename: {username}")
+  #  print(f"Password: {password}")
+  #  print(f"Generated TOTP: {totp}")
 
     token = get_token(username, password, totp)
     os.makedirs(os.path.dirname(product_path), exist_ok=True)
