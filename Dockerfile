@@ -5,9 +5,6 @@ RUN apt-get install -y gcc
 RUN apt-get install -y curl
 RUN apt-get install -y make
 RUN apt-get install -y fonts-dejavu fontconfig
-RUN apt-get install -y gcc
-RUN apt-get install -y gpg2
-RUN apt-get install -y oathtool
 
 RUN mkdir /DIAS
 RUN mkdir /sencast
@@ -50,9 +47,6 @@ RUN mkdir /opt/ICOR
 # RUN cd /opt/ICOR && wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin && chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin && ./icor_install_ubuntu_20_04_x64_3.0.0.bin && rm icor_install_ubuntu_20_04_x64_3.0.0.bin
 
 RUN mkdir /opt/SEN2COR
-RUN cd /opt/SEN2COR && wget https://step.esa.int/thirdparties/sen2cor/2.11.0/Sen2Cor-02.11.00-Linux64.run --no-check-certificate && chmod 755 Sen2Cor-02.11.00-Linux64.run && ./Sen2Cor-02.11.00-Linux64.run && rm Sen2Cor-02.11.00-Linux64.run
+RUN cd /opt/SEN2COR && wget https://step.esa.int/thirdparties/sen2cor/2.11.0/Sen2Cor-02.11.00-Linux64.run && chmod 755 Sen2Cor-02.11.00-Linux64.run && ./Sen2Cor-02.11.00-Linux64.run && rm Sen2Cor-02.11.00-Linux64.run
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "sencast", "python", "-u", "/sencast/main.py"]
