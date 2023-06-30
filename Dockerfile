@@ -15,7 +15,7 @@ RUN curl -O http://step.esa.int/downloads/9.0/installers/esa-snap_all_unix_9_0_0
 RUN chmod 755 esa-snap_all_unix_9_0_0.sh
 RUN echo "o\n1\n\n\nn\nn\nn\n" | bash esa-snap_all_unix_9_0_0.sh
 
-ADD snap_modules.tar.gz  /opt/snap/snap/
+RUN cd /opt/snap/snap/ && wget https://eawagrs.s3.eu-central-1.amazonaws.com/snap/snap_modules.tar.gz && tar -zxvf snap_modules.tar.gz
 ENV SNAP_HOME=/opt/snap
 RUN (timeout 250 $SNAP_HOME/bin/snap --nosplash --nogui --modules --update-all; exit 0)
 RUN echo "#SNAP configuration 's3tbx'" >> /opt/snap/etc/s3tbx.properties
@@ -50,7 +50,7 @@ RUN mkdir /opt/ICOR
 # RUN cd /opt/ICOR && wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin && chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin && ./icor_install_ubuntu_20_04_x64_3.0.0.bin && rm icor_install_ubuntu_20_04_x64_3.0.0.bin
 
 RUN mkdir /opt/SEN2COR
-RUN cd /opt/SEN2COR && wget https://step.esa.int/thirdparties/sen2cor/2.11.0/Sen2Cor-02.11.00-Linux64.run && chmod 755 Sen2Cor-02.11.00-Linux64.run && ./Sen2Cor-02.11.00-Linux64.run && rm Sen2Cor-02.11.00-Linux64.run
+RUN cd /opt/SEN2COR && wget https://step.esa.int/thirdparties/sen2cor/2.11.0/Sen2Cor-02.11.00-Linux64.run --no-check-certificate && chmod 755 Sen2Cor-02.11.00-Linux64.run && ./Sen2Cor-02.11.00-Linux64.run && rm Sen2Cor-02.11.00-Linux64.run
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
