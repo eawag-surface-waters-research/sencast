@@ -9,7 +9,8 @@ Documentation for CREODIAS API can be found `here. <https://creodias.eu/eo-data-
 
 import os
 import requests
-import json
+import subprocess
+
 from requests.status_codes import codes
 from tqdm import tqdm
 from zipfile import ZipFile
@@ -26,20 +27,19 @@ search_address = "https://finder.creodias.eu/resto/api/collections/{}/search.jso
 download_address = "https://zipper.creodias.eu/download/{}?token={}"
 
 # token address
-token_address = 'https://identity.cloudferro.com/auth/realms/dias/protocol/openid-connect/token'
-
-max_records = 500
+token_address = 'https://identity.cloudferro.com/auth/realms/Creodias-new/protocol/openid-connect/token' 
 
 
 def authenticate(env):
-    return [env['username'], env['password']]
+    return [env['username'], env['password'], env['totp_key']]
 
 
 def get_download_requests(auth, startDate, completionDate, sensor, resolution, wkt, env):
     query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}&processingLevel={}"
+    maxRecords = 1000
     geometry = wkt.replace(" ", "", 1).replace(" ", "+")
     satellite, instrument, productType, processingLevel = get_dataset_id(sensor, resolution)
-    query = query.format(max_records, startDate, completionDate, instrument, geometry, productType, processingLevel)
+    query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType, processingLevel)
     uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query, env)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
@@ -47,13 +47,13 @@ def get_download_requests(auth, startDate, completionDate, sensor, resolution, w
 
 def get_updated_files(auth, startDate, completionDate, sensor, resolution, wkt, publishedAfter):
     query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}&processingLevel={}&publishedAfter={}"
+    maxRecords = 1000
     geometry = wkt.replace(" ", "", 1).replace(" ", "+")
     satellite, instrument, productType, processingLevel = get_dataset_id(sensor, resolution)
-    query = query.format(max_records, startDate, completionDate, instrument, geometry, productType, processingLevel, publishedAfter)
+    query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType, processingLevel, publishedAfter)
     uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
-
 
 
 def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions):
@@ -102,11 +102,9 @@ def search(satellite, query, env):
     log(env["General"]["log"], "Search for products: {}".format(query))
     uuids, filenames = [], []
     timelinesss, beginpositions, endpositions = [], [], []
-    page = 1
+    log(env["General"]["log"], "Calling: {}".format(search_address.format(satellite, query)), indent=1)
     while True:
-        qu = query + "&page={}".format(page)
-        log(env["General"]["log"], "Calling: {}".format(search_address.format(satellite, qu)), indent=1)
-        response = requests.get(search_address.format(satellite, qu))
+        response = requests.get(search_address.format(satellite, query))
         if response.status_code == codes.OK:
             root = response.json()
             for feature in root['features']:
@@ -115,18 +113,22 @@ def search(satellite, query, env):
                 timelinesss.append(feature['properties']['timeliness'] if satellite != "Landsat8" else feature['properties']['title'][-2:])
                 beginpositions.append(feature['properties']['startDate'])
                 endpositions.append(feature['properties']['completionDate'])
-            if root["properties"]["totalResults"] > root["properties"]["startIndex"] + max_records:
-                page = page + 1
-            else:
-                return uuids, filenames, timelinesss, beginpositions, endpositions
+            return uuids, filenames, timelinesss, beginpositions, endpositions
         else:
             raise RuntimeError("Unexpected response: {}".format(response.text))
 
 
 def do_download(auth, download_request, product_path, env):
-    username = auth[0]
-    password = auth[1]
-    token = get_token(username, password)
+    username, password, totp_key = auth
+     # Generate the TOTP
+    totp = get_totp(totp_key)
+
+  ## DEBUG Print the credentials 
+  #  print(f"Usename: {username}")
+  #  print(f"Password: {password}")
+  #  print(f"Generated TOTP: {totp}")
+
+    token = get_token(username, password, totp)
     os.makedirs(os.path.dirname(product_path), exist_ok=True)
     url = download_address.format(download_request['uuid'], token)
     file_temp = "{}.incomplete".format(product_path)
@@ -172,13 +174,17 @@ def parse_date(date):
     day = date[6:8]
     return year, month, day
 
+def get_totp(totp_key):
+    totp = subprocess.check_output(["oathtool", "-b", "--totp", totp_key]).strip().decode('utf-8')
+    return totp
 
-def get_token(username, password):
+def get_token(username, password, totp):
     token_data = {
         'client_id': 'CLOUDFERRO_PUBLIC',
         'username': username,
         'password': password,
-        'grant_type': 'password'
+        'grant_type': 'password',
+        'totp': totp
     }
     response = requests.post(token_address, data=token_data).json()
     try:
