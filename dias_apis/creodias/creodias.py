@@ -176,7 +176,6 @@ def get_token(username, password, totp):
         'totp': totp
     }
     response = requests.post(token_address, data=token_data).json()
-    print(response)
     try:
         return response['access_token']
     except KeyError:
