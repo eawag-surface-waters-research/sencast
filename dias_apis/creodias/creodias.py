@@ -18,16 +18,16 @@ from pathlib import Path
 from utils.auxil import log
 
 # Documentation for CREODIAS API can be found here:
-# https://creodias.eu/eo-data-finder-api-manual
+# https://creodias.docs.cloudferro.com/en/latest/eodata/EOData-Catalogue-API-Manual-on-Creodias.html
 
 # search address
-search_address = "https://finder.creodias.eu/resto/api/collections/{}/search.json?{}"  # Sentinel3
+search_address = "https://datahub.creodias.eu/odata/v1/Products{}"
 
 # download address
 download_address = "https://zipper.creodias.eu/download/{}?token={}"
 
 # token address
-token_address = 'https://identity.cloudferro.com/auth/realms/Creodias-new/protocol/openid-connect/token' 
+token_address = 'https://identity.cloudferro.com/auth/realms/Creodias-new/protocol/openid-connect/token'
 
 
 def authenticate(env):
@@ -35,23 +35,12 @@ def authenticate(env):
 
 
 def get_download_requests(auth, startDate, completionDate, sensor, resolution, wkt, env):
-    query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}&processingLevel={}"
+    query = "?$filter=((ContentDate/Start ge {} and ContentDate/Start le {}) and (Online eq true) and (OData.CSC.Intersects(Footprint=geography'SRID=4326;{}')) and (((((((Attributes/OData.CSC.StringAttribute/any(i0:i0/Name eq 'productType' and i0/Value eq '{}')))) and (Collection/Name eq '{}'))))))&$expand=Attributes&$top={}"
     maxRecords = 1000
-    geometry = wkt.replace(" ", "", 1).replace(" ", "+")
-    satellite, instrument, productType, processingLevel = get_dataset_id(sensor, resolution)
-    query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType, processingLevel)
+    geometry = wkt.replace(" ", "", 1)
+    satellite, productType = get_dataset_id(sensor, resolution)
+    query = query.format(startDate, completionDate, geometry, productType, satellite, maxRecords)
     uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query, env)
-    uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
-    return [{'uuid': uuid} for uuid in uuids], product_names
-
-
-def get_updated_files(auth, startDate, completionDate, sensor, resolution, wkt, publishedAfter):
-    query = "maxRecords={}&startDate={}&completionDate={}&instrument={}&geometry={}&productType={}&processingLevel={}&publishedAfter={}"
-    maxRecords = 1000
-    geometry = wkt.replace(" ", "", 1).replace(" ", "+")
-    satellite, instrument, productType, processingLevel = get_dataset_id(sensor, resolution)
-    query = query.format(maxRecords, startDate, completionDate, instrument, geometry, productType, processingLevel, publishedAfter)
-    uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
 
@@ -85,15 +74,15 @@ def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endposi
 
 def get_dataset_id(sensor, resolution):
     if sensor == 'OLCI' and int(resolution) < 1000:
-        return 'Sentinel3', 'OLCI', 'EFR', ''
+        return 'SENTINEL-3', 'OL_1_EFR___'
     elif sensor == 'OLCI' and int(resolution) >= 1000:
-        return 'Sentinel3', 'OLCI', 'ERR', ''
+        return 'SENTINEL-3', 'OL_1_ERR___'
     elif sensor == 'MSI':
-        return 'Sentinel2', 'MSI', '', 'LEVEL1C'
+        return 'SENTINEL-2', 'S2MSI1C'
     elif sensor == 'MSI-L2A':
-        return 'Sentinel2', 'MSI', '', 'LEVEL2A'
+        return 'SENTINEL-2', 'S2MSI2A'
     elif sensor == 'OLI_TIRS':
-        return 'Landsat8', 'OLI_TIRS', 'L1TP', 'LEVEL1TP'
+        return 'LANDSAT-8', 'L1TP'
     else:
         raise RuntimeError("CREODIAS API is not yet implemented for sensor: {}".format(sensor))
 
@@ -102,17 +91,24 @@ def search(satellite, query, env):
     log(env["General"]["log"], "Search for products: {}".format(query))
     uuids, filenames = [], []
     timelinesss, beginpositions, endpositions = [], [], []
-    log(env["General"]["log"], "Calling: {}".format(search_address.format(satellite, query)), indent=1)
+    log(env["General"]["log"], "Calling: {}".format(search_address.format(query)), indent=1)
     while True:
-        response = requests.get(search_address.format(satellite, query))
+        response = requests.get(search_address.format(query))
         if response.status_code == codes.OK:
             root = response.json()
-            for feature in root['features']:
-                uuids.append(feature['id'])
-                filenames.append(feature['properties']['title'])
-                timelinesss.append(feature['properties']['timeliness'] if satellite != "Landsat8" else feature['properties']['title'][-2:])
-                beginpositions.append(feature['properties']['startDate'])
-                endpositions.append(feature['properties']['completionDate'])
+            for feature in root['value']:
+                uuids.append(feature['Id'])
+                filenames.append(feature['Name'])
+                beginpositions.append(feature['ContentDate']['Start'])
+                endpositions.append(feature['ContentDate']['End'])
+                timeliness = ""
+                if "_NR_" in feature['Name']:
+                    timeliness = "NR"
+                if "_ST_" in feature['Name']:
+                    timeliness = "ST"
+                if "_NT_" in feature['Name']:
+                    timeliness = "NT"
+                timelinesss.append(timeliness)
             return uuids, filenames, timelinesss, beginpositions, endpositions
         else:
             raise RuntimeError("Unexpected response: {}".format(response.text))
@@ -120,14 +116,7 @@ def search(satellite, query, env):
 
 def do_download(auth, download_request, product_path, env):
     username, password, totp_key = auth
-     # Generate the TOTP
     totp = get_totp(totp_key)
-
-  ## DEBUG Print the credentials 
-  #  print(f"Usename: {username}")
-  #  print(f"Password: {password}")
-  #  print(f"Generated TOTP: {totp}")
-
     token = get_token(username, password, totp)
     os.makedirs(os.path.dirname(product_path), exist_ok=True)
     url = download_address.format(download_request['uuid'], token)
@@ -187,6 +176,7 @@ def get_token(username, password, totp):
         'totp': totp
     }
     response = requests.post(token_address, data=token_data).json()
+    print(response)
     try:
         return response['access_token']
     except KeyError:
