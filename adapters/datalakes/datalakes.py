@@ -15,6 +15,7 @@ import requests
 from utils.auxil import log
 from json import dump
 from netCDF4 import Dataset
+from pyproj import CRS
 from utils.product_fun import get_satellite_name_from_product_name, get_sensing_datetime_from_product_name, \
     get_pixels_from_nc, write_all_pixels_to_nc, create_band, append_to_valid_pixel_expression
 osr.UseExceptions()
@@ -107,13 +108,7 @@ def apply(env, params, l2product_files, date):
                         if "S2" in satellite:
                             tile = l2product_file.split("_")[-2]
                             geotiff_outfile = os.path.join(out_path, GEOTIFF_FILENAME.format(processor, val, satellite, date, tile))
-                            if processor == "ACOLITE":
-                                convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx],
-                                           satellite, date, env, projection=32631)
-                            else:
-                                convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx],
-                                           satellite, date, env)
-    exit()
+                            convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
 
     if "bucket" not in params[PARAMS_SECTION]:
         raise ValueError("S3 Bucket must be defined in parameters file")
@@ -148,6 +143,9 @@ def convert_nc(output_type, input_file, output_file, band, decimals, band_min, b
         values_flat = values.flatten()
         y = np.array(nc.variables[nc.variables[band].dimensions[0]][:])
         x = np.array(nc.variables[nc.variables[band].dimensions[1]][:])
+        if "proj4_string" in nc.ncattrs():
+            c = CRS.from_string(nc.getncattr("proj4_string"))
+            projection = c.to_epsg()
         try:
             valid_pixel_expression = nc.variables[band].valid_pixel_expression
             vpe_dict = {}
