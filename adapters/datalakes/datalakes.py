@@ -146,6 +146,7 @@ def convert_nc(output_type, input_file, output_file, band, decimals, band_min, b
         if "proj4_string" in nc.ncattrs():
             c = CRS.from_string(nc.getncattr("proj4_string"))
             projection = c.to_epsg()
+            log(env["General"]["log"], 'Adjusted projection to {} based on the proj4_string "{}"'.format(projection, nc.getncattr("proj4_string")), indent=4)
         try:
             valid_pixel_expression = nc.variables[band].valid_pixel_expression
             vpe_dict = {}
