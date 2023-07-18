@@ -51,22 +51,25 @@ def apply(env, params, l2product_files, date):
             if params['General']['sensor'] == "OLCI":
                 bands = [band.replace('radiance', 'reflectance') for band in bands]
 
-            folder = os.path.basename(os.path.dirname(l2product_files[processor]))
-            path = os.path.dirname(os.path.dirname(l2product_files[processor]))
-            ql_path = QL_PATH.format(path, folder, ql_name)
-            product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
-            ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, ql_name))
-            if os.path.exists(ql_file):
-                if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-                    log(env["General"]["log"], "Removing file: ${}".format(ql_file))
-                    os.remove(ql_file)
-                    plot_pic(env, l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
+            if not isinstance(l2product_files[processor], list):
+                l2product_files[processor] = [l2product_files[processor]]
+            for l2product_file in l2product_files[processor]:
+                folder = os.path.basename(os.path.dirname(l2product_file))
+                path = os.path.dirname(os.path.dirname(l2product_file))
+                ql_path = QL_PATH.format(path, folder, ql_name)
+                product_name = os.path.splitext(os.path.basename(l2product_file))[0]
+                ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, ql_name))
+                if os.path.exists(ql_file):
+                    if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+                        log(env["General"]["log"], "Removing file: ${}".format(ql_file))
+                        os.remove(ql_file)
+                        plot_pic(env, l2product_file, ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
+                    else:
+                        log(env["General"]["log"],
+                            "Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)))
                 else:
-                    log(env["General"]["log"],
-                        "Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)))
-            else:
-                os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-                plot_pic(env, l2product_files[processor], ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
+                    os.makedirs(os.path.dirname(ql_file), exist_ok=True)
+                    plot_pic(env, l2product_file, ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
 
 
 def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=None, grid=True, max_val=0.10):

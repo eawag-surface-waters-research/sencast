@@ -54,70 +54,75 @@ def apply(env, params, l2product_files, date):
 
     if PARAMS_SECTION not in params:
         raise ValueError("Datalakes selection must be defined in the parameters file.")
+    if not bool(l2product_files):
+        raise ValueError("No l2 products available to process")
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
             log(env["General"]["log"], "Processing {} to Datalakes product".format(processor), indent=1)
-            l2product_file = l2product_files[processor]
-            satellite = get_satellite_name_from_product_name(os.path.basename(l2product_file))
-            date = get_sensing_datetime_from_product_name(os.path.basename(l2product_file))
-            out_path = os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR, "datalakes", params['General']['wkt_name'], satellite + "_" + date)
-            input_file = os.path.join(out_path, NC_FILENAME.format(processor, satellite, date))
-            os.makedirs(out_path, exist_ok=True)
-            bands_list = list(filter(None, params[PARAMS_SECTION][key].split(",")))
-            bands, bands_min, bands_max = parse_bands(bands_list)
+            if not isinstance(l2product_files[processor], list):
+                l2product_files[processor] = [l2product_files[processor]]
+            for l2product_file in l2product_files[processor]:
+                satellite = get_satellite_name_from_product_name(os.path.basename(l2product_file))
+                date = get_sensing_datetime_from_product_name(os.path.basename(l2product_file))
+                out_path = os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR, "datalakes", params['General']['wkt_name'], satellite + "_" + date)
+                input_file = os.path.join(out_path, NC_FILENAME.format(processor, satellite, date))
+                os.makedirs(out_path, exist_ok=True)
+                bands_list = list(filter(None, params[PARAMS_SECTION][key].split(",")))
+                bands, bands_min, bands_max = parse_bands(bands_list)
 
-            if os.path.exists(input_file):
-                if ("synchronise" in params["General"].keys() and params['General']['synchronise'] == "false") or \
-                        ("synchronise" in params["DATALAKES"].keys() and params["DATALAKES"]["synchronise"] == "false"):
-                    log(env["General"]["log"], "Removing file: ${}".format(input_file), indent=2)
-                    os.remove(input_file)
+                if os.path.exists(input_file):
+                    if ("synchronise" in params["General"].keys() and params['General']['synchronise'] == "false") or \
+                            ("synchronise" in params["DATALAKES"].keys() and params["DATALAKES"]["synchronise"] == "false"):
+                        log(env["General"]["log"], "Removing file: ${}".format(input_file), indent=2)
+                        os.remove(input_file)
 
-            if os.path.exists(input_file):
-                log(env["General"]["log"], "Skipping processor {}. Target already exists".format(processor), indent=2)
-            else:
-                log(env["General"]["log"], "Copying {} to Datalakes folder.".format(os.path.basename(l2product_file)), indent=2)
-                with open(l2product_file, "rb") as f:
-                    nc_bytes = f.read()
-                with open(input_file, "wb") as f:
-                    f.write(nc_bytes)
+                if os.path.exists(input_file):
+                    log(env["General"]["log"], "Skipping processor {}. Target already exists".format(processor), indent=2)
+                else:
+                    log(env["General"]["log"], "Copying {} to Datalakes folder.".format(os.path.basename(l2product_file)), indent=2)
+                    with open(l2product_file, "rb") as f:
+                        nc_bytes = f.read()
+                    with open(input_file, "wb") as f:
+                        f.write(nc_bytes)
 
-                if "S3" in satellite:
-                    try:
-                        log(env["General"]["log"], "Merging {} with lake_mask_sui_S3.nc".format(os.path.basename(input_file)), indent=2)
-                        lake_mask = get_pixels_from_nc(os.path.join(os.path.abspath(os.path.dirname(__file__)), "lake_mask_sui_S3.nc"), "Swiss_S3_water")
-                        with Dataset(input_file, mode='r+') as dst:
-                            create_band(dst, "lake_mask", "", "lake_mask>0")
-                            write_all_pixels_to_nc(dst, "lake_mask", lake_mask)
-                            append_to_valid_pixel_expression(dst, "lake_mask>0")
-                    except:
-                        log(env["General"]["log"], "Failed to merge with lake_mask_sui_S3.nc", indent=2)
-
-                for idx, val in enumerate(bands):
-                    log(env["General"]["log"], "Converting {} band {} to JSON".format(processor, val), indent=3)
                     if "S3" in satellite:
-                        json_outfile = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
-                        geotiff_outfile = os.path.join(out_path, GEOTIFF_FILENAME.format(processor, val, satellite, date, "sui"))
-                        convert_nc("json", input_file, json_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
-                        convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
-                    if "S2" in satellite:
-                        tile = l2product_file.split("_")[-2]
-                        geotiff_outfile = os.path.join(out_path, GEOTIFF_FILENAME.format(processor, val, satellite, date, tile))
-                        if processor == "ACOLITE":
-                            convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx],
-                                       satellite, date, env, projection=32631)
-                        else:
-                            convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx],
-                                       satellite, date, env)
+                        try:
+                            log(env["General"]["log"], "Merging {} with lake_mask_sui_S3.nc".format(os.path.basename(input_file)), indent=2)
+                            lake_mask = get_pixels_from_nc(os.path.join(os.path.abspath(os.path.dirname(__file__)), "lake_mask_sui_S3.nc"), "Swiss_S3_water")
+                            with Dataset(input_file, mode='r+') as dst:
+                                create_band(dst, "lake_mask", "", "lake_mask>0")
+                                write_all_pixels_to_nc(dst, "lake_mask", lake_mask)
+                                append_to_valid_pixel_expression(dst, "lake_mask>0")
+                        except:
+                            log(env["General"]["log"], "Failed to merge with lake_mask_sui_S3.nc", indent=2)
 
-            if "bucket" not in params[PARAMS_SECTION]:
-                raise ValueError("S3 Bucket must be defined in parameters file")
+                    for idx, val in enumerate(bands):
+                        log(env["General"]["log"], "Converting {} band {} to JSON".format(processor, val), indent=3)
+                        if "S3" in satellite:
+                            json_outfile = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
+                            geotiff_outfile = os.path.join(out_path, GEOTIFF_FILENAME.format(processor, val, satellite, date, "sui"))
+                            convert_nc("json", input_file, json_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
+                            convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
+                        if "S2" in satellite:
+                            tile = l2product_file.split("_")[-2]
+                            geotiff_outfile = os.path.join(out_path, GEOTIFF_FILENAME.format(processor, val, satellite, date, tile))
+                            if processor == "ACOLITE":
+                                convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx],
+                                           satellite, date, env, projection=32631)
+                            else:
+                                convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx],
+                                           satellite, date, env)
+    exit()
 
-            if not env.has_section(PARAMS_SECTION):
-                raise ValueError("{} section required in envrionment file.".format(PARAMS_SECTION))
+    if "bucket" not in params[PARAMS_SECTION]:
+        raise ValueError("S3 Bucket must be defined in parameters file")
 
-            if "aws_access_key_id" not in env[PARAMS_SECTION] or "aws_secret_access_key" not in env[PARAMS_SECTION]:
-                raise ValueError("aws_access_key_id and aws_secret_access_key must be defined in environment file")
+    if not env.has_section(PARAMS_SECTION):
+        raise ValueError("{} section required in environment file.".format(PARAMS_SECTION))
+
+    if "aws_access_key_id" not in env[PARAMS_SECTION] or "aws_secret_access_key" not in env[PARAMS_SECTION]:
+        raise ValueError("aws_access_key_id and aws_secret_access_key must be defined in environment file")
 
     if l2product_file:
         log(env["General"]["log"], "Uploading files to {}".format(params[PARAMS_SECTION]["bucket"]), indent=1)

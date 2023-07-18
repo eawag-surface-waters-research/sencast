@@ -59,34 +59,38 @@ def apply(env, params, l2product_files, date):
             bands = list(filter(None, params[PARAMS_SECTION][key].split(",")))[::3]
             bandmins = list(filter(None, params[PARAMS_SECTION][key].split(",")))[1::3]
             bandmaxs = list(filter(None, params[PARAMS_SECTION][key].split(",")))[2::3]
-            product_name = os.path.splitext(os.path.basename(l2product_files[processor]))[0]
-            for band, bandmin, bandmax in zip(bands, bandmins, bandmaxs):
-                if band == 'secchidepth':
-                    processor = 'SECCHIDEPTH'
-                elif band == 'forelule':
-                    processor = 'FORELULE'
 
-                folder = os.path.basename(os.path.dirname(l2product_files[processor]))
-                path = os.path.dirname(os.path.dirname(l2product_files[processor]))
-                ql_path = QL_PATH.format(path, folder, band)
+            if not isinstance(l2product_files[processor], list):
+                l2product_files[processor] = [l2product_files[processor]]
+            for l2product_file in l2product_files[processor]:
+                product_name = os.path.splitext(os.path.basename(l2product_file))[0]
+                for band, bandmin, bandmax in zip(bands, bandmins, bandmaxs):
+                    if band == 'secchidepth':
+                        processor = 'SECCHIDEPTH'
+                    elif band == 'forelule':
+                        processor = 'FORELULE'
 
-                ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, band))
-                if os.path.exists(ql_file):
-                    if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-                        log(env["General"]["log"], "Removing file: ${}".format(ql_file))
-                        os.remove(ql_file)
-                        param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin),
-                                                                                          float(bandmax)]
-                        plot_map(env, l2product_files[processor], ql_file, band, wkt, "srtm_hillshade",
-                                 param_range=param_range)
+                    folder = os.path.basename(os.path.dirname(l2product_file))
+                    path = os.path.dirname(os.path.dirname(l2product_file))
+                    ql_path = QL_PATH.format(path, folder, band)
+
+                    ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, band))
+                    if os.path.exists(ql_file):
+                        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+                            log(env["General"]["log"], "Removing file: ${}".format(ql_file))
+                            os.remove(ql_file)
+                            param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin),
+                                                                                              float(bandmax)]
+                            plot_map(env, l2product_file, ql_file, band, wkt, "srtm_hillshade",
+                                     param_range=param_range)
+                        else:
+                            log(env["General"]["log"],
+                                "Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
                     else:
-                        log(env["General"]["log"],
-                            "Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
-                else:
-                    param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin), float(bandmax)]
-                    os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-                    plot_map(env, l2product_files[processor], ql_file, band, wkt, "srtm_hillshade",
-                             param_range=param_range)
+                        param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin), float(bandmax)]
+                        os.makedirs(os.path.dirname(ql_file), exist_ok=True)
+                        plot_map(env, l2product_file, ql_file, band, wkt, "srtm_hillshade",
+                                 param_range=param_range)
 
 
 def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_elevation', crop_ext=None,

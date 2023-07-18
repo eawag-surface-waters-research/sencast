@@ -92,8 +92,10 @@ def sencast_thread(env, params, l2_path, l2product_files, max_parallel_downloads
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     try:
         download_requests, product_names = get_download_requests(auth, start, end, sensor, resolution, wkt, env)
-    except:
+    except Exception as e:
+        print(e)
         raise ValueError("Unable to access {} API, please check your internet conectivity or try using an alternative API".format(api))
+
 
 
     # filter for timeliness
@@ -243,6 +245,7 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
                 elif len(processor_outputs) > 1:
                     if "mosaic" in params["General"] and params["General"]["mosaic"] == "False":
                         log(env["General"]["log"], "Mosaic outputs set to false, not mosaicing {}".format(processor))
+                        l2product_files[processor] = processor_outputs
                     else:
                         try:
                             log(env["General"]["log"], "Mosaicing outputs of processor {}...".format(processor))

@@ -49,7 +49,10 @@ def apply(env, params, l2product_files, date):
     files = []
     for product in params[PARAMS_SECTION]["products"].replace(" ", "").split(","):
         if product.upper() in l2product_files.keys():
-            files.append(l2product_files[product.upper()])
+            if not isinstance(l2product_files[product.upper()], list):
+                l2product_files[product.upper()] = [l2product_files[product.upper()]]
+            for l2product_file in l2product_files[product.upper()]:
+                files.append(l2product_file)
 
     if len(files) == 0:
         return
