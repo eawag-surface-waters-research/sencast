@@ -147,7 +147,7 @@ In shell do following::
 In shell do following::
 
     $ cd $CONDA_ENV_HOME/lib/python3.7/site-packages
-    $ git clone https://github.com/acolite/acolite.git
+    $ git clone git clone --depth 1 --branch python37 https://github.com/JamesRunnalls/acolite.git
 
 Edit the file acolite_l2w.py and comment-out all usages (and import) of "skimage" (Currently lines 23, 898, 909, 910, 911).
 

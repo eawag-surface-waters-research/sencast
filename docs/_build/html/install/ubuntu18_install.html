@@ -242,7 +242,7 @@ $ chmod 0600 ~/.netrc
 <p>8.) Acolite: <a class="reference external" href="https://github.com/acolite/acolite.git">https://github.com/acolite/acolite.git</a></p>
 <p>In shell do following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd $CONDA_ENV_HOME/lib/python3.7/site-packages
-$ git clone https://github.com/acolite/acolite.git
+$ git clone git clone --depth 1 --branch python37 https://github.com/JamesRunnalls/acolite.git
 </pre></div>
 </div>
 <p>Edit the file acolite_l2w.py and comment-out all usages (and import) of “skimage” (Currently lines 23, 898, 909, 910, 911).</p>

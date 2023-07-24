@@ -140,7 +140,7 @@ In cmd do following::
 In cmd do following::
 
     > cd "%USERPROFILE%\Projects"
-    > git clone --depth 42 https://github.com/acolite/acolite
+    > git clone --depth 1 --branch python37 https://github.com/JamesRunnalls/acolite.git
 
 
 11.) L/R_FLUO:
