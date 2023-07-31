@@ -122,16 +122,16 @@ def log_output(res, log_path, indent=2):
 
 def gpt_subprocess(cmd, log_path, attempts=1, timeout=False):
     log(log_path, "Calling '{}'".format(' '.join(cmd)), indent=1)
-    log(log_path, "Running with {} attempts".format(attempts), indent=1)
-    if timeout and attempts > 1:
-        log(log_path, "Using timeout of {} seconds for initial attempts".format(timeout), indent=1)
-    while attempts > 0:
+    for attempt in range(attempts):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-        if attempts != 1 and timeout:
+        if attempt != attempts - 1 and timeout:
+            log(log_path, "Beginning attempt {} of {} with a {} second timeout.".format(attempt + 1, attempts, timeout), indent=1)
             timer = Timer(timeout, process.kill)
             timer.start()
+        else:
+            log(log_path, "Beginning attempt {} of {} with no timeout.".format(attempt +1, attempts), indent=1)
         res = process.communicate()
-        if attempts != 1 and timeout:
+        if attempt != attempts - 1 and timeout:
             timer.cancel()
         if process.returncode == 0:
             log_output(res[0], log_path)
@@ -141,11 +141,9 @@ def gpt_subprocess(cmd, log_path, attempts=1, timeout=False):
             log_output(res[0], log_path)
             log_output(res[1], log_path)
             if process.returncode == -9:
-                log(log_path, "GPT was killed. Retrying...".format(timeout), indent=1)
+                log(log_path, "GPT process timed out after {} seconds and was killed.".format(timeout), indent=1)
             else:
-                if attempts != 1:
-                    log(log_path, "GPT failed. Retrying...", indent=1)
-            attempts = attempts - 1
+                log(log_path, "GPT failed.", indent=1)
     return False
 
 
