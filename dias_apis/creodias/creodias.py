@@ -8,6 +8,7 @@ Documentation for CREODIAS API can be found `here. <https://creodias.eu/eo-data-
 """
 
 import os
+import time
 import requests
 import subprocess
 
@@ -115,9 +116,7 @@ def search(satellite, query, env):
 
 
 def do_download(auth, download_request, product_path, env):
-    username, password, totp_key = auth
-    totp = get_totp(totp_key)
-    token = get_token(username, password, totp)
+    token = server_authenticate(auth, env)
     os.makedirs(os.path.dirname(product_path), exist_ok=True)
     url = download_address.format(download_request['uuid'], token)
     file_temp = "{}.incomplete".format(product_path)
@@ -163,9 +162,24 @@ def parse_date(date):
     day = date[6:8]
     return year, month, day
 
+
+def server_authenticate(auth, env, max_attempts=5, wait_time=5):
+    username, password, totp_key = auth
+    for attempt in range(max_attempts):
+        try:
+            totp = get_totp(totp_key)
+            token = get_token(username, password, totp)
+            return token
+        except Exception as e:
+            log(env["General"]["log"], "Failed to authenticate (Attempt {} of {}): {}".format(attempt + 1, max_attempts, e), indent=1)
+            time.sleep(wait_time)
+    raise RuntimeError(f'Unable to authenticate with the CREODIAS server.')
+
+
 def get_totp(totp_key):
     totp = subprocess.check_output(["oathtool", "-b", "--totp", totp_key]).strip().decode('utf-8')
     return totp
+
 
 def get_token(username, password, totp):
     token_data = {
@@ -179,4 +193,4 @@ def get_token(username, password, totp):
     try:
         return response['access_token']
     except KeyError:
-        raise RuntimeError(f'Unable to get token. Response was {response}')
+        raise RuntimeError(response)
