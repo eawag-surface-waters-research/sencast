@@ -287,6 +287,15 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
                     traceback.print_exc()
                     summary.append({"group": group, "type": "adapter", "name": adapter, "succeeded": False})
 
+    if 'remove_inputs' in params['General'] and params['General']['remove_inputs']:
+        log(env["General"]["log"], "Deleting input files")
+        for l1product_path in l1product_paths:
+            log(env["General"]["log"], "Removing: {}".format(l1product_path), indent=1)
+            if os.path.isfile(l1product_path):
+                os.remove(l1product_path)
+            elif os.path.isdir(l1product_path):
+                shutil.rmtree(l1product_path)
+
     l2product_files_outer[group] = l2product_files
 
 
