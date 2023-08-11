@@ -13,8 +13,8 @@ from utils.auxil import init_hindcast, log
 from utils.product_fun import filter_for_timeliness, get_satellite_name_from_product_name, \
     get_sensing_date_from_product_name, get_l1product_path, filter_for_tiles, filter_for_baseline
 
-global summary
-summary = []
+global errors
+errors = []
 
 
 def sencast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_processors=1,
@@ -169,13 +169,9 @@ def sencast_thread(env, params, l2_path, l2product_files, max_parallel_downloads
 
     log(env["General"]["log"], "Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
 
-    failed = []
-    for s in summary:
-        if not s["succeeded"]:
-            failed.append("{} {} {}".format(s["group"], s["type"], s["name"]))
-    if len(failed) > 0:
-        raise RuntimeError("Sencast failed for {}/{} processes. The following processes failed: {}"
-                           .format(len(failed), len(summary), ", ".join(failed)))
+    if len(errors) > 0:
+        raise RuntimeError("Sencast returned the following {} errors: {}"
+                           .format(len(errors), ", ".join(errors)))
 
 
 def sencast_product_group(env, params, do_download, auth, download_requests, l1product_paths, l2_path,
@@ -215,52 +211,57 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
         if not os.path.exists(l1product_path):
             with semaphores['download']:
                 log(env["General"]["log"], "Downloading file: " + l1product_path)
-                do_download(auth, download_request, l1product_path, env)
-
-    # ensure all products have been downloaded
-    for l1product_path in l1product_paths:
-        if not os.path.exists(l1product_path):
-            raise RuntimeError("Download of product was not successful: {}".format(l1product_path))
+                try:
+                    do_download(auth, download_request, l1product_path, env)
+                except (Exception,):
+                    log(env["General"]["log"], "Failed to download file {}.".format(l1product_path))
 
     with semaphores['process']:
         l2product_files = {}
         # apply processors to all products
         for processor in list(filter(None, params['General']['processors'].split(","))):
-            try:
-                log(env["General"]["log"], "", blank=True)
-                log(env["General"]["log"], "Processor {} starting...".format(processor))
-                process = getattr(
-                    importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
-                processor_outputs = []
-                for l1product_path in l1product_paths:
-                    if l1product_path not in l2product_files.keys():
-                        l2product_files[l1product_path] = {}
+
+            log(env["General"]["log"], "", blank=True)
+            log(env["General"]["log"], "Processor {} starting...".format(processor))
+            process = getattr(
+                importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
+            processor_outputs = []
+            for l1product_path in l1product_paths:
+                if l1product_path not in l2product_files.keys():
+                    l2product_files[l1product_path] = {}
+                if not os.path.exists(l1product_path):
+                    log(env["General"]["log"], "Failed. Processor {} requires input file {}.".format(processor, l1product_path), indent=1)
+                    errors.append("{} failed for {} (no input file available)".format(processor, os.path.basename(l1product_path)))
+                    continue
+                try:
+                    log(env["General"]["log"], "{} running for {}.".format(processor, l1product_path), indent=1)
                     output_file = process(env, params, l1product_path, l2product_files[l1product_path], l2_path)
                     l2product_files[l1product_path][processor] = output_file
                     processor_outputs.append(output_file)
-                log(env["General"]["log"],
-                    "Processor {} finished: [{}].".format(processor, ", ".join(processor_outputs)))
-                if len(processor_outputs) == 1:
-                    l2product_files[processor] = processor_outputs[0]
-                elif len(processor_outputs) > 1:
-                    if "mosaic" in params["General"] and params["General"]["mosaic"] == "False":
-                        log(env["General"]["log"], "Mosaic outputs set to false, not mosaicing {}".format(processor))
-                        l2product_files[processor] = processor_outputs
-                    else:
-                        try:
-                            log(env["General"]["log"], "Mosaicing outputs of processor {}...".format(processor))
-                            from mosaic.mosaic import mosaic
-                            l2product_files[processor] = mosaic(env, params, processor_outputs)
-                            log(env["General"]["log"], "Mosaiced outputs of processor {}.".format(processor))
-                        except (Exception,):
-                            log(env["General"]["log"], "Mosaicing outputs of processor {} failed.".format(processor))
-                            traceback.print_exc()
-                summary.append({"group": group, "type": "processor", "name": processor, "succeeded": True})
-            except (Exception,):
-                log(env["General"]["log"], "Processor {} failed on product {}.".format(processor, l1product_path))
-                log(env["General"]["log"], traceback.format_exc(), indent=1)
-                summary.append({"group": group, "type": "processor", "name": processor, "succeeded": False})
-                del processor_outputs
+                    log(env["General"]["log"], "{} finished for {}.".format(processor, l1product_path), indent=1)
+                except (Exception,):
+                    log(env["General"]["log"], "{} failed for {}.".format(processor, l1product_path), indent=1)
+                    log(env["General"]["log"], traceback.format_exc(), indent=2)
+                    errors.append("{} failed for {} (see log for details)".format(processor, os.path.basename(l1product_path)))
+
+            if len(processor_outputs) == 1:
+                l2product_files[processor] = processor_outputs[0]
+            elif len(processor_outputs) > 1:
+                if "mosaic" in params["General"] and params["General"]["mosaic"] == "False":
+                    log(env["General"]["log"], "Mosaic outputs set to false, not mosaicing {}".format(processor), indent=1)
+                    l2product_files[processor] = processor_outputs
+                else:
+                    try:
+                        log(env["General"]["log"], "Mosaicing outputs of processor {}...".format(processor), indent=1)
+                        from mosaic.mosaic import mosaic
+                        l2product_files[processor] = mosaic(env, params, processor_outputs)
+                        log(env["General"]["log"], "Mosaiced outputs of processor {}.".format(processor), indent=1)
+                    except (Exception,):
+                        log(env["General"]["log"], "Mosaicing outputs of processor {} failed.".format(processor), indent=1)
+                        log(env["General"]["log"], traceback.format_exc(), indent=2)
+                        errors.append("{} mosaic failed (see log for details)".format(processor))
+            log(env["General"]["log"], "Processor {} complete.".format(processor))
+
         for l1product_path in l1product_paths:
             try:
                 del (l2product_files[l1product_path])
@@ -280,12 +281,10 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
                                     "apply")
                     apply(env, params, l2product_files, group)
                     log(env["General"]["log"], "Adapter {} finished.".format(adapter))
-                    summary.append({"group": group, "type": "adapter", "name": adapter, "succeeded": True})
                 except (Exception,):
                     log(env["General"]["log"], "Adapter {} failed on product group {}.".format(adapter, group))
-                    log(env["General"]["log"], sys.exc_info()[0])
-                    traceback.print_exc()
-                    summary.append({"group": group, "type": "adapter", "name": adapter, "succeeded": False})
+                    log(env["General"]["log"], traceback.format_exc(), indent=2)
+                    errors.append("Adapter {} failed for {} (see log for details)".format(adapter, group))
 
     if 'remove_inputs' in params['General'] and params['General']['remove_inputs']:
         log(env["General"]["log"], "Deleting input files")
