@@ -215,6 +215,7 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
                     do_download(auth, download_request, l1product_path, env)
                 except (Exception,):
                     log(env["General"]["log"], "Failed to download file {}.".format(l1product_path))
+                    log(env["General"]["log"], traceback.format_exc(), indent=2)
 
     with semaphores['process']:
         l2product_files = {}

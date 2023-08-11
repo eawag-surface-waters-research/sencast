@@ -2,37 +2,28 @@
 # -*- coding: utf-8 -*-
 
 """
-Sencast uses the CREODIAS API to query the image database in order to identify suitable images and also to download images.
-
-Documentation for CREODIAS API can be found `here. <https://creodias.eu/eo-data-finder-api-manual>`_
+EO data access - CREODIAS API
 """
 
 import os
 import time
 import requests
 import subprocess
-
-from requests.status_codes import codes
 from tqdm import tqdm
-from zipfile import ZipFile
 from pathlib import Path
+from zipfile import ZipFile
+from requests.status_codes import codes
+
 from utils.auxil import log
 
-# Documentation for CREODIAS API can be found here:
+# Documentation
 # https://creodias.docs.cloudferro.com/en/latest/eodata/EOData-Catalogue-API-Manual-on-Creodias.html
 
-# search address
 search_address = "https://datahub.creodias.eu/odata/v1/Products{}"
 
-# download address
 download_address = "https://zipper.creodias.eu/download/{}?token={}"
 
-# token address
 token_address = 'https://identity.cloudferro.com/auth/realms/Creodias-new/protocol/openid-connect/token'
-
-
-def authenticate(env):
-    return [env['username'], env['password'], env['totp_key']]
 
 
 def get_download_requests(auth, startDate, completionDate, sensor, resolution, wkt, env):
@@ -44,6 +35,33 @@ def get_download_requests(auth, startDate, completionDate, sensor, resolution, w
     uuids, product_names, timelinesss, beginpositions, endpositions = search(satellite, query, env)
     uuids, product_names = timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions)
     return [{'uuid': uuid} for uuid in uuids], product_names
+
+
+def search(satellite, query, env):
+    log(env["General"]["log"], "Search for products: {}".format(query))
+    uuids, filenames = [], []
+    timelinesss, beginpositions, endpositions = [], [], []
+    log(env["General"]["log"], "Calling: {}".format(search_address.format(query)), indent=1)
+    while True:
+        response = requests.get(search_address.format(query))
+        if response.status_code == codes.OK:
+            root = response.json()
+            for feature in root['value']:
+                uuids.append(feature['Id'])
+                filenames.append(feature['Name'])
+                beginpositions.append(feature['ContentDate']['Start'])
+                endpositions.append(feature['ContentDate']['End'])
+                timeliness = ""
+                if "_NR_" in feature['Name']:
+                    timeliness = "NR"
+                if "_ST_" in feature['Name']:
+                    timeliness = "ST"
+                if "_NT_" in feature['Name']:
+                    timeliness = "NT"
+                timelinesss.append(timeliness)
+            return uuids, filenames, timelinesss, beginpositions, endpositions
+        else:
+            raise RuntimeError("Unexpected response: {}".format(response.text))
 
 
 def timeliness_filter(uuids, product_names, timelinesss, beginpositions, endpositions):
@@ -88,33 +106,6 @@ def get_dataset_id(sensor, resolution):
         raise RuntimeError("CREODIAS API is not yet implemented for sensor: {}".format(sensor))
 
 
-def search(satellite, query, env):
-    log(env["General"]["log"], "Search for products: {}".format(query))
-    uuids, filenames = [], []
-    timelinesss, beginpositions, endpositions = [], [], []
-    log(env["General"]["log"], "Calling: {}".format(search_address.format(query)), indent=1)
-    while True:
-        response = requests.get(search_address.format(query))
-        if response.status_code == codes.OK:
-            root = response.json()
-            for feature in root['value']:
-                uuids.append(feature['Id'])
-                filenames.append(feature['Name'])
-                beginpositions.append(feature['ContentDate']['Start'])
-                endpositions.append(feature['ContentDate']['End'])
-                timeliness = ""
-                if "_NR_" in feature['Name']:
-                    timeliness = "NR"
-                if "_ST_" in feature['Name']:
-                    timeliness = "ST"
-                if "_NT_" in feature['Name']:
-                    timeliness = "NT"
-                timelinesss.append(timeliness)
-            return uuids, filenames, timelinesss, beginpositions, endpositions
-        else:
-            raise RuntimeError("Unexpected response: {}".format(response.text))
-
-
 def do_download(auth, download_request, product_path, env):
     token = server_authenticate(auth, env)
     os.makedirs(os.path.dirname(product_path), exist_ok=True)
@@ -140,27 +131,8 @@ def do_download(auth, download_request, product_path, env):
             pass
 
 
-def parse_filename(filename):
-    if "S3" in filename:
-        satellite = "Sentinel-3"
-        sensor = "OLCI"
-        product = filename.split("____")[0].split("S3A_")[1]
-        year, month, day = parse_date(filename.split("_")[7])
-    elif "S2" in filename:
-        satellite = "Sentinel-2"
-        sensor = "MSI"
-        product = "L1C"
-        year, month, day = parse_date(filename.split("_")[2])
-    else:
-        return False
-    return satellite, sensor, product, year, month, day
-
-
-def parse_date(date):
-    year = date[0:4]
-    month = date[4:6]
-    day = date[6:8]
-    return year, month, day
+def authenticate(env):
+    return [env['username'], env['password'], env['totp_key']]
 
 
 def server_authenticate(auth, env, max_attempts=5, wait_time=5):
