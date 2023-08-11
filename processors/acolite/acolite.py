@@ -69,7 +69,7 @@ def process(env, params, l1product_path, _, out_path):
         if aco_file == REPROD_DIR:
             continue
         elif aco_file.endswith("_L2W.nc"):
-            log(env["General"]["log"], "Renaming Acolite L2W output file.")
+            log(env["General"]["log"], "Renaming Acolite L2W output file.", indent=2)
             os.rename(os.path.join(tmp_path, aco_file), out_file)
 
     if not os.path.exists(out_file):
