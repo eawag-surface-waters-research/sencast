@@ -214,8 +214,8 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
                 try:
                     do_download(auth, download_request, l1product_path, env)
                 except (Exception,):
-                    log(env["General"]["log"], "Failed to download file {}.".format(l1product_path))
                     log(env["General"]["log"], traceback.format_exc(), indent=2)
+                    log(env["General"]["log"], "Failed to download file {}.".format(l1product_path))
 
     with semaphores['process']:
         l2product_files = {}
@@ -241,8 +241,8 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
                     processor_outputs.append(output_file)
                     log(env["General"]["log"], "{} finished for {}.".format(processor, l1product_path), indent=1)
                 except (Exception,):
-                    log(env["General"]["log"], "{} failed for {}.".format(processor, l1product_path), indent=1)
                     log(env["General"]["log"], traceback.format_exc(), indent=2)
+                    log(env["General"]["log"], "{} failed for {}.".format(processor, l1product_path), indent=1)
                     errors.append("{} failed for {} (see log for details)".format(processor, os.path.basename(l1product_path)))
 
             if len(processor_outputs) == 1:
@@ -258,8 +258,8 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
                         l2product_files[processor] = mosaic(env, params, processor_outputs)
                         log(env["General"]["log"], "Mosaiced outputs of processor {}.".format(processor), indent=1)
                     except (Exception,):
-                        log(env["General"]["log"], "Mosaicing outputs of processor {} failed.".format(processor), indent=1)
                         log(env["General"]["log"], traceback.format_exc(), indent=2)
+                        log(env["General"]["log"], "Mosaicing outputs of processor {} failed.".format(processor), indent=1)
                         errors.append("{} mosaic failed (see log for details)".format(processor))
             log(env["General"]["log"], "Processor {} complete.".format(processor))
 
@@ -283,8 +283,8 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
                     apply(env, params, l2product_files, group)
                     log(env["General"]["log"], "Adapter {} finished.".format(adapter))
                 except (Exception,):
-                    log(env["General"]["log"], "Adapter {} failed on product group {}.".format(adapter, group))
                     log(env["General"]["log"], traceback.format_exc(), indent=2)
+                    log(env["General"]["log"], "Adapter {} failed on product group {}.".format(adapter, group))
                     errors.append("Adapter {} failed for {} (see log for details)".format(adapter, group))
 
     if 'remove_inputs' in params['General'] and params['General']['remove_inputs']:
