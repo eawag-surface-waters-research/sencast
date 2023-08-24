@@ -70,9 +70,11 @@ In order to test the setup is working the following command can be run which wil
 functioning of the processors. This must be run from inside the sencast repository. 
 
 The option `-v /DIAS:/DIAS` maps the input/ output folders to a location outside the container. This should be updated to 
-the appropriate location, e.g. `-v /home/user/DIAS:/DIAS`
+the appropriate location, e.g. `-v /home/user/DIAS:/DIAS` or `-v "C:\Users\user\DIAS":/DIAS` for Windows.
 
 `docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.1 -e docker.ini -t`
+
+**WARNING** Use `$(pwd)` for Linux & Powershell and `%cd%` for Windows CMD
 
 `-e` name of the environment file in `sencast/environments`
 `-t` flag to indicate a test should be run 
@@ -83,6 +85,8 @@ In order to run a parameters file it can be passed to the command as follows usi
 
 `docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.1 -e docker.ini -p example.ini`
 
+**WARNING** Use `$(pwd)` for Linux & Powershell and `%cd%` for Windows CMD
+
 `-p` name of the parameter file in `sencast/parameters`
 
 ### Run Interactive Container
@@ -91,4 +95,5 @@ Sometimes it is desirable to interact directly with the container, this can be a
 
 `docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it --entrypoint /bin/bash eawag/sencast:0.0.1`
 
+**WARNING** Use `$(pwd)` for Linux & Powershell and `%cd%` for Windows CMD
 
