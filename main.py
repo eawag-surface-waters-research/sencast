@@ -42,12 +42,12 @@ def sencast(params_file, env_file=None, max_parallel_downloads=1, max_parallel_p
     """
     l2product_files = {}
     env, params, l2_path = init_hindcast(env_file, params_file)
-    sencast_thread(env, params, l2_path, l2product_files, max_parallel_downloads, max_parallel_processors,
+    sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads, max_parallel_processors,
                    max_parallel_adapters)
     return l2product_files
 
 
-def sencast_thread(env, params, l2_path, l2product_files, max_parallel_downloads=1, max_parallel_processors=1,
+def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1, max_parallel_processors=1,
                    max_parallel_adapters=1):
     """
     Threading function for running Sencast.
@@ -147,27 +147,33 @@ def sencast_thread(env, params, l2_path, l2product_files, max_parallel_downloads
 
     # print information about grouped products
     log(env["General"]["log"], "The products have been grouped into {} group(s).".format(len(l1product_path_groups)))
-    log(env["General"]["log"], "Each group is handled by an individual thread.")
 
     # authenticate to earthdata api for anchillary data download anchillary data (used by some processors)
     earthdata.authenticate(env)
 
-    # do hindcast for every product group
-    hindcast_threads = []
-    for group, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
-        args = (
-            env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path,
-            l2product_files,
-            semaphores, group)
-        hindcast_threads.append(Thread(target=sencast_product_group, args=args, name="Thread-{}".format(group)))
-        hindcast_threads[-1].start()
+    start_time = time.time()
 
-    # wait for all hindcast threads to terminate
-    starttime = time.time()
-    for hindcast_thread in hindcast_threads:
-        hindcast_thread.join()
+    if "threading" in env["General"] and env["General"]["threading"].lower() == "false":
+        log(env["General"]["log"], "Each group is run sequentially.")
+        for group, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
+            sencast_product_group(env, params, do_download, auth, download_groups[group], l1product_path_groups[group],
+                                  l2_path, l2product_files, semaphores, group)
+    else:
+        log(env["General"]["log"], "Each group is handled by an individual thread.")
+        hindcast_threads = []
+        for group, _ in sorted(sorted(download_groups.items()), key=lambda item: len(item[1])):
+            args = (
+                env, params, do_download, auth, download_groups[group], l1product_path_groups[group], l2_path,
+                l2product_files,
+                semaphores, group)
+            hindcast_threads.append(Thread(target=sencast_product_group, args=args, name="Thread-{}".format(group)))
+            hindcast_threads[-1].start()
 
-    log(env["General"]["log"], "Hindcast complete in {0:.1f} seconds.".format(time.time() - starttime))
+        # wait for all hindcast threads to terminate
+        for hindcast_thread in hindcast_threads:
+            hindcast_thread.join()
+
+    log(env["General"]["log"], "Hindcast complete in {0:.1f} seconds.".format(time.time() - start_time))
 
     if len(errors) > 0:
         raise RuntimeError("Sencast returned the following {} errors: {}"
