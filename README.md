@@ -70,11 +70,9 @@ In order to test the setup is working the following command can be run which wil
 functioning of the processors. This must be run from inside the sencast repository. 
 
 The option `-v /DIAS:/DIAS` maps the input/ output folders to a location outside the container. This should be updated to 
-the appropriate location, e.g. `-v /home/user/DIAS:/DIAS` or `-v "C:\Users\user\DIAS":/DIAS` for Windows.
+the appropriate location, e.g. `-v /home/user/DIAS:/DIAS`
 
 `docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.1 -e docker.ini -t`
-
-**WARNING** Use `$(pwd)` for Linux & Powershell and `%cd%` for Windows CMD
 
 `-e` name of the environment file in `sencast/environments`
 `-t` flag to indicate a test should be run 
@@ -85,8 +83,6 @@ In order to run a parameters file it can be passed to the command as follows usi
 
 `docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.1 -e docker.ini -p example.ini`
 
-**WARNING** Use `$(pwd)` for Linux & Powershell and `%cd%` for Windows CMD
-
 `-p` name of the parameter file in `sencast/parameters`
 
 ### Run Interactive Container
@@ -95,5 +91,131 @@ Sometimes it is desirable to interact directly with the container, this can be a
 
 `docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it --entrypoint /bin/bash eawag/sencast:0.0.1`
 
-**WARNING** Use `$(pwd)` for Linux & Powershell and `%cd%` for Windows CMD
+## CSCS
+
+The following section provides details on how to run Sencast on the supercomputer Piz Daint at CSCS.
+
+### Register for an account
+
+Get access permission to Daint from your local IT Admin.
+You will be required to set up multifactor authentication
+
+### Access using Jupyter
+
+- Login at https://jupyter.cscs.ch/
+- Select `Node Type = Multicore` 
+- Click `Launch Jupyterlab`
+- Select `Terminal`
+
+### Access using ssh
+This access is only valid for 24 hours after which the process will need to be repeated. For details on how to automate see here: https://user.cscs.ch/access/auth/mfa and for Windows see here: https://user.cscs.ch/access/auth/mfa/windows
+
+- Login at https://sshservice.cscs.ch/
+- Click `Get a signed key` follow the instructions and download the private and public key
+- Move the keys to your users `.ssh` directory
+```commandline
+mv /downloads/location/cscs-key-cert.pub ~/.ssh/cscs-key-cert.pub
+mv /download/location/cscs-key ~/.ssh/cscs-key
+chmod 0600 ~/.ssh/cscs-key
+```
+- Login to the CSCS entrance server
+```commandline
+ssh -A username@ela.cscs.ch
+```
+- Switch to Piz Daint
+```commandline
+ssh username@daint.cscs.ch
+```
+
+### Install Sencast
+
+This step must be completed on the command line after logging into Piz Daint using one of the above methods.
+
+Load the required modules
+```commandline
+module load daint-mc
+module load sarus
+```
+Clone the repo for sencast to your user area:
+```
+cd ~
+git clone https://github.com/eawag-surface-waters-research/sencast.git
+```
+Update the envrionment and parameters scripts that you want to run.
+
+Pull the image you want from dockerhub:   
+```
+srun -C mc -A em09 sarus pull --login eawag/sencast:0.0.1
+```
+then enter your credentials for the repository (There is no prompt)
+
+`<username>`
+`<password>`
+
+The docker image (now for sarus) is automatically saved in ${SCRATCH}/.sarus
+
+If this fails try running the command again.
+
+### Run Sencast
+
+Move to the scratch drive and create an output folder **don't save large amounts of data to user area**
+Data stored in the scratch drive is removed after 30 days.
+```commandline
+cd ${SCRATCH}
+mkdir DIAS
+```
+
+Create a submission script containing the following (adjust details to match your user) - make sure you are writing to scratch.
+
+`vim run.sh`
+```
+#!/bin/bash -l
+#SBATCH --job-name="sencast"
+#SBATCH --account="em09"
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=username@eawag.ch
+#SBATCH --time=24:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-core=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=36
+#SBATCH --partition=normal
+#SBATCH --constraint=mc
+#SBATCH --hint=nomultithread
+
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+
+module load daint-mc
+module load sarus
+
+image='eawag/sencast:0.0.1'
+envvars='docker.ini'
+params='parameters.ini'
+filepath="${SCRATCH}/DIAS"
+
+cd ~/sencast
+
+srun sarus run --mount=type=bind,source=${filepath},destination=/DIAS --mount=type=bind,source=$(pwd),dst=/sencast ${image} -e ${envvars} -p ${params}
+```
+`:w` save file
+
+`:q` exit vim
+
+Then you can run Sencast:
+
+```
+sbatch run.sh
+```
+
+See the status of your job:
+
+```commandline
+squeue -u username
+```
+
+You get an email when the job begins and if it fails. A live log is deposited in the directory from where you start the run.
+
+
+
+
 
