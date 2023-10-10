@@ -41,9 +41,10 @@ def search(satellite, query, env):
     log(env["General"]["log"], "Search for products: {}".format(query))
     uuids, filenames = [], []
     timelinesss, beginpositions, endpositions = [], [], []
-    log(env["General"]["log"], "Calling: {}".format(search_address.format(query)), indent=1)
+    url = search_address.format(query)
     while True:
-        response = requests.get(search_address.format(query))
+        log(env["General"]["log"], "Calling: {}".format(url), indent=1)
+        response = requests.get(url)
         if response.status_code == codes.OK:
             root = response.json()
             for feature in root['value']:
@@ -59,7 +60,11 @@ def search(satellite, query, env):
                 if "_NT_" in feature['Name']:
                     timeliness = "NT"
                 timelinesss.append(timeliness)
-            return uuids, filenames, timelinesss, beginpositions, endpositions
+            if "@odata.nextLink" in root:
+                log(env["General"]["log"], "Number of products exceeded max records, requesting addition records", indent=1)
+                url = root["@odata.nextLink"]
+            else:
+                return uuids, filenames, timelinesss, beginpositions, endpositions
         else:
             raise RuntimeError("Unexpected response: {}".format(response.text))
 
