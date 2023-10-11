@@ -26,6 +26,7 @@ from polymer.level1_olci import Level1_OLCI
 from polymer.level1_landsat8 import Level1_OLI
 from polymer.level2 import default_datasets, Level2
 from polymer.main import run_atm_corr
+from pyhdf.error import HDF4Error
 
 from utils.auxil import log, gpt_subprocess
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
@@ -80,10 +81,17 @@ def process(env, params, l1product_path, _, out_path):
             coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
             ozone = round(ancillary.get("ozone", date)[coords])
             log(env["General"]["log"], "Polymer collected {} ancillary data.".format(anc_name), indent=1)
-        except (Exception,):
+        except HDF4Error as he:
+            print(he)
             ancillary = None
             anc_name = "NA"
-            log(env["General"]["log"], "Polymer failed to collect ancillary data. If using NASA data ensure authentication is setup according to: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget")
+            log(env["General"]["log"],
+                "Polymer failed to read ancillary file. HDF4 ERROR.", indent=1)
+        except Exception as e:
+            print(e)
+            ancillary = None
+            anc_name = "NA"
+            log(env["General"]["log"], "Polymer failed to collect ancillary data. If using NASA data ensure authentication is setup according to: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget", indent=1)
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
     if os.path.isfile(output_file):
