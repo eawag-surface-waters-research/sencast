@@ -8,8 +8,7 @@ import importlib
 import traceback
 from threading import Semaphore, Thread
 
-from utils import earthdata
-from utils.auxil import init_hindcast, log
+from utils.auxil import authenticate_earthdata_anc, init_hindcast, log, authenticate_cds_anc
 from utils.product_fun import filter_for_timeliness, get_satellite_name_from_product_name, \
     get_sensing_date_from_product_name, get_l1product_path, filter_for_tiles, filter_for_baseline
 
@@ -87,6 +86,12 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
     # create authentication to remote dias api
     auth = authenticate(env[api])
 
+    # create .netrc if not yet there
+    authenticate_earthdata_anc(env)
+
+    # create .cdsapirc if not yet there
+    authenticate_cds_anc(env)
+
     # find products which match the criterias from params
     start, end = params['General']['start'], params['General']['end']
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
@@ -95,8 +100,6 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
     except Exception as e:
         print(e)
         raise ValueError("Unable to access {} API, please check your internet conectivity or try using an alternative API".format(api))
-
-
 
     # filter for timeliness
     download_requests, product_names = filter_for_timeliness(download_requests, product_names, env)
@@ -147,9 +150,6 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
 
     # print information about grouped products
     log(env["General"]["log"], "The products have been grouped into {} group(s).".format(len(l1product_path_groups)))
-
-    # authenticate to earthdata api for anchillary data download anchillary data (used by some processors)
-    earthdata.authenticate(env)
 
     start_time = time.time()
 

@@ -2,14 +2,18 @@
 # -*- coding: utf-8 -*-
 
 import os
+import platform
 import socket
 import getpass
 import subprocess
 import configparser
+import urllib.request
+from http.cookiejar import CookieJar
 from threading import Timer
 from datetime import datetime
 
 project_path = os.path.dirname(__file__)
+
 
 def init_hindcast(env_file, params_file):
     """Initialize a sencast run with an environment file and a parameters file."""
@@ -50,10 +54,6 @@ def init_hindcast(env_file, params_file):
         with open(os.path.join(out_path, os.path.basename(params_file)), "w") as f:
             params.write(f)
 
-    if env.has_section("CDS"):
-        os.makedirs(env['CDS']['era5_path'], exist_ok=True)
-    if env.has_section("EARTHDATA"):
-        os.makedirs(env['EARTHDATA']['root_path'], exist_ok=True)
     if env.has_section("GSW"):
         os.makedirs(env['GSW']['root_path'], exist_ok=True)
 
@@ -204,3 +204,60 @@ def error(file, e):
                 print(out)
                 file.write(out + "\n")
     raise ValueError(str(e))
+
+
+def authenticate_earthdata_anc(env):
+    """If the configuration contains username and password for NASA anc data api, create ~/.netrc and ~/.urs_cookies
+    (Linux) or ~/_netrc (Windows) containing these credentials"""
+    if "EARTHDATA" not in env or "username" not in env['EARTHDATA'] or "password" not in env['EARTHDATA']:
+        return
+    os.makedirs(env['EARTHDATA']['anc_path'], exist_ok=True)
+    username = env['EARTHDATA']['username']
+    password = env['EARTHDATA']['password']
+
+    if "Windows" == platform.system():
+        if not os.path.isfile(os.path.join(os.path.expanduser("~"), '_netrc')):
+            with open(os.path.join(os.path.expanduser("~"), '_netrc'), 'w') as f:
+                f.write("machine urs.earthdata.nasa.gov\nlogin {}\npassword {}".format(username, password))
+    else:
+        if not os.path.isfile(os.path.join(os.path.expanduser("~"), '.netrc')):
+            with open(os.path.join(os.path.expanduser("~"), '.netrc'), 'w') as f:
+                f.write("machine urs.earthdata.nasa.gov login {} password {}".format(username, password))
+        if not os.path.isfile(os.path.join(os.path.expanduser("~"), '.urs_cookies')):
+            with open(os.path.join(os.path.expanduser("~"), '.urs_cookies'), 'w') as f:
+                f.write("")
+    # See discussion https://github.com/SciTools/cartopy/issues/789#issuecomment-245789751
+    # And the solution on https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+Python
+
+    # Create a password manager to deal with the 401 reponse that is returned from
+    # Earthdata Login
+    password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+    password_manager.add_password(None, "https://urs.earthdata.nasa.gov", username, password)
+
+    # Create a cookie jar for storing cookies. This is used to store and return
+    # the session cookie given to use by the data server (otherwise it will just
+    # keep sending us back to Earthdata Login to authenticate).  Ideally, we
+    # should use a file based cookie jar to preserve cookies between runs. This
+    # will make it much more efficient.
+    cookie_jar = CookieJar()
+
+    # Install all the handlers.
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPBasicAuthHandler(password_manager),
+        urllib.request.HTTPCookieProcessor(cookie_jar))
+    urllib.request.install_opener(opener)
+
+
+def authenticate_cds_anc(env):
+    """If the configuration contains username and password for CDS anc data api, create ~/.cdsapirc containing these
+    credentials"""
+    if "CDS" not in env or "uid" not in env['CDS'] or "api_key" not in env['CDS']:
+        return
+    os.makedirs(env['CDS']['anc_path'], exist_ok=True)
+    uid = env['CDS']['uid']
+    api_key = env['CDS']['api_key']
+
+    if not os.path.isfile(os.path.join(os.path.expanduser("~"), ".cdsapirc")):
+        with open(os.path.join(os.path.expanduser("~"), ".cdsapirc"), "w") as f:
+            f.write("url: https://cds.climate.copernicus.eu/api/v2\n")
+            f.write("key: {}:{}".format(uid, api_key))

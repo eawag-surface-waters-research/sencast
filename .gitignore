@@ -1,5 +1,6 @@
 __pycache__
 /.idea
+/.run
 /ANCILLARY
 /data
 /data_landmask_gsw
@@ -12,3 +13,7 @@ __pycache__
 !/parameters/datalakes_sui_S3.ini
 !/parameters/datalakes_sui_S2.ini
 !/environments/example.ini
+/processors/ocsmart/auxdata/*
+!processors/ocsmart/auxdata/.gitkeep
+/processors/ocsmart/anc
+/processors/ocsmart/landmask_gsw

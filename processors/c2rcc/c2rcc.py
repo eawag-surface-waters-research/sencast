@@ -12,7 +12,6 @@ https://www.brockmann-consult.de/wp-content/uploads/2017/11/sco1_12brockmann.pdf
 """
 
 import os
-import subprocess
 
 from datetime import datetime
 from polymer.ancillary_era5 import Ancillary_ERA5
@@ -49,9 +48,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
     ancillary_obj = {"ozone": "330", "surf_press": "1000", "useEcmwfAuxData": "False"}
     anc_name = "NA"
     if params['C2RCC']['ancillary_data'] == 'ERA5':
-        ancillary_path = env['CDS']['era5_path']
+        ancillary_path = env['CDS']['anc_path']
         try:
-            os.makedirs(ancillary_path, exist_ok=True)
             ancillary = Ancillary_ERA5(ancillary_path)
             date = datetime.strptime(date_str, "%Y%m%dT%H%M%S")
             lons, lats = get_lons_lats(wkt)
@@ -60,10 +58,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
             surf_press = round(ancillary.get("surf_press", date)[coords])
             ancillary_obj = {"ozone": ozone, "surf_press": surf_press, "useEcmwfAuxData": "False"}
             anc_name = "ERA5"
-            log(env["General"]["log"],
-                "C2RCC Ancillary Data successfully retrieved. Ozone: {}, Surface Pressure {}".format(ozone, surf_press))
+            log(env["General"]["log"], "C2RCC Ancillary Data successfully retrieved. Ozone: {}, Surface Pressure {}".
+                format(ozone, surf_press))
         except RuntimeError:
-            log(env["General"]["log"], "C2RCC Ancillary Data not retrieved using default values. Ozone: 330, Surface Pressure 1000")
+            log(env["General"]["log"],
+                "C2RCC Ancillary Data not retrieved using default values. Ozone: 330, Surface Pressure 1000")
             if ancillary_path.endwith("METEO"):
                 ancillary_obj["useEcmwfAuxData"] = "True"
             pass
@@ -124,8 +123,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
             os.remove(output_file)
             log(env["General"]["log"], "Removed corrupted output file.", indent=2)
         raise RuntimeError("GPT Failed.")
-
-    return output_file
 
 
 def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary, resolution):

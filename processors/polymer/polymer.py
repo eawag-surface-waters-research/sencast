@@ -17,7 +17,6 @@ from math import ceil, floor
 import rasterio
 from netCDF4 import Dataset
 from pyproj import Transformer
-from haversine import haversine
 
 from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.ancillary import Ancillary_NASA
@@ -69,22 +68,10 @@ def process(env, params, l1product_path, _, out_path):
     else:
         if "ancillary" in params['POLYMER']:
             if params['POLYMER']['ancillary'] == "NASA":
-                os.makedirs(env['NASA']['path'], exist_ok=True)
-                ancillary = Ancillary_NASA(directory=env['NASA']['path'])
-                if not os.path.isfile(os.path.join(os.path.expanduser("~"), '.netrc')):
-                    with open(os.path.join(os.path.expanduser("~"), '.netrc'), 'w') as f:
-                        f.write("machine urs.earthdata.nasa.gov login {} password {}".format(env['NASA']['username'], env['NASA']['password']))
-                if not os.path.isfile(os.path.join(os.path.expanduser("~"), '.urs_cookies')):
-                    with open(os.path.join(os.path.expanduser("~"), '.urs_cookies'), 'w') as f:
-                        f.write("")
+                ancillary = Ancillary_NASA(directory=env['EARTHDATA']['anc_path'])
                 anc_name = "NASA"
             else:
-                os.makedirs(env['CDS']['era5_path'], exist_ok=True)
-                ancillary = Ancillary_ERA5(directory=env['CDS']['era5_path'])
-                if not os.path.isfile(os.path.join(os.path.expanduser("~"), '.cdsapirc')):
-                    with open(os.path.join(os.path.expanduser("~"), '.cdsapirc'), 'w') as f:
-                        f.write("url: https://cds.climate.copernicus.eu/api/v2")
-                        f.write("key: {}:{}".format(env['CDS']['uid'], env['CDS']['api-key']))
+                ancillary = Ancillary_ERA5(directory=env['CDS']['anc_path'])
                 anc_name = "ERA5"
         try:
             # Test the retrieval of parameters
