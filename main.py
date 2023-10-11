@@ -87,10 +87,18 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
     auth = authenticate(env[api])
 
     # create .netrc if not yet there
-    authenticate_earthdata_anc(env)
+    try:
+        authenticate_earthdata_anc(env)
+    except Exception as e:
+        print(e)
+        log(env["General"]["log"], "WARNING failed to create earthdata credential files")
 
     # create .cdsapirc if not yet there
-    authenticate_cds_anc(env)
+    try:
+        authenticate_cds_anc(env)
+    except Exception as e:
+        print(e)
+        log(env["General"]["log"], "WARNING failed to create cds credential files")
 
     # find products which match the criterias from params
     start, end = params['General']['start'], params['General']['end']
