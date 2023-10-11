@@ -52,6 +52,8 @@ RUN mkdir /opt/ICOR
 RUN mkdir /opt/SEN2COR
 RUN cd /opt/SEN2COR && wget https://step.esa.int/thirdparties/sen2cor/2.11.0/Sen2Cor-02.11.00-Linux64.run --no-check-certificate && chmod 755 Sen2Cor-02.11.00-Linux64.run && ./Sen2Cor-02.11.00-Linux64.run && rm Sen2Cor-02.11.00-Linux64.run
 
+RUN cd /opt && git clone --depth 1 --branch sencast https://gitlab.renkulab.io/eawagrs/ocsmart.git && cd /
+
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
