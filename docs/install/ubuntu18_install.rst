@@ -98,12 +98,12 @@ To remove warning "SEVERE: org.esa.s2tbx.dataio.gdal.activator.GDALDistributionI
 
 Request a polymer install tar.gz file from Hygeos, then do following::
 
-    $ tar -xvzf ~/polymer-v4.15.tar.gz
-    $ cd polymer-v4.15
+    $ tar -xvzf ~/polymer-v4.16.1.tar.gz
+    $ cd polymer-v4.16.1
     $ conda activate sencast
     $ make all
-    $ cp -avr ~/polymer-v4.15/polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
-    $ cp -avr ~/polymer-v4.15/auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
+    $ cp -avr ~/polymer-v4.16.1/polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
+    $ cp -avr ~/polymer-v4.16.1/auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
 
 Note: On some systems you will need following change: In the file $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer/level1_landsat8.py replace line 13 "import osr" by "from osgeo import osr"
 
@@ -147,11 +147,10 @@ In shell do following::
 In shell do following::
 
     $ cd $CONDA_ENV_HOME/lib/python3.7/site-packages
-    $ git clone git clone --depth 1 --branch python37 https://github.com/JamesRunnalls/acolite.git
+    $ git clone --depth 1 --branch main https://github.com/acolite/acolite.git
+    $ cd acolite
+    $ git reset --hard e7cb944
 
-Edit the file acolite_l2w.py and comment-out all usages (and import) of "skimage" (Currently lines 23, 898, 909, 910, 911).
-
-In acolite/config/defaults.txt, row 28 set setting geometry_type=gpt (to avoid a batch processing but as of Dec. '21).
 Configure your Acolite path in you environment file.
 
 

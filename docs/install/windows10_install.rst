@@ -104,13 +104,13 @@ Here is described why: https://github.com/pyansys/pymapdl/issues/14
 Start a command prompt and do following::
 
     > cd "%USERPROFILE%\AppData\Local\Temp"
-    > xcopy "Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.14.zip" "%USERPROFILE%\AppData\Local\Temp"
-    > jar xf "polymer-v4.14.zip"
-    > cd "polymer-v4.14"
+    > xcopy "Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.16.1.zip" "%USERPROFILE%\AppData\Local\Temp"
+    > jar xf "polymer-v4.16.1.zip"
+    > cd "polymer-v4.16.1"
     > conda activate sencast
     > python setup.py build_ext --inplace
-    > xcopy "%USERPROFILE%\AppData\Local\Temp\polymer-v4.14\polymer" "%CONDA_ENV_HOME%\Lib\site-packages\polymer\"
-    > xcopy "%USERPROFILE%\AppData\Local\Temp\polymer-v4.14\auxdata" "%CONDA_ENV_HOME%\Lib\site-packages\auxdata\"
+    > xcopy "%USERPROFILE%\AppData\Local\Temp\polymer-v4.16.1\polymer" "%CONDA_ENV_HOME%\Lib\site-packages\polymer\"
+    > xcopy "%USERPROFILE%\AppData\Local\Temp\polymer-v4.16.1\auxdata" "%CONDA_ENV_HOME%\Lib\site-packages\auxdata\"
 
 
 7.) l8_angles: https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con
@@ -140,8 +140,9 @@ In cmd do following::
 In cmd do following::
 
     > cd "%USERPROFILE%\Projects"
-    > git clone --depth 1 --branch python37 https://github.com/JamesRunnalls/acolite.git
-
+    > git clone --depth 1 --branch main https://github.com/acolite/acolite.git
+    > cd acolite
+    > git reset --hard e7cb944
 
 11.) L/R_FLUO:
 

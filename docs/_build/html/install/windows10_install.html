@@ -200,13 +200,13 @@ windows subsystem for linux for installing and using Sencast.</p>
 Here is described why: <a class="reference external" href="https://github.com/pyansys/pymapdl/issues/14">https://github.com/pyansys/pymapdl/issues/14</a></p>
 <p>Start a command prompt and do following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cd</span> <span class="s2">&quot;%USERPROFILE%\AppData\Local\Temp&quot;</span>
-<span class="o">&gt;</span> <span class="n">xcopy</span> <span class="s2">&quot;Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.14.zip&quot;</span> <span class="s2">&quot;%USERPROFILE%\AppData\Local\Temp&quot;</span>
-<span class="o">&gt;</span> <span class="n">jar</span> <span class="n">xf</span> <span class="s2">&quot;polymer-v4.14.zip&quot;</span>
-<span class="o">&gt;</span> <span class="n">cd</span> <span class="s2">&quot;polymer-v4.14&quot;</span>
+<span class="o">&gt;</span> <span class="n">xcopy</span> <span class="s2">&quot;Q:\Abteilungsprojekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.16.1.zip&quot;</span> <span class="s2">&quot;%USERPROFILE%\AppData\Local\Temp&quot;</span>
+<span class="o">&gt;</span> <span class="n">jar</span> <span class="n">xf</span> <span class="s2">&quot;polymer-v4.16.1.zip&quot;</span>
+<span class="o">&gt;</span> <span class="n">cd</span> <span class="s2">&quot;polymer-v4.16.1&quot;</span>
 <span class="o">&gt;</span> <span class="n">conda</span> <span class="n">activate</span> <span class="n">sencast</span>
 <span class="o">&gt;</span> <span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">build_ext</span> <span class="o">--</span><span class="n">inplace</span>
-<span class="o">&gt;</span> <span class="n">xcopy</span> <span class="s2">&quot;%USERPROFILE%\AppData\Local\Temp\polymer-v4.14\polymer&quot;</span> <span class="s2">&quot;%CONDA_ENV_HOME%\Lib\site-packages\polymer</span><span class="se">\&quot;</span>
-<span class="o">&gt;</span> <span class="n">xcopy</span> <span class="s2">&quot;%USERPROFILE%\AppData\Local\Temp\polymer-v4.14</span><span class="se">\a</span><span class="s2">uxdata&quot;</span> <span class="s2">&quot;%CONDA_ENV_HOME%\Lib\site-packages</span><span class="se">\a</span><span class="s2">uxdata</span><span class="se">\&quot;</span>
+<span class="o">&gt;</span> <span class="n">xcopy</span> <span class="s2">&quot;%USERPROFILE%\AppData\Local\Temp\polymer-v4.16.1\polymer&quot;</span> <span class="s2">&quot;%CONDA_ENV_HOME%\Lib\site-packages\polymer</span><span class="se">\&quot;</span>
+<span class="o">&gt;</span> <span class="n">xcopy</span> <span class="s2">&quot;%USERPROFILE%\AppData\Local\Temp\polymer-v4.16.1</span><span class="se">\a</span><span class="s2">uxdata&quot;</span> <span class="s2">&quot;%CONDA_ENV_HOME%\Lib\site-packages</span><span class="se">\a</span><span class="s2">uxdata</span><span class="se">\&quot;</span>
 </pre></div>
 </div>
 <p>7.) l8_angles: <a class="reference external" href="https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con">https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con</a></p>
@@ -227,7 +227,9 @@ Here is described why: <a class="reference external" href="https://github.com/py
 <p>10.) Acolite: <a class="reference external" href="https://github.com/acolite/acolite">https://github.com/acolite/acolite</a></p>
 <p>In cmd do following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cd</span> <span class="s2">&quot;%USERPROFILE%\Projects&quot;</span>
-<span class="o">&gt;</span> <span class="n">git</span> <span class="n">clone</span> <span class="o">--</span><span class="n">depth</span> <span class="mi">1</span> <span class="o">--</span><span class="n">branch</span> <span class="n">python37</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">JamesRunnalls</span><span class="o">/</span><span class="n">acolite</span><span class="o">.</span><span class="n">git</span>
+<span class="o">&gt;</span> <span class="n">git</span> <span class="n">clone</span> <span class="o">--</span><span class="n">depth</span> <span class="mi">1</span> <span class="o">--</span><span class="n">branch</span> <span class="n">main</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">acolite</span><span class="o">/</span><span class="n">acolite</span><span class="o">.</span><span class="n">git</span>
+<span class="o">&gt;</span> <span class="n">cd</span> <span class="n">acolite</span>
+<span class="o">&gt;</span> <span class="n">git</span> <span class="n">reset</span> <span class="o">--</span><span class="n">hard</span> <span class="n">e7cb944</span>
 </pre></div>
 </div>
 <p>11.) L/R_FLUO:</p>

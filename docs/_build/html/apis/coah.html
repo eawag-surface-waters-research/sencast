@@ -122,8 +122,7 @@
              
   <section id="module-dias_apis.coah.coah">
 <span id="coah-api"></span><h1>COAH API<a class="headerlink" href="#module-dias_apis.coah.coah" title="Permalink to this heading"></a></h1>
-<p>Sencast uses the COAH API to query the image database in order to identify suitable images and also to download images.</p>
-<p>Documentation for COAH API can be found <a class="reference external" href="https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/BatchScripting?redirectedfrom=SciHubUserGuide.8BatchScripting">here.</a></p>
+<p>EO data access - COAH API</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.coah.coah.authenticate">
 <span class="sig-prename descclassname"><span class="pre">dias_apis.coah.coah.</span></span><span class="sig-name descname"><span class="pre">authenticate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.coah.coah.authenticate" title="Permalink to this definition"></a></dt>
@@ -135,33 +134,28 @@
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.coah.coah.download">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.coah.coah.</span></span><span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uuid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.coah.coah.download" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.coah.coah.get_dataset_id">
 <span class="sig-prename descclassname"><span class="pre">dias_apis.coah.coah.</span></span><span class="sig-name descname"><span class="pre">get_dataset_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.coah.coah.get_dataset_id" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.coah.coah.get_download_requests">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.coah.coah.</span></span><span class="sig-name descname"><span class="pre">get_download_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.coah.coah.get_download_requests" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.coah.coah.</span></span><span class="sig-name descname"><span class="pre">get_download_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startDate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">completionDate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.coah.coah.get_download_requests" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.coah.coah.prepend_ns">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.coah.coah.</span></span><span class="sig-name descname"><span class="pre">prepend_ns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.coah.coah.prepend_ns" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.coah.coah.prepend_os">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.coah.coah.</span></span><span class="sig-name descname"><span class="pre">prepend_os</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.coah.coah.prepend_os" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="dias_apis.coah.coah.get_token">
+<span class="sig-prename descclassname"><span class="pre">dias_apis.coah.coah.</span></span><span class="sig-name descname"><span class="pre">get_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.coah.coah.get_token" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.coah.coah.search">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.coah.coah.</span></span><span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.coah.coah.search" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.coah.coah.</span></span><span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">satellite</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.coah.coah.search" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dias_apis.coah.coah.server_authenticate">
+<span class="sig-prename descclassname"><span class="pre">dias_apis.coah.coah.</span></span><span class="sig-name descname"><span class="pre">server_authenticate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_attempts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.coah.coah.server_authenticate" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">

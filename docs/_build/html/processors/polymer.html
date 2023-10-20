@@ -120,51 +120,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-processors.polymer.polymer">
-<span id="polymer"></span><h1>Polymer<a class="headerlink" href="#module-processors.polymer.polymer" title="Permalink to this heading"></a></h1>
-<p>Polymer is an algorithm aimed at recovering the radiance scattered and absorbed by the oceanic waters (also called
-Ocean Colour) from the signal measured by satellite sensors in the visible spectrum.</p>
-<p>For an overview of the processor: <a class="reference external" href="https://www.hygeos.com/polymer">https://www.hygeos.com/polymer</a>
-or for more details: <a class="reference external" href="https://forum.hygeos.com/viewforum.php?f=3">https://forum.hygeos.com/viewforum.php?f=3</a></p>
-<dl class="py function">
-<dt class="sig sig-object py" id="processors.polymer.polymer.get_corner_pixels_roi_msi">
-<span class="sig-prename descclassname"><span class="pre">processors.polymer.polymer.</span></span><span class="sig-name descname"><span class="pre">get_corner_pixels_roi_msi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.get_corner_pixels_roi_msi" title="Permalink to this definition"></a></dt>
-<dd><p>Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="processors.polymer.polymer.get_corner_pixels_roi_olci">
-<span class="sig-prename descclassname"><span class="pre">processors.polymer.polymer.</span></span><span class="sig-name descname"><span class="pre">get_corner_pixels_roi_olci</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.get_corner_pixels_roi_olci" title="Permalink to this definition"></a></dt>
-<dd><p>Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="processors.polymer.polymer.get_corner_pixels_roi_oli">
-<span class="sig-prename descclassname"><span class="pre">processors.polymer.polymer.</span></span><span class="sig-name descname"><span class="pre">get_corner_pixels_roi_oli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.get_corner_pixels_roi_oli" title="Permalink to this definition"></a></dt>
-<dd><p>Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="processors.polymer.polymer.get_pixel_pos_msi">
-<span class="sig-prename descclassname"><span class="pre">processors.polymer.polymer.</span></span><span class="sig-name descname"><span class="pre">get_pixel_pos_msi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.get_pixel_pos_msi" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="processors.polymer.polymer.get_pixel_pos_oli">
-<span class="sig-prename descclassname"><span class="pre">processors.polymer.polymer.</span></span><span class="sig-name descname"><span class="pre">get_pixel_pos_oli</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.get_pixel_pos_oli" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="processors.polymer.polymer.process">
-<span class="sig-prename descclassname"><span class="pre">processors.polymer.polymer.</span></span><span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.process" title="Permalink to this definition"></a></dt>
-<dd><p>This processor applies polymer to the source product and stores the result.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="processors.polymer.polymer.rewrite_xml">
-<span class="sig-prename descclassname"><span class="pre">processors.polymer.polymer.</span></span><span class="sig-name descname"><span class="pre">rewrite_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpt_xml_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validexpression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.polymer.polymer.rewrite_xml" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+  <section id="polymer">
+<h1>Polymer<a class="headerlink" href="#polymer" title="Permalink to this heading"></a></h1>
 </section>
 
 
