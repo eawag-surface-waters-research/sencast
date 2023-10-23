@@ -111,33 +111,39 @@ def get_dataset_id(sensor, resolution):
         raise RuntimeError("COAH API is not yet implemented for sensor: {}".format(sensor))
 
 
-def do_download(auth, download_request, product_path, env):
-    token = server_authenticate(auth, env)
-    os.makedirs(os.path.dirname(product_path), exist_ok=True)
-    file_temp = "{}.incomplete".format(product_path)
-    session = requests.Session()
-    session.headers.update({'Authorization': f'Bearer {token}'})
-    url = download_address.format(download_request['uuid'])
-    try:
-        downloaded_bytes = 0
-        with session.get(url, stream=True, timeout=100) as req:
-            if int(req.status_code) > 400:
-                raise ValueError("{} ERROR. {}".format(req.status_code, req.json()))
-            with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
-                chunk_size = 2 ** 20  # download in 1 MB chunks
-                with open(file_temp, 'wb') as fout:
-                    for chunk in req.iter_content(chunk_size=chunk_size):
-                        if chunk:  # filter out keep-alive new chunks
-                            fout.write(chunk)
-                            progress.update(len(chunk))
-                            downloaded_bytes += len(chunk)
-        with ZipFile(file_temp, 'r') as zip_file:
-            zip_file.extractall(os.path.dirname(product_path))
-    finally:
+def do_download(auth, download_request, product_path, env, max_attempts=4, wait_time=30):
+    for attempt in range(max_attempts):
+        log(env["General"]["log"], "Starting download attempt {} of {}".format(attempt + 1, max_attempts), indent=1)
+        token = server_authenticate(auth, env)
+        os.makedirs(os.path.dirname(product_path), exist_ok=True)
+        file_temp = "{}.incomplete".format(product_path)
+        session = requests.Session()
+        session.headers.update({'Authorization': f'Bearer {token}'})
+        url = download_address.format(download_request['uuid'])
         try:
+            downloaded_bytes = 0
+            with session.get(url, stream=True, timeout=600) as req:
+                if int(req.status_code) > 400:
+                    raise ValueError("{} ERROR. {}".format(req.status_code, req.json()))
+                with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
+                    chunk_size = 2 ** 20  # download in 1 MB chunks
+                    with open(file_temp, 'wb') as fout:
+                        for chunk in req.iter_content(chunk_size=chunk_size):
+                            if chunk:  # filter out keep-alive new chunks
+                                fout.write(chunk)
+                                progress.update(len(chunk))
+                                downloaded_bytes += len(chunk)
+            with ZipFile(file_temp, 'r') as zip_file:
+                zip_file.extractall(os.path.dirname(product_path))
             Path(file_temp).unlink()
-        except OSError:
-            pass
+            return
+        except Exception as e:
+            log(env["General"]["log"], "Failed download attempt {} of {}: {}".format(attempt + 1, max_attempts, e), indent=1)
+            try:
+                Path(file_temp).unlink()
+            except:
+                pass
+            time.sleep(wait_time)
 
 
 def authenticate(env):
@@ -149,9 +155,10 @@ def server_authenticate(auth, env, max_attempts=5, wait_time=5):
     for attempt in range(max_attempts):
         try:
             token = get_token(username, password)
+            log(env["General"]["log"], "Authentication successful.", indent=2)
             return token
         except Exception as e:
-            log(env["General"]["log"], "Failed to authenticate (Attempt {} of {}): {}".format(attempt + 1, max_attempts, e), indent=1)
+            log(env["General"]["log"], "Failed to authenticate (Attempt {} of {}): {}".format(attempt + 1, max_attempts, e), indent=2)
             time.sleep(wait_time)
     raise RuntimeError(f'Unable to authenticate with the Copernicus Dataspace server.')
 
