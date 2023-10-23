@@ -57,6 +57,7 @@ def apply(env, params, l2product_files, date):
         raise ValueError("Datalakes selection must be defined in the parameters file.")
     if not bool(l2product_files):
         raise ValueError("No l2 products available to process")
+    errors = []
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
@@ -100,15 +101,20 @@ def apply(env, params, l2product_files, date):
 
                     for idx, val in enumerate(bands):
                         log(env["General"]["log"], "Converting {} band {} to JSON".format(processor, val), indent=3)
-                        if "S3" in satellite:
-                            json_outfile = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
-                            geotiff_outfile = os.path.join(out_path, GEOTIFF_FILENAME.format(processor, val, satellite, date, "sui"))
-                            convert_nc("json", input_file, json_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
-                            convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
-                        if "S2" in satellite:
-                            tile = l2product_file.split("_")[-2]
-                            geotiff_outfile = os.path.join(out_path, GEOTIFF_FILENAME.format(processor, val, satellite, date, tile))
-                            convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
+                        try:
+                            if "S3" in satellite:
+                                json_outfile = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
+                                geotiff_outfile = os.path.join(out_path, GEOTIFF_FILENAME.format(processor, val, satellite, date, "sui"))
+                                convert_nc("json", input_file, json_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
+                                convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
+                            if "S2" in satellite:
+                                tile = l2product_file.split("_")[-2]
+                                geotiff_outfile = os.path.join(out_path, GEOTIFF_FILENAME.format(processor, val, satellite, date, tile))
+                                convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
+                        except Exception as e:
+                            print(e)
+                            errors.append("Failed to convert {} band {} to JSON".format(processor, val))
+                            log(env["General"]["log"], "Failed to convert {} band {} to JSON".format(processor, val), indent=3)
 
     if "bucket" not in params[PARAMS_SECTION]:
         raise ValueError("S3 Bucket must be defined in parameters file")
@@ -132,6 +138,9 @@ def apply(env, params, l2product_files, date):
 
         log(env["General"]["log"], "Notifying Datalakes API of updated data.", indent=1)
         requests.get(NOTIFY_URL)
+
+    if len(errors) > 0:
+        raise ValueError(". ".join(errors))
 
 
 def convert_nc(output_type, input_file, output_file, band, decimals, band_min, band_max, satellite, date, env, projection=4326):

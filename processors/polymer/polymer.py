@@ -67,13 +67,14 @@ def process(env, params, l1product_path, _, out_path):
         anc_name = "NA"
         log(env["General"]["log"], "Polymer not using ancillary data.", indent=1)
     else:
-        if "ancillary" in params['POLYMER']:
-            if params['POLYMER']['ancillary'] == "NASA":
-                ancillary = Ancillary_NASA(directory=env['EARTHDATA']['anc_path'])
-                anc_name = "NASA"
-            else:
-                ancillary = Ancillary_ERA5(directory=env['CDS']['anc_path'])
-                anc_name = "ERA5"
+
+        if params['POLYMER']['ancillary'] == "NASA":
+            ancillary = Ancillary_NASA(directory=env['EARTHDATA']['anc_path'])
+            anc_name = "NASA"
+        else:
+            ancillary = Ancillary_ERA5(directory=env['CDS']['anc_path'])
+            anc_name = "ERA5"
+        log(env["General"]["log"], "Polymer using {} ancillary data.".format(anc_name), indent=1)
         try:
             # Test the retrieval of parameters
             date = datetime.strptime(date_str, "%Y%m%d")

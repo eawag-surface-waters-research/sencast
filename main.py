@@ -301,7 +301,7 @@ def sencast_product_group(env, params, do_download, auth, download_requests, l1p
                     log(env["General"]["log"], "Adapter {} failed on product group {}.".format(adapter, group))
                     errors.append("Adapter {} failed for {} (see log for details)".format(adapter, group))
 
-    if 'remove_inputs' in params['General'] and params['General']['remove_inputs']:
+    if 'remove_inputs' in params['General'] and params['General']['remove_inputs'] and len(errors) == 0:
         log(env["General"]["log"], "Deleting input files")
         for l1product_path in l1product_paths:
             log(env["General"]["log"], "Removing: {}".format(l1product_path), indent=1)

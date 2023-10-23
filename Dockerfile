@@ -32,14 +32,14 @@ ENV CONDA_ENV_HOME=$CONDA_HOME/envs/sencast
 ENV PYTHONUNBUFFERED=1
 
 RUN mkdir /opt/POLYMER
-COPY ./docker_dependencies/polymer-v4.15.tar.gz /opt/POLYMER/
-RUN tar -xvzf /opt/POLYMER/polymer-v4.15.tar.gz -C /opt/POLYMER/
+COPY ./docker_dependencies/polymer-v4.16.1.tar.gz /opt/POLYMER/
+RUN tar -xvzf /opt/POLYMER/polymer-v4.16.1.tar.gz -C /opt/POLYMER/
 SHELL ["conda", "run", "-n", "sencast", "/bin/bash", "-c"]
-RUN cd /opt/POLYMER/polymer-v4.15 && make all
-RUN cp -avr /opt/POLYMER/polymer-v4.15/polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
-RUN cp -avr /opt/POLYMER/polymer-v4.15/auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
+RUN cd /opt/POLYMER/polymer-v4.16.1 && make all
+RUN cp -avr /opt/POLYMER/polymer-v4.16.1/polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
+RUN cp -avr /opt/POLYMER/polymer-v4.16.1/auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
 
-RUN cd /opt &&  git clone --depth 1 --branch python37 https://github.com/JamesRunnalls/acolite.git
+RUN cd /opt &&  git clone --depth 1 --branch main https://github.com/acolite/acolite.git && cd acolite && git reset --hard e7cb944
 
 RUN mkdir /opt/FLUO
 RUN apt-get install unzip
