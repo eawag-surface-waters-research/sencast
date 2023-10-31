@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Acolite processor for athmospheric correction"""
+"""Acolite processor for atmospheric correction"""
 
 import importlib
 import os

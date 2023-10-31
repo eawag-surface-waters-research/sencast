@@ -50,68 +50,52 @@ def get_satellite_name_from_product_name(product_name):
     raise RuntimeError("Could not read satellite name from product name [{}]".format(product_name))
 
 
-def filter_for_baseline(download_requests, product_names, sensor, env):
-    filtered_download_requests = []
-    filtered_product_names = []
+def filter_for_baseline(products, sensor, env):
+    filtered_products = []
     if sensor == "MSI":
         log(env["General"]["log"], "Filtering for most recent baseline", indent=1)
         data = []
-        for i in range(len(download_requests)):
-            p = product_names[i].split("_")
+        for i in range(len(products)):
+            p = products[i]["name"].split("_")
             data.append([p[0] + p[1] + p[2] + p[4] + p[5], p[3], i])
         df = pd.DataFrame(data, columns=["id", "baseline", "index"])
         df = df.sort_values(by=['id', 'baseline'], ascending=False)
         df = df.groupby('id').first()
         for i in df["index"].values:
-            filtered_download_requests.append(download_requests[i])
-            filtered_product_names.append(product_names[i])
-        return filtered_download_requests, filtered_product_names
+            filtered_products.append(products[i])
+
+        return filtered_products
     else:
-        return download_requests, product_names
+        return products
 
 
-def filter_for_tiles(download_requests, product_names, tiles, env):
+def filter_for_tiles(products, tiles, env):
     log(env["General"]["log"], "Filtering to only include the following tiles: {}.".format(", ".join(tiles)), indent=1)
-    filtered_download_requests = []
-    filtered_product_names = []
-    for i in range(len(download_requests)):
+    filtered_products = []
+    for i in range(len(products)):
         for tile in tiles:
-            if "_{}_".format(tile) in product_names[i]:
-                filtered_download_requests.append(download_requests[i])
-                filtered_product_names.append(product_names[i])
-    return filtered_download_requests, filtered_product_names
+            if "_{}_".format(tile) in products[i]["name"]:
+                filtered_products.append(products[i])
+    return filtered_products
 
 
-def filter_for_timeliness(download_requests, product_names, env):
-    s3_products = []
-    for i in range(len(product_names)):
-        tmp = product_names[i]
-        uuid = download_requests[i]["uuid"]
-        if "S3A_" in tmp or "S3B_" in tmp:
-            sensing_start, sensing_end, product_creation, satellite = parse_s3_name(tmp)
-            s3_products.append({"name": tmp, "uuid": uuid, "sensing_start": sensing_start, "sensing_end": sensing_end,
-                                "product_creation": product_creation, "satellite": satellite})
-        else:
-            s3_products.append({"name": tmp, "uuid": uuid})
-    filtered_download_requests = []
-    filtered_product_names = []
-    for j in range(len(s3_products)):
-        if "S3A_" in s3_products[j]["name"] or "S3B_" in s3_products[j]["name"]:
-            matching_sensing = [f for f in s3_products if f['sensing_start'] == s3_products[j]['sensing_start']
-                                and f['sensing_end'] == s3_products[j]['sensing_end']
-                                and f['satellite'] == s3_products[j]['satellite']]
+def remove_superseded_products(products, env):
+    filtered_products = []
+    for i in range(len(products)):
+        if products[i]["satellite"] == "S3A" or products[i]["satellite"] == "S3B":
+            matching_sensing = [f for f in products if f['sensing_start'] == products[i]['sensing_start']
+                                and f['sensing_end'] == products[i]['sensing_end']
+                                and f['satellite'] == products[i]['satellite']]
             creation = [d['product_creation'] for d in matching_sensing]
             creation.sort(reverse=True)
-            if s3_products[j]['product_creation'] == creation[0]:
-                filtered_product_names.append(s3_products[j]["name"])
-                filtered_download_requests.append({"uuid": s3_products[j]["uuid"]})
+            if products[i]['product_creation'] == creation[0]:
+                filtered_products.append(products[i])
             else:
-                log(env["General"]["log"], "Removed superseded file: {}).".format(s3_products[j]["name"]))
+                log(env["General"]["log"], "Removed superseded file: {}).".format(products[i]["name"]))
         else:
-            filtered_product_names.append(s3_products[j]["name"])
-            filtered_download_requests.append({"uuid": s3_products[j]["uuid"]})
+            filtered_products.append(products[i])
 
-    return filtered_download_requests, filtered_product_names
+    return filtered_products
 
 
 def get_south_east_north_west_bound(wkt):

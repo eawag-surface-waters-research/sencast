@@ -86,12 +86,14 @@ def process(env, params, l1product_path, _, out_path):
             print(he)
             ancillary = None
             anc_name = "NA"
+            os.makedirs("ANCILLARY/METEO", exist_ok=True)
             log(env["General"]["log"],
                 "Polymer failed to read ancillary file. HDF4 ERROR.", indent=1)
         except Exception as e:
             print(e)
             ancillary = None
             anc_name = "NA"
+            os.makedirs("ANCILLARY/METEO", exist_ok=True)
             log(env["General"]["log"], "Polymer failed to collect ancillary data. If using NASA data ensure authentication is setup according to: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget", indent=1)
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
