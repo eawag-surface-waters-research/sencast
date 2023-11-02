@@ -9,9 +9,8 @@ For an overview of the processor: https://www.brockmann-consult.de/portfolio/ide
 """
 
 import os
-import subprocess
 from utils.auxil import log, gpt_subprocess
-from utils.product_fun import get_reproject_params_from_wkt, get_main_file_from_product_path
+from utils.product_fun import get_main_file_from_product_path
 
 # Key of the params section for this processor
 PARAMS_SECTION = "LSWT"

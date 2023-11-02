@@ -135,12 +135,12 @@ def gpt_subprocess(cmd, log_path, attempts=1, timeout=False):
             timer.cancel()
         if process.returncode == 0:
             log_output(res[0], log_path)
-            log(log_path, "GPT operation completed.".format(timeout), indent=1)
+            log(log_path, "GPT operation completed.", indent=1)
             return True
         else:
             log_output(res[0], log_path)
             log_output(res[1], log_path)
-            if process.returncode == -9:
+            if process.returncode == -9 and timeout:
                 log(log_path, "GPT process timed out after {} seconds and was killed.".format(timeout), indent=1)
             else:
                 log(log_path, "GPT failed.", indent=1)

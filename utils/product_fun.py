@@ -128,6 +128,24 @@ def get_reproject_params_from_wkt(wkt, resolution):
             'pixelSizeY': str(y_pixsize), 'width': str(x_pix), 'height': str(y_pix)}
 
 
+def get_reproject_params_from_img(img, resolution):
+    with Dataset(img) as nc:
+        width = len(nc.dimensions["width"])
+        height = len(nc.dimensions["height"])
+        north = np.array(nc.variables["latitude"][:]).max()
+        south = np.array(nc.variables["latitude"][:]).min()
+        east = np.array(nc.variables["longitude"][:]).max()
+        west = np.array(nc.variables["longitude"][:]).min()
+    x_dist = haversine((south, west), (south, east))
+    y_dist = haversine((south, west), (north, west))
+    x_pix = int(round(x_dist / (int(resolution) / 1000)))
+    y_pix = int(round(y_dist / (int(resolution) / 1000)))
+    x_pixsize = (east - west) / x_pix
+    y_pixsize = (north - south) / y_pix
+    return {'easting': str(west), 'northing': str(north), 'pixelSizeX': str(x_pixsize),
+           'pixelSizeY': str(y_pixsize), 'width': str(width), 'height': str(height)}
+
+
 def get_sensing_date_from_product_name(product_name):
     """Read the sensing date from a product name."""
     return re.findall(r"\d{8}", product_name)[0]

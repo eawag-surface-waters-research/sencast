@@ -30,8 +30,14 @@ OUT_DIR = "DATALAKES"
 JSON_FILENAME = "{}_{}_{}_{}.json"
 # the file name pattern for geotiff output files
 GEOTIFF_FILENAME = "{}_{}_{}_{}_{}.tif"
-# the file name pattern for json output files
-NC_FILENAME = "{}_{}_{}.nc"
+# the file name pattern for netcdf output files
+S3_NC_FILENAME = "{}_{}_{}.nc"
+# the file name pattern for netcdf output files
+S2_NC_FILENAME = "{}_{}_{}_{}.nc"
+# the file name pattern for S3 lake mask
+S3_LAKE_MASK = "lake_mask_{}_S3.nc"
+# the file name pattern for S2 lake mask
+S2_LAKE_MASK = "lake_mask_{}_S2_{}_{}m.nc"
 
 
 def apply(env, params, l2product_files, date):
@@ -66,9 +72,13 @@ def apply(env, params, l2product_files, date):
                 l2product_files[processor] = [l2product_files[processor]]
             for l2product_file in l2product_files[processor]:
                 satellite = get_satellite_name_from_product_name(os.path.basename(l2product_file))
+                tile = l2product_file.split("_")[-2] if "S2" in satellite else False
                 date = get_sensing_datetime_from_product_name(os.path.basename(l2product_file))
                 out_path = os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR, "datalakes", params['General']['wkt_name'], satellite + "_" + date)
-                input_file = os.path.join(out_path, NC_FILENAME.format(processor, satellite, date))
+                if "S3" in satellite:
+                    input_file = os.path.join(out_path, S3_NC_FILENAME.format(processor, satellite, date))
+                elif "S2" in satellite:
+                    input_file = os.path.join(out_path, S2_NC_FILENAME.format(processor, satellite, date, tile))
                 os.makedirs(out_path, exist_ok=True)
                 bands_list = list(filter(None, params[PARAMS_SECTION][key].split(",")))
                 bands, bands_min, bands_max = parse_bands(bands_list)
@@ -89,18 +99,28 @@ def apply(env, params, l2product_files, date):
                         f.write(nc_bytes)
 
                     if "S3" in satellite:
+                        mask_file = S3_LAKE_MASK.format(params["General"]["wkt_name"])
+                        mask_band_name = "Swiss_S3_water"
+                    elif "S2" in satellite:
+                        mask_file = S2_LAKE_MASK.format(params["General"]["wkt_name"], tile, params["General"]["resolution"])
+                        mask_band_name = "lake_mask"
+                    mask_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), mask_file)
+                    if os.path.exists(mask_file_path):
                         try:
-                            log(env["General"]["log"], "Merging {} with lake_mask_sui_S3.nc".format(os.path.basename(input_file)), indent=2)
-                            lake_mask = get_pixels_from_nc(os.path.join(os.path.abspath(os.path.dirname(__file__)), "lake_mask_sui_S3.nc"), "Swiss_S3_water")
+                            log(env["General"]["log"], "Merging {} with {}".format(os.path.basename(input_file), mask_file), indent=2)
+                            lake_mask = get_pixels_from_nc(mask_file_path, mask_band_name)
                             with Dataset(input_file, mode='r+') as dst:
                                 create_band(dst, "lake_mask", "", "lake_mask>0")
                                 write_all_pixels_to_nc(dst, "lake_mask", lake_mask)
                                 append_to_valid_pixel_expression(dst, "lake_mask>0")
-                        except:
-                            log(env["General"]["log"], "Failed to merge with lake_mask_sui_S3.nc", indent=2)
+                        except Exception as e:
+                            print(e)
+                            log(env["General"]["log"], "Failed to merge with {}".format(mask_file), indent=2)
+                    else:
+                        log(env["General"]["log"], "Mask file {} not found.".format(mask_file), indent=2)
 
                     for idx, val in enumerate(bands):
-                        log(env["General"]["log"], "Converting {} band {} to JSON".format(processor, val), indent=3)
+                        log(env["General"]["log"], "Processing {} band {}".format(processor, val), indent=3)
                         try:
                             if "S3" in satellite:
                                 json_outfile = os.path.join(out_path, JSON_FILENAME.format(processor, val, satellite, date))
@@ -108,13 +128,12 @@ def apply(env, params, l2product_files, date):
                                 convert_nc("json", input_file, json_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
                                 convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
                             if "S2" in satellite:
-                                tile = l2product_file.split("_")[-2]
                                 geotiff_outfile = os.path.join(out_path, GEOTIFF_FILENAME.format(processor, val, satellite, date, tile))
                                 convert_nc("geotiff", input_file, geotiff_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
                         except Exception as e:
                             print(e)
-                            errors.append("Failed to convert {} band {} to JSON".format(processor, val))
-                            log(env["General"]["log"], "Failed to convert {} band {} to JSON".format(processor, val), indent=3)
+                            errors.append("Failed to convert {} band {}".format(processor, val))
+                            log(env["General"]["log"], "Failed to convert {} band {}".format(processor, val), indent=3)
 
     if "bucket" not in params[PARAMS_SECTION]:
         raise ValueError("S3 Bucket must be defined in parameters file")

@@ -183,6 +183,7 @@ def secchi_s2_row(dst, n_row, secchi_band_names, width, rs, rrs, us, sza, aws, b
 
     ################## Diffuse attenuation coefficient and Secchi Depth retrieval ###############
     # Kd per band:
+    print(a_s, bws, bbs)
     Kds = [(1 + m0 * sza) * a + (1 - y1 * (bw / bb)) * m1 * (1 - m2 * np.exp(-m3 * a)) * bb for (a, bw, bb) in
            zip(a_s, bws, bbs)]
     np.seterr(over='ignore')
