@@ -14,4 +14,4 @@ possible you should pass the location of your environment file to the sencast ma
 
 The following example environment file should be adaptable for any use cases.
 
-https://gitlab.com/eawag-rs/sencast/-/blob/master/environments/example.ini
+https://github.com/eawag-surface-waters-research/sencast/-/blob/master/environments/example.ini

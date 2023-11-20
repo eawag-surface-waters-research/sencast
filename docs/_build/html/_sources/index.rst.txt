@@ -31,7 +31,7 @@ To install Sencast, run
 
 .. code-block:: bash
 
-  git clone https://gitlab.com/eawag-rs/sencast.git
+  git clone https://github.com/eawag-surface-waters-research/sencast.git
   conda env create -f ~/sencast/sencast.yml
 
 Many of the Sencast'S processors reply on `SNAP`_ , the SeNtinel Application Platform
@@ -228,7 +228,7 @@ This will report which processors are successfully installed and producing meani
 .. _SNAP: http://step.esa.int/main/toolboxes/snap/
 .. _European Space Agency: http://www.esa.int/
 .. _Daniel Odermatt: https://www.eawag.ch/de/ueberuns/portraet/organisation/mitarbeitende/profile/daniel-odermatt/show/
-.. _example.ini: https://renkulab.io/gitlab/odermatt/sentinel-hindcast/blob/master/environments/example.ini
+.. _example.ini: https://github.com/eawag-surface-waters-research/sencast/blob/master/environments/example.ini
 .. _WKT: https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry
 
 

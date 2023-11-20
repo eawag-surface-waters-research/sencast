@@ -15,7 +15,7 @@ Windows 10
 - Visual C++ Build Tools 2015: https://go.microsoft.com/fwlink/?LinkId=691126
 
 
-2.) sencast: https://renkulab.io/gitlab/odermatt/sentinel-hindcast
+2.) sencast: https://github.com/eawag-surface-waters-research/sencast
 
 Start a command prompt and do following::
 
@@ -25,7 +25,7 @@ Start a command prompt and do following::
 		> mkdir ANCILLARY
 		> mkdir datalakes
 		> mkdir data_landmask_gsw
-		> git clone https://gitlab.com/eawag-rs/sencast.git
+		> git clone https://github.com/eawag-surface-waters-research/sencast.git
 
 
 3.) Anaconda: https://www.anaconda.com/distribution/

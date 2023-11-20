@@ -91,11 +91,11 @@ Prepare)
 	Restart your shell session
 
 
-4.) sencast: https://renkulab.io/gitlab/odermatt/sentinel-hindcast
+4.) sencast: https://github.com/eawag-surface-waters-research/sencast
 
 	In shell do following:
 		$ cd ~
-		$ git clone https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git
+		$ git clone https://github.com/eawag-surface-waters-research/sencast.git
 		$ cd sentinel-hindcast
 		$ git checkout <branchname> (if not master)
 
@@ -194,7 +194,7 @@ Prepare)
 
 	In shell do following:
 		$ mkdir -p /prj/datalakes/log
-		$ curl https://renkulab.io/gitlab/odermatt/sentinel-hindcast/raw/snap7compatibility/parameters/datalakes_sui_S3.ini?inline=false -o /prj/datalakes/datalakes_sui_S3.ini
+		$ curl https://github.com/eawag-surface-waters-research/sencast/raw/snap7compatibility/parameters/datalakes_sui_S3.ini?inline=false -o /prj/datalakes/datalakes_sui_S3.ini
 		$ chmod 755 /prj/sentinel-hindcast/scripts/datalakes.sh
 		$ crontab -l | { cat; echo "0 20 * * * nohup /prj/sentinel-hindcast/scripts/datalakes.sh &"; } | crontab -
 

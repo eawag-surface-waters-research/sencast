@@ -15,4 +15,4 @@ conda activate sphinx
 cd sencast/docs
 make html
 ```
-4. Push the changes to the gitlab remote repository
+4. Push the changes to the GitHub remote repository
