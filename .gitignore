@@ -8,10 +8,12 @@ __pycache__
 /docker_dependencies
 /environments/*
 /parameters/*
-!/parameters/parameters_template_S2.ini
-!/parameters/parameters_template_S3.ini
 !/parameters/datalakes_sui_S3.ini
 !/parameters/datalakes_sui_S2.ini
+!/parameters/test_S3_processors.ini
+!/parameters/test_S2_processors.ini
+!/parameters/test_S2_tiles_processors.ini
+!/parameters/test_L8_processors.ini
 !/environments/example.ini
 /processors/ocsmart/auxdata/*
 !processors/ocsmart/auxdata/.gitkeep
