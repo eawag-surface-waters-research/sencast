@@ -344,17 +344,17 @@ $ python test_snappy_product.py</p>
 <p>8.) Python - polymer: <a class="reference external" href="https://forum.hygeos.com/viewforum.php?f=5">https://forum.hygeos.com/viewforum.php?f=5</a></p>
 <blockquote>
 <div><dl class="simple">
-<dt>From a computer in the eawag network, copy the polymer zip file to the linux server:</dt><dd><p>&gt; scp -i .sshcloudferro.key \eawagAbteilungs-ProjekteSurfsurf-DDRSSoftwarePolymerpolymer-v4.13.tar.gz <a class="reference external" href="mailto:eouser&#37;&#52;&#48;45&#46;130&#46;29&#46;115">eouser<span>&#64;</span>45<span>&#46;</span>130<span>&#46;</span>29<span>&#46;</span>115</a>:/home/eouser/setup</p>
+<dt>From a computer in the eawag network, copy the polymer zip file to the linux server:</dt><dd><p>&gt; scp -i .sshcloudferro.key \eawagAbteilungs-ProjekteSurfsurf-DDRSSoftwarePolymerpolymer-v4.16.1.tar.gz <a class="reference external" href="mailto:eouser&#37;&#52;&#48;45&#46;130&#46;29&#46;115">eouser<span>&#64;</span>45<span>&#46;</span>130<span>&#46;</span>29<span>&#46;</span>115</a>:/home/eouser/setup</p>
 </dd>
-<dt>In shell do following:</dt><dd><p>$ tar -xvzf ~/setup/polymer-v4.13.tar.gz –directory ~/setup/
-$ cd ~/setup/polymer-v4.13
+<dt>In shell do following:</dt><dd><p>$ tar -xvzf ~/setup/polymer-v4.16.1.tar.gz –directory ~/setup/
+$ cd ~/setup/polymer-v4.16.1
 $ conda activate sencast
 ($ sudo yum install wget)
 ($ sudo yum install make)
 ($ sudo yum install gcc)
 $ make all
-$ cp -avr ~/setup/polymer-v4.13/polymer $CONDA_ENV_SP/polymer
-$ cp -avr ~/setup/polymer-v4.13/auxdata $CONDA_ENV_SP/auxdata</p>
+$ cp -avr ~/setup/polymer-v4.16.1/polymer $CONDA_ENV_SP/polymer
+$ cp -avr ~/setup/polymer-v4.16.1/auxdata $CONDA_ENV_SP/auxdata</p>
 </dd>
 </dl>
 <p>In the file $CONDA_ENV_SP/polymer/level1_landsat8.py replace line 13 “import osr” by “from osgeo import osr”</p>

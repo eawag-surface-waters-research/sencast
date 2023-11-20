@@ -140,18 +140,18 @@ Prepare)
 8.) Python - polymer: https://forum.hygeos.com/viewforum.php?f=5
 
 	From a computer in the eawag network, copy the polymer zip file to the linux server:
-		> scp -i .ssh\cloudferro.key \\eawag\Abteilungs-Projekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.13.tar.gz eouser@45.130.29.115:/home/eouser/setup
+		> scp -i .ssh\cloudferro.key \\eawag\Abteilungs-Projekte\Surf\surf-DD\RS\Software\Polymer\polymer-v4.16.1.tar.gz eouser@45.130.29.115:/home/eouser/setup
 
 	In shell do following:
-		$ tar -xvzf ~/setup/polymer-v4.13.tar.gz --directory ~/setup/
-		$ cd ~/setup/polymer-v4.13
+		$ tar -xvzf ~/setup/polymer-v4.16.1.tar.gz --directory ~/setup/
+		$ cd ~/setup/polymer-v4.16.1
 		$ conda activate sencast
 		($ sudo yum install wget)
 		($ sudo yum install make)
 		($ sudo yum install gcc)
 		$ make all
-		$ cp -avr ~/setup/polymer-v4.13/polymer $CONDA_ENV_SP/polymer
-		$ cp -avr ~/setup/polymer-v4.13/auxdata $CONDA_ENV_SP/auxdata
+		$ cp -avr ~/setup/polymer-v4.16.1/polymer $CONDA_ENV_SP/polymer
+		$ cp -avr ~/setup/polymer-v4.16.1/auxdata $CONDA_ENV_SP/auxdata
 		
 	In the file $CONDA_ENV_SP/polymer/level1_landsat8.py replace line 13 "import osr" by "from osgeo import osr"
 	

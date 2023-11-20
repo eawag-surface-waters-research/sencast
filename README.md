@@ -54,7 +54,7 @@ python main.py
 Manual installation of all the processors is challenging and can be simplified through the use of a docker container.
 
 As this container contains non-open source code, the pre-build image is only available internally at Eawag. However, external parties can build the image
-themselves by including `docker_dependencies/polymer-v4.15.tar.gz` in the repository.
+themselves by including `docker_dependencies/polymer-v4.16.1.tar.gz` in the repository.
 
 Users should first ensure they have a functioning docker installation.
 
