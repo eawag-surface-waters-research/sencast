@@ -183,7 +183,6 @@ def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt):
         xml = f.read()
 
     reproject_params = get_reproject_params_from_wkt(wkt, resolution)
-    xml = xml.replace("${wkt}", wkt)
     xml = xml.replace("${validPixelExpression}", validexpression)
     xml = xml.replace("${easting}", reproject_params['easting'])
     xml = xml.replace("${northing}", reproject_params['northing'])
