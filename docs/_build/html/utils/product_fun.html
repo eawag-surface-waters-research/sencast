@@ -11,11 +11,11 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -28,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> Sencast
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sencast
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -60,7 +64,42 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil</a></li>
 <li class="toctree-l1"><a class="reference internal" href="earthdata.html">Earth Data</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">product_fun</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">product_fun</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.append_to_valid_pixel_expression"><code class="docutils literal notranslate"><span class="pre">append_to_valid_pixel_expression()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.copy_band"><code class="docutils literal notranslate"><span class="pre">copy_band()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.copy_nc"><code class="docutils literal notranslate"><span class="pre">copy_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.create_band"><code class="docutils literal notranslate"><span class="pre">create_band()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.filter_for_baseline"><code class="docutils literal notranslate"><span class="pre">filter_for_baseline()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.filter_for_tiles"><code class="docutils literal notranslate"><span class="pre">filter_for_tiles()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.generate_l8_angle_files"><code class="docutils literal notranslate"><span class="pre">generate_l8_angle_files()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_band_from_nc"><code class="docutils literal notranslate"><span class="pre">get_band_from_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_band_names_from_nc"><code class="docutils literal notranslate"><span class="pre">get_band_names_from_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_l1product_path"><code class="docutils literal notranslate"><span class="pre">get_l1product_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_lat_lon_from_x_y"><code class="docutils literal notranslate"><span class="pre">get_lat_lon_from_x_y()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_lat_lon_from_x_y_from_nc"><code class="docutils literal notranslate"><span class="pre">get_lat_lon_from_x_y_from_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_lons_lats"><code class="docutils literal notranslate"><span class="pre">get_lons_lats()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_main_file_from_product_path"><code class="docutils literal notranslate"><span class="pre">get_main_file_from_product_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_name_width_height_from_nc"><code class="docutils literal notranslate"><span class="pre">get_name_width_height_from_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_np_data_type"><code class="docutils literal notranslate"><span class="pre">get_np_data_type()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_pixel_pos"><code class="docutils literal notranslate"><span class="pre">get_pixel_pos()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_pixel_value_xy"><code class="docutils literal notranslate"><span class="pre">get_pixel_value_xy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_pixels_from_nc"><code class="docutils literal notranslate"><span class="pre">get_pixels_from_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_reproject_params_from_wkt"><code class="docutils literal notranslate"><span class="pre">get_reproject_params_from_wkt()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_satellite_name_from_product_name"><code class="docutils literal notranslate"><span class="pre">get_satellite_name_from_product_name()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_sensing_date_from_product_name"><code class="docutils literal notranslate"><span class="pre">get_sensing_date_from_product_name()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_sensing_datetime_from_product_name"><code class="docutils literal notranslate"><span class="pre">get_sensing_datetime_from_product_name()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_south_east_north_west_bound"><code class="docutils literal notranslate"><span class="pre">get_south_east_north_west_bound()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_valid_pe_from_nc"><code class="docutils literal notranslate"><span class="pre">get_valid_pe_from_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.parse_date_from_name"><code class="docutils literal notranslate"><span class="pre">parse_date_from_name()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.parse_s3_name"><code class="docutils literal notranslate"><span class="pre">parse_s3_name()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.read_pixels_from_band"><code class="docutils literal notranslate"><span class="pre">read_pixels_from_band()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.read_pixels_from_nc"><code class="docutils literal notranslate"><span class="pre">read_pixels_from_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.remove_superseded_products"><code class="docutils literal notranslate"><span class="pre">remove_superseded_products()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.write_all_pixels_to_nc"><code class="docutils literal notranslate"><span class="pre">write_all_pixels_to_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.write_pixels_to_band"><code class="docutils literal notranslate"><span class="pre">write_pixels_to_band()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.write_pixels_to_nc"><code class="docutils literal notranslate"><span class="pre">write_pixels_to_nc()</span></code></a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Processors</span></p>
 <ul>
@@ -109,7 +148,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">product_fun</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/utils/product_fun.rst.txt" rel="nofollow"> View page source</a>
@@ -121,102 +160,97 @@
            <div itemprop="articleBody">
              
   <section id="module-utils.product_fun">
-<span id="product-fun"></span><h1>product_fun<a class="headerlink" href="#module-utils.product_fun" title="Permalink to this heading"></a></h1>
+<span id="product-fun"></span><h1>product_fun<a class="headerlink" href="#module-utils.product_fun" title="Link to this heading"></a></h1>
 <p>This module bundles utility functions regarding satellite products.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.append_to_valid_pixel_expression">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">append_to_valid_pixel_expression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vpe</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.append_to_valid_pixel_expression" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">append_to_valid_pixel_expression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vpe</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.append_to_valid_pixel_expression" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.copy_band">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">copy_band</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.copy_band" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">copy_band</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.copy_band" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.copy_nc">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">copy_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">included_bands</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.copy_nc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">copy_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">included_bands</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.copy_nc" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.create_band">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">create_band</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_pixel_expression</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.create_band" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">create_band</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_pixel_expression</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.create_band" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.filter_for_baseline">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">filter_for_baseline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">download_requests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.filter_for_baseline" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">filter_for_baseline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">products</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.filter_for_baseline" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.filter_for_tiles">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">filter_for_tiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">download_requests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.filter_for_tiles" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="utils.product_fun.filter_for_timeliness">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">filter_for_timeliness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">download_requests</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.filter_for_timeliness" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">filter_for_tiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">products</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.filter_for_tiles" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.generate_l8_angle_files">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">generate_l8_angle_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.generate_l8_angle_files" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">generate_l8_angle_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.generate_l8_angle_files" title="Link to this definition"></a></dt>
 <dd><p>Generates angle files for Landsat 8 L1 products.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_band_from_nc">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_band_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_band_from_nc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_band_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_band_from_nc" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_band_names_from_nc">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_band_names_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_band_names_from_nc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_band_names_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_band_names_from_nc" title="Link to this definition"></a></dt>
 <dd><p>Returns a list containing all band names of a given product.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_l1product_path">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_l1product_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_l1product_path" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_l1product_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_l1product_path" title="Link to this definition"></a></dt>
 <dd><p>Fills the placeholders in the configured DIAS path with actual values.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_lat_lon_from_x_y">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_lat_lon_from_x_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat_var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_lat_lon_from_x_y" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_lat_lon_from_x_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat_var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_lat_lon_from_x_y" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_lat_lon_from_x_y_from_nc">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_lat_lon_from_x_y_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_var_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_var_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_lat_lon_from_x_y_from_nc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_lat_lon_from_x_y_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_var_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_var_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_lat_lon_from_x_y_from_nc" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_lons_lats">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_lons_lats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_lons_lats" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_lons_lats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_lons_lats" title="Link to this definition"></a></dt>
 <dd><p>Return one array with all longitudes and one array with all latitudes of the perimeter corners.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_main_file_from_product_path">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_main_file_from_product_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_main_file_from_product_path" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_main_file_from_product_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_main_file_from_product_path" title="Link to this definition"></a></dt>
 <dd><p>Returns the path to the file to be read by third-party software in order to open a L1 product.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_name_width_height_from_nc">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_name_width_height_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_name_width_height_from_nc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_name_width_height_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_name_width_height_from_nc" title="Link to this definition"></a></dt>
 <dd><p>Returns the height and the width of a given product.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_np_data_type">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_np_data_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_np_data_type" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_np_data_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_np_data_type" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_pixel_pos">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_pixel_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">longitudes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latitudes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_pixel_pos" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_pixel_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">longitudes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latitudes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_pixel_pos" title="Link to this definition"></a></dt>
 <dd><p>Returns the coordinates of the pixel [x, y] which cover a certain geo location (lon/lat).
 :param longitudes: matrix representing the longitude of each pixel
 :param latitudes: matrix representing the latitude of every pixel
@@ -230,81 +264,86 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_pixel_value_xy">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_pixel_value_xy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_pixel_value_xy" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_pixel_value_xy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_pixel_value_xy" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_pixels_from_nc">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_pixels_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_pixels_from_nc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_pixels_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_pixels_from_nc" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_reproject_params_from_wkt">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_reproject_params_from_wkt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_reproject_params_from_wkt" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_reproject_params_from_wkt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_reproject_params_from_wkt" title="Link to this definition"></a></dt>
 <dd><p>Calculates reprojection parameters from a given wkt.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_satellite_name_from_product_name">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_satellite_name_from_product_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_satellite_name_from_product_name" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_satellite_name_from_product_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_satellite_name_from_product_name" title="Link to this definition"></a></dt>
 <dd><p>Return the satellite name of a given product name.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_sensing_date_from_product_name">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_sensing_date_from_product_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_sensing_date_from_product_name" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_sensing_date_from_product_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_sensing_date_from_product_name" title="Link to this definition"></a></dt>
 <dd><p>Read the sensing date from a product name.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_sensing_datetime_from_product_name">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_sensing_datetime_from_product_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_sensing_datetime_from_product_name" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_sensing_datetime_from_product_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_sensing_datetime_from_product_name" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_south_east_north_west_bound">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_south_east_north_west_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_south_east_north_west_bound" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_south_east_north_west_bound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_south_east_north_west_bound" title="Link to this definition"></a></dt>
 <dd><p>Return south, east, north, and west boundery of a given wkt.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_valid_pe_from_nc">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_valid_pe_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_valid_pe_from_nc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_valid_pe_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_valid_pe_from_nc" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.parse_date_from_name">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">parse_date_from_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.parse_date_from_name" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">parse_date_from_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.parse_date_from_name" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.parse_s3_name">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">parse_s3_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.parse_s3_name" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">parse_s3_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.parse_s3_name" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.read_pixels_from_band">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">read_pixels_from_band</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">numpy.float64</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.read_pixels_from_band" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">read_pixels_from_band</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">numpy.float64</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.read_pixels_from_band" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.read_pixels_from_nc">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">read_pixels_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">numpy.float64</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.read_pixels_from_nc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">read_pixels_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">numpy.float64</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.read_pixels_from_nc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.product_fun.remove_superseded_products">
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">remove_superseded_products</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">products</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.remove_superseded_products" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.write_all_pixels_to_nc">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">write_all_pixels_to_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.write_all_pixels_to_nc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">write_all_pixels_to_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.write_all_pixels_to_nc" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.write_pixels_to_band">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">write_pixels_to_band</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.write_pixels_to_band" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">write_pixels_to_band</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">band</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.write_pixels_to_band" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.write_pixels_to_nc">
-<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">write_pixels_to_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.write_pixels_to_nc" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">write_pixels_to_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">band_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.write_pixels_to_nc" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>

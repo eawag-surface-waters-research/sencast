@@ -27,7 +27,8 @@ author = 'Daniel Odermatt, James Runnalls, Rolf Scheuner'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc']
+extensions = ['sphinx.ext.autodoc', 'sphinx_rtd_theme', 'myst_parser']
+source_suffix = ['.rst', '.md']
 master_doc = 'index'
 
 # Add any paths that contain templates here, relative to this directory.
@@ -40,7 +41,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # Explore autodoc imports
 
-autodoc_mock_imports = ["osgeo", "PIL", "tqdm", "polymer", "cartopy", "matplotlib", "haversine", "haversine", "snappy", "numpy", "netCDF4", "scipy", "pandas", "colour", "mdn", "rasterio", "sklearn", "tensorflow", "tensorflow_probability", "pyproj", "boto3"]
+autodoc_mock_imports = ["pyhdf", "osgeo", "PIL", "tqdm", "polymer", "cartopy", "matplotlib", "haversine", "haversine", "snappy", "numpy", "netCDF4", "scipy", "pandas", "colour", "mdn", "rasterio", "sklearn", "tensorflow", "tensorflow_probability", "pyproj", "boto3"]
 
 
 # -- Options for HTML output -------------------------------------------------

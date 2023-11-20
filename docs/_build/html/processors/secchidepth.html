@@ -11,11 +11,11 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -28,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> Sencast
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sencast
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -79,7 +83,12 @@
 <li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="primaryproduction.html">Primary Production</a></li>
 <li class="toctree-l1"><a class="reference internal" href="s2res.html">S2Res</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Secchi Depth</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Secchi Depth</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#processors.secchidepth.secchidepth.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.secchidepth.secchidepth.secchi_s2_row"><code class="docutils literal notranslate"><span class="pre">secchi_s2_row()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.secchidepth.secchidepth.secchi_s3_row"><code class="docutils literal notranslate"><span class="pre">secchi_s3_row()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="whiting.html">Whiting</a></li>
 </ul>
@@ -109,7 +118,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">Secchi Depth</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/processors/secchidepth.rst.txt" rel="nofollow"> View page source</a>
@@ -121,15 +130,17 @@
            <div itemprop="articleBody">
              
   <section id="module-processors.secchidepth.secchidepth">
-<span id="secchi-depth"></span><h1>Secchi Depth<a class="headerlink" href="#module-processors.secchidepth.secchidepth" title="Permalink to this heading"></a></h1>
+<span id="secchi-depth"></span><h1>Secchi Depth<a class="headerlink" href="#module-processors.secchidepth.secchidepth" title="Link to this heading"></a></h1>
 <p>The Secchi Depth processor is an implementation of <a class="reference external" href="https://www.osapublishing.org/ao/abstract.cfm?uri=ao-41-27-5755">Lee et al. 2002</a>
 in order to derive Secchi depth from Satellite images.
 Authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.secchidepth.secchidepth.process">
-<span class="sig-prename descclassname"><span class="pre">processors.secchidepth.secchidepth.</span></span><span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2product_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.process" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.secchidepth.secchidepth.</span></span><span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2product_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.process" title="Link to this definition"></a></dt>
 <dd><p>Secchi Depth processor.
 1. Calculates Secchi depth from Polymer output</p>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
 <dl class="simple">
 <dt>env</dt><dd><p>Dictionary of environment parameters, loaded from input file</p>
 </dd>
@@ -142,16 +153,17 @@ Authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt</p>
 <dt>out_path</dt><dd><p>unused</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.secchidepth.secchidepth.secchi_s2_row">
-<span class="sig-prename descclassname"><span class="pre">processors.secchidepth.secchidepth.</span></span><span class="sig-name descname"><span class="pre">secchi_s2_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_row</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secchi_band_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">us</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sza</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wvl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.secchi_s2_row" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.secchidepth.secchidepth.</span></span><span class="sig-name descname"><span class="pre">secchi_s2_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_row</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secchi_band_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">us</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sza</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wvl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.secchi_s2_row" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.secchidepth.secchidepth.secchi_s3_row">
-<span class="sig-prename descclassname"><span class="pre">processors.secchidepth.secchidepth.</span></span><span class="sig-name descname"><span class="pre">secchi_s3_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_row</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secchi_band_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">us</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sza</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wvl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.secchi_s3_row" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.secchidepth.secchidepth.</span></span><span class="sig-name descname"><span class="pre">secchi_s3_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_row</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secchi_band_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">us</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sza</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wvl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.secchi_s3_row" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
