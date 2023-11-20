@@ -10,7 +10,7 @@ Anaconda and Snap Desktop are required to install Sencast
 - [Anaconda](https://www.anaconda.com)
 - [SNAP Desktop](https://step.esa.int/main/download/snap-download/)
 ```
-git clone git@gitlab.com:eawag-rs/sencast.git
+git clone git@github.com:eawag-surface-waters-research/sencast.git
 conda env create -f ~/sencast/sencast.yml
 ```
 Then create your **environment file** (use environments/example.ini as a template) and test your installation as follows:

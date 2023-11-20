@@ -21,13 +21,13 @@ If you want to use graphical tools with WSL1 (Windows Subsystem for Linux)::
     $ export DISPLAY=:0
 
 
-1.) sencast: https://gitlab.com/eawag-rs/sencast.git
+1.) sencast: https://github.com/eawag-surface-waters-research/sencast.git
 
 In shell do following::
 
     $ cd ~
     $ mkdir DIAS
-    $ git clone https://gitlab.com/eawag-rs/sencast.git
+    $ git clone https://github.com/eawag-surface-waters-research/sencast.git
     $ cd sencast
     $ git checkout <branchname> (if not master)
 

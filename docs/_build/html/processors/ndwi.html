@@ -11,11 +11,11 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -28,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> Sencast
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sencast
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -74,7 +78,11 @@
 <li class="toctree-l1"><a class="reference internal" href="mdn.html">MDN</a></li>
 <li class="toctree-l1"><a class="reference internal" href="merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">NDWI</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">NDWI</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#processors.ndwi.ndwi.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.ndwi.ndwi.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="primaryproduction.html">Primary Production</a></li>
@@ -109,7 +117,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">NDWI</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/processors/ndwi.rst.txt" rel="nofollow"> View page source</a>
@@ -121,18 +129,18 @@
            <div itemprop="articleBody">
              
   <section id="module-processors.ndwi.ndwi">
-<span id="ndwi"></span><h1>NDWI<a class="headerlink" href="#module-processors.ndwi.ndwi" title="Permalink to this heading"></a></h1>
+<span id="ndwi"></span><h1>NDWI<a class="headerlink" href="#module-processors.ndwi.ndwi" title="Link to this heading"></a></h1>
 <p>The Normalized Difference Water Index (NDWI) (Gao, 1996) is a satellite-derived index from the
 Near-Infrared (NIR) and Short Wave Infrared (SWIR) channels.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.ndwi.ndwi.process">
-<span class="sig-prename descclassname"><span class="pre">processors.ndwi.ndwi.</span></span><span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2product_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.ndwi.ndwi.process" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.ndwi.ndwi.</span></span><span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2product_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.ndwi.ndwi.process" title="Link to this definition"></a></dt>
 <dd><p>This processor applies NDWI to the source product and stores the result.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.ndwi.ndwi.rewrite_xml">
-<span class="sig-prename descclassname"><span class="pre">processors.ndwi.ndwi.</span></span><span class="sig-name descname"><span class="pre">rewrite_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpt_xml_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validexpression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">green</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.ndwi.ndwi.rewrite_xml" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.ndwi.ndwi.</span></span><span class="sig-name descname"><span class="pre">rewrite_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpt_xml_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validexpression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">green</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.ndwi.ndwi.rewrite_xml" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>

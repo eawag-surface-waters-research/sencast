@@ -11,11 +11,11 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -27,11 +27,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> Sencast
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sencast
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -92,7 +96,22 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="coah.html">COAH API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creodias.html">CREODIAS API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">HDA API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">HDA API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.accept_tc_if_required"><code class="docutils literal notranslate"><span class="pre">accept_tc_if_required()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.authenticate"><code class="docutils literal notranslate"><span class="pre">authenticate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.dataorder_download"><code class="docutils literal notranslate"><span class="pre">dataorder_download()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.do_download"><code class="docutils literal notranslate"><span class="pre">do_download()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.get_access_token"><code class="docutils literal notranslate"><span class="pre">get_access_token()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.get_datarequest_results"><code class="docutils literal notranslate"><span class="pre">get_datarequest_results()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.get_dataset_id"><code class="docutils literal notranslate"><span class="pre">get_dataset_id()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.get_download_requests"><code class="docutils literal notranslate"><span class="pre">get_download_requests()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.post_dataorder"><code class="docutils literal notranslate"><span class="pre">post_dataorder()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.post_datarequest"><code class="docutils literal notranslate"><span class="pre">post_datarequest()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.query_metadata"><code class="docutils literal notranslate"><span class="pre">query_metadata()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.wait_for_dataorder_to_complete"><code class="docutils literal notranslate"><span class="pre">wait_for_dataorder_to_complete()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dias_apis.hda.hda.wait_for_datarequest_to_complete"><code class="docutils literal notranslate"><span class="pre">wait_for_datarequest_to_complete()</span></code></a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -108,7 +127,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">HDA API</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/apis/hda.rst.txt" rel="nofollow"> View page source</a>
@@ -120,72 +139,72 @@
            <div itemprop="articleBody">
              
   <section id="module-dias_apis.hda.hda">
-<span id="hda-api"></span><h1>HDA API<a class="headerlink" href="#module-dias_apis.hda.hda" title="Permalink to this heading"></a></h1>
+<span id="hda-api"></span><h1>HDA API<a class="headerlink" href="#module-dias_apis.hda.hda" title="Link to this heading"></a></h1>
 <p>Sencast uses the HDA API to query the image database in order to identify suitable images and also to download images.</p>
 <p>Documentation for HDA API can be found <a class="reference external" href="https://wekeo-broker.apps.mercator.dpi.wekeo.eu/databroker/ui/">here.</a></p>
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.accept_tc_if_required">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">accept_tc_if_required</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.accept_tc_if_required" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">accept_tc_if_required</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.accept_tc_if_required" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.authenticate">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">authenticate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.authenticate" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">authenticate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.authenticate" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.dataorder_download">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">dataorder_download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.dataorder_download" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">dataorder_download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.dataorder_download" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.do_download">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">do_download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">download_request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.do_download" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">do_download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">download_request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.do_download" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.get_access_token">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">get_access_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_access_token" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">get_access_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_access_token" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.get_datarequest_results">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">get_datarequest_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_datarequest_results" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">get_datarequest_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_datarequest_results" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.get_dataset_id">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">get_dataset_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_dataset_id" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">get_dataset_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_dataset_id" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.get_download_requests">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">get_download_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_download_requests" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">get_download_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.get_download_requests" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.post_dataorder">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">post_dataorder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uri</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.post_dataorder" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">post_dataorder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uri</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.post_dataorder" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.post_datarequest">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">post_datarequest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datarequest</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.post_datarequest" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">post_datarequest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datarequest</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.post_datarequest" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.query_metadata">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">query_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.query_metadata" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">query_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.query_metadata" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.wait_for_dataorder_to_complete">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">wait_for_dataorder_to_complete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.wait_for_dataorder_to_complete" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">wait_for_dataorder_to_complete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.wait_for_dataorder_to_complete" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dias_apis.hda.hda.wait_for_datarequest_to_complete">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">wait_for_datarequest_to_complete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.wait_for_datarequest_to_complete" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dias_apis.hda.hda.</span></span><span class="sig-name descname"><span class="pre">wait_for_datarequest_to_complete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">access_token</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.hda.hda.wait_for_datarequest_to_complete" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>

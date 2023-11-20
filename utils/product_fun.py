@@ -81,6 +81,7 @@ def filter_for_tiles(products, tiles, env):
 
 def remove_superseded_products(products, env):
     filtered_products = []
+    log(env["General"]["log"], "Filtering superseded files.", indent=1)
     for i in range(len(products)):
         if products[i]["satellite"] == "S3A" or products[i]["satellite"] == "S3B":
             matching_sensing = [f for f in products if f['sensing_start'] == products[i]['sensing_start']
@@ -90,8 +91,6 @@ def remove_superseded_products(products, env):
             creation.sort(reverse=True)
             if products[i]['product_creation'] == creation[0]:
                 filtered_products.append(products[i])
-            else:
-                log(env["General"]["log"], "Removed superseded file: {}).".format(products[i]["name"]))
         else:
             filtered_products.append(products[i])
 

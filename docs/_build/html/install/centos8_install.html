@@ -291,11 +291,11 @@ $ echo “snap.dataio.netcdf.metadataElementLimit=10000” &gt;&gt; $SNAP_HOME/e
 </dl>
 <p>Restart your shell session</p>
 </div></blockquote>
-<p>4.) sencast: <a class="reference external" href="https://renkulab.io/gitlab/odermatt/sentinel-hindcast">https://renkulab.io/gitlab/odermatt/sentinel-hindcast</a></p>
+<p>4.) sencast: <a class="reference external" href="https://github.com/eawag-surface-waters-research/sencast">https://github.com/eawag-surface-waters-research/sencast</a></p>
 <blockquote>
 <div><dl class="simple">
 <dt>In shell do following:</dt><dd><p>$ cd ~
-$ git clone <a class="reference external" href="https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git">https://renkulab.io/gitlab/odermatt/sentinel-hindcast.git</a>
+$ git clone <a class="reference external" href="https://github.com/eawag-surface-waters-research/sencast.git">https://github.com/eawag-surface-waters-research/sencast.git</a>
 $ cd sentinel-hindcast
 $ git checkout &lt;branchname&gt; (if not master)</p>
 </dd>
@@ -396,7 +396,7 @@ $ touch ~/.urs_cookies</p>
 <blockquote>
 <div><dl class="simple">
 <dt>In shell do following:</dt><dd><p>$ mkdir -p /prj/datalakes/log
-$ curl <a class="reference external" href="https://renkulab.io/gitlab/odermatt/sentinel-hindcast/raw/snap7compatibility/parameters/datalakes_sui_S3.ini?inline=false">https://renkulab.io/gitlab/odermatt/sentinel-hindcast/raw/snap7compatibility/parameters/datalakes_sui_S3.ini?inline=false</a> -o /prj/datalakes/datalakes_sui_S3.ini
+$ curl <a class="reference external" href="https://github.com/eawag-surface-waters-research/sencast/raw/snap7compatibility/parameters/datalakes_sui_S3.ini?inline=false">https://github.com/eawag-surface-waters-research/sencast/raw/snap7compatibility/parameters/datalakes_sui_S3.ini?inline=false</a> -o /prj/datalakes/datalakes_sui_S3.ini
 $ chmod 755 /prj/sentinel-hindcast/scripts/datalakes.sh
 $ crontab -l | { cat; echo “0 20 * * * nohup /prj/sentinel-hindcast/scripts/datalakes.sh &amp;”; } | crontab -</p>
 </dd>

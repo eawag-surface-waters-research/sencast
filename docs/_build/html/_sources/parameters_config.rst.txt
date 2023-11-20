@@ -9,6 +9,6 @@ execution of Sencast.
 
 Example parameter files for processing data from Sentinel 2, Sentinel 3 and Landsat 8 are provided below:
 
-- https://gitlab.com/eawag-rs/sencast/-/blob/master/parameters/test_S2_processors.ini
-- https://gitlab.com/eawag-rs/sencast/-/blob/master/parameters/test_S3_processors.ini
-- https://gitlab.com/eawag-rs/sencast/-/blob/master/parameters/test_L8_processors.ini
+- https://github.com/eawag-surface-waters-research/sencast/-/blob/master/parameters/test_S2_processors.ini
+- https://github.com/eawag-surface-waters-research/sencast/-/blob/master/parameters/test_S3_processors.ini
+- https://github.com/eawag-surface-waters-research/sencast/-/blob/master/parameters/test_L8_processors.ini

@@ -11,11 +11,11 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -28,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> Sencast
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sencast
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -67,7 +71,16 @@
 <li class="toctree-l1"><a class="reference internal" href="acolite.html">Acolite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="c2rcc.html">C2RCC</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fluo.html">FLUO</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">ForelUle</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ForelUle</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#processors.forelule.forelule.chromaticity_values"><code class="docutils literal notranslate"><span class="pre">chromaticity_values()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.forelule.forelule.dominant_wavelength_wrapper"><code class="docutils literal notranslate"><span class="pre">dominant_wavelength_wrapper()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.forelule.forelule.get_FU_class"><code class="docutils literal notranslate"><span class="pre">get_FU_class()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.forelule.forelule.get_hue_angle"><code class="docutils literal notranslate"><span class="pre">get_hue_angle()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.forelule.forelule.hue_angle_coefficients"><code class="docutils literal notranslate"><span class="pre">hue_angle_coefficients()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.forelule.forelule.main_chunk"><code class="docutils literal notranslate"><span class="pre">main_chunk()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.forelule.forelule.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="icor.html">ICOR</a></li>
 <li class="toctree-l1"><a class="reference internal" href="idepix.html">IDEPIX</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lswt.html">LSWT</a></li>
@@ -109,7 +122,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
       <li class="breadcrumb-item active">ForelUle</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/processors/forelule.rst.txt" rel="nofollow"> View page source</a>
@@ -121,47 +134,49 @@
            <div itemprop="articleBody">
              
   <section id="module-processors.forelule.forelule">
-<span id="forelule"></span><h1>ForelUle<a class="headerlink" href="#module-processors.forelule.forelule" title="Permalink to this heading"></a></h1>
+<span id="forelule"></span><h1>ForelUle<a class="headerlink" href="#module-processors.forelule.forelule" title="Link to this heading"></a></h1>
 <p>The Forel-Ule processor is an implementation of <a class="reference external" href="https://www.intechopen.com/books/geospatial-analyses-of-earth-observation-eo-data/the-color-of-water-from-space-a-case-study-for-italian-lakes-from-sentinel-2">Giardino et al. (2019)</a>
 in order to estimate the Forel-Ule color from satellite images.
 Adapter authors: Daniel Odermatt, James Runnalls</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.forelule.forelule.chromaticity_values">
-<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">chromaticity_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.chromaticity_values" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">chromaticity_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.chromaticity_values" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.forelule.forelule.dominant_wavelength_wrapper">
-<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">dominant_wavelength_wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_chunk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.dominant_wavelength_wrapper" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">dominant_wavelength_wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_chunk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.dominant_wavelength_wrapper" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.forelule.forelule.get_FU_class">
-<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">get_FU_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hue_angle</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.get_FU_class" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">get_FU_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hue_angle</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.get_FU_class" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.forelule.forelule.get_hue_angle">
-<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">get_hue_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.get_hue_angle" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">get_hue_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.get_hue_angle" title="Link to this definition"></a></dt>
 <dd><p>Yields values for FU 1-21: [229.45, 224.79, 217.12, 203.09, 178.91, 147.64, 118.289, 99.75, 88.37, 78.25, 71.08, 65.06, 59.56, 53.64, 47.89, 42.18, 37.23, 32.63, 28.38, 24.3, 20.98]
 See also Table 6 in Novoa et al. (2013): <a class="reference external" href="https://www.jeos.org/index.php/jeos_rp/article/view/13057">https://www.jeos.org/index.php/jeos_rp/article/view/13057</a></p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.forelule.forelule.hue_angle_coefficients">
-<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">hue_angle_coefficients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.hue_angle_coefficients" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">hue_angle_coefficients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.hue_angle_coefficients" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.forelule.forelule.main_chunk">
-<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">main_chunk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chromaticity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hue_angle_coeff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.main_chunk" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">main_chunk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chromaticity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hue_angle_coeff</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.main_chunk" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.forelule.forelule.process">
-<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2product_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.process" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.forelule.forelule.</span></span><span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2product_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.forelule.forelule.process" title="Link to this definition"></a></dt>
 <dd><p>Forel-Ule processor.
 1. Calculates a hue product from Polymer output</p>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
 <dl class="simple">
 <dt>env</dt><dd><p>Dictionary of environment parameters, loaded from input file</p>
 </dd>
@@ -174,6 +189,7 @@ See also Table 6 in Novoa et al. (2013): <a class="reference external" href="htt
 <dt>out_path</dt><dd><p>unused</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 </section>
