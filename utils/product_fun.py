@@ -292,12 +292,11 @@ def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
 
 def get_valid_pe_from_nc(nc, band_name=None):
     if band_name is None:
-        bands = []
+        bands = nc.variables.keys()
     else:
         bands = [band_name]
     for band in bands:
-        if 'valid_pixel_expression' in nc.variables[band].__dict__.keys() and nc.variables[
-            band].valid_pixel_expression != "":
+        if 'valid_pixel_expression' in nc.variables[band].__dict__.keys() and nc.variables[band].valid_pixel_expression != "":
             return nc.variables[band].valid_pixel_expression
     else:
         print('No valid pixel expression in provided product.')
