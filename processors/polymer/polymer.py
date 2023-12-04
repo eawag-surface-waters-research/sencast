@@ -30,7 +30,7 @@ from pyhdf.error import HDF4Error
 
 from utils.auxil import log, gpt_subprocess
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
-    get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos
+    get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos, get_reproject_params_from_img
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
 # Key of the params section for this processor
@@ -151,8 +151,10 @@ def process(env, params, l1product_path, _, out_path):
     log(env["General"]["log"], "Atmospheric correction complete.", indent=1)
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor))
+    tiles = True if "tiles" in params['General'] and params['General']["tiles"] != "" else False
+
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt)
+        rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt, poly_tmp_file, tiles)
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(poly_tmp_file),
             "-PoutputFile={}".format(output_file)]
@@ -175,14 +177,14 @@ def process(env, params, l1product_path, _, out_path):
             log(env["General"]["log"], "Removed corrupted output file.", indent=2)
         raise RuntimeError("GPT Failed.")
 
-    return output_file
 
-
-def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt):
+def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt, source_file, tiles):
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor)), "r") as f:
         xml = f.read()
-
-    reproject_params = get_reproject_params_from_wkt(wkt, resolution)
+    if tiles:
+        reproject_params = get_reproject_params_from_img(source_file, resolution)
+    else:
+        reproject_params = get_reproject_params_from_wkt(wkt, resolution)
     xml = xml.replace("${validPixelExpression}", validexpression)
     xml = xml.replace("${easting}", reproject_params['easting'])
     xml = xml.replace("${northing}", reproject_params['northing'])
@@ -222,8 +224,11 @@ def get_corner_pixels_roi_msi(l1product_path, wkt):
 def get_pixel_pos_msi(dataset, lon, lat):
     transformer = Transformer.from_crs("epsg:4326", dataset.crs)
     row, col = transformer.transform(lat, lon)
+    h, w = dataset.height, dataset.width
     y, x = dataset.index(row, col)
-    return [-1, -1] if x < 0 or y < 0 else [x, y]
+    xx = x if 0 < x <= w else -1
+    yy = y if 0 < y <= h else -1
+    return [xx, yy]
 
 
 def get_corner_pixels_roi_olci(l1product_path, wkt):

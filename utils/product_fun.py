@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 """This module bundles utility functions regarding satellite products."""
+import math
 
 import numpy as np
 import os
 import re
 import subprocess
 from math import ceil, floor
-
+import time
 import pandas as pd
 from haversine import haversine
 from datetime import datetime
@@ -127,6 +128,24 @@ def get_reproject_params_from_wkt(wkt, resolution):
             'pixelSizeY': str(y_pixsize), 'width': str(x_pix), 'height': str(y_pix)}
 
 
+def get_reproject_params_from_img(img, resolution):
+    with Dataset(img) as nc:
+        width = len(nc.dimensions["width"])
+        height = len(nc.dimensions["height"])
+        north = np.array(nc.variables["latitude"][:]).max()
+        south = np.array(nc.variables["latitude"][:]).min()
+        east = np.array(nc.variables["longitude"][:]).max()
+        west = np.array(nc.variables["longitude"][:]).min()
+    x_dist = haversine((south, west), (south, east))
+    y_dist = haversine((south, west), (north, west))
+    x_pix = int(round(x_dist / (int(resolution) / 1000)))
+    y_pix = int(round(y_dist / (int(resolution) / 1000)))
+    x_pixsize = (east - west) / x_pix
+    y_pixsize = (north - south) / y_pix
+    return {'easting': str(west), 'northing': str(north), 'pixelSizeX': str(x_pixsize),
+            'pixelSizeY': str(y_pixsize), 'width': str(width), 'height': str(height)}
+
+
 def get_sensing_date_from_product_name(product_name):
     """Read the sensing date from a product name."""
     return re.findall(r"\d{8}", product_name)[0]
@@ -214,8 +233,8 @@ def get_name_width_height_from_nc(nc, product_file=None):
     """Returns the height and the width of a given product."""
     for var in nc.variables:
         if len(nc.variables[var].shape) == 2:
-            return os.path.splitext(os.path.basename(product_file))[0] if product_file is not None else None,\
-                   nc.variables[var].shape[1], nc.variables[var].shape[0]
+            return os.path.splitext(os.path.basename(product_file))[0] if product_file is not None else None, \
+                nc.variables[var].shape[1], nc.variables[var].shape[0]
     raise RuntimeWarning('Could not read width and height from product {}.'.format(product_file))
 
 
@@ -273,12 +292,15 @@ def get_pixel_pos(longitudes, latitudes, lon, lat, x=None, y=None, step=None):
 
 def get_valid_pe_from_nc(nc, band_name=None):
     if band_name is None:
-        for band_name in nc.variables:
-            if 'valid_pixel_expression' in nc.variables[band_name].__dict__.keys():
-                return nc.variables[band_name].valid_pixel_expression
-    elif 'valid_pixel_expression' in nc.variables[band_name].__dict__.keys():
-        return nc.variables[band_name].valid_pixel_expression
-    raise RuntimeError('Unable to read valid pixel expression from provided product. Please implement!')
+        bands = nc.variables.keys()
+    else:
+        bands = [band_name]
+    for band in bands:
+        if 'valid_pixel_expression' in nc.variables[band].__dict__.keys() and nc.variables[band].valid_pixel_expression != "":
+            return nc.variables[band].valid_pixel_expression
+    else:
+        print('No valid pixel expression in provided product.')
+        return False
 
 
 def get_lat_lon_from_x_y_from_nc(nc, x, y, lat_var_name=None, lon_var_name=None):
@@ -346,10 +368,28 @@ def copy_band(src, dst, band_name):
 
 
 def create_band(dst, band_name, band_unit, valid_pixel_expression):
-    b = dst.createVariable(band_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN, compression='zlib', complevel=6)
+    b = dst.createVariable(band_name, 'f', dimensions=('lat', 'lon'), fill_value=np.NaN, compression='zlib',
+                           complevel=6)
     b.units = band_unit
-    b.valid_pixel_expression = valid_pixel_expression
+    if valid_pixel_expression:
+        b.valid_pixel_expression = valid_pixel_expression
     return b
+
+
+def create_chunks(width, height, number):
+    cx = math.floor(width / number)
+    cy = math.floor(height / number)
+    c = []
+    for i in range(number):
+        cxx = cx
+        if i == number - 1:
+            cxx = cx + width % number
+        for j in range(number):
+            cyy = cy
+            if j == number - 1:
+                cyy = cy + height % number
+            c.append({"x": i * cx, "y": j * cy, "w": cxx, "h": cyy})
+    return c
 
 
 def read_pixels_from_nc(nc, band_name, x, y, w, h, data=None, dtype=np.float64):
@@ -380,8 +420,14 @@ def append_to_valid_pixel_expression(nc, vpe):
     for band_name in nc.variables.keys():
         band_properties = nc.variables[band_name].__dict__
         if "valid_pixel_expression" in band_properties:
-            if vpe not in band_properties["valid_pixel_expression"] and band_properties["valid_pixel_expression"] != "":
-                nc.variables[band_name].valid_pixel_expression = band_properties["valid_pixel_expression"] + " and {}".format(vpe)
+            if vpe not in band_properties["valid_pixel_expression"]:
+                if band_properties["valid_pixel_expression"] != "":
+                    nc.variables[band_name].valid_pixel_expression = band_properties[
+                                                                     "valid_pixel_expression"] + " and {}".format(vpe)
+                else:
+                    nc.variables[band_name].valid_pixel_expression = vpe
+        else:
+            nc.variables[band_name].valid_pixel_expression = vpe
 
 
 def get_np_data_type(nc, band_name):

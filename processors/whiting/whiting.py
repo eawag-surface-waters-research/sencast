@@ -5,9 +5,7 @@
 """
 
 import os
-import subprocess
 from utils.auxil import log, gpt_subprocess
-from utils.product_fun import get_reproject_params_from_wkt
 
 # Key of the params section for this processor
 PARAMS_SECTION = "WHITING"
