@@ -242,6 +242,14 @@
 				</targetBand>
 				<targetBand>
 					<validExpression>${validPixelExpression}</validExpression>
+					<name>tsm_dogliotti665</name>
+					<type>float32</type>
+					<expression>(800 * Rw665) / (1 - Rw665/0.1728)</expression>
+					<unit>g/m^3</unit>
+					<noDataValue>NaN</noDataValue>
+				</targetBand>
+				<targetBand>
+					<validExpression>${validPixelExpression}</validExpression>
 					<name>tsm_zhang709</name>
 					<type>float32</type>
 					<expression>pow((362507 * Rw709),  2.3222)</expression>

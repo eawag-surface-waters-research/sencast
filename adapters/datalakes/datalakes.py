@@ -144,19 +144,22 @@ def apply(env, params, l2product_files, date):
     if "aws_access_key_id" not in env[PARAMS_SECTION] or "aws_secret_access_key" not in env[PARAMS_SECTION]:
         raise ValueError("aws_access_key_id and aws_secret_access_key must be defined in environment file")
 
-    if l2product_file:
-        log(env["General"]["log"], "Uploading files to {}".format(params[PARAMS_SECTION]["bucket"]), indent=1)
-        if "S2" in satellite:
-            upload_directory(os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR),
-                             params[PARAMS_SECTION]["bucket"], env[PARAMS_SECTION]["aws_access_key_id"],
-                             env[PARAMS_SECTION]["aws_secret_access_key"], env["General"]["log"], extension=".tif")
-        else:
-            upload_directory(os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR),
-                             params[PARAMS_SECTION]["bucket"], env[PARAMS_SECTION]["aws_access_key_id"],
-                             env[PARAMS_SECTION]["aws_secret_access_key"], env["General"]["log"])
+    if "upload" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["upload"] == "false":
+        log(env["General"]["log"], "Not uploading files.", indent=1)
+    else:
+        if l2product_file:
+            log(env["General"]["log"], "Uploading files to {}".format(params[PARAMS_SECTION]["bucket"]), indent=1)
+            if "S2" in satellite:
+                upload_directory(os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR),
+                                 params[PARAMS_SECTION]["bucket"], env[PARAMS_SECTION]["aws_access_key_id"],
+                                 env[PARAMS_SECTION]["aws_secret_access_key"], env["General"]["log"], extension=".tif")
+            else:
+                upload_directory(os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR),
+                                 params[PARAMS_SECTION]["bucket"], env[PARAMS_SECTION]["aws_access_key_id"],
+                                 env[PARAMS_SECTION]["aws_secret_access_key"], env["General"]["log"])
 
-        log(env["General"]["log"], "Notifying Datalakes API of updated data.", indent=1)
-        requests.get(NOTIFY_URL)
+            log(env["General"]["log"], "Notifying Datalakes API of updated data.", indent=1)
+            requests.get(NOTIFY_URL)
 
     if len(errors) > 0:
         raise ValueError(". ".join(errors))

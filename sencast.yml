@@ -10,7 +10,7 @@ dependencies:
   - colour-science=0.3.*
   - cython=0.29.32
   - ecmwfapi=1.4.1
-  - gdal=3.2.2
+  - gdal=3.3.2
   - geos=3.9.1
   - glymur=0.*
   - haversine=2.*

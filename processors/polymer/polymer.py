@@ -178,14 +178,13 @@ def process(env, params, l1product_path, _, out_path):
         raise RuntimeError("GPT Failed.")
 
 
-def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt, poly_tmp_file, tiles):
+def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt, source_file, tiles):
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor)), "r") as f:
         xml = f.read()
     if tiles:
-        reproject_params = get_reproject_params_from_img(poly_tmp_file, resolution)
+        reproject_params = get_reproject_params_from_img(source_file, resolution)
     else:
         reproject_params = get_reproject_params_from_wkt(wkt, resolution)
-    xml = xml.replace("${wkt}", wkt)
     xml = xml.replace("${validPixelExpression}", validexpression)
     xml = xml.replace("${easting}", reproject_params['easting'])
     xml = xml.replace("${northing}", reproject_params['northing'])

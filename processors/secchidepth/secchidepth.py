@@ -10,10 +10,10 @@ Authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt
 import os
 import re
 import numpy as np
-
+import time
 from netCDF4 import Dataset
 from utils.auxil import log
-from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, \
+from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, create_chunks, \
     get_satellite_name_from_product_name, get_valid_pe_from_nc, write_pixels_to_nc, create_band, read_pixels_from_nc
 
 # key of the params section for this adapter
@@ -21,7 +21,7 @@ PARAMS_SECTION = 'SECCHIDEPTH'
 # The name of the folder to which the output product will be saved
 OUT_DIR = 'L2QAA'
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = 'L2QAA_{}.nc'
+OUT_FILENAME = 'L2QAA_{}'
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
@@ -72,99 +72,112 @@ def process(env, params, l1product_path, l2product_files, out_path):
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
+    chunks = 2 if "chunks" not in params[PARAMS_SECTION] else int(params[PARAMS_SECTION]["chunks"])
+
     log(env["General"]["log"], 'Reading POLYMER output from {}'.format(product_path))
-    with Dataset(product_path) as src, Dataset(output_file, mode='w') as dst:
-        name, width, height = get_name_width_height_from_nc(src, product_path)
-        product_band_names = get_band_names_from_nc(src)
+    try:
+        with Dataset(product_path) as src, Dataset(output_file, mode='w') as dst:
+            name, width, height = get_name_width_height_from_nc(src, product_path)
+            product_band_names = get_band_names_from_nc(src)
 
-        log(env["General"]["log"], 'Product:      {}'.format(name), indent=1)
-        log(env["General"]["log"], 'Raster size: {} x {} pixels'.format(width, height), indent=1)
-        log(env["General"]["log"], 'Bands:       {}'.format(list(product_band_names)), indent=1)
+            log(env["General"]["log"], 'Product:      {}'.format(name), indent=1)
+            log(env["General"]["log"], 'Raster size: {} x {} pixels'.format(width, height), indent=1)
+            log(env["General"]["log"], 'Bands:       {}'.format(list(product_band_names)), indent=1)
 
-        satellite = get_satellite_name_from_product_name(product_name)
+            satellite = get_satellite_name_from_product_name(product_name)
 
-        ################## Setup band configuration for Sentinel-2 or Sentinel-3 ##################
-        if satellite in ['S2A', 'S2B']:
-            # ToDo: values for Sentinel-2 are yet to be configured
-            log(env["General"]["log"], 'QAA Secchi for Sentinel-2 should be used with caution. Parameters are not fully validated.', indent=1)
-            # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
-            g0 = 0.08945
-            g1 = 0.1247
-            # Pure Water absorption coefficient at 443, 490, 560, 665, 705 nm from Pope and Fry (1997)
-            aws = [0.00696, 0.0150, 0.0619, 0.429, 0.704]
-            # Pure Water backscattering at 443, 490, 560, 665, 705 nm from Morel (1974)
-            bws = [0.00349, 0.00222, 0.00149, 0.00109, 0.00047282]
-            # Center Wavelenghts
-            wvl = [443, 490, 560, 665, 705]
-            # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
-            m0 = 0.005 if "m0" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m0"]
-            m1 = 4.26 if "m1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m1"]
-            m2 = 0.52 if "m2" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m2"]
-            m3 = 10.8 if "m3" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m3"]
-            y1 = 0.265 if "y1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["y1"]
-            spectral_band_names = ['Rw443', 'Rw490', 'Rw560', 'Rw665', 'Rw705']
-            tsm_band = 'tsm_binding740'
-            a_gelb_band = 'a_gelb443_median'
-            secchi_row = secchi_s2_row
-        elif satellite in ['S3A', 'S3B']:
-            # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
-            g0 = 0.08945
-            g1 = 0.1247
-            # Pure Water absorption coefficient at 412.5, 442.5, 490, 510, 560, 620, 665, 673.75nm from Pope and Fry (1997)
-            aws = [0.00452, 0.00696, 0.0150, 0.0325, 0.0619, 0.2755, 0.429, 0.448]
-            # Pure Water backscattering at 412.5, 442.5, 490, 510, 560, 620, 665, 673.75nm from Morel (1974)
-            bws = [0.00447, 0.00349, 0.00222, 0.00222, 0.00149, 0.00109, 0.00109, 0.00109]
-            # Center Wavelenghts
-            wvl = [412.5, 442.5, 490, 510, 560, 620, 665, 681.25]
-            # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
-            m0 = 0.005 if "m0" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m0"])
-            m1 = 4.259 if "m1" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m1"])
-            m2 = 0.52 if "m2" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m2"])
-            m3 = 10.8 if "m3" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m3"])
-            y1 = 0.265 if "y1" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["y1"])
+            ################## Setup band configuration for Sentinel-2 or Sentinel-3 ##################
+            if satellite in ['S2A', 'S2B']:
+                # ToDo: values for Sentinel-2 are yet to be configured
+                log(env["General"]["log"], 'QAA Secchi for Sentinel-2 should be used with caution. Parameters are not fully validated.', indent=1)
+                # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
+                g0 = 0.08945
+                g1 = 0.1247
+                # Pure Water absorption coefficient at 443, 490, 560, 665, 705 nm from Pope and Fry (1997)
+                aws = [0.00696, 0.0150, 0.0619, 0.429, 0.704]
+                # Pure Water backscattering at 443, 490, 560, 665, 705 nm from Morel (1974)
+                bws = [0.00349, 0.00222, 0.00149, 0.00109, 0.00047282]
+                # Center Wavelenghts
+                wvl = [443, 490, 560, 665, 705]
+                # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
+                m0 = 0.005 if "m0" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m0"]
+                m1 = 4.26 if "m1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m1"]
+                m2 = 0.52 if "m2" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m2"]
+                m3 = 10.8 if "m3" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["m3"]
+                y1 = 0.265 if "y1" not in params[PARAMS_SECTION] else params[PARAMS_SECTION]["y1"]
+                spectral_band_names = ['Rw443', 'Rw490', 'Rw560', 'Rw665', 'Rw705']
+                a_gelb_band = 'a_gelb443_median'
+                secchi_processing = secchi_s2
+            elif satellite in ['S3A', 'S3B']:
+                # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
+                g0 = 0.08945
+                g1 = 0.1247
+                # Pure Water absorption coefficient at 412.5, 442.5, 490, 510, 560, 620, 665, 673.75nm from Pope and Fry (1997)
+                aws = [0.00452, 0.00696, 0.0150, 0.0325, 0.0619, 0.2755, 0.429, 0.448]
+                # Pure Water backscattering at 412.5, 442.5, 490, 510, 560, 620, 665, 673.75nm from Morel (1974)
+                bws = [0.00447, 0.00349, 0.00222, 0.00222, 0.00149, 0.00109, 0.00109, 0.00109]
+                # Center Wavelenghts
+                wvl = [412.5, 442.5, 490, 510, 560, 620, 665, 681.25]
+                # Coefficients for the calculation of the Diffuse attenuation coefficient based on Lee et al. (2016)
+                m0 = 0.005 if "m0" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m0"])
+                m1 = 4.259 if "m1" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m1"])
+                m2 = 0.52 if "m2" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m2"])
+                m3 = 10.8 if "m3" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["m3"])
+                y1 = 0.265 if "y1" not in params[PARAMS_SECTION] else float(params[PARAMS_SECTION]["y1"])
 
-            spectral_band_names = ['Rw412', 'Rw443', 'Rw490', 'Rw510', 'Rw560', 'Rw620', 'Rw665', 'Rw681']
-            tsm_band = 'tsm_binding754'
-            a_gelb_band = 'a_gelb443'
-            secchi_row = secchi_s3_row
-        else:
-            raise RuntimeError('Secchi adapter not implemented for satellite ' + satellite)
+                spectral_band_names = ['Rw412', 'Rw443', 'Rw490', 'Rw510', 'Rw560', 'Rw620', 'Rw665', 'Rw681']
+                a_gelb_band = 'a_gelb443'
+                secchi_processing = secchi_s3
+            else:
+                raise RuntimeError('Secchi adapter not implemented for satellite ' + satellite)
 
-        secchi_band_names = ['Z' + band_name[2:] for band_name in spectral_band_names] + [a_gelb_band] + \
-                            ['a_dg' + band_name[2:] for band_name in spectral_band_names] + \
-                            ['a_ph' + band_name[2:] for band_name in spectral_band_names] + ['Zsd_lee', 'Zsd_jiang']
-        secchi_band_units = ['m' if 'Z' in bn else ('m^-1' if 'a' in bn else None) for bn in secchi_band_names]
+            secchi_band_names = ['Z' + band_name[2:] for band_name in spectral_band_names] + [a_gelb_band] + \
+                                ['a_dg' + band_name[2:] for band_name in spectral_band_names] + \
+                                ['a_ph' + band_name[2:] for band_name in spectral_band_names] + ['Zsd_lee', 'Zsd_jiang']
+            secchi_band_units = ['m' if 'Z' in bn else ('m^-1' if 'a' in bn else None) for bn in secchi_band_names]
 
-        valid_pixel_expression = get_valid_pe_from_nc(src)
-        inclusions = [band for band in product_band_names if band in valid_pixel_expression]
-        copy_nc(src, dst, inclusions)
+            valid_pixel_expression = get_valid_pe_from_nc(src)
+            inclusions = []
+            if valid_pixel_expression:
+                inclusions = [band for band in product_band_names if band in valid_pixel_expression]
+            copy_nc(src, dst, inclusions)
 
-        secchi_bands = []
-        for band_name, band_unit in zip(secchi_band_names, secchi_band_units):
-            band = create_band(dst, band_name, band_unit, valid_pixel_expression)
-            if len(re.findall(r'\d+', band_name)) > 0:
-                band.spectralWavelength = float(re.findall(r'\d+', band_name)[0])
-            secchi_bands.append(band)
+            secchi_bands = []
+            for band_name, band_unit in zip(secchi_band_names, secchi_band_units):
+                band = create_band(dst, band_name, band_unit, valid_pixel_expression)
+                if len(re.findall(r'\d+', band_name)) > 0:
+                    band.spectralWavelength = float(re.findall(r'\d+', band_name)[0])
+                secchi_bands.append(band)
 
-        log(env["General"]["log"], "Calculating Secchi depth.", indent=1)
+            log(env["General"]["log"], "Calculating Secchi depth.", indent=1)
 
-        for n_row in range(height):
-            # Reading the different bands per pixel into arrays
-            rs = [read_pixels_from_nc(src, band_name, 0, n_row, width, 1) for band_name in spectral_band_names]
+            for chunk in create_chunks(width, height, chunks):
 
-            # Reading the solar zenith angle per pixel
-            sza = read_pixels_from_nc(src, 'sza', 0, n_row, width, 1)
+                # Reading the different bands per pixel into arrays
+                rs = [read_pixels_from_nc(src, band_name, chunk["x"], chunk["y"], chunk["w"], chunk["h"]) for band_name in spectral_band_names]
 
-            ################## Derivation of total absorption and backscattering coefficients ###########
-            # Divide r by pi for the conversion of polymer’s water-leaving reflectance output (Rw, unitless) to QAA’s expected remote sensing reflectance input (Rrs, unit per steradian, sr-1)
-            rrs = [(r / np.pi) / (0.52 + (1.7 * (r / np.pi))) for r in rs]
-            us = [(-g0 + (np.sqrt((g0 ** 2) + (4 * g1) * rr))) / (2 * g1) for rr in rrs]
-            secchi_row(dst, n_row, secchi_band_names, width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1)
+                # Reading the solar zenith angle per pixel
+                sza = read_pixels_from_nc(src, 'sza', chunk["x"], chunk["y"], chunk["w"], chunk["h"])
 
-        return output_file
+                ################## Derivation of total absorption and backscattering coefficients ###########
+                # Divide r by pi for the conversion of polymer’s water-leaving reflectance output (Rw, unitless) to QAA’s expected remote sensing reflectance input (Rrs, unit per steradian, sr-1)
+                rrs = [(r / np.pi) / (0.52 + (1.7 * (r / np.pi))) for r in rs]
+                us = [(-g0 + (np.sqrt((g0 ** 2) + (4 * g1) * rr))) / (2 * g1) for rr in rrs]
+                output = secchi_processing(len(rs[0]), rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1)
+
+                # Write the secchi depth per band
+                for band_name, bds in zip(secchi_band_names, output):
+                    write_pixels_to_nc(dst, band_name, chunk["x"], chunk["y"], chunk["w"], chunk["h"], bds)
+
+            return output_file
+    except Exception as e:
+        if os.path.exists(output_file):
+            os.remove(output_file)
+        raise
 
 
-def secchi_s2_row(dst, n_row, secchi_band_names, width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
+def secchi_s2(width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
+    # Reading the different bands per pixel into arrays
     # ToDo: values for Sentinel-2 are yet to be configured
     ratioChi = rrs[3] / rrs[1]
     chi = np.log10((rrs[0] + rrs[1]) / (rrs[2] + 5 * ratioChi * rrs[3]))
@@ -183,7 +196,6 @@ def secchi_s2_row(dst, n_row, secchi_band_names, width, rs, rrs, us, sza, aws, b
 
     ################## Diffuse attenuation coefficient and Secchi Depth retrieval ###############
     # Kd per band:
-    print(a_s, bws, bbs)
     Kds = [(1 + m0 * sza) * a + (1 - y1 * (bw / bb)) * m1 * (1 - m2 * np.exp(-m3 * a)) * bb for (a, bw, bb) in
            zip(a_s, bws, bbs)]
     np.seterr(over='ignore')
@@ -234,12 +246,10 @@ def secchi_s2_row(dst, n_row, secchi_band_names, width, rs, rrs, us, sza, aws, b
         bds[bds == np.inf] = np.nan
         bds[bds == -np.inf] = np.nan
 
-    # Write the secchi depth per band
-    for band_name, bds in zip(secchi_band_names, output):
-        write_pixels_to_nc(dst, band_name, 0, n_row, width, 1, bds)
+    return output
 
 
-def secchi_s3_row(dst, n_row, secchi_band_names, width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
+def secchi_s3(width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
     ratioChi = rrs[6] / rrs[2]
     chi = np.log10((rrs[1] + rrs[2]) / (rrs[4] + 5 * ratioChi * rrs[6]))
     # Absorption ref. band:
@@ -307,6 +317,4 @@ def secchi_s3_row(dst, n_row, secchi_band_names, width, rs, rrs, us, sza, aws, b
         bds[bds == np.inf] = np.nan
         bds[bds == -np.inf] = np.nan
 
-    # Write the secchi depth per band
-    for band_name, bds in zip(secchi_band_names, output):
-        write_pixels_to_nc(dst, band_name, 0, n_row, width, 1, bds)
+    return output
