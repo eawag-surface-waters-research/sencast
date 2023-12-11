@@ -6,6 +6,7 @@ The Datalakes adapter is designed to output specified bands in order to facilita
 in the Datalakes data portal https://www.datalakes-eawag.ch/.
 """
 import os
+import json
 import boto3
 import numpy as np
 import pandas as pd
@@ -16,8 +17,10 @@ from utils.auxil import log
 from json import dump
 from netCDF4 import Dataset
 from pyproj import CRS
+import shapely.vectorized
+from shapely.geometry import shape, MultiPolygon
 from utils.product_fun import get_satellite_name_from_product_name, get_sensing_datetime_from_product_name, \
-    get_pixels_from_nc, write_all_pixels_to_nc, create_band, append_to_valid_pixel_expression
+    write_all_pixels_to_nc, create_band, append_to_valid_pixel_expression
 osr.UseExceptions()
 
 # the url to post new data notification to
@@ -99,23 +102,20 @@ def apply(env, params, l2product_files, date):
                         f.write(nc_bytes)
 
                     if "S3" in satellite:
-                        mask_file = S3_LAKE_MASK.format(params["General"]["wkt_name"])
-                        mask_band_name = "Swiss_S3_water"
+                        mask_file = "S3_alplakes_watermask.geojson"
                     elif "S2" in satellite:
-                        mask_file = S2_LAKE_MASK.format(params["General"]["wkt_name"], tile, params["General"]["resolution"])
-                        mask_band_name = "lake_mask"
+                        mask_file = "S2_alplakes_watermask.geojson"
                     mask_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), mask_file)
-                    if os.path.exists(mask_file_path):
-                        try:
-                            log(env["General"]["log"], "Merging {} with {}".format(os.path.basename(input_file), mask_file), indent=2)
-                            lake_mask = get_pixels_from_nc(mask_file_path, mask_band_name)
-                            with Dataset(input_file, mode='r+') as dst:
-                                create_band(dst, "lake_mask", "", "lake_mask>0")
-                                write_all_pixels_to_nc(dst, "lake_mask", lake_mask)
-                                append_to_valid_pixel_expression(dst, "lake_mask>0")
-                        except Exception as e:
-                            print(e)
-                            log(env["General"]["log"], "Failed to merge with {}".format(mask_file), indent=2)
+                    try:
+                        log(env["General"]["log"], "Merging {} with {}".format(os.path.basename(input_file), mask_file), indent=2)
+                        lake_mask = get_mask_from_geojson(input_file, mask_file_path)
+                        with Dataset(input_file, mode='r+') as dst:
+                            create_band(dst, "lake_mask", "", "lake_mask>0")
+                            write_all_pixels_to_nc(dst, "lake_mask", lake_mask)
+                            append_to_valid_pixel_expression(dst, "lake_mask>0")
+                    except Exception as e:
+                        print(e)
+                        log(env["General"]["log"], "Failed to merge with {}".format(mask_file), indent=2)
                     else:
                         log(env["General"]["log"], "Mask file {} not found.".format(mask_file), indent=2)
 
@@ -313,3 +313,26 @@ def upload_directory(path, bucket, aws_access_key_id, aws_secret_access_key, log
                     log(logger, "Failed to upload: {}".format(file), indent=2)
     if failed:
         raise RuntimeError("Failed to upload all files to {}".format(bucket))
+
+
+def get_mask_from_geojson(input_file, geojson_path):
+    with open(geojson_path, 'r') as file:
+        geojson_data = json.load(file)
+
+    shapely_geometries = [shape(feature['geometry']) for feature in geojson_data['features']]
+    multi_polygon = MultiPolygon(shapely_geometries)
+
+    with Dataset(input_file, 'r+') as nc:
+        if "latitude" in nc.variables.keys():
+            latitudes = nc.variables['latitude'][:]
+            longitudes = nc.variables['longitude'][:]
+        else:
+            latitudes = nc.variables['lat'][:]
+            longitudes = nc.variables['lon'][:]
+
+    if len(latitudes.shape) == 1:
+        x, y = len(longitudes), len(latitudes)
+        latitudes = np.transpose(np.tile(latitudes, (x, 1)))
+        longitudes = np.tile(longitudes, (y, 1))
+
+    return shapely.vectorized.contains(multi_polygon, longitudes, latitudes).astype("int") * 255
