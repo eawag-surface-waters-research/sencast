@@ -116,8 +116,6 @@ def apply(env, params, l2product_files, date):
                     except Exception as e:
                         print(e)
                         log(env["General"]["log"], "Failed to merge with {}".format(mask_file), indent=2)
-                    else:
-                        log(env["General"]["log"], "Mask file {} not found.".format(mask_file), indent=2)
 
                     for idx, val in enumerate(bands):
                         log(env["General"]["log"], "Processing {} band {}".format(processor, val), indent=3)
