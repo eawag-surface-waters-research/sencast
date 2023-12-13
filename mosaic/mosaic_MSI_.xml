@@ -3,8 +3,7 @@
 	<node id="mosaicNode">
 		<operator>multi-size mosaic</operator>
 		<sources>
-			<source0>${sourceFile0}</source0>
-			<source1>${sourceFile1}</source1>
+			${sources}
 		</sources>
 		<parameters>
 			<variables>
