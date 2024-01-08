@@ -30,7 +30,7 @@ from pyhdf.error import HDF4Error
 
 from utils.auxil import log, gpt_subprocess
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
-    get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos, get_reproject_params_from_img
+    get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos, get_reproject_params_from_img, get_s2_tile_name_from_product_name
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
 # Key of the params section for this processor
@@ -38,11 +38,11 @@ PARAMS_SECTION = "POLYMER"
 # The name of the folder to which the output product will be saved
 OUT_DIR = "L2POLY"
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = "L2POLY_L1P_reproj_{}_{}.nc"
+OUT_FILENAME = "L2POLY_reproj_{}_{}.nc"
 # A pattern for name of the folder to which the quicklooks will be saved (completed with band name)
 QL_DIR = "L2POLY-{}"
 # A pattern for the name of the file to which the quicklooks will be saved (completed with product name and band name)
-QL_FILENAME = "L2POLY_L1P_reproj_{}_{}.png"
+QL_FILENAME = "L2POLY_reproj_{}_{}.png"
 # The name of the xml file for gpt
 GPT_XML_FILENAME = "polymer_{}.xml"
 # Default number of attempts for the GPT
@@ -143,7 +143,7 @@ def process(env, params, l1product_path, _, out_path):
         raise RuntimeError("Unknown sensor for polymer: {}".format(sensor))
 
     poly_tmp_file = os.path.join(out_path, OUT_DIR, "_reproducibility",
-                                 OUT_FILENAME.format(anc_name, product_name) + ".tmp")
+                                 OUT_FILENAME.format(anc_name, product_name).replace("reproj", "unproj"))
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
     os.makedirs(os.path.dirname(poly_tmp_file), exist_ok=True)
     log(env["General"]["log"], "Running atmospheric correction...", indent=1)
@@ -151,7 +151,10 @@ def process(env, params, l1product_path, _, out_path):
     log(env["General"]["log"], "Atmospheric correction complete.", indent=1)
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor))
+
     tiles = True if "tiles" in params['General'] and params['General']["tiles"] != "" else False
+    if tiles:
+        gpt_xml_file = gpt_xml_file.replace(".xml", "_{}.xml".format(get_s2_tile_name_from_product_name(l1product_path)))
 
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt, poly_tmp_file, tiles)

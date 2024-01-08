@@ -212,6 +212,7 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
     # download the products, which are not yet available locally
     log(env["General"]["log"], "", blank=True)
     log(env["General"]["log"], 'Processing group: "{}"'.format(group))
+    log(env["General"]["log"], 'Outputting to folder : "{}"'.format(l2_path))
     for product in products:
         if not os.path.exists(product["l1_product_path"]):
             with semaphores['download']:

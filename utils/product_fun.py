@@ -80,6 +80,10 @@ def filter_for_tiles(products, tiles, env):
     return filtered_products
 
 
+def get_s2_tile_name_from_product_name(product_name):
+    return product_name.split("_")[-2]
+
+
 def remove_superseded_products(products, env):
     filtered_products = []
     log(env["General"]["log"], "Filtering superseded files.", indent=1)
