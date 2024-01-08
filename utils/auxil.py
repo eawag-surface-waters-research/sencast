@@ -18,7 +18,7 @@ project_path = os.path.dirname(__file__)
 def init_hindcast(env_file, params_file):
     """Initialize a sencast run with an environment file and a parameters file."""
     # load environment and params from file
-    env, env_file, cache = load_environment(env_file)
+    env, env_file = load_environment(env_file)
     params, params_file = load_params(params_file, env['General']['params_path'])
 
     # create output path, if it does not exist yet
@@ -35,7 +35,9 @@ def init_hindcast(env_file, params_file):
     if not os.path.exists(os.path.dirname(log_file)):
         os.makedirs(os.path.dirname(log_file))
     env["General"]["log"] = log_file
-    log(log_file, "Starting SenCast with GPT cache size set to {}".format(cache))
+    log(log_file, "Starting SenCast.")
+    log(log_file, "Max memory: {}".format(env["General"]["max_memory"]), indent=1)
+    log(log_file, "GPT cache size: {}".format(env["General"]["gpt_cache_size"]), indent=1)
 
     if os.path.isdir(out_path) and os.listdir(out_path) and os.path.isfile(os.path.join(out_path, os.path.basename(params_file))):
         log(log_file, "Output folder for this run already exists.")
@@ -71,23 +73,22 @@ def load_environment(env_file=None, env_path=os.path.join(project_path, "../envi
         if not os.path.isfile(env_file):
             raise RuntimeError("The evironment file could not be found: {}".format(env_file))
         env.read(env_file)
-
-        cache = set_gpt_cache_size(env)
-        return env, env_file, cache
+        set_memory_parameters(env)
+        return env, env_file
 
     # Try to use host and user specific env file
     host_user_env_file = os.path.join(env_path, "{}.{}.ini".format(socket.gethostname(), getpass.getuser()))
     if os.path.isfile(host_user_env_file):
         env.read(host_user_env_file)
-        cache = set_gpt_cache_size(env)
-        return env, host_user_env_file, cache
+        set_memory_parameters(env)
+        return env, host_user_env_file
 
     # Try to use host specific env file
     host_env_file = os.path.join(env_path, "{}.ini".format(socket.gethostname()))
     if os.path.isfile(host_env_file):
         env.read(host_env_file)
-        cache = set_gpt_cache_size(env)
-        return env, host_env_file, cache
+        set_memory_parameters(env)
+        return env, host_env_file
 
     raise RuntimeError("Could not load any of the following evironments:\n{}\n{}".format(host_user_env_file,
                        host_env_file))
@@ -147,25 +148,50 @@ def gpt_subprocess(cmd, log_path, attempts=1, timeout=False):
     return False
 
 
-def set_gpt_cache_size(env):
-    """Set the GPT cache size, if not set."""
-    if not env['General']['gpt_cache_size']:
-        heap_size = ""
-        with open(os.path.join(os.path.dirname(env['General']['gpt_path']), "gpt.vmoptions"), "rt") as f:
-            for line in f:
+def set_memory_parameters(env):
+    """Set the max memory usage and GPT cache size if not set."""
+    gpt_properties = os.path.join(os.path.dirname(env['General']['gpt_path']), "gpt.vmoptions")
+    if env["General"]["max_memory"]:
+        if os.path.isfile(gpt_properties):
+            with open(gpt_properties, 'rt') as f:
+                lines = f.readlines()
+            exists = False
+            for i, line in enumerate(lines):
                 if line.startswith(r"-Xmx"):
-                    heap_size = line.replace(r"-Xmx", "")
-                    if "m" in heap_size:
-                        heap_size = float(heap_size.replace(r"m", ""))/1000
-                    elif "G" in heap_size:
-                        heap_size = float(heap_size.replace(r"G", ""))
-                    elif "g" in heap_size:
-                        heap_size = float(heap_size.replace(r"g", ""))
-        if not heap_size:
-            raise RuntimeError("Could not read heap size from GPT vmoptions. Set it in your env file!")
-        cache_size = str(int(round(int(heap_size) * 0.7, 0,))) + "G"
-        env['General']['gpt_cache_size'] = cache_size
-    return env['General']['gpt_cache_size']
+                    lines[i] = "-Xmx{}\n".format(env["General"]["max_memory"])
+                    exists = True
+            if not exists:
+                lines.append("-Xmx{}\n".format(env["General"]["max_memory"]))
+            with open(gpt_properties, 'w') as f:
+                f.writelines(lines)
+        else:
+            with open(gpt_properties, 'w') as f:
+                f.write("-Xmx{}\n".format(env["General"]["max_memory"]))
+    else:
+        if os.path.isfile(gpt_properties):
+            with open(gpt_properties, 'rt') as f:
+                lines = f.readlines()
+            exists = False
+            for i, line in enumerate(lines):
+                if line.startswith(r"-Xmx"):
+                    env["General"]["max_memory"] = line.replace(r"-Xmx", "").strip()
+                    exists = True
+            if not exists:
+                raise RuntimeError("Could not read -Xmx size from GPT vmoptions. Set max_memory in your env file.")
+        else:
+            raise RuntimeError("Could not read -Xmx size from GPT vmoptions. Set max_memory in your env file.")
+
+    if not env['General']['gpt_cache_size']:
+        if "m" in env["General"]["max_memory"]:
+            heap_size = float(env["General"]["max_memory"].replace(r"m", ""))
+        elif "G" in env["General"]["max_memory"]:
+            heap_size = float(env["General"]["max_memory"].replace(r"G", "")) * 1000
+        elif "g" in env["General"]["max_memory"]:
+            heap_size = float(env["General"]["max_memory"].replace(r"g", "")) * 1000
+        else:
+            raise RuntimeError("Unrecognised Xmx parameter: {}".format(env["General"]["max_memory"]))
+
+        env['General']['gpt_cache_size'] = str(int(round(int(heap_size) * 0.7, 0,))) + "m"
 
 
 def load_properties(properties_file, separator_char='=', comment_char='#'):
