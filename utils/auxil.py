@@ -151,7 +151,7 @@ def gpt_subprocess(cmd, log_path, attempts=1, timeout=False):
 def set_memory_parameters(env):
     """Set the max memory usage and GPT cache size if not set."""
     gpt_properties = os.path.join(os.path.dirname(env['General']['gpt_path']), "gpt.vmoptions")
-    if env["General"]["max_memory"]:
+    if "max_memory" in env["General"] and env["General"]["max_memory"]:
         if os.path.isfile(gpt_properties):
             with open(gpt_properties, 'rt') as f:
                 lines = f.readlines()
@@ -181,7 +181,7 @@ def set_memory_parameters(env):
         else:
             raise RuntimeError("Could not read -Xmx size from GPT vmoptions. Set max_memory in your env file.")
 
-    if not env['General']['gpt_cache_size']:
+    if "gpt_cache_size" not in env['General'] or not env['General']['gpt_cache_size']:
         if "m" in env["General"]["max_memory"]:
             heap_size = float(env["General"]["max_memory"].replace(r"m", ""))
         elif "G" in env["General"]["max_memory"]:
@@ -190,7 +190,6 @@ def set_memory_parameters(env):
             heap_size = float(env["General"]["max_memory"].replace(r"g", "")) * 1000
         else:
             raise RuntimeError("Unrecognised Xmx parameter: {}".format(env["General"]["max_memory"]))
-
         env['General']['gpt_cache_size'] = str(int(round(int(heap_size) * 0.7, 0,))) + "m"
 
 
