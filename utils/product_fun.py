@@ -2,19 +2,19 @@
 # -*- coding: utf-8 -*-
 
 """This module bundles utility functions regarding satellite products."""
-import math
 
-import numpy as np
 import os
 import re
+import math
+import rasterio
 import subprocess
-from math import ceil, floor
-import time
+import numpy as np
 import pandas as pd
-from haversine import haversine
-from datetime import datetime
-
+from math import ceil
 from netCDF4 import Dataset
+from datetime import datetime
+from pyproj import Transformer
+from haversine import haversine
 
 from utils.auxil import log
 
@@ -132,7 +132,7 @@ def get_reproject_params_from_wkt(wkt, resolution):
             'pixelSizeY': str(y_pixsize), 'width': str(x_pix), 'height': str(y_pix)}
 
 
-def get_reproject_params_from_img(img, resolution):
+def get_reproject_params_from_nc(img, resolution):
     with Dataset(img) as nc:
         width = len(nc.dimensions["width"])
         height = len(nc.dimensions["height"])
@@ -140,6 +140,26 @@ def get_reproject_params_from_img(img, resolution):
         south = np.array(nc.variables["latitude"][:]).min()
         east = np.array(nc.variables["longitude"][:]).max()
         west = np.array(nc.variables["longitude"][:]).min()
+    x_dist = haversine((south, west), (south, east))
+    y_dist = haversine((south, west), (north, west))
+    x_pix = int(round(x_dist / (int(resolution) / 1000)))
+    y_pix = int(round(y_dist / (int(resolution) / 1000)))
+    x_pixsize = (east - west) / x_pix
+    y_pixsize = (north - south) / y_pix
+    return {'easting': str(west), 'northing': str(north), 'pixelSizeX': str(x_pixsize),
+            'pixelSizeY': str(y_pixsize), 'width': str(width), 'height': str(height)}
+
+
+def get_reproject_params_from_jp2(source_file, resolution):
+    with rasterio.open(source_file) as dataset:
+        width, height = dataset.width, dataset.height
+        transform = dataset.transform
+        westing, northing = transform * (0, 0)
+        easting, southing = transform * (width - 1, height - 1)
+        crs = dataset.crs
+    transformer = Transformer.from_crs(crs, 'epsg:4326')
+    north, west = transformer.transform(westing, northing)
+    south, east = transformer.transform(easting, southing)
     x_dist = haversine((south, west), (south, east))
     y_dist = haversine((south, west), (north, west))
     x_pix = int(round(x_dist / (int(resolution) / 1000)))

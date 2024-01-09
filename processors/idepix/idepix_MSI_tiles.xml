@@ -1,0 +1,62 @@
+<graph id="idepix">
+	<version>1.0</version>
+	<node id="resampleNode">
+		<operator>resample</operator>
+		<sources>
+			<sourceProduct>${sourceFile}</sourceProduct>
+		</sources>
+		<parameters>
+			<targetResolution>${resolution}</targetResolution>
+			<upsampling>Nearest</upsampling>
+			<downsampling>First</downsampling>
+			<flagDownsampling>First</flagDownsampling>
+			<resampleOnPyramidLevels>false</resampleOnPyramidLevels>
+		</parameters>
+	</node>
+	<node id="idepixNode">
+		<operator>idepix.s2</operator>
+		<sources>
+			<sourceProduct>resampleNode</sourceProduct>
+		</sources>
+		<parameters>
+			<computeCloudBuffer>true</computeCloudBuffer>
+			<cloudBufferWidth>5</cloudBufferWidth>
+		</parameters>
+	</node>
+	<node id="mergeNode">
+		<operator>merge</operator>
+		<sources>
+			<masterProduct>resampleNode</masterProduct>
+			<idepixProduct>idepixNode</idepixProduct>
+		</sources>
+	</node>
+	<node id="reprojectNode">
+		<operator>reproject</operator>
+		<sources>
+			<source>mergeNode</source>
+		</sources>
+		<parameters>
+			<crs>EPSG:4326</crs>
+			<resampling>Nearest</resampling>
+			<referencePixelX>0</referencePixelX>
+			<referencePixelY>0</referencePixelY>
+			<easting>${easting}</easting>
+			<northing>${northing}</northing>
+			<pixelSizeX>${pixelSizeX}</pixelSizeX>
+			<pixelSizeY>${pixelSizeY}</pixelSizeY>
+			<width>${width}</width>
+			<height>${height}</height>
+			<noDataValue>NaN</noDataValue>
+		</parameters>
+	</node>
+	<node id="writeNode">
+		<operator>write</operator>
+		<sources>
+			<source>reprojectNode</source>
+		</sources>
+		<parameters>
+			<file>${outputFile}</file>
+			<formatName>NetCDF4-BEAM</formatName>
+		</parameters>
+	</node>
+</graph>

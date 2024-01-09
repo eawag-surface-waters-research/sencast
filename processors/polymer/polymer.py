@@ -30,7 +30,7 @@ from pyhdf.error import HDF4Error
 
 from utils.auxil import log, gpt_subprocess
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
-    get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos, get_reproject_params_from_img, get_s2_tile_name_from_product_name
+    get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos, get_reproject_params_from_nc, get_s2_tile_name_from_product_name
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
 # Key of the params section for this processor
@@ -185,7 +185,7 @@ def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt, source_f
     with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor)), "r") as f:
         xml = f.read()
     if tiles:
-        reproject_params = get_reproject_params_from_img(source_file, resolution)
+        reproject_params = get_reproject_params_from_nc(source_file, resolution)
     else:
         reproject_params = get_reproject_params_from_wkt(wkt, resolution)
     xml = xml.replace("${validPixelExpression}", validexpression)
