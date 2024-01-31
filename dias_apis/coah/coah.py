@@ -30,7 +30,7 @@ token_address = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/proto
 def get_download_requests(auth, start_date, completion_date, sensor, resolution, wkt, env):
     query = "?$filter=((ContentDate/Start ge {} and ContentDate/Start le {}) and (Online eq true) and (OData.CSC.Intersects(Footprint=geography'SRID=4326;{}')) and (((((((Attributes/OData.CSC.StringAttribute/any(i0:i0/Name eq 'productType' and i0/Value eq '{}')))) and (Collection/Name eq '{}'))))))&$expand=Attributes&$top={}"
     max_records = 1000
-    geometry = wkt.replace(" ", "", 1)
+    geometry = wkt.replace(" ", "", 1).strip()
     satellite, product_type = get_dataset_id(sensor, resolution)
     query = query.format(start_date, completion_date, geometry, product_type, satellite, max_records)
     products = search(satellite, query, env)
