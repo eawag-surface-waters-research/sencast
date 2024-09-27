@@ -2,77 +2,96 @@
 # -*- coding: utf-8 -*-
 
 """
-EO data access - COAH API
+EarthExplorer (EE) serves as a key data access portal for the USGS Earth Resources Observation and Science (EROS) data repository.
 """
 
 import os
+import json
 import time
+
 import requests
+from datetime import datetime
+from numpy.core.numeric import Infinity
+
 from requests.status_codes import codes
-from zipfile import ZipFile
+import tarfile
 from tqdm import tqdm
 from pathlib import Path
 from utils.auxil import log
 from utils.product_fun import get_satellite_name_from_product_name
 
-# Documentation
-# https://documentation.dataspace.copernicus.eu/APIs/OData.html
 
-search_address = "https://catalogue.dataspace.copernicus.eu/odata/v1/Products{}"
+search_address = "https://m2m.cr.usgs.gov/api/api/json/stable/scene-search"
 
-download_address = "https://zipper.dataspace.copernicus.eu/odata/v1/Products({})/$value"
+download_options = "https://m2m.cr.usgs.gov/api/api/json/stable/download-options"
 
-token_address = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
+download_links = "https://m2m.cr.usgs.gov/api/api/json/stable/download-request"
+
+token_address = "https://m2m.cr.usgs.gov/api/api/json/stable/login-token"
 
 
 def get_download_requests(auth, start_date, completion_date, sensor, resolution, wkt, env):
-    query = "?$filter=((ContentDate/Start ge {} and ContentDate/Start le {}) and (Online eq true) and (OData.CSC.Intersects(Footprint=geography'SRID=4326;{}')) and (((((((Attributes/OData.CSC.StringAttribute/any(i0:i0/Name eq 'productType' and i0/Value eq '{}')))) and (Collection/Name eq '{}'))))))&$expand=Attributes&$top={}"
     max_records = 1000
-    geometry = wkt.replace(" ", "", 1).strip()
-    satellite, product_type = get_dataset_id(sensor, resolution)
-    query = query.format(start_date, completion_date, geometry, product_type, satellite, max_records)
-    products = search(satellite, query, env)
-    products = timeliness_filter(products)
+    acquisition_filter = {"end": start_date[:10],
+                         "start": completion_date[:10]}
+    lat_max, lat_min, lng_max, lng_min = bounds(wkt)
+    spatial_filter = {'filterType' : "mbr",
+                      'lowerLeft' : {'latitude' : lat_min, 'longitude' : lng_min},
+                      'upperRight' : { 'latitude' : lat_max, 'longitude' : lng_max}}
+    payload = {'datasetName': sensor,
+               'maxResults': max_records,
+               'startingNumber': 1,
+               'sceneFilter': {
+                   'spatialFilter': spatial_filter,
+                   'acquisitionFilter': acquisition_filter}
+               }
+    products = search(search_address, payload, env, auth)
     return products
 
 
-def search(satellite, query, env):
-    log(env["General"]["log"], "Search for products: {}".format(query))
+def search(url, payload, env, auth):
+    log(env["General"]["log"], "Searching for scenes: {}".format(payload["datasetName"]))
     products = []
-    url = search_address.format(query)
     while True:
         log(env["General"]["log"], "Calling: {}".format(url), indent=1)
-        response = requests.get(url)
+        token = server_authenticate(auth, env)
+        headers = {'X-Auth-Token': token}
+        response = requests.post(url, json.dumps(payload), headers=headers)
         if response.status_code == codes.OK:
             root = response.json()
-            for feature in root['value']:
-                timeliness = ""
-                if "_NR_" in feature['Name']:
-                    timeliness = "NR"
-                if "_ST_" in feature['Name']:
-                    timeliness = "ST"
-                if "_NT_" in feature['Name']:
-                    timeliness = "NT"
-                product_creation = ""
-                if satellite == "SENTINEL-3":
-                    product_creation = feature['Name'].split("_")[9]
+            for scene in root['data']['results']:
                 products.append({
-                    "uuid": feature['Id'],
-                    "s3": feature['S3Path'],
-                    "name": feature['Name'],
-                    "sensing_start": feature['ContentDate']['Start'],
-                    "sensing_end": feature['ContentDate']['End'],
-                    "timeliness": timeliness,
-                    "product_creation": product_creation,
-                    "satellite": get_satellite_name_from_product_name(feature['Name'])
+                    "entityId": scene['entityId'],
+                    "displayId": scene['displayId'],
+                    "name": scene['displayId'],
+                    "dataset": payload["datasetName"],
+                    "sensing_start": scene['temporalCoverage']['startDate'],
+                    "sensing_end": scene['temporalCoverage']['endDate'],
+                    "product_creation": scene['publishDate'],
+                    "satellite": get_satellite_name_from_product_name(scene['displayId'])
                 })
-            if "@odata.nextLink" in root:
-                log(env["General"]["log"], "Number of products exceeded max records, requesting addition records", indent=1)
-                url = root["@odata.nextLink"]
-            else:
-                return products
+            return products
         else:
             raise RuntimeError("Unexpected response: {}".format(response.text))
+
+
+def bounds(wkt):
+    points = wkt.replace(" ", "", 1).strip().replace("POLYGON((", "").replace("))", "").split(",")
+    lat_min = Infinity
+    lat_max = -Infinity
+    lng_min = Infinity
+    lng_max = -Infinity
+    for point in points:
+        p = point.strip().split(" ")
+        if float(p[0]) > lng_max:
+            lng_max = float(p[0])
+        if float(p[1]) > lat_max:
+            lat_max = float(p[1])
+        if float(p[0]) < lng_min:
+            lng_min = float(p[0])
+        if float(p[1]) < lat_min:
+            lat_min = float(p[1])
+    return lat_max, lat_min, lng_max, lng_min
 
 
 def timeliness_filter(products):
@@ -96,32 +115,33 @@ def timeliness_filter(products):
     return products_filtered
 
 
-def get_dataset_id(sensor, resolution):
-    if sensor == 'OLCI' and int(resolution) < 1000:
-        return 'SENTINEL-3', 'OL_1_EFR___'
-    elif sensor == 'OLCI' and int(resolution) >= 1000:
-        return 'SENTINEL-3', 'OL_1_ERR___'
-    elif sensor == 'MSI':
-        return 'SENTINEL-2', 'S2MSI1C'
-    elif sensor == 'MSI-L2A':
-        return 'SENTINEL-2', 'S2MSI2A'
-    elif sensor == 'OLI_TIRS':
-        return 'LANDSAT-8', 'L1TP'
-    else:
-        raise RuntimeError("COAH API is not yet implemented for sensor: {}".format(sensor))
-
-
 def do_download(auth, product, env, max_attempts=4, wait_time=30):
-    uuid = product["uuid"]
     product_path = product["l1_product_path"]
+    os.makedirs(os.path.dirname(product_path), exist_ok=True)
+    payload = {'datasetName': product['dataset'], 'entityIds': [product["entityId"]]}
     for attempt in range(max_attempts):
         log(env["General"]["log"], "Starting download attempt {} of {}".format(attempt + 1, max_attempts), indent=1)
         token = server_authenticate(auth, env)
-        os.makedirs(os.path.dirname(product_path), exist_ok=True)
+        headers = {'X-Auth-Token': token}
+        response = requests.post(download_options, json.dumps(payload), headers=headers)
+        if response.status_code != codes.OK:
+            raise ValueError("Failed to access {}".format(download_options))
+        downloads = []
+        for product in response.json()["data"]:
+            if product['available'] == True:
+                downloads.append({'entityId': product['entityId'],
+                                  'productId': product['id']})
+        label = datetime.now().strftime("%Y%m%d_%H%M%S")  # Customized label using date time
+        payload = {'downloads': downloads,
+                   'label': label}
+        response = requests.post(download_links, json.dumps(payload), headers=headers)
+        if response.status_code != codes.OK:
+            raise ValueError("Failed to collect download link")
+
+        url = response.json()["data"]["availableDownloads"][0]["url"]
         file_temp = "{}.incomplete".format(product_path)
         session = requests.Session()
-        session.headers.update({'Authorization': f'Bearer {token}'})
-        url = download_address.format(uuid)
+        session.headers.update({'X-Auth-Token': f'{token}'})
         try:
             downloaded_bytes = 0
             with session.get(url, stream=True, timeout=600) as req:
@@ -135,8 +155,9 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30):
                                 fout.write(chunk)
                                 progress.update(len(chunk))
                                 downloaded_bytes += len(chunk)
-            with ZipFile(file_temp, 'r') as zip_file:
-                zip_file.extractall(os.path.dirname(product_path))
+            os.makedirs(product_path, exist_ok=True)
+            with tarfile.open(file_temp, 'r') as tar_file:
+                tar_file.extractall(product_path)
             Path(file_temp).unlink()
             return
         except Exception as e:
@@ -149,7 +170,7 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30):
 
 
 def authenticate(env):
-    return [env['username'], env['password']]
+    return [env['username'], env['application_token']]
 
 
 def server_authenticate(auth, env, max_attempts=5, wait_time=5):
@@ -167,13 +188,11 @@ def server_authenticate(auth, env, max_attempts=5, wait_time=5):
 
 def get_token(username, password):
     token_data = {
-        'client_id': 'cdse-public',
-        'username': username,
-        'password': password,
-        'grant_type': 'password',
+        "username": username,
+        "token": password
     }
-    response = requests.post(token_address, data=token_data).json()
+    response = requests.post(token_address, json.dumps(token_data)).json()
     try:
-        return response['access_token']
+        return response['data']
     except KeyError:
         raise RuntimeError(response)

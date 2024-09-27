@@ -14,7 +14,7 @@ from utils.product_fun import get_lons_lats, get_sensing_date_from_product_name,
     get_band_names_from_nc
 
 # The name of the xml file for gpt
-GPT_XML_FILENAME = "mosaic_{}_{}.xml"
+GPT_XML_FILENAME = "mosaic.xml"
 
 
 def mosaic(env, params, product_files):
@@ -39,7 +39,7 @@ def mosaic(env, params, product_files):
             return output_file
 
     # rewrite xml file for gpt
-    gpt_xml_file = os.path.join(os.path.dirname(output_file), "_reproducibility", GPT_XML_FILENAME.format(params['General']['sensor'], date))
+    gpt_xml_file = os.path.join(os.path.dirname(output_file), "_reproducibility", GPT_XML_FILENAME)
     if not os.path.isfile(gpt_xml_file):
         rewrite_xml(gpt_xml_file, product_files, params['General']['sensor'], params['General']['wkt'], params['General']['resolution'])
 
@@ -56,7 +56,7 @@ def mosaic(env, params, product_files):
 
 
 def rewrite_xml(gpt_xml_file, product_files, sensor, wkt, resolution):
-    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME.format(sensor, "")), "r") as f:
+    with open(os.path.join(os.path.dirname(__file__), GPT_XML_FILENAME), "r") as f:
         xml = f.read()
 
     sources_str = "\n\t\t\t".join(["<source{}>{}</source{}>".format(i, "${sourceFile" + str(i) + "}", i) for i in range(len(product_files))])

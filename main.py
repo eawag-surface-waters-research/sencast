@@ -218,7 +218,7 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
             with semaphores['download']:
                 log(env["General"]["log"], "Downloading file: " + product["l1_product_path"])
                 try:
-                    do_download(auth, product["uuid"], product["l1_product_path"], product["s3"], env)
+                    do_download(auth, product, env)
                 except (Exception,):
                     log(env["General"]["log"], traceback.format_exc(), indent=2)
                     log(env["General"]["log"], "Failed to download file {}.".format(product["l1_product_path"]))
@@ -334,6 +334,15 @@ def test_installation(env, delete):
         sencast('test_S2_processors.ini', env_file=env)
     except Exception as e:
         print("Some S2 processors failed")
+        print(e)
+
+    if delete:
+        _, params_collection, l2_path_collection = init_hindcast(env, 'test_Collection_processors.ini')
+        shutil.rmtree(l2_path_collection)
+    try:
+        sencast('test_Collection_processors.ini', env_file=env)
+    except Exception as e:
+        print("Some Collection processors failed")
         print(e)
 
     if delete:
