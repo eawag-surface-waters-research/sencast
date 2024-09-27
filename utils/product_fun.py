@@ -48,6 +48,8 @@ def get_satellite_name_from_product_name(product_name):
         return "S2B"
     elif "LC08" in product_name:
         return "L8"
+    elif "LC09" in product_name:
+        return "L9"
     raise RuntimeError("Could not read satellite name from product name [{}]".format(product_name))
 
 
@@ -180,6 +182,7 @@ def get_sensing_datetime_from_product_name(product_name):
 
 
 def get_l1product_path(env, product_name):
+    l2 = False
     """Fills the placeholders in the configured DIAS path with actual values."""
     if product_name.startswith("S3A") or product_name.startswith("S3B"):
         satellite = "Sentinel-3"
@@ -192,7 +195,16 @@ def get_l1product_path(env, product_name):
         dataset = product_name[7:10]
         date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
     elif product_name.startswith("LC08"):
+        if product_name.startswith("LC08_L2"):
+            l2 = True
         satellite = "Landsat8"
+        sensor = "OLI_TIRS"
+        dataset = product_name[5:9]
+        date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
+    elif product_name.startswith("LC09"):
+        if product_name.startswith("LC09_L2"):
+            l2 = True
+        satellite = "Landsat9"
         sensor = "OLI_TIRS"
         dataset = product_name[5:9]
         date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
@@ -209,7 +221,11 @@ def get_l1product_path(env, product_name):
         'day': date.strftime(r"%d")
     }
 
-    return env['DIAS']['l1_path'].format(**kwargs)
+    path = env['DIAS']['l1_path'].format(**kwargs)
+    if l2:
+        path = path.replace("_L1/", "_L2/")
+
+    return path
 
 
 def get_main_file_from_product_path(l1product_path):

@@ -115,7 +115,10 @@ def get_dataset_id(sensor, resolution):
         raise RuntimeError("CREODIAS API is not yet implemented for sensor: {}".format(sensor))
 
 
-def do_download(auth, uuid, product_path, s3_key, env, max_attempts=4, wait_time=30, bucket_name="DIAS"):
+def do_download(auth, product, env, max_attempts=4, wait_time=30, bucket_name="DIAS"):
+    uuid = product["uuid"]
+    product_path = product["l1_product_path"]
+    s3_key = product["s3"]
     os.makedirs(os.path.dirname(product_path), exist_ok=True)
     for attempt in range(max_attempts):
         if "s3" in env["CREODIAS"] and env["CREODIAS"]["s3"].lower() == "true":

@@ -121,30 +121,30 @@ def log_output(res, log_path, indent=2):
             log(log_path, line.strip(), indent=indent)
 
 
-def gpt_subprocess(cmd, log_path, attempts=1, timeout=False):
-    log(log_path, "Calling '{}'".format(' '.join(cmd)), indent=1)
+def gpt_subprocess(cmd, log_path, attempts=1, timeout=False, indent=1):
+    log(log_path, "Calling '{}'".format(' '.join(cmd)), indent=indent)
     for attempt in range(attempts):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         if attempt != attempts - 1 and timeout:
-            log(log_path, "Beginning attempt {} of {} with a {} second timeout.".format(attempt + 1, attempts, timeout), indent=1)
+            log(log_path, "Beginning attempt {} of {} with a {} second timeout.".format(attempt + 1, attempts, timeout), indent=indent)
             timer = Timer(timeout, process.kill)
             timer.start()
         else:
-            log(log_path, "Beginning attempt {} of {} with no timeout.".format(attempt +1, attempts), indent=1)
+            log(log_path, "Beginning attempt {} of {} with no timeout.".format(attempt +1, attempts), indent=indent)
         res = process.communicate()
         if attempt != attempts - 1 and timeout:
             timer.cancel()
         if process.returncode == 0:
             log_output(res[0], log_path)
-            log(log_path, "GPT operation completed.", indent=1)
+            log(log_path, "GPT operation completed.", indent=indent)
             return True
         else:
             log_output(res[0], log_path)
             log_output(res[1], log_path)
             if process.returncode == -9:
-                log(log_path, "GPT process was killed. Either by timeout or memory restrictions.", indent=1)
+                log(log_path, "GPT process was killed. Either by timeout or memory restrictions.", indent=indent)
             else:
-                log(log_path, "GPT failed.", indent=1)
+                log(log_path, "GPT failed.", indent=indent)
     return False
 
 
