@@ -3,10 +3,12 @@
 
 """Acolite processor for atmospheric correction"""
 
-import importlib
+
 import os
-import shutil
+import re
 import sys
+import shutil
+import importlib
 from utils.auxil import log
 from constants import REPROD_DIR
 
@@ -32,14 +34,6 @@ def process(env, params, l1product_path, _, out_path):
     out_path = os.path.join(out_path, OUT_DIR)
 
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
-    l2w_mask_wave = params[PARAMS_SECTION]['l2w_mask_wave']
-    l2w_mask_threshold = params[PARAMS_SECTION]['l2w_mask_threshold']
-    l2w_mask_smooth = params[PARAMS_SECTION]['l2w_mask_smooth']
-    l2w_mask_cirrus_threshold = params[PARAMS_SECTION]['l2w_mask_cirrus_threshold']
-    l2w_mask_negative_rhow = params[PARAMS_SECTION]['l2w_mask_negative_rhow']
-    luts_reduce_dimensions = params[PARAMS_SECTION]['luts_reduce_dimensions']
-    dsf_aot_estimate = params[PARAMS_SECTION]['dsf_aot_estimate']
-    l2w_parameters = params[PARAMS_SECTION]['l2w_parameters']
     lons, lats = get_lons_lats(wkt)
     limit = "{},{},{},{}".format(min(lats), min(lons), max(lats), max(lons))
     product_name = os.path.basename(l1product_path)
@@ -58,9 +52,7 @@ def process(env, params, l1product_path, _, out_path):
     os.makedirs(out_path, exist_ok=True)
     settings_file = os.path.join(out_path, REPROD_DIR, SETTINGS_FILENAME.format(sensor))
     if not os.path.isfile(settings_file):
-        rewrite_settings_file(settings_file, sensor, resolution, limit, l2w_mask_wave, l2w_mask_threshold,
-                              l2w_mask_smooth, l2w_mask_cirrus_threshold, l2w_mask_negative_rhow,
-                              luts_reduce_dimensions, dsf_aot_estimate, l2w_parameters)
+        rewrite_settings_file(settings_file, sensor, resolution, limit, params[PARAMS_SECTION])
 
     tmp_path = os.path.join(out_path, "tmp")
     ac.acolite_run(settings_file, l1product_path, tmp_path)
@@ -77,29 +69,65 @@ def process(env, params, l1product_path, _, out_path):
 
     shutil.rmtree(tmp_path)
 
-    # TODO: merge with idepix masks
-
     return out_file
 
 
-def rewrite_settings_file(settings_file, sensor, resolution, limit, l2w_mask_wave, l2w_mask_threshold,
-                          l2w_mask_smooth, l2w_mask_cirrus_threshold, l2w_mask_negative_rhow,
-                          luts_reduce_dimensions, dsf_aot_estimate, l2w_parameters):
-
+def rewrite_settings_file(settings_file, sensor, resolution, limit, parameters):
     with open(os.path.join(os.path.dirname(__file__), SETTINGS_FILENAME.format(sensor)), "r") as f:
         text = f.read()
-
     text = text.replace("${limit}", limit)
     text = text.replace("${resolution}", resolution)
-    text = text.replace("${l2w_mask_wave}", l2w_mask_wave)
-    text = text.replace("${l2w_mask_threshold}", l2w_mask_threshold)
-    text = text.replace("${l2w_mask_smooth}", l2w_mask_smooth)
-    text = text.replace("${l2w_mask_cirrus_threshold}", l2w_mask_cirrus_threshold)
-    text = text.replace("${l2w_mask_negative_rhow}", l2w_mask_negative_rhow)
-    text = text.replace("${luts_reduce_dimensions}", luts_reduce_dimensions)
-    text = text.replace("${dsf_aot_estimate}", dsf_aot_estimate)
-    text = text.replace("${l2w_parameters}", l2w_parameters)
-
     os.makedirs(os.path.dirname(settings_file), exist_ok=True)
     with open(settings_file, "w") as f:
         f.write(text)
+    update_settings_file(settings_file, parameters)
+
+
+def update_settings_file(file_path, parameters):
+    key_value_pattern = re.compile(r"^(\s*[\w_]+)\s*=\s*(.*?)(\s*(#.*)?)?$")
+
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    updated_lines = []
+    keys_in_file = set()
+    updated = False
+
+    # Iterate through the file to update existing parameters
+    for line in lines:
+        match = key_value_pattern.match(line)
+        if match:
+            key = match.group(1).strip()  # Key
+            value = match.group(2).strip()  # Value before any comments
+            comment = match.group(4) if match.group(4) else ''  # Inline comment if any
+
+            # Check if the key exists in the parameters dict
+            if key in parameters:
+                # Only update if the value has actually changed
+                if value != str(parameters[key]):
+                    updated_lines.append(f"{key}={parameters[key]} {comment}\n")
+                    updated = True  # Mark that we made an update
+                else:
+                    # Keep the original line if the value has not changed
+                    updated_lines.append(line)
+                keys_in_file.add(key)
+            else:
+                # Keep the original line if key is not in the dict
+                updated_lines.append(line)
+        else:
+            # Keep non key-value lines (comments or blank lines)
+            updated_lines.append(line)
+
+    if updated_lines and not updated_lines[-1].endswith("\n"):
+        updated_lines[-1] = updated_lines[-1] + "\n"
+
+    # Add missing key-value pairs at the end of the file
+    for key, value in parameters.items():
+        if key not in keys_in_file:
+            updated_lines.append(f"{key}={value}\n")
+            updated = True
+
+    # Write the updated content back to the file only if changes were made
+    if updated:
+        with open(file_path, 'w') as file:
+            file.writelines(updated_lines)
