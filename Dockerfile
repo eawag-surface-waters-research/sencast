@@ -32,12 +32,11 @@ ENV CONDA_ENV_HOME=$CONDA_HOME/envs/sencast
 ENV PYTHONUNBUFFERED=1
 
 RUN mkdir /opt/POLYMER
-COPY ./docker_dependencies/polymer-v4.16.2.tar.gz /opt/POLYMER/
-RUN tar -xvzf /opt/POLYMER/polymer-v4.16.2.tar.gz -C /opt/POLYMER/
+RUN cd /opt/POLYMER &&  git clone --depth 1 --branch master https://github.com/hygeos/polymer.git
 SHELL ["conda", "run", "-n", "sencast", "/bin/bash", "-c"]
-RUN cd /opt/POLYMER/polymer-v4.16.2 && make all
-RUN cp -avr /opt/POLYMER/polymer-v4.16.2/polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
-RUN cp -avr /opt/POLYMER/polymer-v4.16.2/auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
+RUN cd /opt/POLYMER/polymer && make all
+RUN cp -avr /opt/POLYMER/polymer/polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
+RUN cp -avr /opt/POLYMER/polymer/auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
 
 RUN cd /opt &&  git clone --depth 1 --branch main https://github.com/acolite/acolite.git
 
