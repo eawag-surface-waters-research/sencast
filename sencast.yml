@@ -268,7 +268,15 @@ dependencies:
   - zlib-ng=2.0.7=h0b41bf4_0
   - zstd=1.5.5=hfc55251_0
   - pip:
+    - dill==0.3.7
+    - multiprocess==0.70.15
+    - pathos==0.3.1
+    - pox==0.3.3
+    - ppft==1.7.6.7
+    - py6s==1.9.2
     - pyqt5-sip==4.19.18
     - pyqtchart==5.12
     - pyqtwebengine==5.12.1
+    - pysolar==0.11
+    - tmart==1.3.6
 prefix: /opt/conda/envs/sencast
