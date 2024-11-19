@@ -6,7 +6,7 @@
 import os
 import re
 import math
-import rasterio
+from osgeo import gdal, osr
 import subprocess
 import numpy as np
 import pandas as pd
@@ -153,12 +153,21 @@ def get_reproject_params_from_nc(img, resolution):
 
 
 def get_reproject_params_from_jp2(source_file, resolution):
-    with rasterio.open(source_file) as dataset:
-        width, height = dataset.width, dataset.height
-        transform = dataset.transform
-        westing, northing = transform * (0, 0)
-        easting, southing = transform * (width - 1, height - 1)
-        crs = dataset.crs
+    dataset = gdal.Open(source_file)
+    width, height = dataset.RasterXSize, dataset.RasterYSize
+    transform = dataset.GetGeoTransform()
+    westing, northing = transform[0], transform[3]
+    easting = transform[0] + transform[1] * (width - 1) + transform[2] * (height - 1)
+    southing = transform[3] + transform[4] * (width - 1) + transform[5] * (height - 1)
+    wkt = dataset.GetProjection()
+    spatial_ref = osr.SpatialReference()
+    spatial_ref.ImportFromWkt(wkt)
+    epsg = spatial_ref.GetAttrValue('AUTHORITY', 1)
+    if epsg:
+        crs = f"EPSG:{epsg}"
+    else:
+        raise ValueError("Failed to parse projection")
+    dataset = None
     transformer = Transformer.from_crs(crs, 'epsg:4326')
     north, west = transformer.transform(westing, northing)
     south, east = transformer.transform(easting, southing)
@@ -207,6 +216,11 @@ def get_l1product_path(env, product_name):
         satellite = "Landsat9"
         sensor = "OLI_TIRS"
         dataset = product_name[5:9]
+        date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
+    elif product_name.startswith("PACE_OCI"):
+        satellite = "PACE"
+        sensor = "OCI"
+        dataset = product_name[5:8]
         date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
     else:
         raise RuntimeError("Unable to retrieve satellite from product name: {}".format(product_name))

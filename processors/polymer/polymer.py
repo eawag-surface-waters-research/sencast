@@ -8,13 +8,13 @@ Ocean Colour) from the signal measured by satellite sensors in the visible spect
 For an overview of the processor: https://www.hygeos.com/polymer
 or for more details: https://forum.hygeos.com/viewforum.php?f=3
 """
-
+import math
 import os
 import subprocess
 from datetime import datetime
 from math import ceil, floor
 
-import rasterio
+from osgeo import gdal, osr
 from netCDF4 import Dataset
 from pyproj import Transformer
 
@@ -209,12 +209,13 @@ def get_corner_pixels_roi_msi(l1product_path, wkt):
     img_dirs = list(filter(lambda d: d.endswith("_TCI.jp2"), os.listdir(os.path.join(l1product_path, "IMG_DATA"))))
     l1product_path = os.path.join(l1product_path, "IMG_DATA", img_dirs[0])
 
-    with rasterio.open(l1product_path) as dataset:
-        h, w = dataset.height, dataset.width
-        ul_pos = get_pixel_pos_msi(dataset, west, north)
-        ur_pos = get_pixel_pos_msi(dataset, east, north)
-        ll_pos = get_pixel_pos_msi(dataset, west, south)
-        lr_pos = get_pixel_pos_msi(dataset, east, south)
+    dataset = gdal.Open(l1product_path)
+    w, h = dataset.RasterXSize, dataset.RasterYSize
+    ul_pos = get_pixel_pos_gdal(dataset, west, north)
+    ur_pos = get_pixel_pos_gdal(dataset, east, north)
+    ll_pos = get_pixel_pos_gdal(dataset, west, south)
+    lr_pos = get_pixel_pos_gdal(dataset, east, south)
+    dataset = None
 
     ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
     ur = [int(ur_pos[1]) if (0 <= ur_pos[1] < h) else 0, int(ur_pos[0]) if (0 <= ur_pos[0] < w) else w]
@@ -222,16 +223,6 @@ def get_corner_pixels_roi_msi(l1product_path, wkt):
     lr = [int(lr_pos[1]) if (0 <= lr_pos[1] < h) else h, int(lr_pos[0]) if (0 <= lr_pos[0] < w) else w]
 
     return ul, ur, lr, ll
-
-
-def get_pixel_pos_msi(dataset, lon, lat):
-    transformer = Transformer.from_crs("epsg:4326", dataset.crs)
-    row, col = transformer.transform(lat, lon)
-    h, w = dataset.height, dataset.width
-    y, x = dataset.index(row, col)
-    xx = x if 0 < x <= w else -1
-    yy = y if 0 < y <= h else -1
-    return [xx, yy]
 
 
 def get_corner_pixels_roi_olci(l1product_path, wkt):
@@ -264,12 +255,13 @@ def get_corner_pixels_roi_oli(l1product_path, wkt):
     product_name = os.path.basename(l1product_path)
     sample_file_path = os.path.join(l1product_path, "{}_BQA.TIF".format(product_name))
 
-    with rasterio.open(sample_file_path) as dataset:
-        h, w = dataset.height, dataset.width
-        ul_pos = get_pixel_pos_oli(dataset, west, north)
-        ur_pos = get_pixel_pos_oli(dataset, east, north)
-        ll_pos = get_pixel_pos_oli(dataset, west, south)
-        lr_pos = get_pixel_pos_oli(dataset, east, south)
+    dataset = gdal.Open(sample_file_path)
+    w, h = dataset.RasterXSize, dataset.RasterYSize
+    ul_pos = get_pixel_pos_gdal(dataset, west, north)
+    ur_pos = get_pixel_pos_gdal(dataset, east, north)
+    ll_pos = get_pixel_pos_gdal(dataset, west, south)
+    lr_pos = get_pixel_pos_gdal(dataset, east, south)
+    dataset = None
 
     ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
     ur = [int(ur_pos[1]) if (0 <= ur_pos[1] < h) else 0, int(ur_pos[0]) if (0 <= ur_pos[0] < w) else w]
@@ -279,9 +271,22 @@ def get_corner_pixels_roi_oli(l1product_path, wkt):
     return ul, ur, lr, ll
 
 
-def get_pixel_pos_oli(dataset, lon, lat):
-    transformer = Transformer.from_crs("epsg:4326", dataset.crs)
-    row, col = transformer.transform(lat, lon)
-    y, x = dataset.index(row, col)
-    return [-1, -1] if x < 0 or y < 0 else [x, y]
-    
+def get_pixel_pos_gdal(dataset, lon, lat):
+    w, h = dataset.RasterXSize, dataset.RasterYSize
+    wkt = dataset.GetProjection()
+    spatial_ref = osr.SpatialReference()
+    spatial_ref.ImportFromWkt(wkt)
+    epsg = spatial_ref.GetAttrValue('AUTHORITY', 1)
+    if epsg:
+        crs = f"EPSG:{epsg}"
+    else:
+        raise ValueError("Failed to parse projection")
+    transformer = Transformer.from_crs("epsg:4326", crs)
+    x, y = transformer.transform(lat, lon)
+    geo_transform = dataset.GetGeoTransform()
+    inv_geo_transform = gdal.InvGeoTransform(geo_transform)
+    col, row = gdal.ApplyGeoTransform(inv_geo_transform, x, y)
+    col, row = math.floor(col), math.floor(row)
+    xx = col if 0 < col <= w else -1
+    yy = row if 0 < row <= h else -1
+    return [xx, yy]
