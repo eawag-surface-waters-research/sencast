@@ -10,9 +10,11 @@ or for more details: https://forum.hygeos.com/viewforum.php?f=3
 """
 import math
 import os
+import re
 import subprocess
 from datetime import datetime
 from math import ceil, floor
+import xml.etree.ElementTree as ET
 
 from osgeo import gdal, osr
 from netCDF4 import Dataset
@@ -28,6 +30,7 @@ from polymer.level2 import default_datasets, Level2
 from polymer.main import run_atm_corr
 from pyhdf.error import HDF4Error
 
+from dias_apis.hda.hda import metadata_address
 from utils.auxil import log, gpt_subprocess
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
     get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos, get_reproject_params_from_nc, get_s2_tile_name_from_product_name
@@ -206,15 +209,18 @@ def get_corner_pixels_roi_msi(l1product_path, wkt):
 
     south, east, north, west = get_south_east_north_west_bound(wkt)
 
+    metadata_path = os.path.join(l1product_path, "MTD_TL.xml")
+    crs = get_horizontal_cs_code(metadata_path)
+
     img_dirs = list(filter(lambda d: d.endswith("_TCI.jp2"), os.listdir(os.path.join(l1product_path, "IMG_DATA"))))
     l1product_path = os.path.join(l1product_path, "IMG_DATA", img_dirs[0])
 
     dataset = gdal.Open(l1product_path)
     w, h = dataset.RasterXSize, dataset.RasterYSize
-    ul_pos = get_pixel_pos_gdal(dataset, west, north)
-    ur_pos = get_pixel_pos_gdal(dataset, east, north)
-    ll_pos = get_pixel_pos_gdal(dataset, west, south)
-    lr_pos = get_pixel_pos_gdal(dataset, east, south)
+    ul_pos = get_pixel_pos_gdal(dataset, west, north, crs)
+    ur_pos = get_pixel_pos_gdal(dataset, east, north, crs)
+    ll_pos = get_pixel_pos_gdal(dataset, west, south, crs)
+    lr_pos = get_pixel_pos_gdal(dataset, east, south, crs)
     dataset = None
 
     ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
@@ -257,10 +263,10 @@ def get_corner_pixels_roi_oli(l1product_path, wkt):
 
     dataset = gdal.Open(sample_file_path)
     w, h = dataset.RasterXSize, dataset.RasterYSize
-    ul_pos = get_pixel_pos_gdal(dataset, west, north)
-    ur_pos = get_pixel_pos_gdal(dataset, east, north)
-    ll_pos = get_pixel_pos_gdal(dataset, west, south)
-    lr_pos = get_pixel_pos_gdal(dataset, east, south)
+    ul_pos = get_pixel_pos_gdal(dataset, west, north, False)
+    ur_pos = get_pixel_pos_gdal(dataset, east, north, False)
+    ll_pos = get_pixel_pos_gdal(dataset, west, south, False)
+    lr_pos = get_pixel_pos_gdal(dataset, east, south, False)
     dataset = None
 
     ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
@@ -271,16 +277,17 @@ def get_corner_pixels_roi_oli(l1product_path, wkt):
     return ul, ur, lr, ll
 
 
-def get_pixel_pos_gdal(dataset, lon, lat):
+def get_pixel_pos_gdal(dataset, lon, lat, crs):
     w, h = dataset.RasterXSize, dataset.RasterYSize
-    wkt = dataset.GetProjection()
-    spatial_ref = osr.SpatialReference()
-    spatial_ref.ImportFromWkt(wkt)
-    epsg = spatial_ref.GetAttrValue('AUTHORITY', 1)
-    if epsg:
-        crs = f"EPSG:{epsg}"
-    else:
-        raise ValueError("Failed to parse projection")
+    if isinstance(crs, bool):
+        wkt = dataset.GetProjection()
+        spatial_ref = osr.SpatialReference()
+        spatial_ref.ImportFromWkt(wkt)
+        epsg = spatial_ref.GetAttrValue('AUTHORITY', 1)
+        if epsg:
+            crs = f"EPSG:{epsg}"
+        else:
+            raise ValueError("Failed to parse projection")
     transformer = Transformer.from_crs("epsg:4326", crs)
     x, y = transformer.transform(lat, lon)
     geo_transform = dataset.GetGeoTransform()
@@ -290,3 +297,13 @@ def get_pixel_pos_gdal(dataset, lon, lat):
     xx = col if 0 < col <= w else -1
     yy = row if 0 < row <= h else -1
     return [xx, yy]
+
+
+def get_horizontal_cs_code(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            xml_content = file.read()
+        match = re.search(r'<HORIZONTAL_CS_CODE>(.*?)</HORIZONTAL_CS_CODE>', xml_content)
+        return match.group(1) if match else False
+    except Exception as e:
+        return False
