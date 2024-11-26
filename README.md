@@ -53,21 +53,17 @@ python main.py
 
 Manual installation of all the processors is challenging and can be simplified through the use of a docker container.
 
-As this container contains non-open source code, the pre-build image is only available internally at Eawag. However, external parties can build the image
-themselves by including `docker_dependencies/polymer-v4.16.1.tar.gz` in the repository.
-
 Users should first ensure they have a functioning docker installation.
 
-### Build
+### Pull container
 
-The docker image can be built using the following command:
-
-`docker build -t eawag/sencast:0.0.1 .`
+The docker image can be downloaded from docker hub using the following command:
+`docker pull eawag/sencast:0.0.1`
 
 ### Run Tests
 
 In order to test the setup is working the following command can be run which will output a report on the 
-functioning of the processors. This must be run from inside the sencast repository. 
+functioning of the processors. **This must be run from inside the sencast repository.**
 
 The option `-v /DIAS:/DIAS` maps the input/ output folders to a location outside the container. This should be updated to 
 the appropriate location, e.g. `-v /home/user/DIAS:/DIAS`
@@ -90,6 +86,10 @@ In order to run a parameters file it can be passed to the command as follows usi
 Sometimes it is desirable to interact directly with the container, this can be achieved with the following command:
 
 `docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it --entrypoint /bin/bash eawag/sencast:0.0.1`
+
+### Locally build container
+
+`docker build -t eawag/sencast:0.0.1 .`
 
 ## CSCS
 
