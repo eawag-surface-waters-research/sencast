@@ -42,14 +42,14 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/linux.html">Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows.html">Windows</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSCS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cscs.html">CSCS</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
 <ul>
@@ -85,8 +85,8 @@
 <li class="toctree-l1"><a class="reference internal" href="s2res.html">S2Res</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Secchi Depth</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#processors.secchidepth.secchidepth.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#processors.secchidepth.secchidepth.secchi_s2_row"><code class="docutils literal notranslate"><span class="pre">secchi_s2_row()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#processors.secchidepth.secchidepth.secchi_s3_row"><code class="docutils literal notranslate"><span class="pre">secchi_s3_row()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.secchidepth.secchidepth.secchi_s2"><code class="docutils literal notranslate"><span class="pre">secchi_s2()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.secchidepth.secchidepth.secchi_s3"><code class="docutils literal notranslate"><span class="pre">secchi_s3()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
@@ -157,13 +157,13 @@ Authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="processors.secchidepth.secchidepth.secchi_s2_row">
-<span class="sig-prename descclassname"><span class="pre">processors.secchidepth.secchidepth.</span></span><span class="sig-name descname"><span class="pre">secchi_s2_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_row</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secchi_band_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">us</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sza</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wvl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.secchi_s2_row" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="processors.secchidepth.secchidepth.secchi_s2">
+<span class="sig-prename descclassname"><span class="pre">processors.secchidepth.secchidepth.</span></span><span class="sig-name descname"><span class="pre">secchi_s2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">us</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sza</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wvl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.secchi_s2" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="processors.secchidepth.secchidepth.secchi_s3_row">
-<span class="sig-prename descclassname"><span class="pre">processors.secchidepth.secchidepth.</span></span><span class="sig-name descname"><span class="pre">secchi_s3_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_row</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secchi_band_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">us</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sza</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wvl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.secchi_s3_row" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="processors.secchidepth.secchidepth.secchi_s3">
+<span class="sig-prename descclassname"><span class="pre">processors.secchidepth.secchidepth.</span></span><span class="sig-name descname"><span class="pre">secchi_s3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">us</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sza</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bws</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wvl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.secchidepth.secchidepth.secchi_s3" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -179,7 +179,7 @@ Authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -34,7 +34,7 @@ To install Sencast, run
   git clone https://github.com/eawag-surface-waters-research/sencast.git
   conda env create -f ~/sencast/sencast.yml
 
-Many of the Sencast'S processors reply on `SNAP`_ , the SeNtinel Application Platform
+Many of the Sencast's processors reply on `SNAP`_ , the Sentinel Application Platform
 project, funded by the `European Space Agency`_ (ESA) or other 3rd party packages. In order to have
 access to all of Sencast's processors follow the installation instructions below in order to
 correctly configure your environment.
@@ -43,12 +43,18 @@ This process will require registering accounts with data providers.
 
 .. toctree::
    :maxdepth: 2
+   :caption: Installation
 
-   install/ubuntu18_install.rst
-   install/windows10_install.rst
+   install/linux.rst
+   install/windows.rst
 
 For issues with installation, please contact `Daniel
 Odermatt`_.
+
+.. warning::
+
+  It can be difficult and time-consuming to get a local installation set up (particularly for Windows). For users not
+  planning on developing the code it is recommended to use the Docker image provided (see below).
 
 Getting Started
 ---------------
@@ -93,12 +99,7 @@ Sencast can be run in two ways:
 
 For this options you can pass objects as the params_file and env_file as well as links to the text files.
 
-Following flow chart illustrates how Sencast works.
 
-.. image:: flowchart.png
-    :width: 800px
-    :alt: Sencast Flow Chart
-    :align: center
 
 Environment File
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -125,26 +126,6 @@ Sentinel Hndacast. They are stored as polygons in `WKT`_ files, which
 are referenced from the parameter files. Some example perimeters are stored
 in the wkt folder.
 
-Processors
-~~~~~~~~~~~~~~~~~~~~~~
-
-Data is processed by a sequence of processors defined in the
-parameters file. Subsequent processors have all outputs of preceding
-processors available and might process these outputs further.
-The user is responsible to ensure that he specifies the processors
-in the parameters file in the correct order.
-
-Adapters
-~~~~~~~~~~~~~~~~~~~~~~
-
-The purpose of an adapter is to perform some action after the processors
-have finished. Possible actions include but are not limited to
-validating outputs, sending processed outputs to some webservice,
-creating quicklooks, notifying some webservice about the finished
-sencast run.
-
-Adapter usually do not produce any new output products.
-
 Testing
 --------
 
@@ -156,12 +137,71 @@ To test your installation run::
 
 This will report which processors are successfully installed and producing meaning-full outputs.
 
+Docker
+-------
+
+Manual installation of all the processors is challenging and can be simplified through the use of a docker container.
+
+Users should first ensure they have a functioning docker installation.
+
+Pull container
+~~~~~~~~~~~~~~~~
+
+The docker image can be downloaded from docker hub using the following command:
+
+.. code-block:: bash
+
+   docker pull eawag/sencast:0.0.1
+
+Run Tests
+~~~~~~~~~~~
+
+In order to test the setup is working the following command can be run which will output a report on the
+functioning of the processors. **This must be run from inside the sencast repository.**
+
+The option `-v /DIAS:/DIAS` maps the input/ output folders to a location outside the container. This should be updated to
+the appropriate location, e.g. `-v /home/user/DIAS:/DIAS`
+
+.. code-block:: bash
+
+   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.1 -e docker.ini -t
+
+`-e` name of the environment file in `sencast/environments`
+`-t` flag to indicate a test should be run
+
+Run script
+~~~~~~~~~~~~~
+
+In order to run a parameters file it can be passed to the command as follows using the `-p` flag.
+
+.. code-block:: bash
+
+   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.1 -e docker.ini -p example.ini
+
+`-p` name of the parameter file in `sencast/parameters`
+
+Run Interactive Container
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sometimes it is desirable to interact directly with the container, this can be achieved with the following command
+
+.. code-block:: bash
+
+   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it --entrypoint /bin/bash eawag/sencast:0.0.1
+
+Locally build container
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   docker build -t eawag/sencast:0.0.1 .
+
+
 .. toctree::
    :maxdepth: 2
-   :caption: Installation
+   :caption: CSCS
 
-   install/ubuntu18_install.rst
-   install/windows10_install.rst
+   cscs.rst
 
 .. toctree::
    :maxdepth: 2

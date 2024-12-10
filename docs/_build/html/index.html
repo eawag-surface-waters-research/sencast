@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Ubuntu 18.04, 20.04, 22.04" href="install/ubuntu18_install.html" /> 
+    <link rel="next" title="Linux" href="install/linux.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -41,14 +41,14 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/linux.html">Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/windows.html">Windows</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSCS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cscs.html">CSCS</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
 <ul>
@@ -151,19 +151,47 @@ the release of a stable v1.0, however for the moment this project remains pre-v1
 conda<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>~/sencast/sencast.yml
 </pre></div>
 </div>
-<p>Many of the Sencast’S processors reply on <a class="reference external" href="http://step.esa.int/main/toolboxes/snap/">SNAP</a> , the SeNtinel Application Platform
+<p>Many of the Sencast’s processors reply on <a class="reference external" href="http://step.esa.int/main/toolboxes/snap/">SNAP</a> , the Sentinel Application Platform
 project, funded by the <a class="reference external" href="http://www.esa.int/">European Space Agency</a> (ESA) or other 3rd party packages. In order to have
 access to all of Sencast’s processors follow the installation instructions below in order to
 correctly configure your environment.</p>
 <p>This process will require registering accounts with data providers.</p>
 <div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/linux.html">Linux</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install/linux.html#clone-sencast">Clone Sencast</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/linux.html#install-python-environment">Install Python Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/linux.html#install-snap">Install SNAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/linux.html#polymer">POLYMER</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/linux.html#nasa-earthdata-api">NASA Earthdata API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/linux.html#acolite">Acolite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/linux.html#fluo">FLUO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/linux.html#icor">iCOR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/linux.html#sen2cor">Sen2Cor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/linux.html#lswt">LSWT</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install/windows.html">Windows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install/windows.html#install-prerequisites">Install prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/windows.html#clone-sencast">Clone Sencast</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/windows.html#install-python-environment">Install Python Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/windows.html#snap">SNAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/windows.html#cds-api">CDS API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/windows.html#nasa-earthdata-api">NASA Earthdata API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/windows.html#acolite">Acolite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install/windows.html#sen2cor">Sen2Cor</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <p>For issues with installation, please contact <a class="reference external" href="https://www.eawag.ch/de/ueberuns/portraet/organisation/mitarbeitende/profile/daniel-odermatt/show/">Daniel
 Odermatt</a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It can be difficult and time-consuming to get a local installation set up (particularly for Windows). For users not
+planning on developing the code it is recommended to use the Docker image provided (see below).</p>
+</div>
 </section>
 <section id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
@@ -229,8 +257,6 @@ Odermatt</a>.</p>
 </pre></div>
 </div>
 <p>For this options you can pass objects as the params_file and env_file as well as links to the text files.</p>
-<p>Following flow chart illustrates how Sencast works.</p>
-<a class="reference internal image-reference" href="_images/flowchart.png"><img alt="Sencast Flow Chart" class="align-center" src="_images/flowchart.png" style="width: 800px;" /></a>
 <section id="environment-file">
 <h3>Environment File<a class="headerlink" href="#environment-file" title="Link to this heading"></a></h3>
 <p>Environment files use the INI format and contain the configuration of
@@ -252,23 +278,6 @@ Sentinel Hndacast. They are stored as polygons in <a class="reference external" 
 are referenced from the parameter files. Some example perimeters are stored
 in the wkt folder.</p>
 </section>
-<section id="processors">
-<h3>Processors<a class="headerlink" href="#processors" title="Link to this heading"></a></h3>
-<p>Data is processed by a sequence of processors defined in the
-parameters file. Subsequent processors have all outputs of preceding
-processors available and might process these outputs further.
-The user is responsible to ensure that he specifies the processors
-in the parameters file in the correct order.</p>
-</section>
-<section id="adapters">
-<h3>Adapters<a class="headerlink" href="#adapters" title="Link to this heading"></a></h3>
-<p>The purpose of an adapter is to perform some action after the processors
-have finished. Possible actions include but are not limited to
-validating outputs, sending processed outputs to some webservice,
-creating quicklooks, notifying some webservice about the finished
-sencast run.</p>
-<p>Adapter usually do not produce any new output products.</p>
-</section>
 </section>
 <section id="testing">
 <h2>Testing<a class="headerlink" href="#testing" title="Link to this heading"></a></h2>
@@ -279,11 +288,61 @@ sencast run.</p>
 </pre></div>
 </div>
 <p>This will report which processors are successfully installed and producing meaning-full outputs.</p>
+</section>
+<section id="docker">
+<h2>Docker<a class="headerlink" href="#docker" title="Link to this heading"></a></h2>
+<p>Manual installation of all the processors is challenging and can be simplified through the use of a docker container.</p>
+<p>Users should first ensure they have a functioning docker installation.</p>
+<section id="pull-container">
+<h3>Pull container<a class="headerlink" href="#pull-container" title="Link to this heading"></a></h3>
+<p>The docker image can be downloaded from docker hub using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>pull<span class="w"> </span>eawag/sencast:0.0.1
+</pre></div>
+</div>
+</section>
+<section id="run-tests">
+<h3>Run Tests<a class="headerlink" href="#run-tests" title="Link to this heading"></a></h3>
+<p>In order to test the setup is working the following command can be run which will output a report on the
+functioning of the processors. <strong>This must be run from inside the sencast repository.</strong></p>
+<p>The option <cite>-v /DIAS:/DIAS</cite> maps the input/ output folders to a location outside the container. This should be updated to
+the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/DIAS:/DIAS<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/sencast<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>eawag/sencast:0.0.1<span class="w"> </span>-e<span class="w"> </span>docker.ini<span class="w"> </span>-t
+</pre></div>
+</div>
+<p><cite>-e</cite> name of the environment file in <cite>sencast/environments</cite>
+<cite>-t</cite> flag to indicate a test should be run</p>
+</section>
+<section id="run-script">
+<h3>Run script<a class="headerlink" href="#run-script" title="Link to this heading"></a></h3>
+<p>In order to run a parameters file it can be passed to the command as follows using the <cite>-p</cite> flag.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/DIAS:/DIAS<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/sencast<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>eawag/sencast:0.0.1<span class="w"> </span>-e<span class="w"> </span>docker.ini<span class="w"> </span>-p<span class="w"> </span>example.ini
+</pre></div>
+</div>
+<p><cite>-p</cite> name of the parameter file in <cite>sencast/parameters</cite></p>
+</section>
+<section id="run-interactive-container">
+<h3>Run Interactive Container<a class="headerlink" href="#run-interactive-container" title="Link to this heading"></a></h3>
+<p>Sometimes it is desirable to interact directly with the container, this can be achieved with the following command</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/DIAS:/DIAS<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/sencast<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>--entrypoint<span class="w"> </span>/bin/bash<span class="w"> </span>eawag/sencast:0.0.1
+</pre></div>
+</div>
+</section>
+<section id="locally-build-container">
+<h3>Locally build container<a class="headerlink" href="#locally-build-container" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>eawag/sencast:0.0.1<span class="w"> </span>.
+</pre></div>
+</div>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<p class="caption" role="heading"><span class="caption-text">CSCS</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cscs.html">CSCS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cscs.html#register-for-an-account">Register for an account</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cscs.html#access-using-jupyter">Access using Jupyter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cscs.html#access-using-ssh">Access using ssh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cscs.html#install-sencast">Install Sencast</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cscs.html#run-sencast">Run Sencast</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
@@ -320,7 +379,7 @@ sencast run.</p>
 <li class="toctree-l2"><a class="reference internal" href="utils/auxil.html#utils.auxil.load_wkt"><code class="docutils literal notranslate"><span class="pre">load_wkt()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/auxil.html#utils.auxil.log"><code class="docutils literal notranslate"><span class="pre">log()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/auxil.html#utils.auxil.log_output"><code class="docutils literal notranslate"><span class="pre">log_output()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils/auxil.html#utils.auxil.set_gpt_cache_size"><code class="docutils literal notranslate"><span class="pre">set_gpt_cache_size()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils/auxil.html#utils.auxil.set_memory_parameters"><code class="docutils literal notranslate"><span class="pre">set_memory_parameters()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils/earthdata.html">Earth Data</a></li>
@@ -329,6 +388,7 @@ sencast run.</p>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.copy_band"><code class="docutils literal notranslate"><span class="pre">copy_band()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.copy_nc"><code class="docutils literal notranslate"><span class="pre">copy_nc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.create_band"><code class="docutils literal notranslate"><span class="pre">create_band()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.create_chunks"><code class="docutils literal notranslate"><span class="pre">create_chunks()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.filter_for_baseline"><code class="docutils literal notranslate"><span class="pre">filter_for_baseline()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.filter_for_tiles"><code class="docutils literal notranslate"><span class="pre">filter_for_tiles()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.generate_l8_angle_files"><code class="docutils literal notranslate"><span class="pre">generate_l8_angle_files()</span></code></a></li>
@@ -344,7 +404,10 @@ sencast run.</p>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_pixel_pos"><code class="docutils literal notranslate"><span class="pre">get_pixel_pos()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_pixel_value_xy"><code class="docutils literal notranslate"><span class="pre">get_pixel_value_xy()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_pixels_from_nc"><code class="docutils literal notranslate"><span class="pre">get_pixels_from_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_reproject_params_from_jp2"><code class="docutils literal notranslate"><span class="pre">get_reproject_params_from_jp2()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_reproject_params_from_nc"><code class="docutils literal notranslate"><span class="pre">get_reproject_params_from_nc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_reproject_params_from_wkt"><code class="docutils literal notranslate"><span class="pre">get_reproject_params_from_wkt()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_s2_tile_name_from_product_name"><code class="docutils literal notranslate"><span class="pre">get_s2_tile_name_from_product_name()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_satellite_name_from_product_name"><code class="docutils literal notranslate"><span class="pre">get_satellite_name_from_product_name()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_sensing_date_from_product_name"><code class="docutils literal notranslate"><span class="pre">get_sensing_date_from_product_name()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_sensing_datetime_from_product_name"><code class="docutils literal notranslate"><span class="pre">get_sensing_datetime_from_product_name()</span></code></a></li>
@@ -368,6 +431,7 @@ sencast run.</p>
 <li class="toctree-l1"><a class="reference internal" href="processors/acolite.html">Acolite</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="processors/acolite.html#processors.acolite.acolite.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="processors/acolite.html#processors.acolite.acolite.rewrite_settings_file"><code class="docutils literal notranslate"><span class="pre">rewrite_settings_file()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors/acolite.html#processors.acolite.acolite.update_settings_file"><code class="docutils literal notranslate"><span class="pre">update_settings_file()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="processors/c2rcc.html">C2RCC</a><ul>
@@ -400,6 +464,7 @@ sencast run.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="processors/idepix.html">IDEPIX</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="processors/idepix.html#processors.idepix.idepix.get_reproject_params_from_msi"><code class="docutils literal notranslate"><span class="pre">get_reproject_params_from_msi()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="processors/idepix.html#processors.idepix.idepix.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="processors/idepix.html#processors.idepix.idepix.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
 </ul>
@@ -467,8 +532,8 @@ sencast run.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="processors/secchidepth.html">Secchi Depth</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="processors/secchidepth.html#processors.secchidepth.secchidepth.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s2_row"><code class="docutils literal notranslate"><span class="pre">secchi_s2_row()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s3_row"><code class="docutils literal notranslate"><span class="pre">secchi_s3_row()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s2"><code class="docutils literal notranslate"><span class="pre">secchi_s2()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s3"><code class="docutils literal notranslate"><span class="pre">secchi_s3()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="processors/sen2cor.html">Sen2cor</a><ul>
@@ -490,6 +555,7 @@ sencast run.</p>
 <li class="toctree-l2"><a class="reference internal" href="adapters/datalakes.html#adapters.datalakes.datalakes.apply"><code class="docutils literal notranslate"><span class="pre">apply()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="adapters/datalakes.html#adapters.datalakes.datalakes.convert_nc"><code class="docutils literal notranslate"><span class="pre">convert_nc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="adapters/datalakes.html#adapters.datalakes.datalakes.convert_valid_pixel_expression"><code class="docutils literal notranslate"><span class="pre">convert_valid_pixel_expression()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="adapters/datalakes.html#adapters.datalakes.datalakes.get_mask_from_geojson"><code class="docutils literal notranslate"><span class="pre">get_mask_from_geojson()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="adapters/datalakes.html#adapters.datalakes.datalakes.parse_bands"><code class="docutils literal notranslate"><span class="pre">parse_bands()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="adapters/datalakes.html#adapters.datalakes.datalakes.upload_directory"><code class="docutils literal notranslate"><span class="pre">upload_directory()</span></code></a></li>
 </ul>
@@ -555,6 +621,7 @@ sencast run.</p>
 </div>
 </section>
 </section>
+</section>
 <section id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
 <ul class="simple">
@@ -568,13 +635,13 @@ sencast run.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="install/ubuntu18_install.html" class="btn btn-neutral float-right" title="Ubuntu 18.04, 20.04, 22.04" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="install/linux.html" class="btn btn-neutral float-right" title="Linux" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

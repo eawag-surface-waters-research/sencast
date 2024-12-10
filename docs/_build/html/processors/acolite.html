@@ -42,14 +42,14 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/linux.html">Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows.html">Windows</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSCS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cscs.html">CSCS</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
 <ul>
@@ -71,6 +71,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Acolite</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#processors.acolite.acolite.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#processors.acolite.acolite.rewrite_settings_file"><code class="docutils literal notranslate"><span class="pre">rewrite_settings_file()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processors.acolite.acolite.update_settings_file"><code class="docutils literal notranslate"><span class="pre">update_settings_file()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="c2rcc.html">C2RCC</a></li>
@@ -139,7 +140,12 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.acolite.acolite.rewrite_settings_file">
-<span class="sig-prename descclassname"><span class="pre">processors.acolite.acolite.</span></span><span class="sig-name descname"><span class="pre">rewrite_settings_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">settings_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2w_mask_wave</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2w_mask_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2w_mask_smooth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2w_mask_cirrus_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2w_mask_negative_rhow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">luts_reduce_dimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsf_aot_estimate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2w_parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.acolite.acolite.rewrite_settings_file" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.acolite.acolite.</span></span><span class="sig-name descname"><span class="pre">rewrite_settings_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">settings_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.acolite.acolite.rewrite_settings_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="processors.acolite.acolite.update_settings_file">
+<span class="sig-prename descclassname"><span class="pre">processors.acolite.acolite.</span></span><span class="sig-name descname"><span class="pre">update_settings_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.acolite.acolite.update_settings_file" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -155,7 +161,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

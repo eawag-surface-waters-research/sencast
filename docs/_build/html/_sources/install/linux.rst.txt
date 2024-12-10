@@ -1,27 +1,11 @@
-.. _ubuntu18install:
+.. _linux:
 
 ------------------------------------------------------------------------------------------
-Ubuntu 18.04, 20.04, 22.04
+Linux
 ------------------------------------------------------------------------------------------
 
-Update repositories and installed packages::
-
-    $ sudo add-apt-repository ppa:deadsnakes/ppa -y
-    $ sudo add-apt-repository ppa:ubuntugis/ppa -y
-    $ sudo apt update && sudo apt upgrade -y
-    $ sudo apt install vim gcc make wget curl git -y
-
-In case you have gzip version "jammy 1.10-4ubuntu4 amd64", do this to prevent problems::
-
-    $ wget http://archive.ubuntu.com/ubuntu/pool/main/g/gzip/gzip_1.10-4ubuntu4.1_amd64.deb && sudo dpkg -i gzip_1.10-4ubuntu4.1_amd64.deb && rm gzip_1.10-4ubuntu4.1_amd64.deb
-
-If you want to use graphical tools with WSL1 (Windows Subsystem for Linux)::
-
-    $ echo "export DISPLAY=:0" >> ~/.bashrc
-    $ export DISPLAY=:0
-
-
-1.) sencast: https://github.com/eawag-surface-waters-research/sencast.git
+Clone Sencast
+----------------
 
 In shell do following::
 
@@ -32,34 +16,28 @@ In shell do following::
     $ git checkout <branchname> (if not master)
 
 
-2.) Anaconda3: https://docs.anaconda.com/anaconda/install/linux/
+Install Python Environment
+---------------------------
 
-We use Anaconda because it delivers all packages with eventually required external libraries. With PIP you would have to install some GDAL stuff manually.
+We use Anaconda because it delivers all packages with required external libraries. With PIP you would have to install some GDAL requirements manually.
 
-In  shell do following after editing the conda path to match your installation::
-
-    $ curl https://repo.anaconda.com/archive/Anaconda3-2022.05-Linux-x86_64.sh -o ~/Anaconda3-2022.05-Linux-x86_64.sh && sudo chmod 755 ~/Anaconda3-2022.05-Linux-x86_64.sh && ~/Anaconda3-2022.05-Linux-x86_64.sh && rm ~/Anaconda3-2022.05-Linux-x86_64.sh
-        > [Enter]
-        > s
-        > yes
-        > [Enter]
-        > yes
-    $ echo "export CONDA_HOME=/home/username/anaconda3" >> ~/.bashrc
-    $ export CONDA_HOME=/home/username/anaconda3
+If you do not already have Anaconda installed you can find installation instructions here: https://docs.anaconda.com/anaconda/install/
 
 Create sencast environment::
 
-    $ source ~/.bashrc
-    $ conda env create -f ~/sencast/sencast.yml
+    $ cd sencast
+    $ conda env create -f sencast.yml
     $ echo "export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast" >> ~/.bashrc
     $ export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast
 
+Install SNAP
+-------------
 
-3.) SNAP: http://step.esa.int/main/download/
+You can find installation instructions for SNAP here: https://step.esa.int/main/download/snap-download/
 
-First, uninstall all old versions of SNAP and remove associated data
+For command line instructions see below:
 
-Then do following::
+First, uninstall all old versions of SNAP and remove associated data. You may need to update the version of SNAP to the latest one in the code below. ::
 
     $ cd ~
     $ curl -O http://step.esa.int/downloads/9.0/installers/esa-snap_all_unix_9_0_0.sh && chmod 755 esa-snap_all_unix_9_0_0.sh && bash esa-snap_all_unix_9_0_0.sh && rm esa-snap_all_unix_9_0_0.sh
@@ -94,22 +72,20 @@ To remove warning "SEVERE: org.esa.s2tbx.dataio.gdal.activator.GDALDistributionI
 
     $ echo "export LD_LIBRARY_PATH=." >> ~/.bashrc
 
-4.) polymer: https://forum.hygeos.com/viewforum.php?f=5
+POLYMER
+--------
 
 Request a polymer install tar.gz file from Hygeos, then do following::
 
-    $ tar -xvzf ~/polymer-v4.16.1.tar.gz
-    $ cd polymer-v4.16.1
+    $ git clone --depth 1 --branch master https://github.com/hygeos/polymer.git
+    $ cd polymer
     $ conda activate sencast
     $ make all
-    $ cp -avr ~/polymer-v4.16.1/polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
-    $ cp -avr ~/polymer-v4.16.1/auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
+    $ cp -avr polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
+    $ cp -avr auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
 
 Note: On some systems you will need following change: In the file $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer/level1_landsat8.py replace line 13 "import osr" by "from osgeo import osr"
 
-
-5.) l8_angles: https://www.usgs.gov/core-science-systems/nli/landsat/solar-illumination-and-sensor-viewing-angle-coefficient-files?qt-science_support_page_related_con=1#qt-science_support_page_related_con
-	
 To use polymer with L8 data you must install l8_angles according to: https://forum.hygeos.com/viewtopic.php?f=7&t=136
 
 In shell do following::
@@ -123,14 +99,18 @@ In shell do following::
 Configure path to l8_angles in your environment file.
 
 
-6.) CDS API: https://cds.climate.copernicus.eu/api-how-to ::
+CDS API
+________
+
+Setup credentials for CDS API::
 
 	$ echo "url: https://cds.climate.copernicus.eu/api/v2" > ~/.cdsapirc
 	$ echo key: [uid]:[api-key] >> ~/.cdsapirc (Note: replace [uid] and [api-key] by your actual credentials, see https://cds.climate.copernicus.eu/api-how-to )
 	$ chmod 600 ~/.cdsapirc
 
 
-7.) NASA Earthdata API: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget
+NASA Earthdata API
+--------------------
 
 Have a NASA Earthdata account ready, otherwise create one: https://urs.earthdata.nasa.gov/
 
@@ -142,7 +122,8 @@ In shell do following::
     $ chmod 0600 ~/.netrc
 
 
-8.) Acolite: https://github.com/acolite/acolite.git
+Acolite
+--------
 
 In shell do following::
 
@@ -154,7 +135,8 @@ In shell do following::
 Configure your Acolite path in you environment file.
 
 
-9.) FLUO:
+FLUO
+-----
 
 Somehow bring the installation file snap-eum-fluo-1.0.nbm to the directory ~/setup/
 
@@ -165,7 +147,8 @@ In shell do following::
     $ rm -rf ~/snap-eum-fluo-1.0
 
 
-10.) iCOR: https://remotesensing.vito.be/case/icor
+iCOR
+-----
 
 In shell do following::
 
@@ -186,13 +169,14 @@ Installation of SNAP plugin only necessary if you want to use iCOR from SNAP Des
 
 Configure your iCOR path in you environment file.
 
-
-11.) Sen2Cor:
+Sen2Cor
+---------
 
 First you must try to run it from SNAP GUI. It will then prompt you to install some bundle. Only after that the processor will work from GPT. https://forum.step.esa.int/t/error-processing-template-after-execution-for-parameter-postexecutetemplate/6591
 
 
-12.) LSWT:
+LSWT
+-----
 
 Somehow bring the installation file snap-musenalp-processor-1.0.5.nbm to the directory ~/setup/
 

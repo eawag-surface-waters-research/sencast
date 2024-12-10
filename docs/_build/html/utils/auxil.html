@@ -42,14 +42,14 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/linux.html">Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows.html">Windows</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSCS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cscs.html">CSCS</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
 <ul>
@@ -74,7 +74,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#utils.auxil.load_wkt"><code class="docutils literal notranslate"><span class="pre">load_wkt()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.auxil.log"><code class="docutils literal notranslate"><span class="pre">log()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.auxil.log_output"><code class="docutils literal notranslate"><span class="pre">log_output()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#utils.auxil.set_gpt_cache_size"><code class="docutils literal notranslate"><span class="pre">set_gpt_cache_size()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.auxil.set_memory_parameters"><code class="docutils literal notranslate"><span class="pre">set_memory_parameters()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="earthdata.html">Earth Data</a></li>
@@ -161,7 +161,7 @@ credentials</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.auxil.gpt_subprocess">
-<span class="sig-prename descclassname"><span class="pre">utils.auxil.</span></span><span class="sig-name descname"><span class="pre">gpt_subprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attempts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.auxil.gpt_subprocess" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">utils.auxil.</span></span><span class="sig-name descname"><span class="pre">gpt_subprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attempts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.auxil.gpt_subprocess" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -205,9 +205,9 @@ credentials</p>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="utils.auxil.set_gpt_cache_size">
-<span class="sig-prename descclassname"><span class="pre">utils.auxil.</span></span><span class="sig-name descname"><span class="pre">set_gpt_cache_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.auxil.set_gpt_cache_size" title="Link to this definition"></a></dt>
-<dd><p>Set the GPT cache size, if not set.</p>
+<dt class="sig sig-object py" id="utils.auxil.set_memory_parameters">
+<span class="sig-prename descclassname"><span class="pre">utils.auxil.</span></span><span class="sig-name descname"><span class="pre">set_memory_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.auxil.set_memory_parameters" title="Link to this definition"></a></dt>
+<dd><p>Set the max memory usage and GPT cache size if not set.</p>
 </dd></dl>
 
 </section>
@@ -223,7 +223,7 @@ credentials</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

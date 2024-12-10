@@ -39,14 +39,14 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install/windows10_install.html">Windows 10</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/linux.html">Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/windows.html">Windows</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSCS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cscs.html">CSCS</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
 <ul>
@@ -212,10 +212,10 @@
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.copy_band">copy_band() (in module utils.product_fun)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils/product_fun.html#utils.product_fun.copy_nc">copy_nc() (in module utils.product_fun)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="processors/icor.html#processors.icor.icor.create_args_msi">create_args_msi() (in module processors.icor.icor)</a>
 </li>
       <li><a href="processors/icor.html#processors.icor.icor.create_args_olci">create_args_olci() (in module processors.icor.icor)</a>
@@ -223,6 +223,8 @@
       <li><a href="processors/icor.html#processors.icor.icor.create_args_oli_tirs">create_args_oli_tirs() (in module processors.icor.icor)</a>
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.create_band">create_band() (in module utils.product_fun)</a>
+</li>
+      <li><a href="utils/product_fun.html#utils.product_fun.create_chunks">create_chunks() (in module utils.product_fun)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -341,13 +343,15 @@
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.get_lat_lon_from_x_y_from_nc">get_lat_lon_from_x_y_from_nc() (in module utils.product_fun)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="adapters/qlsingleband.html#adapters.qlsingleband.qlsingleband.get_legend_str">get_legend_str() (in module adapters.qlsingleband.qlsingleband)</a>
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.get_lons_lats">get_lons_lats() (in module utils.product_fun)</a>
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.get_main_file_from_product_path">get_main_file_from_product_path() (in module utils.product_fun)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="adapters/datalakes.html#adapters.datalakes.datalakes.get_mask_from_geojson">get_mask_from_geojson() (in module adapters.datalakes.datalakes)</a>
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.get_name_width_height_from_nc">get_name_width_height_from_nc() (in module utils.product_fun)</a>
 </li>
@@ -363,7 +367,15 @@
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.get_pixels_from_nc">get_pixels_from_nc() (in module utils.product_fun)</a>
 </li>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_reproject_params_from_jp2">get_reproject_params_from_jp2() (in module utils.product_fun)</a>
+</li>
+      <li><a href="processors/idepix.html#processors.idepix.idepix.get_reproject_params_from_msi">get_reproject_params_from_msi() (in module processors.idepix.idepix)</a>
+</li>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_reproject_params_from_nc">get_reproject_params_from_nc() (in module utils.product_fun)</a>
+</li>
       <li><a href="utils/product_fun.html#utils.product_fun.get_reproject_params_from_wkt">get_reproject_params_from_wkt() (in module utils.product_fun)</a>
+</li>
+      <li><a href="utils/product_fun.html#utils.product_fun.get_s2_tile_name_from_product_name">get_s2_tile_name_from_product_name() (in module utils.product_fun)</a>
 </li>
       <li><a href="utils/product_fun.html#utils.product_fun.get_satellite_name_from_product_name">get_satellite_name_from_product_name() (in module utils.product_fun)</a>
 </li>
@@ -499,6 +511,8 @@
         <li><a href="processors/whiting.html#module-processors.whiting.whiting">processors.whiting.whiting</a>
 </li>
         <li><a href="utils/auxil.html#module-utils.auxil">utils.auxil</a>
+</li>
+        <li><a href="utils/earthdata.html#module-utils.earthdata">utils.earthdata</a>
 </li>
         <li><a href="utils/product_fun.html#module-utils.product_fun">utils.product_fun</a>
 </li>
@@ -782,9 +796,9 @@
         <li><a href="apis/creodias.html#dias_apis.creodias.creodias.search">(in module dias_apis.creodias.creodias)</a>
 </li>
       </ul></li>
-      <li><a href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s2_row">secchi_s2_row() (in module processors.secchidepth.secchidepth)</a>
+      <li><a href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s2">secchi_s2() (in module processors.secchidepth.secchidepth)</a>
 </li>
-      <li><a href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s3_row">secchi_s3_row() (in module processors.secchidepth.secchidepth)</a>
+      <li><a href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s3">secchi_s3() (in module processors.secchidepth.secchidepth)</a>
 </li>
       <li><a href="main.html#main.sencast">sencast() (in module main)</a>
 </li>
@@ -800,7 +814,7 @@
         <li><a href="apis/creodias.html#dias_apis.creodias.creodias.server_authenticate">(in module dias_apis.creodias.creodias)</a>
 </li>
       </ul></li>
-      <li><a href="utils/auxil.html#utils.auxil.set_gpt_cache_size">set_gpt_cache_size() (in module utils.auxil)</a>
+      <li><a href="utils/auxil.html#utils.auxil.set_memory_parameters">set_memory_parameters() (in module utils.auxil)</a>
 </li>
       <li><a href="adapters/qlsingleband.html#adapters.qlsingleband.qlsingleband.shade">shade() (in module adapters.qlsingleband.qlsingleband)</a>
 </li>
@@ -826,6 +840,8 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="processors/acolite.html#processors.acolite.acolite.update_settings_file">update_settings_file() (in module processors.acolite.acolite)</a>
+</li>
       <li><a href="adapters/datalakes.html#adapters.datalakes.datalakes.upload_directory">upload_directory() (in module adapters.datalakes.datalakes)</a>
 </li>
       <li>
@@ -837,6 +853,13 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    utils.earthdata
+
+      <ul>
+        <li><a href="utils/earthdata.html#module-utils.earthdata">module</a>
+</li>
+      </ul></li>
       <li>
     utils.product_fun
 
@@ -874,7 +897,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
