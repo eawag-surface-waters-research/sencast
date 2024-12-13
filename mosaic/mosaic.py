@@ -31,7 +31,7 @@ def mosaic(env, params, product_files):
 
     # check if output already exists
     if os.path.isfile(output_file):
-        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+        if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":
             print("Removing file: ${}".format(output_file))
             os.remove(output_file)
         else:

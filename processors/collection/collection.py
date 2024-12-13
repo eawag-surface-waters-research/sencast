@@ -56,6 +56,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     if params["General"]['sensor'] == "landsat_ot_c2_l2":
+
+        water_only = False
+        if PARAMS_SECTION in params and "water_only" in params[PARAMS_SECTION]:
+            water_only = params[PARAMS_SECTION]["water_only"] == "true"
+
         st_file = os.path.join(l1product_path, os.path.basename(l1product_path) + "_ST_B10.TIF")
         st_file_temp = os.path.join(out_path, OUT_DIR, "_reproducibility", os.path.basename(l1product_path) + "_ST_B10_reprojected.nc")
         qa_file = os.path.join(l1product_path, os.path.basename(l1product_path) + "_QA_PIXEL.TIF")
@@ -77,6 +82,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
         log(env["General"]["log"], "Reprojecting {}".format(os.path.basename(st_file)), indent=2)
         if os.path.exists(st_file_temp):
+
             os.remove(st_file_temp)
         args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
                 "-SsourceFile={}".format(st_file),
@@ -120,20 +126,20 @@ def process(env, params, l1product_path, l2product_files, out_path):
                 'ST',
                 np.float32,
                 ('lat', 'lon'),
-                chunksizes=chunk_size,  # Define chunk size
-                zlib=True,  # Enable compression
-                fill_value=-999  # Set no data value
+                chunksizes=chunk_size,
+                zlib=True,
+                fill_value=np.nan
             )
             data_var.units = "degC"
             data_var.long_name = "Skin Temperature"
-            data_var.valid_pixel_expression = "water>0"
+            data_var.valid_pixel_expression = "cloud<1"
 
             cloud_var = nc.createVariable(
                 'cloud',
                 np.float32,
                 ('lat', 'lon'),
-                chunksizes=chunk_size,  # Define chunk size
-                zlib=True  # Enable compression
+                chunksizes=chunk_size,
+                zlib=True
             )
             cloud_var.units = ""
             cloud_var.long_name = "0 - Cloud, 1 - No cloud"
@@ -142,8 +148,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
                 'water',
                 np.float32,
                 ('lat', 'lon'),
-                chunksizes=chunk_size,  # Define chunk size
-                zlib=True  # Enable compression
+                chunksizes=chunk_size,
+                zlib=True
             )
             water_var.units = ""
             water_var.long_name = "0 - Cloud or land, 1 - Water"
@@ -161,13 +167,17 @@ def process(env, params, l1product_path, l2product_files, out_path):
                     data_chunk = np.array(nc_st["band_1"][i:i + block_height, j:j + block_width], dtype=float)
                     qa_chunk = np.array(nc_qa["band_1"][i:i + block_height, j:j + block_width], dtype=int)
 
-                    # Process chunks
-                    data_chunk[data_chunk == 0] = np.nan
-                    data_chunk = np.array(data_chunk) * 0.00341802 - 124.15
-                    data_chunk[np.isnan(data_chunk)] = -999
+                    tile_mask = data_chunk == 0
 
+                    # Process chunks
                     cloud_chunk = (qa_chunk >> 6) & 1
+                    cloud_chunk = np.abs(cloud_chunk - 1)
                     water_chunk = (qa_chunk >> 7) & 1
+
+                    data_chunk[tile_mask] = np.nan
+                    data_chunk = np.array(data_chunk) * 0.00341802 - 124.15
+                    if water_only:
+                        data_chunk[water_chunk == 0] = np.nan
 
                     # Write the chunk to the NetCDF file
                     data_var[i:i + block_height, j:j + block_width] = data_chunk
