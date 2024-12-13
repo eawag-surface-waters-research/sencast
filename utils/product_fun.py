@@ -73,6 +73,8 @@ def filter_for_baseline(products, sensor, env):
 
 
 def filter_for_tiles(products, tiles, env):
+    if tiles == [""]:
+        return products
     log(env["General"]["log"], "Filtering to only include the following tiles: {}.".format(", ".join(tiles)), indent=1)
     filtered_products = []
     for i in range(len(products)):
