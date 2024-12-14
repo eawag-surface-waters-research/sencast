@@ -226,8 +226,7 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
     with semaphores['process']:
         l2product_files = {}
         # apply processors to all products
-        for processor in list(filter(None, params['General']['processors'].split(","))):
-
+        for processor in [p.strip() for p in filter(None, params['General']['processors'].split(","))]:
             log(env["General"]["log"], "", blank=True)
             log(env["General"]["log"], "Processor {} starting...".format(processor))
             process = getattr(
@@ -286,7 +285,7 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
     # apply adapters
     if "adapters" in params["General"]:
         with semaphores['adapt']:
-            for adapter in list(filter(None, params['General']['adapters'].split(","))):
+            for adapter in [a.strip() for a in filter(None, params['General']['adapters'].split(","))]:
                 start = time.time()
                 try:
                     log(env["General"]["log"], "", blank=True)
