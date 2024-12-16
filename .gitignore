@@ -11,6 +11,8 @@ __pycache__
 !/parameters/datalakes_sui_S3.ini
 !/parameters/datalakes_sui_S2.ini
 !/parameters/alplakes_collection.ini
+!/parameters/alplakes_s2.ini
+!/parameters/alplakes_s3.ini
 !/parameters/test_S3_processors.ini
 !/parameters/test_S2_processors.ini
 !/parameters/test_S2_tiles_processors.ini
