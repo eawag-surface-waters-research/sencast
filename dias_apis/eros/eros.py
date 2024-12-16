@@ -185,7 +185,7 @@ def get_token(username, password):
         "token": password
     }
     response = requests.post(service_url.format("login-token"), json.dumps(token_data)).json()
-    if response["data"] is None:
-        raise ValueError("Failed")
-    else:
+    if isinstance(response["data"], str) and len(response["data"]) > 10:
         return response["data"]
+    else:
+        raise ValueError("Failed")
