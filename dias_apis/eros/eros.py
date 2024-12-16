@@ -185,7 +185,7 @@ def get_token(username, password):
         "token": password
     }
     response = requests.post(service_url.format("login-token"), json.dumps(token_data)).json()
-    try:
-        return response['data']
-    except KeyError:
-        raise RuntimeError(response)
+    if response["data"] is None:
+        raise ValueError("Failed")
+    else:
+        return response["data"]
