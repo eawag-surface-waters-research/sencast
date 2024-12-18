@@ -76,7 +76,7 @@ def apply(env, params, l2product_files, date):
 
                     ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, band))
                     if os.path.exists(ql_file):
-                        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+                        if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":
                             log(env["General"]["log"], "Removing file: ${}".format(ql_file))
                             os.remove(ql_file)
                             param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin),

@@ -73,6 +73,8 @@ def filter_for_baseline(products, sensor, env):
 
 
 def filter_for_tiles(products, tiles, env):
+    if tiles == [""]:
+        return products
     log(env["General"]["log"], "Filtering to only include the following tiles: {}.".format(", ".join(tiles)), indent=1)
     filtered_products = []
     for i in range(len(products)):
@@ -88,19 +90,21 @@ def get_s2_tile_name_from_product_name(product_name):
 
 def remove_superseded_products(products, env):
     filtered_products = []
+    test = []
     log(env["General"]["log"], "Filtering superseded files.", indent=1)
     for i in range(len(products)):
         if products[i]["satellite"] == "S3A" or products[i]["satellite"] == "S3B":
-            matching_sensing = [f for f in products if f['sensing_start'] == products[i]['sensing_start']
-                                and f['sensing_end'] == products[i]['sensing_end']
+            matching_sensing = [f for f in products if
+                                f['sensing_start'].split(".")[0] == products[i]['sensing_start'].split(".")[0]
+                                and f['sensing_end'].split(".")[0] == products[i]['sensing_end'].split(".")[0]
                                 and f['satellite'] == products[i]['satellite']]
             creation = [d['product_creation'] for d in matching_sensing]
             creation.sort(reverse=True)
             if products[i]['product_creation'] == creation[0]:
                 filtered_products.append(products[i])
+                test.append(products[i]["name"])
         else:
             filtered_products.append(products[i])
-
     return filtered_products
 
 
@@ -188,6 +192,18 @@ def get_sensing_date_from_product_name(product_name):
 
 def get_sensing_datetime_from_product_name(product_name):
     return re.findall(r"\d{8}", product_name)[0] + "T" + re.findall(r"\d{6}", product_name)[1]
+
+
+def get_tile_name_from_product_name(product_name):
+    if "mosaic" in product_name.lower():
+        return False
+    satellite = get_satellite_name_from_product_name(product_name)
+    if "S2" in satellite:
+        return product_name.split("_")[-2]
+    elif "L" in satellite:
+        return product_name.split("_")[-5]
+    else:
+        return False
 
 
 def get_l1product_path(env, product_name):

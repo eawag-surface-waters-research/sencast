@@ -42,14 +42,14 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/linux.html">Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows.html">Windows</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSCS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cscs.html">CSCS</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
 <ul>
@@ -74,6 +74,7 @@
 <li class="toctree-l1"><a class="reference internal" href="forelule.html">ForelUle</a></li>
 <li class="toctree-l1"><a class="reference internal" href="icor.html">ICOR</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">IDEPIX</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#processors.idepix.idepix.get_reproject_params_from_msi"><code class="docutils literal notranslate"><span class="pre">get_reproject_params_from_msi()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#processors.idepix.idepix.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#processors.idepix.idepix.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
 </ul>
@@ -134,6 +135,11 @@
 Landsat-8, MODIS, VIIRS, Proba-V, SPOT VGT amongst others in order to define surface types.</p>
 <p>For an overview of the processor: <a class="reference external" href="https://www.brockmann-consult.de/portfolio/idepix/">https://www.brockmann-consult.de/portfolio/idepix/</a></p>
 <dl class="py function">
+<dt class="sig sig-object py" id="processors.idepix.idepix.get_reproject_params_from_msi">
+<span class="sig-prename descclassname"><span class="pre">processors.idepix.idepix.</span></span><span class="sig-name descname"><span class="pre">get_reproject_params_from_msi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.idepix.idepix.get_reproject_params_from_msi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="processors.idepix.idepix.process">
 <span class="sig-prename descclassname"><span class="pre">processors.idepix.idepix.</span></span><span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l1product_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.idepix.idepix.process" title="Link to this definition"></a></dt>
 <dd><p>This processor applies subset, idepix, merge and reprojection to the source product and
@@ -142,7 +148,7 @@ writes the result to disk. It returns the location of the output product.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="processors.idepix.idepix.rewrite_xml">
-<span class="sig-prename descclassname"><span class="pre">processors.idepix.idepix.</span></span><span class="sig-name descname"><span class="pre">rewrite_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpt_xml_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.idepix.idepix.rewrite_xml" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">processors.idepix.idepix.</span></span><span class="sig-name descname"><span class="pre">rewrite_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gpt_xml_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tiles</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#processors.idepix.idepix.rewrite_xml" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -158,7 +164,7 @@ writes the result to disk. It returns the location of the output product.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

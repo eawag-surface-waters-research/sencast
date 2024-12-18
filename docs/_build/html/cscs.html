@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSCS &mdash; Sencast  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Environment File" href="environment_config.html" />
+    <link rel="prev" title="Windows" href="install/windows.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Sencast
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install/linux.html">Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install/windows.html">Windows</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSCS</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CSCS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#register-for-an-account">Register for an account</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#access-using-jupyter">Access using Jupyter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#access-using-ssh">Access using ssh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-sencast">Install Sencast</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-sencast">Run Sencast</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="environment_config.html">Environment File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters_config.html">Parameter File</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="utils/auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils/earthdata.html">Earth Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils/product_fun.html">product_fun</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Processors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="processors/acolite.html">Acolite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/c2rcc.html">C2RCC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/forelule.html">ForelUle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/icor.html">ICOR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/idepix.html">IDEPIX</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/lswt.html">LSWT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/merge.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/mph.html">MPH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/ndwi.html">NDWI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/oc3.html">OC3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/polymer.html">Polymer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/s2res.html">S2Res</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/secchidepth.html">Secchi Depth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/whiting.html">Whiting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Adapters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="adapters/datalakes.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adapters/qlrgb.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adapters/qlsingleband.html">QLSingleBand</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">DIAS API's</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apis/coah.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apis/creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apis/hda.html">HDA API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Sencast</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">CSCS</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cscs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cscs">
+<span id="id1"></span><h1>CSCS<a class="headerlink" href="#cscs" title="Link to this heading"></a></h1>
+<p>The following section provides details on how to run Sencast on the supercomputer Piz Daint at CSCS.</p>
+<section id="register-for-an-account">
+<h2>Register for an account<a class="headerlink" href="#register-for-an-account" title="Link to this heading"></a></h2>
+<p>Get access permission to Daint from your local IT Admin.
+You will be required to set up multifactor authentication</p>
+</section>
+<section id="access-using-jupyter">
+<h2>Access using Jupyter<a class="headerlink" href="#access-using-jupyter" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Login at <a class="reference external" href="https://jupyter.cscs.ch/">https://jupyter.cscs.ch/</a></p></li>
+<li><p>Select <cite>Node Type = Multicore</cite></p></li>
+<li><p>Click <cite>Launch Jupyterlab</cite></p></li>
+<li><p>Select <cite>Terminal</cite></p></li>
+</ul>
+</section>
+<section id="access-using-ssh">
+<h2>Access using ssh<a class="headerlink" href="#access-using-ssh" title="Link to this heading"></a></h2>
+<p>This access is only valid for 24 hours after which the process will need to be repeated. For details on how to automate see here: <a class="reference external" href="https://user.cscs.ch/access/auth/mfa">https://user.cscs.ch/access/auth/mfa</a> and for Windows see here: <a class="reference external" href="https://user.cscs.ch/access/auth/mfa/windows">https://user.cscs.ch/access/auth/mfa/windows</a></p>
+<ul class="simple">
+<li><p>Login at <a class="reference external" href="https://sshservice.cscs.ch/">https://sshservice.cscs.ch/</a></p></li>
+<li><p>Click <cite>Get a signed key</cite> follow the instructions and download the private and public key</p></li>
+<li><p>Move the keys to your users <cite>.ssh</cite> directory</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mv<span class="w"> </span>/downloads/location/cscs-key-cert.pub<span class="w"> </span>~/.ssh/cscs-key-cert.pub
+mv<span class="w"> </span>/download/location/cscs-key<span class="w"> </span>~/.ssh/cscs-key
+chmod<span class="w"> </span><span class="m">0600</span><span class="w"> </span>~/.ssh/cscs-key
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Login to the CSCS entrance server</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ssh<span class="w"> </span>-A<span class="w"> </span>username@ela.cscs.ch
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Switch to Piz Daint</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ssh<span class="w"> </span>username@daint.cscs.ch
+</pre></div>
+</div>
+</section>
+<section id="install-sencast">
+<h2>Install Sencast<a class="headerlink" href="#install-sencast" title="Link to this heading"></a></h2>
+<p>This step must be completed on the command line after logging into Piz Daint using one of the above methods.</p>
+<p>Load the required modules</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>module<span class="w"> </span>load<span class="w"> </span>daint-mc
+module<span class="w"> </span>load<span class="w"> </span>sarus
+</pre></div>
+</div>
+<p>Clone the repo for sencast to your user area:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/eawag-surface-waters-research/sencast.git
+</pre></div>
+</div>
+<p>Update the environment and parameters scripts that you want to run.</p>
+<p>Pull the image you want from dockerhub:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun<span class="w"> </span>-C<span class="w"> </span>mc<span class="w"> </span>-A<span class="w"> </span>em09<span class="w"> </span>sarus<span class="w"> </span>pull<span class="w"> </span>--login<span class="w"> </span>eawag/sencast:0.0.1
+</pre></div>
+</div>
+<p>then enter your credentials for the repository (There is no prompt)</p>
+<p><cite>&lt;username&gt;</cite>
+<cite>&lt;password&gt;</cite></p>
+<p>The docker image (now for sarus) is automatically saved in ${SCRATCH}/.sarus</p>
+<p>If this fails try running the command again.</p>
+</section>
+<section id="run-sencast">
+<h2>Run Sencast<a class="headerlink" href="#run-sencast" title="Link to this heading"></a></h2>
+<p>Move to the scratch drive and create an output folder <strong>don’t save large amounts of data to user area</strong>
+Data stored in the scratch drive is removed after 30 days.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span><span class="si">${</span><span class="nv">SCRATCH</span><span class="si">}</span>
+mkdir<span class="w"> </span>DIAS
+</pre></div>
+</div>
+<p>Create a submission script containing the following (adjust details to match your user) - make sure you are writing to scratch.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>vim<span class="w"> </span>run.sh
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash -l</span>
+<span class="c1">#SBATCH --job-name=&quot;sencast&quot;</span>
+<span class="c1">#SBATCH --account=&quot;em09&quot;</span>
+<span class="c1">#SBATCH --mail-type=ALL</span>
+<span class="c1">#SBATCH --mail-user=username@eawag.ch</span>
+<span class="c1">#SBATCH --time=24:00:00</span>
+<span class="c1">#SBATCH --nodes=1</span>
+<span class="c1">#SBATCH --ntasks-per-core=1</span>
+<span class="c1">#SBATCH --ntasks-per-node=1</span>
+<span class="c1">#SBATCH --cpus-per-task=36</span>
+<span class="c1">#SBATCH --partition=normal</span>
+<span class="c1">#SBATCH --constraint=mc</span>
+<span class="c1">#SBATCH --hint=nomultithread</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="nv">$SLURM_CPUS_PER_TASK</span>
+module<span class="w"> </span>load<span class="w"> </span>daint-mc
+module<span class="w"> </span>load<span class="w"> </span>sarus
+<span class="nv">image</span><span class="o">=</span><span class="s1">&#39;eawag/sencast:0.0.1&#39;</span>
+<span class="nv">envvars</span><span class="o">=</span><span class="s1">&#39;docker.ini&#39;</span>
+<span class="nv">params</span><span class="o">=</span><span class="s1">&#39;parameters.ini&#39;</span>
+<span class="nv">filepath</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SCRATCH</span><span class="si">}</span><span class="s2">/DIAS&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/sencast
+srun<span class="w"> </span>sarus<span class="w"> </span>run<span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span><span class="si">${</span><span class="nv">filepath</span><span class="si">}</span>,destination<span class="o">=</span>/DIAS<span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>,dst<span class="o">=</span>/sencast<span class="w"> </span><span class="si">${</span><span class="nv">image</span><span class="si">}</span><span class="w"> </span>-e<span class="w"> </span><span class="si">${</span><span class="nv">envvars</span><span class="si">}</span><span class="w"> </span>-p<span class="w"> </span><span class="si">${</span><span class="nv">params</span><span class="si">}</span>
+</pre></div>
+</div>
+<p><cite>:w</cite> save file</p>
+<p><cite>:q</cite> exit vim</p>
+<p>Then you can run Sencast:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch<span class="w"> </span>run.sh
+</pre></div>
+</div>
+<p>See the status of your job:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>squeue<span class="w"> </span>-u<span class="w"> </span>username
+</pre></div>
+</div>
+<p>You get an email when the job begins and if it fails. A live log is deposited in the directory from where you start the run.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="install/windows.html" class="btn btn-neutral float-left" title="Windows" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="environment_config.html" class="btn btn-neutral float-right" title="Environment File" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

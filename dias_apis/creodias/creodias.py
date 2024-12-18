@@ -144,7 +144,10 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30, bucket_name="D
                 log(env["General"]["log"],
                     "Failed S3 download attempt {} of {}: {}".format(attempt + 1, max_attempts, e), indent=1)
                 try:
-                    Path(folder_temp).unlink()
+                    if os.path.exists(product_path):
+                        shutil.rmtree(product_path)
+                    if os.path.exists(folder_temp):
+                        Path(folder_temp).unlink()
                 except:
                     pass
                 time.sleep(wait_time)
@@ -173,10 +176,14 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30, bucket_name="D
             except Exception as e:
                 log(env["General"]["log"], "Failed download attempt {} of {}: {}".format(attempt + 1, max_attempts, e), indent=1)
                 try:
-                    Path(file_temp).unlink()
+                    if os.path.exists(product_path):
+                        shutil.rmtree(product_path)
+                    if os.path.exists(file_temp):
+                        Path(file_temp).unlink()
                 except:
                     pass
                 time.sleep(wait_time)
+    raise ValueError("Failed to download file after {} attempts".format(max_attempts))
 
 
 def authenticate(env):

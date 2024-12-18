@@ -8,7 +8,7 @@ EarthExplorer (EE) serves as a key data access portal for the USGS Earth Resourc
 import os
 import json
 import time
-
+import shutil
 import requests
 from datetime import datetime
 from numpy.core.numeric import Infinity
@@ -21,13 +21,7 @@ from utils.auxil import log
 from utils.product_fun import get_satellite_name_from_product_name
 
 
-search_address = "https://m2m.cr.usgs.gov/api/api/json/stable/scene-search"
-
-download_options = "https://m2m.cr.usgs.gov/api/api/json/stable/download-options"
-
-download_links = "https://m2m.cr.usgs.gov/api/api/json/stable/download-request"
-
-token_address = "https://m2m.cr.usgs.gov/api/api/json/stable/login-token"
+service_url = "https://m2m.cr.usgs.gov/api/api/json/stable/{}"
 
 
 def get_download_requests(auth, start_date, completion_date, sensor, resolution, wkt, env):
@@ -45,7 +39,7 @@ def get_download_requests(auth, start_date, completion_date, sensor, resolution,
                    'spatialFilter': spatial_filter,
                    'acquisitionFilter': acquisition_filter}
                }
-    products = search(search_address, payload, env, auth)
+    products = search(service_url.format("scene-search"), payload, env, auth)
     return products
 
 
@@ -117,36 +111,35 @@ def timeliness_filter(products):
 
 def do_download(auth, product, env, max_attempts=4, wait_time=30):
     product_path = product["l1_product_path"]
+    file_temp = "{}.incomplete".format(product_path)
     os.makedirs(os.path.dirname(product_path), exist_ok=True)
     payload = {'datasetName': product['dataset'], 'entityIds': [product["entityId"]]}
     for attempt in range(max_attempts):
-        log(env["General"]["log"], "Starting download attempt {} of {}".format(attempt + 1, max_attempts), indent=1)
-        token = server_authenticate(auth, env)
-        headers = {'X-Auth-Token': token}
-        response = requests.post(download_options, json.dumps(payload), headers=headers)
-        if response.status_code != codes.OK:
-            raise ValueError("Failed to access {}".format(download_options))
-        downloads = []
-        for product in response.json()["data"]:
-            if product['available'] == True:
-                downloads.append({'entityId': product['entityId'],
-                                  'productId': product['id']})
-        label = datetime.now().strftime("%Y%m%d_%H%M%S")  # Customized label using date time
-        payload = {'downloads': downloads,
-                   'label': label}
-        response = requests.post(download_links, json.dumps(payload), headers=headers)
-        if response.status_code != codes.OK:
-            raise ValueError("Failed to collect download link")
-
-        url = response.json()["data"]["availableDownloads"][0]["url"]
-        file_temp = "{}.incomplete".format(product_path)
-        session = requests.Session()
-        session.headers.update({'X-Auth-Token': f'{token}'})
         try:
+            log(env["General"]["log"], "Starting download attempt {} of {}".format(attempt + 1, max_attempts), indent=1)
+            token = server_authenticate(auth, env)
+            headers = {'X-Auth-Token': token}
+            response = requests.post(service_url.format("download-options"), json.dumps(payload), headers=headers)
+            if response.status_code != codes.OK:
+                raise ValueError("Failed to access {}".format(service_url.format("download_options")))
+            downloads = []
+            for product in response.json()["data"]:
+                if product['available'] == True:
+                    downloads.append({'entityId': product['entityId'],
+                                      'productId': product['id']})
+            label = datetime.now().strftime("%Y%m%d_%H%M%S")  # Customized label using date time
+            payload = {'downloads': downloads,
+                       'label': label}
+            response = requests.post(service_url.format("download-request"), json.dumps(payload), headers=headers)
+            if response.status_code != codes.OK:
+                raise ValueError("Failed to collect download link")
+            url = response.json()["data"]["availableDownloads"][0]["url"]
+            session = requests.Session()
+            session.headers.update({'X-Auth-Token': f'{token}'})
             downloaded_bytes = 0
             with session.get(url, stream=True, timeout=600) as req:
-                if int(req.status_code) > 400:
-                    raise ValueError("{} ERROR. {}".format(req.status_code, req.json()))
+                if req.status_code != codes.OK:
+                    raise ValueError("{} ERROR.".format(req.status_code))
                 with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
                     chunk_size = 2 ** 20  # download in 1 MB chunks
                     with open(file_temp, 'wb') as fout:
@@ -163,10 +156,14 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30):
         except Exception as e:
             log(env["General"]["log"], "Failed download attempt {} of {}: {}".format(attempt + 1, max_attempts, e), indent=1)
             try:
-                Path(file_temp).unlink()
+                if os.path.exists(product_path):
+                    shutil.rmtree(product_path)
+                if os.path.exists(file_temp):
+                    Path(file_temp).unlink()
             except:
                 pass
             time.sleep(wait_time)
+    raise ValueError("Failed to download file after {} attempts".format(max_attempts))
 
 
 def authenticate(env):
@@ -191,8 +188,8 @@ def get_token(username, password):
         "username": username,
         "token": password
     }
-    response = requests.post(token_address, json.dumps(token_data)).json()
-    try:
-        return response['data']
-    except KeyError:
-        raise RuntimeError(response)
+    response = requests.post(service_url.format("login-token"), json.dumps(token_data)).json()
+    if isinstance(response["data"], str) and len(response["data"]) > 10:
+        return response["data"]
+    else:
+        raise ValueError("Failed")

@@ -27,7 +27,7 @@ def process(env, params, l1product_path, _, out_path):
     ocsmart_file = os.path.splitext(product_name)[0] + '_L2_OCSMART.h5'
 
     if os.path.isfile(out_file):
-        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+        if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":
             log(env["General"]["log"], "Removing file: ${}".format(out_file), indent=1)
             os.remove(out_path)
         else:

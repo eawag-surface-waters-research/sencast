@@ -42,14 +42,14 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/linux.html">Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows.html">Windows</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSCS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cscs.html">CSCS</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
 <ul>
@@ -69,6 +69,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.copy_band"><code class="docutils literal notranslate"><span class="pre">copy_band()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.copy_nc"><code class="docutils literal notranslate"><span class="pre">copy_nc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.create_band"><code class="docutils literal notranslate"><span class="pre">create_band()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.create_chunks"><code class="docutils literal notranslate"><span class="pre">create_chunks()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.filter_for_baseline"><code class="docutils literal notranslate"><span class="pre">filter_for_baseline()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.filter_for_tiles"><code class="docutils literal notranslate"><span class="pre">filter_for_tiles()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.generate_l8_angle_files"><code class="docutils literal notranslate"><span class="pre">generate_l8_angle_files()</span></code></a></li>
@@ -84,7 +85,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_pixel_pos"><code class="docutils literal notranslate"><span class="pre">get_pixel_pos()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_pixel_value_xy"><code class="docutils literal notranslate"><span class="pre">get_pixel_value_xy()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_pixels_from_nc"><code class="docutils literal notranslate"><span class="pre">get_pixels_from_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_reproject_params_from_jp2"><code class="docutils literal notranslate"><span class="pre">get_reproject_params_from_jp2()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_reproject_params_from_nc"><code class="docutils literal notranslate"><span class="pre">get_reproject_params_from_nc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_reproject_params_from_wkt"><code class="docutils literal notranslate"><span class="pre">get_reproject_params_from_wkt()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_s2_tile_name_from_product_name"><code class="docutils literal notranslate"><span class="pre">get_s2_tile_name_from_product_name()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_satellite_name_from_product_name"><code class="docutils literal notranslate"><span class="pre">get_satellite_name_from_product_name()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_sensing_date_from_product_name"><code class="docutils literal notranslate"><span class="pre">get_sensing_date_from_product_name()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_sensing_datetime_from_product_name"><code class="docutils literal notranslate"><span class="pre">get_sensing_datetime_from_product_name()</span></code></a></li>
@@ -183,6 +187,11 @@
 <dd></dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="utils.product_fun.create_chunks">
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">create_chunks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.create_chunks" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.filter_for_baseline">
 <span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">filter_for_baseline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">products</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.filter_for_baseline" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -212,8 +221,7 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_l1product_path">
 <span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_l1product_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_l1product_path" title="Link to this definition"></a></dt>
-<dd><p>Fills the placeholders in the configured DIAS path with actual values.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_lat_lon_from_x_y">
@@ -273,10 +281,25 @@
 <dd></dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="utils.product_fun.get_reproject_params_from_jp2">
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_reproject_params_from_jp2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_reproject_params_from_jp2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.product_fun.get_reproject_params_from_nc">
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_reproject_params_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_reproject_params_from_nc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_reproject_params_from_wkt">
 <span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_reproject_params_from_wkt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_reproject_params_from_wkt" title="Link to this definition"></a></dt>
 <dd><p>Calculates reprojection parameters from a given wkt.</p>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.product_fun.get_s2_tile_name_from_product_name">
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_s2_tile_name_from_product_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_s2_tile_name_from_product_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_satellite_name_from_product_name">
@@ -359,7 +382,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

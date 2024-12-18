@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Windows &mdash; Sencast  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CSCS" href="../cscs.html" />
+    <link rel="prev" title="Linux" href="linux.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Sencast
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="linux.html">Linux</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Windows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#install-prerequisites">Install prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#clone-sencast">Clone Sencast</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-python-environment">Install Python Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#snap">SNAP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cds-api">CDS API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#nasa-earthdata-api">NASA Earthdata API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#acolite">Acolite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sen2cor">Sen2Cor</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSCS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cscs.html">CSCS</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../environment_config.html">Environment File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parameters_config.html">Parameter File</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sencast</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">main</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../utils/auxil.html">auxil</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/earthdata.html">Earth Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/product_fun.html">product_fun</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Processors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../processors/acolite.html">Acolite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/c2rcc.html">C2RCC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/forelule.html">ForelUle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/icor.html">ICOR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/idepix.html">IDEPIX</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/lswt.html">LSWT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/mdn.html">MDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/merge.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/mph.html">MPH</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/ndwi.html">NDWI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/oc3.html">OC3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/polymer.html">Polymer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/primaryproduction.html">Primary Production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/s2res.html">S2Res</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/secchidepth.html">Secchi Depth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/whiting.html">Whiting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Adapters</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">DIAS API's</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../apis/coah.html">COAH API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/hda.html">HDA API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Sencast</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Windows</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/install/windows.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="windows">
+<span id="id1"></span><h1>Windows<a class="headerlink" href="#windows" title="Link to this heading"></a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The windows version of this installation has a number of issues, it is suggested to use linux or the
+windows subsystem for linux. Processors such as Polymer cannot be used in Windows.</p>
+</div>
+<section id="install-prerequisites">
+<h2>Install prerequisites<a class="headerlink" href="#install-prerequisites" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Git: <a class="reference external" href="https://git-scm.com/downloads">https://git-scm.com/downloads</a></p></li>
+<li><p>Visual C++ Build Tools 2015: <a class="reference external" href="https://go.microsoft.com/fwlink/?LinkId=691126">https://go.microsoft.com/fwlink/?LinkId=691126</a></p></li>
+</ul>
+</section>
+<section id="clone-sencast">
+<h2>Clone Sencast<a class="headerlink" href="#clone-sencast" title="Link to this heading"></a></h2>
+<p>Start a command prompt and do following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">mkdir</span> <span class="s2">&quot;%USERPROFILE%\Projects&quot;</span>
+<span class="o">&gt;</span> <span class="n">cd</span> <span class="s2">&quot;%USERPROFILE%\Projects&quot;</span>
+<span class="o">&gt;</span> <span class="n">mkdir</span> <span class="n">DIAS</span>
+<span class="o">&gt;</span> <span class="n">mkdir</span> <span class="n">ANCILLARY</span>
+<span class="o">&gt;</span> <span class="n">mkdir</span> <span class="n">datalakes</span>
+<span class="o">&gt;</span> <span class="n">mkdir</span> <span class="n">data_landmask_gsw</span>
+<span class="o">&gt;</span> <span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">eawag</span><span class="o">-</span><span class="n">surface</span><span class="o">-</span><span class="n">waters</span><span class="o">-</span><span class="n">research</span><span class="o">/</span><span class="n">sencast</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+</section>
+<section id="install-python-environment">
+<h2>Install Python Environment<a class="headerlink" href="#install-python-environment" title="Link to this heading"></a></h2>
+<p>Download Anaconda3</p>
+<p>Install Anaconda3 (prefered to C:Program FilesConda)</p>
+<p>Set CONDA_HOME to “C:path_to_anaconda_installation&quot; (e.g. C:Program FilesConda)</p>
+<p>Add “%CONDA_HOME%bin” to PATH  (could need to be “%CONDA_HOME%condabin”)</p>
+<p>Start a new cmd sencast environment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%</span>\<span class="n">Projects</span>\<span class="n">sencast</span>\<span class="n">sencast</span><span class="o">.</span><span class="n">yml</span>
+</pre></div>
+</div>
+<p>Set CONDA_ENV_HOME to “%CONDA_HOME%envssencast”</p>
+</section>
+<section id="snap">
+<h2>SNAP<a class="headerlink" href="#snap" title="Link to this heading"></a></h2>
+<p><a class="reference external" href="http://step.esa.int/main/download/">http://step.esa.int/main/download/</a></p>
+<dl class="simple">
+<dt>Uninstall all old versions of SNAP:</dt><dd><ul class="simple">
+<li><p>Uninstall via “Control Panel -&gt; Programs and Features”</p></li>
+<li><p>Choose to delete all user data</p></li>
+<li><p>Check that the SNAP installation folder has been removed completely by uninstalling. Otherwise delete it manually.</p></li>
+<li><p>Delete snappy folder from all your python environments: %PYTHON_HOME%Libsite-packages</p></li>
+<li><p>Delete .snap folder from all user accounts: %USERPROFILE%.snap</p></li>
+<li><p>Delete SNAP Folder from all user accoutns: %USERPROFILE%AppDataRoamingSNAP</p></li>
+</ul>
+</dd>
+</dl>
+<p>Download SNAP</p>
+<p>Install SNAP</p>
+<p>Do not configure SNAP for use with Python.</p>
+<p>Run SNAP and install available updates.</p>
+<p>Configure: Tools -&gt; Options -&gt; S3TBX -&gt; Check: Read Sentinel-3 OLCI products with per pixel geo-coding instead of using tie-points</p>
+<p>Configure: Tools -&gt; Plugins -&gt; Available Plugins -&gt; Install all plugins</p>
+<p>Wait for it to finish and close SNAP</p>
+<p>Set SNAP_HOME to “C:path_to_snap_installation&quot; (e.g. C:Program FilesSnap)</p>
+</section>
+<section id="cds-api">
+<h2>CDS API<a class="headerlink" href="#cds-api" title="Link to this heading"></a></h2>
+<p>Start a command prompt and do following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">echo</span> <span class="n">url</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">cds</span><span class="o">.</span><span class="n">climate</span><span class="o">.</span><span class="n">copernicus</span><span class="o">.</span><span class="n">eu</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v2</span> <span class="o">&gt;</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%</span>\<span class="o">.</span><span class="n">cdsapirc</span>
+<span class="o">&gt;</span> <span class="n">echo</span> <span class="n">key</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">uid</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">api</span><span class="o">-</span><span class="n">key</span><span class="o">&gt;</span> <span class="o">&gt;&gt;</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%</span>\<span class="o">.</span><span class="n">cdsapirc</span>
+</pre></div>
+</div>
+</section>
+<section id="nasa-earthdata-api">
+<h2>NASA Earthdata API<a class="headerlink" href="#nasa-earthdata-api" title="Link to this heading"></a></h2>
+<p>Have a NASA Earthdata account ready, otherwise create one: <a class="reference external" href="https://urs.earthdata.nasa.gov/">https://urs.earthdata.nasa.gov/</a></p>
+<p>In cmd do following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">echo</span> <span class="s2">&quot;machine urs.earthdata.nasa.gov login &lt;earthdata user&gt; password &lt;earthdata password&gt;&quot;</span> <span class="o">&gt;</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%</span>\<span class="o">.</span><span class="n">netrc</span>
+<span class="o">&gt;</span> <span class="n">echo</span> <span class="s2">&quot;&quot;</span> <span class="o">&gt;</span> <span class="o">%</span><span class="n">USERPROFILE</span><span class="o">%</span>\<span class="o">.</span><span class="n">urs_cookies</span>
+</pre></div>
+</div>
+</section>
+<section id="acolite">
+<h2>Acolite<a class="headerlink" href="#acolite" title="Link to this heading"></a></h2>
+<p>In cmd do following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cd</span> <span class="s2">&quot;%USERPROFILE%\Projects&quot;</span>
+<span class="o">&gt;</span> <span class="n">git</span> <span class="n">clone</span> <span class="o">--</span><span class="n">depth</span> <span class="mi">1</span> <span class="o">--</span><span class="n">branch</span> <span class="n">main</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">acolite</span><span class="o">/</span><span class="n">acolite</span><span class="o">.</span><span class="n">git</span>
+<span class="o">&gt;</span> <span class="n">cd</span> <span class="n">acolite</span>
+<span class="o">&gt;</span> <span class="n">git</span> <span class="n">reset</span> <span class="o">--</span><span class="n">hard</span> <span class="n">e7cb944</span>
+</pre></div>
+</div>
+</section>
+<section id="sen2cor">
+<h2>Sen2Cor<a class="headerlink" href="#sen2cor" title="Link to this heading"></a></h2>
+<p>First you must try to run it from SNAP GUI. It will then prompt you to install some bundle. Only after that the processor will work from GPT. <a class="reference external" href="https://forum.step.esa.int/t/error-processing-template-after-execution-for-parameter-postexecutetemplate/6591">https://forum.step.esa.int/t/error-processing-template-after-execution-for-parameter-postexecutetemplate/6591</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="linux.html" class="btn btn-neutral float-left" title="Linux" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../cscs.html" class="btn btn-neutral float-right" title="CSCS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

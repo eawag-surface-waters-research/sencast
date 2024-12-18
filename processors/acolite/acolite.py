@@ -42,7 +42,7 @@ def process(env, params, l1product_path, _, out_path):
     out_file = os.path.join(out_path, OUT_FILENAME.format(product_name))
 
     if os.path.isfile(out_file):
-        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+        if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":
             log(env["General"]["log"], "Removing file: ${}".format(out_file), indent=1)
             os.remove(out_path)
         else:

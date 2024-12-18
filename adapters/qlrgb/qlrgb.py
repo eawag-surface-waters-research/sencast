@@ -60,7 +60,7 @@ def apply(env, params, l2product_files, date):
                 product_name = os.path.splitext(os.path.basename(l2product_file))[0]
                 ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, ql_name))
                 if os.path.exists(ql_file):
-                    if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+                    if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":
                         log(env["General"]["log"], "Removing file: ${}".format(ql_file))
                         os.remove(ql_file)
                         plot_pic(env, l2product_file, ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))

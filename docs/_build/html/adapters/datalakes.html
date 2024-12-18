@@ -42,14 +42,14 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../install/ubuntu18_install.html">Ubuntu 18.04, 20.04, 22.04</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../install/windows10_install.html">Windows 10</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/linux.html">Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/windows.html">Windows</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSCS</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cscs.html">CSCS</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Configuration</span></p>
 <ul>
@@ -93,6 +93,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#adapters.datalakes.datalakes.apply"><code class="docutils literal notranslate"><span class="pre">apply()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#adapters.datalakes.datalakes.convert_nc"><code class="docutils literal notranslate"><span class="pre">convert_nc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#adapters.datalakes.datalakes.convert_valid_pixel_expression"><code class="docutils literal notranslate"><span class="pre">convert_valid_pixel_expression()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adapters.datalakes.datalakes.get_mask_from_geojson"><code class="docutils literal notranslate"><span class="pre">get_mask_from_geojson()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#adapters.datalakes.datalakes.parse_bands"><code class="docutils literal notranslate"><span class="pre">parse_bands()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#adapters.datalakes.datalakes.upload_directory"><code class="docutils literal notranslate"><span class="pre">upload_directory()</span></code></a></li>
 </ul>
@@ -168,6 +169,11 @@ in the Datalakes data portal <a class="reference external" href="https://www.dat
 <dd></dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="adapters.datalakes.datalakes.get_mask_from_geojson">
+<span class="sig-prename descclassname"><span class="pre">adapters.datalakes.datalakes.</span></span><span class="sig-name descname"><span class="pre">get_mask_from_geojson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geojson_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#adapters.datalakes.datalakes.get_mask_from_geojson" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="adapters.datalakes.datalakes.parse_bands">
 <span class="sig-prename descclassname"><span class="pre">adapters.datalakes.datalakes.</span></span><span class="sig-name descname"><span class="pre">parse_bands</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bands</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#adapters.datalakes.datalakes.parse_bands" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -191,7 +197,7 @@ in the Datalakes data portal <a class="reference external" href="https://www.dat
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
