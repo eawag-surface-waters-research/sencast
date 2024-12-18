@@ -75,6 +75,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     chunks = 2 if "chunks" not in params[PARAMS_SECTION] else int(params[PARAMS_SECTION]["chunks"])
 
     log(env["General"]["log"], 'Reading POLYMER output from {}'.format(product_path))
+    log(env["General"]["log"], 'Processing in {} chunks'.format(chunks), indent=1)
     try:
         with Dataset(product_path) as src, Dataset(output_file, mode='w') as dst:
             name, width, height = get_name_width_height_from_nc(src, product_path)

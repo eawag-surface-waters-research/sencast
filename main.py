@@ -178,6 +178,14 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
         log(env["General"]["log"], "FAILED: {}".format(p))
     if len(errors) > 0:
         raise RuntimeError("Sencast failed for {}/{} processes.".format(len(errors), len(summary)))
+    elif 'remove_inputs' in params['General'] and params['General']['remove_inputs'] == "True":
+        log(env["General"]["log"], "Deleting input files")
+        for product in products:
+            log(env["General"]["log"], "Removing: {}".format(product["l1_product_path"]), indent=1)
+            if os.path.isfile(product["l1_product_path"]):
+                os.remove(product["l1_product_path"])
+            elif os.path.isdir(product["l1_product_path"]):
+                shutil.rmtree(product["l1_product_path"])
 
 
 def sencast_product_group(env, params, do_download, auth, products, l2_path, l2product_files_outer, semaphores, group):
@@ -209,11 +217,9 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
     group
         Thread group name
     """
-    # download the products, which are not yet available locally
     log(env["General"]["log"], "", blank=True)
     log(env["General"]["log"], 'Processing group: "{}"'.format(group))
     log(env["General"]["log"], 'Outputting to folder : "{}"'.format(l2_path))
-    failed = False
     for product in products:
         if not os.path.exists(product["l1_product_path"]):
             with semaphores['download']:
@@ -230,7 +236,6 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
 
     with semaphores['process']:
         l2product_files = {}
-        # apply processors to all products
         for processor in [p.strip() for p in filter(None, params['General']['processors'].split(","))]:
             log(env["General"]["log"], "", blank=True)
             log(env["General"]["log"], "Processor {} starting...".format(processor))
@@ -255,7 +260,6 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
                     summary.append({"group": group, "input": product["l1_product_path"], "output": output_file, "type": "processor", "name": processor, "status": "Succeeded", "time": duration, "message": ""})
                 except Exception as e:
                     duration = int(time.time() - start)
-                    failed = True
                     log(env["General"]["log"], traceback.format_exc(), indent=2)
                     log(env["General"]["log"], "{} failed for {} in {}s.".format(processor, product["l1_product_path"], duration), indent=1)
                     summary.append({"group": group, "input": product["l1_product_path"], "output": "", "type": "processor", "name": processor, "status": "Failed", "time": duration, "message": e})
@@ -277,7 +281,6 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
                         summary.append({"group": group, "input": "Multiple", "output": l2product_files[processor], "type": "mosaic", "name": processor, "status": "Succeeded", "time": duration, "message": ""})
                     except Exception as e:
                         duration = int(time.time() - start)
-                        failed = True
                         log(env["General"]["log"], traceback.format_exc(), indent=2)
                         log(env["General"]["log"], "Mosaicing outputs of processor {} failed.".format(processor), indent=1)
                         summary.append({"group": group, "input": "Multiple", "output": "", "type": "mosaic", "name": processor, "status": "Failed", "time": duration, "message": e})
@@ -289,7 +292,6 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
             except:
                 log(env["General"]["log"], "Failed to delete: {}".format(product["l1_product_path"]))
 
-    # apply adapters
     if "adapters" in params["General"]:
         with semaphores['adapt']:
             for adapter in [a.strip() for a in filter(None, params['General']['adapters'].split(","))]:
@@ -305,19 +307,9 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
                     summary.append({"group": group, "input": "Multiple", "output": "", "type": "adapter", "name": adapter, "status": "Succeeded", "time": duration, "message": traceback.format_exc()})
                 except Exception as e:
                     duration = int(time.time() - start)
-                    failed = True
                     log(env["General"]["log"], traceback.format_exc(), indent=2)
                     log(env["General"]["log"], "Adapter {} failed on product group {}.".format(adapter, group))
                     summary.append({"group": group, "input": "Multiple", "output": "", "type": "adapter", "name": adapter, "status": "Failed", "time": duration, "message": e})
-
-    if 'remove_inputs' in params['General'] and params['General']['remove_inputs'] == "True" and not failed:
-        log(env["General"]["log"], "Deleting input files")
-        for product in products:
-            log(env["General"]["log"], "Removing: {}".format(product["l1_product_path"]), indent=1)
-            if os.path.isfile(product["l1_product_path"]):
-                os.remove(product["l1_product_path"])
-            elif os.path.isdir(product["l1_product_path"]):
-                shutil.rmtree(product["l1_product_path"])
 
     l2product_files_outer[group] = l2product_files
     log(env["General"]["log"], "", blank=True)
