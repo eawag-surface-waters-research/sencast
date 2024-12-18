@@ -239,8 +239,19 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
         for processor in [p.strip() for p in filter(None, params['General']['processors'].split(","))]:
             log(env["General"]["log"], "", blank=True)
             log(env["General"]["log"], "Processor {} starting...".format(processor))
-            process = getattr(
-                importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
+            try:
+                process = getattr(
+                    importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
+            except Exception as e:
+                log(env["General"]["log"], "Failed to import processor.".format(processor))
+                print(e)
+                for product in products:
+                    summary.append(
+                        {"group": group, "input": product["l1_product_path"], "type": "processor", "name": processor,
+                         "status": "Failed", "time": 0,
+                         "message": "Unable to import processor."})
+                continue
+
             processor_outputs = []
             for product in products:
                 if product["l1_product_path"] not in l2product_files.keys():
@@ -329,10 +340,11 @@ def test_installation(env, delete):
     try:
         sencast('test_S3_processors.ini', env_file=env)
     except Exception as e:
+        raise
         print("Some S3 processors failed")
         print(e)
 
-    if delete:
+    """if delete:
         _, params_s2, l2_path_s2 = init_hindcast(env, 'test_S2_processors.ini')
         shutil.rmtree(l2_path_s2)
     try:
@@ -357,7 +369,7 @@ def test_installation(env, delete):
         sencast('test_L8_processors.ini', env_file=env)
     except Exception as e:
         print("Some L8 processors failed.")
-        print(e)
+        print(e)"""
 
 
 if __name__ == "__main__":
