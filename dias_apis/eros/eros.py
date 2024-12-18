@@ -8,7 +8,7 @@ EarthExplorer (EE) serves as a key data access portal for the USGS Earth Resourc
 import os
 import json
 import time
-
+import shutil
 import requests
 from datetime import datetime
 from numpy.core.numeric import Infinity
@@ -111,6 +111,7 @@ def timeliness_filter(products):
 
 def do_download(auth, product, env, max_attempts=4, wait_time=30):
     product_path = product["l1_product_path"]
+    file_temp = "{}.incomplete".format(product_path)
     os.makedirs(os.path.dirname(product_path), exist_ok=True)
     payload = {'datasetName': product['dataset'], 'entityIds': [product["entityId"]]}
     for attempt in range(max_attempts):
@@ -133,7 +134,6 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30):
             if response.status_code != codes.OK:
                 raise ValueError("Failed to collect download link")
             url = response.json()["data"]["availableDownloads"][0]["url"]
-            file_temp = "{}.incomplete".format(product_path)
             session = requests.Session()
             session.headers.update({'X-Auth-Token': f'{token}'})
             downloaded_bytes = 0
@@ -156,10 +156,14 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30):
         except Exception as e:
             log(env["General"]["log"], "Failed download attempt {} of {}: {}".format(attempt + 1, max_attempts, e), indent=1)
             try:
-                Path(file_temp).unlink()
+                if os.path.exists(product_path):
+                    shutil.rmtree(product_path)
+                if os.path.exists(file_temp):
+                    Path(file_temp).unlink()
             except:
                 pass
             time.sleep(wait_time)
+    raise ValueError("Failed to download file after {} attempts".format(max_attempts))
 
 
 def authenticate(env):
