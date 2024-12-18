@@ -24,3 +24,4 @@ __pycache__
 /processors/ocsmart/anc
 /processors/ocsmart/landmask_gsw
 acolite_run_*_log_file.txt
+*cache.sqlite

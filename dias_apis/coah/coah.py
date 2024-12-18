@@ -9,6 +9,7 @@ import os
 import time
 import shutil
 import requests
+import requests_cache
 from requests.status_codes import codes
 from zipfile import ZipFile
 from tqdm import tqdm
@@ -39,6 +40,8 @@ def get_download_requests(auth, start_date, completion_date, sensor, resolution,
 
 def search(satellite, query, env):
     log(env["General"]["log"], "Search for products: {}".format(query))
+    requests_cache.install_cache(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache"),
+                                 backend='sqlite', expire_after=3600, allowable_methods=('GET', 'POST'))
     products = []
     url = search_address.format(query)
     while True:
