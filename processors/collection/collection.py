@@ -8,8 +8,6 @@ Adapter authors: Daniel Odermatt, James Runnalls
 import os
 import json
 import shutil
-
-from osgeo import gdal
 import numpy as np
 from netCDF4 import Dataset
 from utils.auxil import log, gpt_subprocess

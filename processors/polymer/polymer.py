@@ -11,11 +11,8 @@ or for more details: https://forum.hygeos.com/viewforum.php?f=3
 import math
 import os
 import re
-import subprocess
 from datetime import datetime
 from math import ceil, floor
-import xml.etree.ElementTree as ET
-
 from osgeo import gdal, osr
 from netCDF4 import Dataset
 from pyproj import Transformer
@@ -30,7 +27,6 @@ from polymer.level2 import default_datasets, Level2
 from polymer.main import run_atm_corr
 from pyhdf.error import HDF4Error
 
-from dias_apis.hda.hda import metadata_address
 from utils.auxil import log, gpt_subprocess
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
     get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos, get_reproject_params_from_nc, get_s2_tile_name_from_product_name

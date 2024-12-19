@@ -9,8 +9,12 @@ import traceback
 from threading import Semaphore, Thread
 
 from utils.auxil import authenticate_earthdata_anc, init_hindcast, log, authenticate_cds_anc
-from utils.product_fun import remove_superseded_products, get_satellite_name_from_product_name, \
-    get_sensing_date_from_product_name, get_l1product_path, filter_for_tiles, filter_for_baseline
+from utils.product_fun import remove_superseded_products, get_l1product_path, filter_for_tiles, filter_for_baseline
+
+conda_env_path = os.environ.get("CONDA_PREFIX")
+if conda_env_path:
+    proj_data_path = os.path.join(conda_env_path, "share", "proj")
+    os.environ["PROJ_DATA"] = proj_data_path
 
 global summary
 summary = []
@@ -340,11 +344,10 @@ def test_installation(env, delete):
     try:
         sencast('test_S3_processors.ini', env_file=env)
     except Exception as e:
-        raise
         print("Some S3 processors failed")
         print(e)
 
-    """if delete:
+    if delete:
         _, params_s2, l2_path_s2 = init_hindcast(env, 'test_S2_processors.ini')
         shutil.rmtree(l2_path_s2)
     try:
@@ -369,7 +372,7 @@ def test_installation(env, delete):
         sencast('test_L8_processors.ini', env_file=env)
     except Exception as e:
         print("Some L8 processors failed.")
-        print(e)"""
+        print(e)
 
 
 if __name__ == "__main__":

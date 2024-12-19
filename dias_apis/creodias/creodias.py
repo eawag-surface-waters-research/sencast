@@ -112,7 +112,7 @@ def get_dataset_id(sensor, resolution):
     elif sensor == 'MSI-L2A':
         return 'SENTINEL-2', 'S2MSI2A'
     elif sensor == 'OLI_TIRS':
-        return 'LANDSAT-8', 'L1TP'
+        return 'LANDSAT-8-ESA', 'L1TP'
     else:
         raise RuntimeError("CREODIAS API is not yet implemented for sensor: {}".format(sensor))
 

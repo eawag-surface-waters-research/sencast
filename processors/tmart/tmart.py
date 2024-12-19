@@ -40,7 +40,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     if not params.has_section(PARAMS_SECTION):
         raise RuntimeWarning('T-Mart was not configured in parameters.')
 
-    aot = 0.05
+    aot = "MERRA2"
     n_photon = 100000
     n_jobs = 1
 
