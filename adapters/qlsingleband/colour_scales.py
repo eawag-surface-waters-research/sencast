@@ -265,7 +265,7 @@ def spectral_cie(wvl_min, wvl_max):
 
     RGB = colour_science.plotting.XYZ_to_plotting_colourspace(
         colour_science.colorimetry.wavelength_to_XYZ(wavelengths, cmfs),
-        illuminant=colour_science.ILLUMINANTS['CIE 1931 2 Degree Standard Observer']['E'],
+        illuminant=colour_science.SDS_ILLUMINANTS['E'],
         apply_cctf_encoding=True)
 
     cdict = {'red': [], 'green': [], 'blue': []}

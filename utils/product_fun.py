@@ -373,6 +373,34 @@ def get_valid_pe_from_nc(nc, band_name=None):
         return False
 
 
+def get_bounds_from_nc(nc, lat_var_name=None, lon_var_name=None):
+    if lat_var_name is None:
+        if 'latitude' in nc.variables.keys():
+            lat_var_name = 'latitude'
+        elif 'lat' in nc.variables.keys():
+            lat_var_name = 'lat'
+        else:
+            raise RuntimeError('Cannot guess the name of the latitude variable for this product, please implement.')
+
+    if lon_var_name is None:
+        if 'longitude' in nc.variables.keys():
+            lon_var_name = 'longitude'
+        elif 'lon' in nc.variables.keys():
+            lon_var_name = 'lon'
+        else:
+            raise RuntimeError('Cannot guess the name of the longitude variable for this product, please implement.')
+
+    lat = nc.variables[lat_var_name][:]
+    lon = nc.variables[lon_var_name][:]
+
+    bounds = {"lat_min": np.nanmin(lat),
+            "lat_max": np.nanmax(lat),
+            "lon_min": np.nanmin(lon),
+            "lon_max": np.nanmax(lon)}
+
+    return bounds
+
+
 def get_lat_lon_from_x_y_from_nc(nc, x, y, lat_var_name=None, lon_var_name=None):
     if lat_var_name is None:
         if 'latitude' in nc.variables.keys():

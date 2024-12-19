@@ -51,7 +51,7 @@ def apply(env, params, l2product_files, date):
         Run date
     """
     wkt = params['General']['wkt']
-
+    failed = []
     for key in params[PARAMS_SECTION].keys():
         processor = key.upper()
         if processor in l2product_files.keys():
@@ -79,18 +79,19 @@ def apply(env, params, l2product_files, date):
                         if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":
                             log(env["General"]["log"], "Removing file: ${}".format(ql_file))
                             os.remove(ql_file)
-                            param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin),
-                                                                                              float(bandmax)]
-                            plot_map(env, l2product_file, ql_file, band, wkt, "srtm_hillshade",
-                                     param_range=param_range)
                         else:
                             log(env["General"]["log"],
                                 "Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
-                    else:
-                        param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin), float(bandmax)]
-                        os.makedirs(os.path.dirname(ql_file), exist_ok=True)
-                        plot_map(env, l2product_file, ql_file, band, wkt, "srtm_hillshade",
-                                 param_range=param_range)
+                            continue
+                    param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin), float(bandmax)]
+                    os.makedirs(os.path.dirname(ql_file), exist_ok=True)
+                    try:
+                        plot_map(env, l2product_file, ql_file, band, wkt, "esri_shaded", param_range=param_range)
+                    except Exception as e:
+                        print(e)
+                        failed.append(os.path.basename(ql_file))
+    if len(failed) > 0:
+        raise ValueError("Singleband plot failed for: {}".format(",".join(failed)))
 
 
 def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_elevation', crop_ext=None,
@@ -340,6 +341,8 @@ def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_el
             if basemap == 'quadtree_rgb':
                 log(env["General"]["log"], '   preparing Quadtree tiles basemap')
 
+
+
                 # background = maps.GoogleTiles(style='street')
                 # background = maps.GoogleTiles(style='satellite')
                 # background = maps.GoogleTiles(style='terrain')
@@ -351,6 +354,14 @@ def plot_map(env, input_file, output_file, band_name, wkt=None, basemap='srtm_el
 
                 # Add background
                 subplot_axes.add_image(background, 10)
+        if basemap == "esri_shaded":
+            class ShadedReliefESRI(maps.GoogleTiles):
+                def _image_url(self, tile):
+                    x, y, z = tile
+                    url = ('https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}.jpg').format(z=z, y=y, x=x)
+                    return url
+
+            subplot_axes.add_image(ShadedReliefESRI(), 12)
 
         ##############################
         # ### both plot versions #####
