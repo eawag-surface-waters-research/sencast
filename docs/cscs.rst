@@ -72,7 +72,7 @@ Pull the image you want from dockerhub:
 
 .. code-block:: bash
 
-   srun -C mc -A em09 sarus pull --login eawag/sencast:0.0.1
+   srun -C mc -A em09 sarus pull --login eawag/sencast:0.0.2
 
 then enter your credentials for the repository (There is no prompt)
 
@@ -118,7 +118,7 @@ Create a submission script containing the following (adjust details to match you
    export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
    module load daint-mc
    module load sarus
-   image='eawag/sencast:0.0.1'
+   image='eawag/sencast:0.0.2'
    envvars='docker.ini'
    params='parameters.ini'
    filepath="${SCRATCH}/DIAS"

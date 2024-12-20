@@ -151,7 +151,7 @@ The docker image can be downloaded from docker hub using the following command:
 
 .. code-block:: bash
 
-   docker pull eawag/sencast:0.0.1
+   docker pull eawag/sencast:0.0.2
 
 Run Tests
 ~~~~~~~~~~~
@@ -164,7 +164,7 @@ the appropriate location, e.g. `-v /home/user/DIAS:/DIAS`
 
 .. code-block:: bash
 
-   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.1 -e docker.ini -t
+   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.2 -e docker.ini -t
 
 `-e` name of the environment file in `sencast/environments`
 `-t` flag to indicate a test should be run
@@ -176,7 +176,7 @@ In order to run a parameters file it can be passed to the command as follows usi
 
 .. code-block:: bash
 
-   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.1 -e docker.ini -p example.ini
+   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.2 -e docker.ini -p example.ini
 
 `-p` name of the parameter file in `sencast/parameters`
 
@@ -187,14 +187,14 @@ Sometimes it is desirable to interact directly with the container, this can be a
 
 .. code-block:: bash
 
-   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it --entrypoint /bin/bash eawag/sencast:0.0.1
+   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it --entrypoint /bin/bash eawag/sencast:0.0.2
 
 Locally build container
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
-   docker build -t eawag/sencast:0.0.1 .
+   docker build -t eawag/sencast:0.0.2 .
 
 
 .. toctree::

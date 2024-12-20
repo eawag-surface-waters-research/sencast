@@ -189,7 +189,7 @@ git<span class="w"> </span>clone<span class="w"> </span>https://github.com/eawag
 </div>
 <p>Update the environment and parameters scripts that you want to run.</p>
 <p>Pull the image you want from dockerhub:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun<span class="w"> </span>-C<span class="w"> </span>mc<span class="w"> </span>-A<span class="w"> </span>em09<span class="w"> </span>sarus<span class="w"> </span>pull<span class="w"> </span>--login<span class="w"> </span>eawag/sencast:0.0.1
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun<span class="w"> </span>-C<span class="w"> </span>mc<span class="w"> </span>-A<span class="w"> </span>em09<span class="w"> </span>sarus<span class="w"> </span>pull<span class="w"> </span>--login<span class="w"> </span>eawag/sencast:0.0.2
 </pre></div>
 </div>
 <p>then enter your credentials for the repository (There is no prompt)</p>
@@ -226,7 +226,7 @@ mkdir<span class="w"> </span>DIAS
 <span class="nb">export</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="nv">$SLURM_CPUS_PER_TASK</span>
 module<span class="w"> </span>load<span class="w"> </span>daint-mc
 module<span class="w"> </span>load<span class="w"> </span>sarus
-<span class="nv">image</span><span class="o">=</span><span class="s1">&#39;eawag/sencast:0.0.1&#39;</span>
+<span class="nv">image</span><span class="o">=</span><span class="s1">&#39;eawag/sencast:0.0.2&#39;</span>
 <span class="nv">envvars</span><span class="o">=</span><span class="s1">&#39;docker.ini&#39;</span>
 <span class="nv">params</span><span class="o">=</span><span class="s1">&#39;parameters.ini&#39;</span>
 <span class="nv">filepath</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SCRATCH</span><span class="si">}</span><span class="s2">/DIAS&quot;</span>

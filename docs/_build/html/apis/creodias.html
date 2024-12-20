@@ -96,18 +96,7 @@
 <p class="caption" role="heading"><span class="caption-text">DIAS API's</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="coah.html">COAH API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">CREODIAS API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#dias_apis.creodias.creodias.authenticate"><code class="docutils literal notranslate"><span class="pre">authenticate()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dias_apis.creodias.creodias.do_download"><code class="docutils literal notranslate"><span class="pre">do_download()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dias_apis.creodias.creodias.get_dataset_id"><code class="docutils literal notranslate"><span class="pre">get_dataset_id()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dias_apis.creodias.creodias.get_download_requests"><code class="docutils literal notranslate"><span class="pre">get_download_requests()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dias_apis.creodias.creodias.get_token"><code class="docutils literal notranslate"><span class="pre">get_token()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dias_apis.creodias.creodias.get_totp"><code class="docutils literal notranslate"><span class="pre">get_totp()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dias_apis.creodias.creodias.search"><code class="docutils literal notranslate"><span class="pre">search()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dias_apis.creodias.creodias.server_authenticate"><code class="docutils literal notranslate"><span class="pre">server_authenticate()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dias_apis.creodias.creodias.timeliness_filter"><code class="docutils literal notranslate"><span class="pre">timeliness_filter()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CREODIAS API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hda.html">HDA API</a></li>
 </ul>
 
@@ -135,54 +124,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-dias_apis.creodias.creodias">
-<span id="creodias-api"></span><h1>CREODIAS API<a class="headerlink" href="#module-dias_apis.creodias.creodias" title="Link to this heading"></a></h1>
-<p>EO data access - CREODIAS API</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.creodias.creodias.authenticate">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.creodias.creodias.</span></span><span class="sig-name descname"><span class="pre">authenticate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.creodias.creodias.authenticate" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.creodias.creodias.do_download">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.creodias.creodias.</span></span><span class="sig-name descname"><span class="pre">do_download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_attempts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DIAS'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.creodias.creodias.do_download" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.creodias.creodias.get_dataset_id">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.creodias.creodias.</span></span><span class="sig-name descname"><span class="pre">get_dataset_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.creodias.creodias.get_dataset_id" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.creodias.creodias.get_download_requests">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.creodias.creodias.</span></span><span class="sig-name descname"><span class="pre">get_download_requests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">completion_date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wkt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.creodias.creodias.get_download_requests" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.creodias.creodias.get_token">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.creodias.creodias.</span></span><span class="sig-name descname"><span class="pre">get_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">totp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.creodias.creodias.get_token" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.creodias.creodias.get_totp">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.creodias.creodias.</span></span><span class="sig-name descname"><span class="pre">get_totp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">totp_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.creodias.creodias.get_totp" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.creodias.creodias.search">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.creodias.creodias.</span></span><span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">satellite</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.creodias.creodias.search" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.creodias.creodias.server_authenticate">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.creodias.creodias.</span></span><span class="sig-name descname"><span class="pre">server_authenticate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_attempts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.creodias.creodias.server_authenticate" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="dias_apis.creodias.creodias.timeliness_filter">
-<span class="sig-prename descclassname"><span class="pre">dias_apis.creodias.creodias.</span></span><span class="sig-name descname"><span class="pre">timeliness_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">products</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dias_apis.creodias.creodias.timeliness_filter" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
+  <section id="creodias-api">
+<h1>CREODIAS API<a class="headerlink" href="#creodias-api" title="Link to this heading"></a></h1>
 </section>
 
 

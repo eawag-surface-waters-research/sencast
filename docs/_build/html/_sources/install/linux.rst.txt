@@ -41,36 +41,16 @@ First, uninstall all old versions of SNAP and remove associated data. You may ne
 
     $ cd ~
     $ curl -O http://step.esa.int/downloads/9.0/installers/esa-snap_all_unix_9_0_0.sh && chmod 755 esa-snap_all_unix_9_0_0.sh && bash esa-snap_all_unix_9_0_0.sh && rm esa-snap_all_unix_9_0_0.sh
-        [o, Enter]
-        [1, Enter]
-        [Enter]
-        [Enter]
-        [n, Enter]
-        [n, Enter]
-        [n, Enter]
-    $ echo "export SNAP_HOME=/home/username/snap" >> ~/.bashrc
-    $ export SNAP_HOME=/home/username/snap
-    $ $SNAP_HOME/bin/snap --nosplash --nogui --modules --update-all
-    $ $SNAP_HOME/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi
-    $ echo "#SNAP configuration 's3tbx'" >> ~/.snap/etc/s3tbx.properties
-    $ echo "#Fri Mar 27 12:55:00 CET 2020" >> ~/.snap/etc/s3tbx.properties
-    $ echo "s3tbx.reader.olci.pixelGeoCoding=true" >> ~/.snap/etc/s3tbx.properties
-    $ echo "s3tbx.reader.meris.pixelGeoCoding=true" >> ~/.snap/etc/s3tbx.properties
-    $ echo "s3tbx.reader.slstrl1b.pixelGeoCodings=true" >> ~/.snap/etc/s3tbx.properties
 
-Note: if you encounter any strange error message with X11GraphicsEnvironment, try unsetting the DISPLAY variable (and don't question why)
+This will launch a interactive window where you can install the SNAP software.
 
-Note: there are many strange error messages, but it seems to work in the end when updating and installing plugins
+You need to add the path to gpt to the environment file it is typically something like /home/username/snap/bin/gpt
 
-To remove warning "WARNING: org.esa.snap.dataio.netcdf.util.MetadataUtils: Missing configuration property ‘snap.dataio.netcdf.metadataElementLimit’. Using default (100)."::
+IDEPIX
+--------
 
-    $ echo "" >> $SNAP_HOME/etc/snap.properties
-    $ echo "# NetCDF options" >> $SNAP_HOME/etc/snap.properties
-    $ echo "snap.dataio.netcdf.metadataElementLimit=10000" >> $SNAP_HOME/etc/snap.properties
-
-To remove warning "SEVERE: org.esa.s2tbx.dataio.gdal.activator.GDALDistributionInstaller: The environment variable LD_LIBRARY_PATH is not set. It must contain the current folder '.'."::
-
-    $ echo "export LD_LIBRARY_PATH=." >> ~/.bashrc
+Idepix is a plugin from SNAP that can be installed by opening SNAP and going Tools -> Plugins. From the available
+plugins download all the Idepix plugins. They will be available in Sencast once you restart SNAP.
 
 POLYMER
 --------
@@ -99,29 +79,6 @@ In shell do following::
 Configure path to l8_angles in your environment file.
 
 
-CDS API
-________
-
-Setup credentials for CDS API::
-
-	$ echo "url: https://cds.climate.copernicus.eu/api/v2" > ~/.cdsapirc
-	$ echo key: [uid]:[api-key] >> ~/.cdsapirc (Note: replace [uid] and [api-key] by your actual credentials, see https://cds.climate.copernicus.eu/api-how-to )
-	$ chmod 600 ~/.cdsapirc
-
-
-NASA Earthdata API
---------------------
-
-Have a NASA Earthdata account ready, otherwise create one: https://urs.earthdata.nasa.gov/
-
-In shell do following::
-
-    $ touch ~/.netrc
-    $ touch ~/.urs_cookies
-    $ echo "machine urs.earthdata.nasa.gov login <earthdata user> password <earthdata password>" >> ~/.netrc
-    $ chmod 0600 ~/.netrc
-
-
 Acolite
 --------
 
@@ -134,6 +91,13 @@ In shell do following::
 
 Configure your Acolite path in you environment file.
 
+
+OCSMART
+--------
+
+Download the OCSMART linux package from http://www.rtatmocn.com/oc-smart/
+
+Unzip the package somewhere and then add a path the the folder that contains OCSMART.py to your environment file
 
 FLUO
 -----

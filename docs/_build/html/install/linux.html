@@ -48,12 +48,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#clone-sencast">Clone Sencast</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-python-environment">Install Python Environment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-snap">Install SNAP</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#polymer">POLYMER</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#cds-api">CDS API</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#nasa-earthdata-api">NASA Earthdata API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#idepix">IDEPIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#polymer">POLYMER</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#acolite">Acolite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ocsmart">OCSMART</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#fluo">FLUO</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#icor">iCOR</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sen2cor">Sen2Cor</a></li>
@@ -171,36 +169,15 @@ $ export CONDA_ENV_HOME=$CONDA_HOME/envs/sencast
 <p>First, uninstall all old versions of SNAP and remove associated data. You may need to update the version of SNAP to the latest one in the code below.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd ~
 $ curl -O http://step.esa.int/downloads/9.0/installers/esa-snap_all_unix_9_0_0.sh &amp;&amp; chmod 755 esa-snap_all_unix_9_0_0.sh &amp;&amp; bash esa-snap_all_unix_9_0_0.sh &amp;&amp; rm esa-snap_all_unix_9_0_0.sh
-    [o, Enter]
-    [1, Enter]
-    [Enter]
-    [Enter]
-    [n, Enter]
-    [n, Enter]
-    [n, Enter]
-$ echo &quot;export SNAP_HOME=/home/username/snap&quot; &gt;&gt; ~/.bashrc
-$ export SNAP_HOME=/home/username/snap
-$ $SNAP_HOME/bin/snap --nosplash --nogui --modules --update-all
-$ $SNAP_HOME/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.probav org.esa.snap.idepix.modis org.esa.snap.idepix.spotvgt org.esa.snap.idepix.landsat8 org.esa.snap.idepix.viirs org.esa.snap.idepix.olci org.esa.snap.idepix.seawifs org.esa.snap.idepix.meris org.esa.snap.idepix.s2msi
-$ echo &quot;#SNAP configuration &#39;s3tbx&#39;&quot; &gt;&gt; ~/.snap/etc/s3tbx.properties
-$ echo &quot;#Fri Mar 27 12:55:00 CET 2020&quot; &gt;&gt; ~/.snap/etc/s3tbx.properties
-$ echo &quot;s3tbx.reader.olci.pixelGeoCoding=true&quot; &gt;&gt; ~/.snap/etc/s3tbx.properties
-$ echo &quot;s3tbx.reader.meris.pixelGeoCoding=true&quot; &gt;&gt; ~/.snap/etc/s3tbx.properties
-$ echo &quot;s3tbx.reader.slstrl1b.pixelGeoCodings=true&quot; &gt;&gt; ~/.snap/etc/s3tbx.properties
 </pre></div>
 </div>
-<p>Note: if you encounter any strange error message with X11GraphicsEnvironment, try unsetting the DISPLAY variable (and don’t question why)</p>
-<p>Note: there are many strange error messages, but it seems to work in the end when updating and installing plugins</p>
-<p>To remove warning “WARNING: org.esa.snap.dataio.netcdf.util.MetadataUtils: Missing configuration property ‘snap.dataio.netcdf.metadataElementLimit’. Using default (100).”:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ echo &quot;&quot; &gt;&gt; $SNAP_HOME/etc/snap.properties
-$ echo &quot;# NetCDF options&quot; &gt;&gt; $SNAP_HOME/etc/snap.properties
-$ echo &quot;snap.dataio.netcdf.metadataElementLimit=10000&quot; &gt;&gt; $SNAP_HOME/etc/snap.properties
-</pre></div>
-</div>
-<p>To remove warning “SEVERE: org.esa.s2tbx.dataio.gdal.activator.GDALDistributionInstaller: The environment variable LD_LIBRARY_PATH is not set. It must contain the current folder ‘.’.”:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ echo &quot;export LD_LIBRARY_PATH=.&quot; &gt;&gt; ~/.bashrc
-</pre></div>
-</div>
+<p>This will launch a interactive window where you can install the SNAP software.</p>
+<p>You need to add the path to gpt to the environment file it is typically something like /home/username/snap/bin/gpt</p>
+</section>
+<section id="idepix">
+<h2>IDEPIX<a class="headerlink" href="#idepix" title="Link to this heading"></a></h2>
+<p>Idepix is a plugin from SNAP that can be installed by opening SNAP and going Tools -&gt; Plugins. From the available
+plugins download all the Idepix plugins. They will be available in Sencast once you restart SNAP.</p>
 </section>
 <section id="polymer">
 <h2>POLYMER<a class="headerlink" href="#polymer" title="Link to this heading"></a></h2>
@@ -224,26 +201,6 @@ $ make
 </pre></div>
 </div>
 <p>Configure path to l8_angles in your environment file.</p>
-<section id="cds-api">
-<h3>CDS API<a class="headerlink" href="#cds-api" title="Link to this heading"></a></h3>
-<p>Setup credentials for CDS API:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ echo &quot;url: https://cds.climate.copernicus.eu/api/v2&quot; &gt; ~/.cdsapirc
-$ echo key: [uid]:[api-key] &gt;&gt; ~/.cdsapirc (Note: replace [uid] and [api-key] by your actual credentials, see https://cds.climate.copernicus.eu/api-how-to )
-$ chmod 600 ~/.cdsapirc
-</pre></div>
-</div>
-</section>
-</section>
-<section id="nasa-earthdata-api">
-<h2>NASA Earthdata API<a class="headerlink" href="#nasa-earthdata-api" title="Link to this heading"></a></h2>
-<p>Have a NASA Earthdata account ready, otherwise create one: <a class="reference external" href="https://urs.earthdata.nasa.gov/">https://urs.earthdata.nasa.gov/</a></p>
-<p>In shell do following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ touch ~/.netrc
-$ touch ~/.urs_cookies
-$ echo &quot;machine urs.earthdata.nasa.gov login &lt;earthdata user&gt; password &lt;earthdata password&gt;&quot; &gt;&gt; ~/.netrc
-$ chmod 0600 ~/.netrc
-</pre></div>
-</div>
 </section>
 <section id="acolite">
 <h2>Acolite<a class="headerlink" href="#acolite" title="Link to this heading"></a></h2>
@@ -255,6 +212,11 @@ $ git reset --hard e7cb944
 </pre></div>
 </div>
 <p>Configure your Acolite path in you environment file.</p>
+</section>
+<section id="ocsmart">
+<h2>OCSMART<a class="headerlink" href="#ocsmart" title="Link to this heading"></a></h2>
+<p>Download the OCSMART linux package from <a class="reference external" href="http://www.rtatmocn.com/oc-smart/">http://www.rtatmocn.com/oc-smart/</a></p>
+<p>Unzip the package somewhere and then add a path the the folder that contains OCSMART.py to your environment file</p>
 </section>
 <section id="fluo">
 <h2>FLUO<a class="headerlink" href="#fluo" title="Link to this heading"></a></h2>
