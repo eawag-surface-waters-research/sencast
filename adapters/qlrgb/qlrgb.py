@@ -14,7 +14,7 @@ from netCDF4 import Dataset
 
 from utils.auxil import log
 from utils.product_fun import get_band_names_from_nc, get_name_width_height_from_nc, \
-    get_lons_lats, get_lat_lon_from_x_y_from_nc, read_pixels_from_nc, get_np_data_type
+    get_lons_lats, get_bounds_from_nc, read_pixels_from_nc, get_np_data_type
 
 # key of the params section for this adapter
 PARAMS_SECTION = "QLRGB"
@@ -95,19 +95,18 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
         blue_arr = blue_arr.reshape(height, width)
 
         # read lat and lon information
-        lat_min, lon_min = get_lat_lon_from_x_y_from_nc(src, 0, height-1)
-        lat_max, lon_max = get_lat_lon_from_x_y_from_nc(src, width-1, 0)
+        bounds = get_bounds_from_nc(src)
 
         # add map extent if the input product hasn't been cropped e.g. with a lake shapefile
         if crop_ext:
-            lat_ext = (lat_max - lat_min) / 8
-            lon_ext = (lon_max - lon_min) / 8
+            lat_ext = (bounds["lat_max"] - bounds["lat_min"]) / 8
+            lon_ext = (bounds["lon_min"] - bounds["lon_min"]) / 8
         else:
             lat_ext = 0
             lon_ext = 0
 
-        lon_range = (lon_max + lon_ext) - (lon_min - lon_ext)
-        lat_range = (lat_max + lat_ext) - (lat_min - lon_ext)
+        lon_range = (bounds["lon_max"] + lon_ext) - (bounds["lon_min"] - lon_ext)
+        lat_range = (bounds["lat_max"] + lat_ext) - (bounds["lat_min"] - lon_ext)
 
         # Calculate a suitable grid distance with which the smaller image portion gets three gridlines
         grid_dist = min(lon_range, lat_range) / 3
@@ -128,22 +127,22 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
         grid_dist = round(grid_dist / decimal) * decimal
 
         # Calculate a gridline anchor position with a round value, around which the other gridlines are defined
-        lat_center = round((lat_min + (lat_max - lat_min) / 2) / (decimal * 10)) * (decimal * 10)
-        lon_center = round((lon_min + (lon_max - lon_min) / 2) / (decimal * 10)) * (decimal * 10)
+        lat_center = round((bounds["lat_min"] + (bounds["lat_max"] - bounds["lat_min"]) / 2) / (decimal * 10)) * (decimal * 10)
+        lon_center = round((bounds["lon_min"] + (bounds["lon_min"] - bounds["lon_min"]) / 2) / (decimal * 10)) * (decimal * 10)
         x_ticks = [lon_center]
         y_ticks = [lat_center]
         i = 0
-        while max(x_ticks) <= lon_max or min(x_ticks) >= lon_min:
+        while max(x_ticks) <= bounds["lon_min"] or min(x_ticks) >= bounds["lon_min"]:
             i += 1
             x_ticks.extend((lon_center + (i * grid_dist), lon_center - (i * grid_dist)))
         x_ticks.sort()
         i = 0
-        while max(y_ticks) <= lat_max or min(y_ticks) >= lat_min:
+        while max(y_ticks) <= bounds["lat_max"] or min(y_ticks) >= bounds["lat_min"]:
             i += 1
             y_ticks.extend((lat_center + (i * grid_dist), lat_center - (i * grid_dist)))
         y_ticks.sort()
 
-        product_area = [[lon_min - lon_ext, lat_min - lat_ext], [lon_max + lon_ext, lat_max + lat_ext]]
+        product_area = [[bounds["lon_min"] - lon_ext, bounds["lat_min"] - lat_ext], [bounds["lon_max"] + lon_ext, bounds["lat_max"] + lat_ext]]
 
         # Initialize plot
         fig = plt.figure()
@@ -168,14 +167,7 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
 
         img = Image.fromarray(rgb_array.astype(np.uint8))
 
-        global canvas_area
-        if wkt:
-            lons, lats = get_lons_lats(wkt)
-            canvas_area = [[min(lons), min(lats)], [max(lons), max(lats)]]
-        else:
-            canvas_area = product_area
-
-        subplot_axes.set_extent([canvas_area[0][0], canvas_area[1][0], canvas_area[0][1], canvas_area[1][1]])
+        subplot_axes.set_extent([product_area[0][0], product_area[1][0], product_area[0][1], product_area[1][1]])
         subplot_axes.imshow(img,
                             extent=[product_area[0][0], product_area[1][0], product_area[0][1], product_area[1][1]],
                             transform=ccrs.PlateCarree(), origin='upper', interpolation='nearest', zorder=1)

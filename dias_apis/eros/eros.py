@@ -9,14 +9,13 @@ import os
 import json
 import time
 import shutil
-import requests
-from datetime import datetime
-from numpy.core.numeric import Infinity
-
-from requests.status_codes import codes
 import tarfile
 from tqdm import tqdm
 from pathlib import Path
+from datetime import datetime
+import requests
+import requests_cache
+from requests.status_codes import codes
 from utils.auxil import log
 from utils.product_fun import get_satellite_name_from_product_name
 
@@ -45,36 +44,40 @@ def get_download_requests(auth, start_date, completion_date, sensor, resolution,
 
 def search(url, payload, env, auth):
     log(env["General"]["log"], "Searching for scenes: {}".format(payload["datasetName"]))
+    requests_cache.install_cache(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache"),
+                                 backend='sqlite', expire_after=3600, allowable_methods=('GET', 'POST'))
     products = []
-    while True:
-        log(env["General"]["log"], "Calling: {}".format(url), indent=1)
+    log(env["General"]["log"], "Calling: {}".format(url), indent=1)
+    response = requests.post(url, json.dumps(payload))
+    if response.status_code != codes.OK:
         token = server_authenticate(auth, env)
-        headers = {'X-Auth-Token': token}
-        response = requests.post(url, json.dumps(payload), headers=headers)
-        if response.status_code == codes.OK:
-            root = response.json()
-            for scene in root['data']['results']:
-                products.append({
-                    "entityId": scene['entityId'],
-                    "displayId": scene['displayId'],
-                    "name": scene['displayId'],
-                    "dataset": payload["datasetName"],
-                    "sensing_start": scene['temporalCoverage']['startDate'],
-                    "sensing_end": scene['temporalCoverage']['endDate'],
-                    "product_creation": scene['publishDate'],
-                    "satellite": get_satellite_name_from_product_name(scene['displayId'])
-                })
-            return products
-        else:
-            raise RuntimeError("Unexpected response: {}".format(response.text))
+        response = requests.post(url, json.dumps(payload), headers={'X-Auth-Token': token})
+    else:
+        log(env["General"]["log"], "Request has already been cached.", indent=2)
+    if response.status_code == codes.OK:
+        root = response.json()
+        for scene in root['data']['results']:
+            products.append({
+                "entityId": scene['entityId'],
+                "displayId": scene['displayId'],
+                "name": scene['displayId'],
+                "dataset": payload["datasetName"],
+                "sensing_start": scene['temporalCoverage']['startDate'],
+                "sensing_end": scene['temporalCoverage']['endDate'],
+                "product_creation": scene['publishDate'],
+                "satellite": get_satellite_name_from_product_name(scene['displayId'])
+            })
+        return products
+    else:
+        raise RuntimeError("Unexpected response: {}".format(response.text))
 
 
 def bounds(wkt):
     points = wkt.replace(" ", "", 1).strip().replace("POLYGON((", "").replace("))", "").split(",")
-    lat_min = Infinity
-    lat_max = -Infinity
-    lng_min = Infinity
-    lng_max = -Infinity
+    lat_min = float('inf')
+    lat_max = -float('inf')
+    lng_min = float('inf')
+    lng_max = -float('inf')
     for point in points:
         p = point.strip().split(" ")
         if float(p[0]) > lng_max:

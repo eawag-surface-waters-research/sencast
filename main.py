@@ -9,8 +9,12 @@ import traceback
 from threading import Semaphore, Thread
 
 from utils.auxil import authenticate_earthdata_anc, init_hindcast, log, authenticate_cds_anc
-from utils.product_fun import remove_superseded_products, get_satellite_name_from_product_name, \
-    get_sensing_date_from_product_name, get_l1product_path, filter_for_tiles, filter_for_baseline
+from utils.product_fun import remove_superseded_products, get_l1product_path, filter_for_tiles, filter_for_baseline
+
+conda_env_path = os.environ.get("CONDA_PREFIX")
+if conda_env_path:
+    proj_data_path = os.path.join(conda_env_path, "share", "proj")
+    os.environ["PROJ_DATA"] = proj_data_path
 
 global summary
 summary = []
@@ -239,8 +243,19 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
         for processor in [p.strip() for p in filter(None, params['General']['processors'].split(","))]:
             log(env["General"]["log"], "", blank=True)
             log(env["General"]["log"], "Processor {} starting...".format(processor))
-            process = getattr(
-                importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
+            try:
+                process = getattr(
+                    importlib.import_module("processors.{}.{}".format(processor.lower(), processor.lower())), "process")
+            except Exception as e:
+                log(env["General"]["log"], "Failed to import processor.".format(processor))
+                print(e)
+                for product in products:
+                    summary.append(
+                        {"group": group, "input": product["l1_product_path"], "type": "processor", "name": processor,
+                         "status": "Failed", "time": 0,
+                         "message": "Unable to import processor."})
+                continue
+
             processor_outputs = []
             for product in products:
                 if product["l1_product_path"] not in l2product_files.keys():
@@ -254,10 +269,16 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
                     log(env["General"]["log"], "{} running for {}.".format(processor, product["l1_product_path"]), indent=1)
                     output_file = process(env, params, product["l1_product_path"], l2product_files[product["l1_product_path"]], l2_path)
                     duration = int(time.time() - start)
-                    l2product_files[product["l1_product_path"]][processor] = output_file
-                    processor_outputs.append(output_file)
-                    log(env["General"]["log"], "{} finished for {} in .".format(processor, product["l1_product_path"]), indent=1)
-                    summary.append({"group": group, "input": product["l1_product_path"], "output": output_file, "type": "processor", "name": processor, "status": "Succeeded", "time": duration, "message": ""})
+                    input_file = product["l1_product_path"]
+                    if isinstance(output_file, list):
+                        output_file = output_file[0]
+                        product["l1_product_path"] = output_file
+                        l2product_files[input_file][processor] = False
+                    else:
+                        l2product_files[input_file][processor] = output_file
+                        processor_outputs.append(output_file)
+                    log(env["General"]["log"], "{} finished for {} in .".format(processor, input_file), indent=1)
+                    summary.append({"group": group, "input": input_file, "output": output_file, "type": "processor", "name": processor, "status": "Succeeded", "time": duration, "message": ""})
                 except Exception as e:
                     duration = int(time.time() - start)
                     log(env["General"]["log"], traceback.format_exc(), indent=2)

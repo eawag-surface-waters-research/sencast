@@ -8,7 +8,7 @@ in order to derive primary production from Satellite images.
 
 import os
 import numpy as np
-from scipy.integrate import trapz
+from scipy.integrate import trapezoid
 
 from netCDF4 import Dataset
 from utils.auxil import log
@@ -21,7 +21,7 @@ PARAMS_SECTION = "PRIMARYPRODUCTION"
 # The name of the folder to which the output product will be saved
 OUT_DIR = 'L2PP'
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = 'L2PP_{}.nc'
+OUT_FILENAME = 'L2PP_{}'
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
@@ -153,7 +153,7 @@ def pp_trapezoidal_numerical_integration(zvals, qpar0, Cchl, KdMorel):
         pp_tni[:] = np.nan
         for i in range(1, pp_tni.shape[0] - 1):
             if np.isfinite(Cchl[i]) and np.isfinite(qpar0[i]) and np.isfinite(KdMorel[i]) and Cchl[i] > 0:
-                pp_tni[i] = trapz(PP(zvals, qpar0[i], Cchl[i], KdMorel[i]), zvals)
+                pp_tni[i] = trapezoid(PP(zvals, qpar0[i], Cchl[i], KdMorel[i]), zvals)
             else:
                 continue
     else:

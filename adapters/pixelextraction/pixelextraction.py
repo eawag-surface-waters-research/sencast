@@ -58,6 +58,11 @@ def apply(env, params, l2product_files, date):
         return
 
     out_path = os.path.dirname(os.path.dirname(files[0]))
+
+    if os.path.exists(os.path.join(out_path, OUT_DIR)) and len([f for f in os.listdir(os.path.join(out_path, OUT_DIR)) if "pixEx_" in f]) > 0:
+        log(env["General"]["log"], "Skipping pixel extraction, output files are already present.", indent=1)
+        return
+
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME)
 
     if not os.path.isfile(gpt_xml_file):

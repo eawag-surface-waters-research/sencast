@@ -17,7 +17,7 @@ PARAMS_SECTION = "OC3"
 # The name of the folder to which the output product will be saved
 OUT_DIR = 'L2OC3'
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
-OUT_FILENAME = 'L2OC3_{}.nc'
+OUT_FILENAME = 'L2OC3_{}'
 
 # Optimised OC3 parameters
 p0_oc3_lin = [0.73, -1.2, 0, 0, 0]

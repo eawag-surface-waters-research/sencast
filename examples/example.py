@@ -11,5 +11,5 @@ sys.path.append("/sencast")
 
 from main import sencast
 
-sencast("test_S3_processors.ini")
+sencast("test_acolite.ini")
 

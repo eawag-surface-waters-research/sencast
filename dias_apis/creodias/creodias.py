@@ -15,7 +15,7 @@ from tqdm import tqdm
 from pathlib import Path
 from zipfile import ZipFile
 from requests.status_codes import codes
-
+import requests_cache
 from utils.auxil import log
 from utils.product_fun import get_satellite_name_from_product_name
 
@@ -42,6 +42,8 @@ def get_download_requests(auth, start_date, completion_date, sensor, resolution,
 
 def search(satellite, query, env):
     log(env["General"]["log"], "Search for products: {}".format(query))
+    requests_cache.install_cache(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache"),
+                                 backend='sqlite', expire_after=3600, allowable_methods=('GET', 'POST'))
     products = []
     url = search_address.format(query)
     while True:
@@ -110,7 +112,7 @@ def get_dataset_id(sensor, resolution):
     elif sensor == 'MSI-L2A':
         return 'SENTINEL-2', 'S2MSI2A'
     elif sensor == 'OLI_TIRS':
-        return 'LANDSAT-8', 'L1TP'
+        return 'LANDSAT-8-ESA', 'L1TP'
     else:
         raise RuntimeError("CREODIAS API is not yet implemented for sensor: {}".format(sensor))
 

@@ -21,6 +21,12 @@ SETTINGS_FILENAME = "OCSMART_Input.txt"
 def process(env, params, l1product_path, _, out_path):
     """This processor calls OC SMART for the source product and writes the result to disk. It returns the location of the output product."""
 
+    if not env.has_section(PARAMS_SECTION):
+        raise RuntimeWarning("OCSMART was not configured in environment file.")
+
+    if "root_path" not in env[PARAMS_SECTION]:
+        raise RuntimeWarning("root_path to OCSMART files must be defined in the OCSMART section of the environment file.")
+
     out_path = os.path.join(out_path, OUT_DIR)
     l1_path, product_name = os.path.dirname(l1product_path), os.path.basename(l1product_path)
     out_file = os.path.join(out_path, OUT_FILENAME.format(product_name))

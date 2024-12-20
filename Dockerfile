@@ -35,8 +35,8 @@ RUN mkdir /opt/POLYMER
 RUN cd /opt/POLYMER &&  git clone --depth 1 --branch master https://github.com/hygeos/polymer.git
 SHELL ["conda", "run", "-n", "sencast", "/bin/bash", "-c"]
 RUN cd /opt/POLYMER/polymer && make all
-RUN cp -avr /opt/POLYMER/polymer/polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
-RUN cp -avr /opt/POLYMER/polymer/auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
+RUN cp -avr /opt/POLYMER/polymer/polymer $CONDA_ENV_HOME/lib/python3.11/site-packages/polymer
+RUN cp -avr /opt/POLYMER/polymer/auxdata $CONDA_ENV_HOME/lib/python3.11/site-packages/auxdata
 
 RUN cd /opt &&  git clone --depth 1 --branch main https://github.com/acolite/acolite.git
 
