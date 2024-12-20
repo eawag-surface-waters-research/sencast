@@ -44,14 +44,14 @@ def get_download_requests(auth, start_date, completion_date, sensor, resolution,
 
 def search(url, payload, env, auth):
     log(env["General"]["log"], "Searching for scenes: {}".format(payload["datasetName"]))
-    requests_cache.install_cache(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache"),
-                                 backend='sqlite', expire_after=3600, allowable_methods=('GET', 'POST'))
+    session = requests_cache.CachedSession(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache"),
+                                           backend='sqlite', expire_after=3600, allowable_methods=('GET', 'POST'))
     products = []
     log(env["General"]["log"], "Calling: {}".format(url), indent=1)
-    response = requests.post(url, json.dumps(payload))
+    response = session.post(url, json.dumps(payload))
     if response.status_code != codes.OK:
         token = server_authenticate(auth, env)
-        response = requests.post(url, json.dumps(payload), headers={'X-Auth-Token': token})
+        response = session.post(url, json.dumps(payload), headers={'X-Auth-Token': token})
     else:
         log(env["General"]["log"], "Request has already been cached.", indent=2)
     if response.status_code == codes.OK:

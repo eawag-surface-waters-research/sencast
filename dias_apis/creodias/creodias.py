@@ -42,13 +42,13 @@ def get_download_requests(auth, start_date, completion_date, sensor, resolution,
 
 def search(satellite, query, env):
     log(env["General"]["log"], "Search for products: {}".format(query))
-    requests_cache.install_cache(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache"),
-                                 backend='sqlite', expire_after=3600, allowable_methods=('GET', 'POST'))
+    session = requests_cache.CachedSession(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache"),
+                                           backend='sqlite', expire_after=3600, allowable_methods=('GET', 'POST'))
     products = []
     url = search_address.format(query)
     while True:
         log(env["General"]["log"], "Calling: {}".format(url), indent=1)
-        response = requests.get(url)
+        response = session.get(url)
         if response.status_code == codes.OK:
             root = response.json()
             for feature in root['value']:

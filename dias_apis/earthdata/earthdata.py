@@ -9,6 +9,7 @@ https://cmr.earthdata.nasa.gov/search/site/docs/search/api.html
 import os
 import time
 import requests
+import requests_cache
 from requests.status_codes import codes
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
@@ -30,10 +31,12 @@ def get_download_requests(auth, start_date, completion_date, sensor, resolution,
 
 def search(url, satellite, env):
     log(env["General"]["log"], "Searching for granules")
+    session = requests_cache.CachedSession(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache"),
+                                           backend='sqlite', expire_after=3600, allowable_methods=('GET', 'POST'))
     products = []
     while True:
         log(env["General"]["log"], "Calling: {}".format(url), indent=1)
-        response = requests.get(url)
+        response = session.get(url)
         if response.status_code == codes.OK:
             root = ET.fromstring(response.content)
             for reference in root.find("references").findall("reference"):
