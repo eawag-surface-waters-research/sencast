@@ -39,7 +39,7 @@ def process(env, params, l1product_path, _, out_path):
     product_name = os.path.basename(l1product_path)
     os.environ['EARTHDATA_u'] = env['EARTHDATA']['username']
     os.environ['EARTHDATA_p'] = env['EARTHDATA']['password']
-    out_file = os.path.join(out_path, OUT_FILENAME.format(product_name))
+    out_file = os.path.join(out_path, OUT_FILENAME.format(product_name).replace(".nc.nc", ".nc"))
 
     if os.path.isfile(out_file):
         if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":

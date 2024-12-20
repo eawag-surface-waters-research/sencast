@@ -338,41 +338,20 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
 
 
 def test_installation(env, delete):
-    if delete:
-        _, params_s3, l2_path_s3 = init_hindcast(env, 'test_S3_processors.ini')
-        shutil.rmtree(l2_path_s3)
-    try:
-        sencast('test_S3_processors.ini', env_file=env)
-    except Exception as e:
-        print("Some S3 processors failed")
-        print(e)
-
-    if delete:
-        _, params_s2, l2_path_s2 = init_hindcast(env, 'test_S2_processors.ini')
-        shutil.rmtree(l2_path_s2)
-    try:
-        sencast('test_S2_processors.ini', env_file=env)
-    except Exception as e:
-        print("Some S2 processors failed")
-        print(e)
-
-    if delete:
-        _, params_collection, l2_path_collection = init_hindcast(env, 'test_Collection_processors.ini')
-        shutil.rmtree(l2_path_collection)
-    try:
-        sencast('test_Collection_processors.ini', env_file=env)
-    except Exception as e:
-        print("Some Collection processors failed")
-        print(e)
-
-    if delete:
-        _, params_l8, l2_path_l8 = init_hindcast(env, 'test_L8_processors.ini')
-        shutil.rmtree(l2_path_l8)
-    try:
-        sencast('test_L8_processors.ini', env_file=env)
-    except Exception as e:
-        print("Some L8 processors failed.")
-        print(e)
+    tests = ["test_S3_processors",
+             "test_S2_processors",
+             "test_Collection_processors",
+             "test_L8_processors",
+             "test_PACE_processors"]
+    for test in tests:
+        if delete:
+            _, params, out_path = init_hindcast(env, '{}.ini'.format(test))
+            shutil.rmtree(out_path)
+        try:
+            sencast('{}.ini'.format(test), env_file=env)
+        except Exception as e:
+            print("Some processors failed in {}".format(test))
+            print(e)
 
 
 if __name__ == "__main__":

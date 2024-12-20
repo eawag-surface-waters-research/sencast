@@ -18,6 +18,7 @@ __pycache__
 !/parameters/test_S2_tiles_processors.ini
 !/parameters/test_L8_processors.ini
 !/parameters/test_Collection_processors.ini
+!/parameters/test_PACE_processors.ini
 !/environments/example.ini
 /processors/ocsmart/auxdata/*
 !processors/ocsmart/auxdata/.gitkeep

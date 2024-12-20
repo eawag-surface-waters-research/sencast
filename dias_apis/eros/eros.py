@@ -91,27 +91,6 @@ def bounds(wkt):
     return lat_max, lat_min, lng_max, lng_min
 
 
-def timeliness_filter(products):
-    products_filtered, positions = [], []
-    for i in range(len(products)):
-        curr_pos = (products[i]["sensing_start"], products[i]["sensing_end"])
-        if curr_pos in positions:
-            curr_proj_idx = positions.index(curr_pos)
-            if ((products[i]["timeliness"] == 'Non Time Critical' and products_filtered[curr_proj_idx]["timeliness"] == 'Near Real Time')
-                    or (products[i]["timeliness"] == 'T1' and products_filtered[curr_proj_idx]["timeliness"] == 'RT')):
-                products_filtered[curr_proj_idx] = products[i]
-                positions[curr_proj_idx] = (products[i]["sensing_start"], products[i]["sensing_end"])
-            elif (products[i]["timeliness"] == 'Near Real Time' and products_filtered[curr_proj_idx]["timeliness"] == 'Non Time Critical') or (products[i]["timeliness"] == 'RT' and products_filtered[curr_proj_idx]["timeliness"] == 'T1'):
-                continue
-            else:
-                products_filtered.append(products[i])
-                positions.append((products[i]["sensing_start"], products[i]["sensing_end"]))
-        else:
-            products_filtered.append(products[i])
-            positions.append((products[i]["sensing_start"], products[i]["sensing_end"]))
-    return products_filtered
-
-
 def do_download(auth, product, env, max_attempts=4, wait_time=30):
     product_path = product["l1_product_path"]
     file_temp = "{}.incomplete".format(product_path)
