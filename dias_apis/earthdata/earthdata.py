@@ -12,20 +12,25 @@ import requests
 import requests_cache
 from requests.status_codes import codes
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from tqdm import tqdm
 from pathlib import Path
 from utils.auxil import log
 
 search_address = "https://cmr.earthdata.nasa.gov/search/granules?collection_concept_id={}&bounding_box={}&temporal={},{}&downloadable=true"
 
-def get_download_requests(auth, start_date, completion_date, sensor, resolution, wkt, env):
+def get_download_requests(auth, start_date, end_date, sensor, resolution, wkt, env):
     if sensor == "PACE_OCI_1B":
         collection_concept_id = "C3026581092-OB_CLOUD"
         satellite = "PACE"
     else:
         raise ValueError("No id defined for sensor: {}".format(sensor))
+    start = datetime.fromisoformat(start_date)
+    end = datetime.fromisoformat(end_date)
+    if start > end:
+        raise ValueError("Start date must be greater than end date")
     bounds = wkt_to_bounds(wkt)
-    url = search_address.format(collection_concept_id, bounds, start_date, completion_date)
+    url = search_address.format(collection_concept_id, bounds, start_date, end_date)
     products = search(url, satellite, env)
     return products
 

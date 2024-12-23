@@ -23,10 +23,14 @@ from utils.product_fun import get_satellite_name_from_product_name
 service_url = "https://m2m.cr.usgs.gov/api/api/json/stable/{}"
 
 
-def get_download_requests(auth, start_date, completion_date, sensor, resolution, wkt, env):
-    max_records = 1000
-    acquisition_filter = {"end": start_date[:10],
-                         "start": completion_date[:10]}
+def get_download_requests(auth, start_date, end_date, sensor, resolution, wkt, env):
+    start = datetime.fromisoformat(start_date)
+    end = datetime.fromisoformat(end_date)
+    if start > end:
+        raise ValueError("Start date must be greater than end date")
+    max_records = 50000
+    acquisition_filter = {"start": start_date[:10],
+                          "end": end_date[:10]}
     lat_max, lat_min, lng_max, lng_min = bounds(wkt)
     spatial_filter = {'filterType' : "mbr",
                       'lowerLeft' : {'latitude' : lat_min, 'longitude' : lng_min},
@@ -48,13 +52,14 @@ def search(url, payload, env, auth):
                                            backend='sqlite', expire_after=3600, allowable_methods=('GET', 'POST'))
     products = []
     log(env["General"]["log"], "Calling: {}".format(url), indent=1)
+    log(env["General"]["log"], "{}".format(payload), indent=1)
     response = session.post(url, json.dumps(payload))
     if response.status_code != codes.OK:
         token = server_authenticate(auth, env)
         response = session.post(url, json.dumps(payload), headers={'X-Auth-Token': token})
     else:
         log(env["General"]["log"], "Request has already been cached.", indent=2)
-    if response.status_code == codes.OK:
+    if response.status_code == codes.OK and response.json()["data"] is not None:
         root = response.json()
         for scene in root['data']['results']:
             products.append({

@@ -176,10 +176,12 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
     log(env["General"]["log"], "SUMMARY")
     succeeded = [s for s in summary if s["status"] == "Succeeded"]
     errors = [e for e in summary if e["status"] == "Failed"]
+
     for p in succeeded:
         log(env["General"]["log"], "SUCCEEDED: {}".format(p))
     for p in errors:
         log(env["General"]["log"], "FAILED: {}".format(p))
+
     if len(errors) > 0:
         raise RuntimeError("Sencast failed for {}/{} processes.".format(len(errors), len(summary)))
     elif 'remove_inputs' in params['General'] and params['General']['remove_inputs'] == "True":

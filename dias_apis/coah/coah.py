@@ -11,6 +11,7 @@ import shutil
 import requests
 import requests_cache
 from requests.status_codes import codes
+from datetime import datetime
 from zipfile import ZipFile
 from tqdm import tqdm
 from pathlib import Path
@@ -27,12 +28,16 @@ download_address = "https://zipper.dataspace.copernicus.eu/odata/v1/Products({})
 token_address = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
 
 
-def get_download_requests(auth, start_date, completion_date, sensor, resolution, wkt, env):
+def get_download_requests(auth, start_date, end_date, sensor, resolution, wkt, env):
+    start = datetime.fromisoformat(start_date)
+    end = datetime.fromisoformat(end_date)
+    if start > end:
+        raise ValueError("Start date must be greater than end date")
     query = "?$filter=((ContentDate/Start ge {} and ContentDate/Start le {}) and (Online eq true) and (OData.CSC.Intersects(Footprint=geography'SRID=4326;{}')) and (((((((Attributes/OData.CSC.StringAttribute/any(i0:i0/Name eq 'productType' and i0/Value eq '{}')))) and (Collection/Name eq '{}'))))))&$expand=Attributes&$top={}"
     max_records = 1000
     geometry = wkt.replace(" ", "", 1).strip()
     satellite, product_type = get_dataset_id(sensor, resolution)
-    query = query.format(start_date, completion_date, geometry, product_type, satellite, max_records)
+    query = query.format(start_date, end_date, geometry, product_type, satellite, max_records)
     products = search(satellite, query, env)
     products = timeliness_filter(products)
     return products
