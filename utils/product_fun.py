@@ -191,7 +191,13 @@ def get_sensing_date_from_product_name(product_name):
 
 
 def get_sensing_datetime_from_product_name(product_name):
-    return re.findall(r"\d{8}", product_name)[0] + "T" + re.findall(r"\d{6}", product_name)[1]
+    date_string_matches = re.findall(r'_\d{8}T\d{6}_', product_name)
+    if len(date_string_matches) > 0:
+        return date_string_matches[0].replace("_", "")
+    date_string_matches = re.findall(r'_\d{8}_', product_name)
+    if len(date_string_matches) > 0:
+        return date_string_matches[0].replace("_", "") + "T120000"
+    raise ValueError("No date patterns found in product_name")
 
 
 def get_tile_name_from_product_name(product_name):
