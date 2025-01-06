@@ -109,7 +109,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
                 hue_angle_coeff = hue_angle_coefficients("S2 MSI-60 m")
                 log(env["General"]["log"], "WARNING. If run on raw product must be resampled to 60m", indent=1)
             if processor == 'POLYMER':
-                raise RuntimeWarning('Forel-Ule not yet configured for S2 POLYMER inputs.')
+                chromaticity = chromaticity_values("S2 MSI-60 m")
+                hue_angle_coeff = hue_angle_coefficients("S2 MSI-60 m")
                 spectral_band_names = ["Rw443", "Rw490", "Rw560", "Rw665", "Rw705"]
                 sample_band = 'tsm_binding740'
             elif processor == 'C2RCC':
