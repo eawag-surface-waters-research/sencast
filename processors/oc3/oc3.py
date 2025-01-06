@@ -20,9 +20,7 @@ OUT_DIR = 'L2OC3'
 OUT_FILENAME = 'L2OC3_{}'
 
 # Optimised OC3 parameters
-p0_oc3_lin = [0.73, -1.2, 0, 0, 0]
-popt_oc3_rev = [0.44580314, -2.29314384, 13.17079188, -11.08418745, -408.86537168]
-
+p0_oc3_shift = [0.4960541484773382, -2.2511498967428705, 1.5193, -0.7702, -0.4291]
 
 def process(env, params, l1product_path, l2product_files, out_path):
     """Apply OC3 adapter.
@@ -92,11 +90,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
         rrs = read_rrs_polymer(src, width, height)
 
         log(env["General"]["log"], "Computing ChlA", indent=2)
-        chla = np.zeros(width * height)
-        chla[:] = np.nan
         xx_oc3 = np.log10(np.maximum(rrs[2], rrs[3]) / rrs[5])
-        chla[xx_oc3 < -0.16] = ocx(xx_oc3[xx_oc3 < -0.16], *p0_oc3_lin)
-        chla[xx_oc3 >= -0.16] = ocx(xx_oc3[xx_oc3 >= -0.16], *popt_oc3_rev)
+        chla = ocx(xx_oc3, *p0_oc3_shift)
         write_pixels_to_nc(dst, "chla", 0, 0, width, height, chla)
 
         log(env["General"]["log"], "Computing QA Scores", indent=2)
