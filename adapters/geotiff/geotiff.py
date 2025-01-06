@@ -7,6 +7,7 @@ The Geotiff adapter is designed to output specified bands to Geotiff in order to
 import os
 import json
 import boto3
+import shutil
 import numpy as np
 import pandas as pd
 from osgeo import osr
@@ -18,8 +19,9 @@ from datetime import datetime
 from pyproj import CRS
 import shapely.vectorized
 from shapely.geometry import shape, MultiPolygon, box
-from utils.product_fun import get_satellite_name_from_product_name, get_sensing_datetime_from_product_name, \
-    write_all_pixels_to_nc, create_band, append_to_valid_pixel_expression, get_tile_name_from_product_name
+from utils.product_fun import (get_satellite_name_from_product_name, get_sensing_datetime_from_product_name,
+    write_all_pixels_to_nc, create_band, append_to_valid_pixel_expression, get_tile_name_from_product_name,
+                               get_commit_hash)
 osr.UseExceptions()
 
 # key of the params section for this adapter
@@ -45,12 +47,12 @@ def apply(env, params, l2product_files, date):
     date
         Run date
     """
-
     if PARAMS_SECTION not in params:
         raise ValueError("GEOTIFF selection must be defined in the parameters file.")
     if not bool(l2product_files):
         raise ValueError("No l2 products available to process")
     errors = []
+    commit_hash = get_commit_hash(os.path.abspath(__file__))
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
@@ -61,6 +63,8 @@ def apply(env, params, l2product_files, date):
                 satellite = get_satellite_name_from_product_name(os.path.basename(l2product_file))
                 tile = get_tile_name_from_product_name(os.path.basename(l2product_file))
                 date = get_sensing_datetime_from_product_name(os.path.basename(l2product_file))
+                base_folder = os.path.dirname(os.path.dirname(l2product_file))
+                ini_file = [os.path.join(base_folder, f) for f in os.listdir(base_folder) if f.endswith(".ini")][0]
                 out_path = os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR, satellite + "_" + date)
                 if tile:
                     input_file = os.path.join(out_path, "{}_{}_{}_{}.nc".format(processor, satellite, date, tile))
@@ -86,7 +90,7 @@ def apply(env, params, l2product_files, date):
                         nc_bytes = f.read()
                     with open(input_file, "wb") as f:
                         f.write(nc_bytes)
-
+                    shutil.copy(ini_file, os.path.join(out_path, "reproduce.ini"))
                     if "lake_mask" in params[PARAMS_SECTION]:
                         mask_file = "{}m_watermask.geojson".format(params[PARAMS_SECTION]["lake_mask"])
                         mask_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), mask_file)
@@ -114,6 +118,8 @@ def apply(env, params, l2product_files, date):
                             "Satellite": satellite,
                             "Date": date,
                             "Produced": datetime.now().strftime("%Y%m%dT%H%M%S"),
+                            "Commit Hash": commit_hash[:7],
+                            "Reproduce": True
                         }
                         try:
                             if "S3" in satellite:
@@ -121,7 +127,6 @@ def apply(env, params, l2product_files, date):
                                 json_outfile = os.path.join(out_path, "{}_{}_{}_{}.json".format(processor, val, satellite, date))
                                 netcdf_json(input_file, json_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
                             if tile:
-
                                 geotiff_outfile = os.path.join(out_path, "{}_{}_{}_{}_{}.tif".format(processor, val, satellite, date, tile))
                             else:
                                 geotiff_outfile = os.path.join(out_path, "{}_{}_{}_{}.tif".format(processor, val, satellite, date))
@@ -162,7 +167,7 @@ def apply(env, params, l2product_files, date):
         bucket_path = params[PARAMS_SECTION]["bucket_path"]
         for root, dirs, files in os.walk(out_folders):
             for file in files:
-                if file.endswith(".tif"):
+                if file.endswith(".tif") or file.endswith(".json") or file.endswith(".ini"):
                     try:
                         log(env["General"]["log"], "Uploading {}".format(file), indent=2)
                         client.upload_file(os.path.join(root, file), params[PARAMS_SECTION]["bucket"], os.path.join(bucket_path, os.path.relpath(os.path.join(root, file), out_folders)))

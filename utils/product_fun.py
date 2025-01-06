@@ -548,3 +548,23 @@ def get_np_data_type(nc, band_name):
         return np.float64, 'float64'
     else:
         raise ValueError("Cannot handle band of data_sh type '{}'".format(str(dtype)))
+
+def get_commit_hash(script_path):
+    try:
+        file_dir = os.path.dirname(os.path.abspath(script_path))
+        repo_root = subprocess.check_output(
+            ['git', 'rev-parse', '--show-toplevel'],
+            cwd=file_dir,
+            text=True
+        ).strip()
+
+        commit_hash = subprocess.check_output(
+            ['git', 'rev-parse', 'HEAD'],
+            cwd=repo_root,
+            text=True
+        ).strip()
+
+        return commit_hash
+    except Exception as e:
+        print(e)
+        return "NA"
