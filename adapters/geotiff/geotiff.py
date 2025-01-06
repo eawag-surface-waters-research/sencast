@@ -14,6 +14,7 @@ from osgeo import gdal
 from utils.auxil import log
 from json import dump
 from netCDF4 import Dataset
+from datetime import datetime
 from pyproj import CRS
 import shapely.vectorized
 from shapely.geometry import shape, MultiPolygon, box
@@ -105,30 +106,43 @@ def apply(env, params, l2product_files, date):
 
                     for idx, val in enumerate(bands):
                         log(env["General"]["log"], "Processing {} band {}".format(processor, val), indent=3)
+                        metadata = {
+                            "Author": "Eawag",
+                            "Parameter": val,
+                            "Description": "Float32 GeoTiff where band1 is the value and band2 (when included) is a valid pixel mask",
+                            "Origin File": os.path.basename(l2product_file),
+                            "Satellite": satellite,
+                            "Date": date,
+                            "Produced": datetime.now().strftime("%Y%m%dT%H%M%S"),
+                        }
                         try:
                             if "S3" in satellite:
                                 # This is legacy and should be removed when Datalakes is updated
                                 json_outfile = os.path.join(out_path, "{}_{}_{}_{}.json".format(processor, val, satellite, date))
                                 netcdf_json(input_file, json_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
                             if tile:
+
                                 geotiff_outfile = os.path.join(out_path, "{}_{}_{}_{}_{}.tif".format(processor, val, satellite, date, tile))
                             else:
                                 geotiff_outfile = os.path.join(out_path, "{}_{}_{}_{}.tif".format(processor, val, satellite, date))
                             number_bands = 2
                             if "single_band" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["single_band"]:
                                 number_bands = 1
-                            netcdf_geotiff(input_file, geotiff_outfile, val, bands_min[idx], bands_max[idx], env, number_bands=number_bands)
+                            netcdf_geotiff(input_file, geotiff_outfile, val, bands_min[idx], bands_max[idx], metadata, env, number_bands=number_bands)
                         except Exception as e:
                             print(e)
                             errors.append("Failed to convert {} band {}".format(processor, val))
                             log(env["General"]["log"], "Failed to convert {} band {}".format(processor, val), indent=3)
 
-    if "upload" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["upload"] == "false":
+    if "upload" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["upload"].lower() == "false":
         log(env["General"]["log"], "Not uploading files.", indent=1)
         return
 
     if "bucket" not in params[PARAMS_SECTION]:
-        raise ValueError("S3 Bucket must be defined in parameters file")
+        raise ValueError("bucket must be defined in parameters file")
+
+    if "bucket_path" not in params[PARAMS_SECTION]:
+        raise ValueError("bucket_path must be defined in parameters file")
 
     if not env.has_section("AWS"):
         raise ValueError("AWS section required in environment file.")
@@ -144,16 +158,11 @@ def apply(env, params, l2product_files, date):
             aws_secret_access_key=env["AWS"]["aws_secret_access_key"]
         )
         out_folders = os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR)
-        extension = False
         failed = False
-        if "upload_netcdf" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["upload_netcdf"] == "false":
-            extension = ".nc"
-        bucket_path = ""
-        if "bucket_path" in params[PARAMS_SECTION]:
-            bucket_path = params[PARAMS_SECTION]["bucket_path"]
+        bucket_path = params[PARAMS_SECTION]["bucket_path"]
         for root, dirs, files in os.walk(out_folders):
             for file in files:
-                if extension == False or file[-len(extension):] == extension:
+                if file.endswith(".tif"):
                     try:
                         log(env["General"]["log"], "Uploading {}".format(file), indent=2)
                         client.upload_file(os.path.join(root, file), params[PARAMS_SECTION]["bucket"], os.path.join(bucket_path, os.path.relpath(os.path.join(root, file), out_folders)))
@@ -167,7 +176,7 @@ def apply(env, params, l2product_files, date):
         raise ValueError(". ".join(errors))
 
 
-def netcdf_geotiff(input_file, output_file, band, band_min, band_max, env, projection=4326, number_bands=2):
+def netcdf_geotiff(input_file, output_file, band, band_min, band_max, metadata, env, projection=4326, number_bands=2):
     log(env["General"]["log"], "Reading data from {}".format(input_file), indent=4)
     with Dataset(input_file, "r", format="NETCDF4") as nc:
         variables = nc.variables.keys()
@@ -218,6 +227,7 @@ def netcdf_geotiff(input_file, output_file, band, band_min, band_max, env, proje
     geotransform = (xmin, xres, 0, ymax, 0, -yres)
 
     dst_ds = gdal.GetDriverByName('GTiff').Create(temp_file, ny, nx, number_bands, gdal.GDT_Float32)
+
     dst_ds.SetGeoTransform(geotransform)
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(projection)
@@ -225,6 +235,7 @@ def netcdf_geotiff(input_file, output_file, band, band_min, band_max, env, proje
     dst_ds.GetRasterBand(1).WriteArray(values)
     if number_bands == 2:
         dst_ds.GetRasterBand(2).WriteArray(valid_pixels)
+    dst_ds.SetMetadata(metadata)
     dst_ds.FlushCache()
     dst_ds = None
 
