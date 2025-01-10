@@ -7,6 +7,7 @@ EarthExplorer (EE) serves as a key data access portal for the USGS Earth Resourc
 
 import os
 import json
+import boto3
 import time
 import shutil
 import tarfile
@@ -98,58 +99,106 @@ def bounds(wkt):
 
 def do_download(auth, product, env, max_attempts=4, wait_time=30):
     product_path = product["l1_product_path"]
-    file_temp = "{}.incomplete".format(product_path)
+    incomplete = "{}.incomplete".format(product_path)
     os.makedirs(os.path.dirname(product_path), exist_ok=True)
     payload = {'datasetName': product['dataset'], 'entityIds': [product["entityId"]]}
     for attempt in range(max_attempts):
-        try:
-            log(env["General"]["log"], "Starting download attempt {} of {}".format(attempt + 1, max_attempts), indent=1)
-            token = server_authenticate(auth, env)
-            headers = {'X-Auth-Token': token}
-            response = requests.post(service_url.format("download-options"), json.dumps(payload), headers=headers)
-            if response.status_code != codes.OK:
-                raise ValueError("Failed to access {}".format(service_url.format("download_options")))
-            downloads = []
-            for product in response.json()["data"]:
-                if product['available'] == True:
-                    downloads.append({'entityId': product['entityId'],
-                                      'productId': product['id']})
-            label = datetime.now().strftime("%Y%m%d_%H%M%S")  # Customized label using date time
-            payload = {'downloads': downloads,
-                       'label': label}
-            response = requests.post(service_url.format("download-request"), json.dumps(payload), headers=headers)
-            if response.status_code != codes.OK:
-                raise ValueError("Failed to collect download link")
-            url = response.json()["data"]["availableDownloads"][0]["url"]
-            session = requests.Session()
-            session.headers.update({'X-Auth-Token': f'{token}'})
-            downloaded_bytes = 0
-            with session.get(url, stream=True, timeout=600) as req:
-                if req.status_code != codes.OK:
-                    raise ValueError("{} ERROR.".format(req.status_code))
-                with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
-                    chunk_size = 2 ** 20  # download in 1 MB chunks
-                    with open(file_temp, 'wb') as fout:
-                        for chunk in req.iter_content(chunk_size=chunk_size):
-                            if chunk:  # filter out keep-alive new chunks
-                                fout.write(chunk)
-                                progress.update(len(chunk))
-                                downloaded_bytes += len(chunk)
-            os.makedirs(product_path, exist_ok=True)
-            with tarfile.open(file_temp, 'r') as tar_file:
-                tar_file.extractall(product_path)
-            Path(file_temp).unlink()
-            return
-        except Exception as e:
-            log(env["General"]["log"], "Failed download attempt {} of {}: {}".format(attempt + 1, max_attempts, e), indent=1)
+        if "s3" in env["EROS"] and env["EROS"]["s3"].lower() == "true":
+            log(env["General"]["log"], "Starting S3 download attempt {} of {}".format(attempt + 1, max_attempts),
+                indent=1)
             try:
-                if os.path.exists(product_path):
-                    shutil.rmtree(product_path)
-                if os.path.exists(file_temp):
-                    Path(file_temp).unlink()
-            except:
-                pass
-            time.sleep(wait_time)
+                if os.path.exists(incomplete):
+                    Path(incomplete).unlink()
+                bands = []
+                if "bands" in env["EROS"]:
+                    bands = [b.strip() for b in env["EROS"]["bands"].split(",")]
+                parts = product["displayId"].split("_")
+                prefix = ("collection02/level-2/standard/oli-tirs/{}/{}/{}/{}"
+                       .format(parts[3][:4], parts[2][:3], parts[2][3:], product["displayId"]))
+                s3 = boto3.client('s3',
+                                    aws_access_key_id=env["AWS"]["aws_access_key_id"],
+                                    aws_secret_access_key=env["AWS"]["aws_secret_access_key"],
+                                    region_name="us-west-2")
+                response = s3.list_objects_v2(Bucket="usgs-landsat", Prefix=prefix, RequestPayer='requester')
+                if 'Contents' in response:
+                    os.makedirs(incomplete)
+                    for obj in response['Contents']:
+                        if len(bands) > 0:
+                            for band in bands:
+                                if obj['Key'].split(".")[0].endswith(band):
+                                    s3.download_file("usgs-landsat", obj['Key'],
+                                                     os.path.join(incomplete, os.path.basename(obj['Key'])),
+                                                     ExtraArgs={'RequestPayer': 'requester'})
+                        else:
+                            s3.download_file("usgs-landsat", obj['Key'],
+                                             os.path.join(incomplete, os.path.basename(obj['Key'])),
+                                             ExtraArgs={'RequestPayer': 'requester'})
+                    os.rename(incomplete, product_path)
+                    return
+                else:
+                    raise ValueError("Failed to list files")
+            except Exception as e:
+                log(env["General"]["log"], "Failed download attempt {} of {}: {}".format(attempt + 1, max_attempts, e), indent=1)
+                try:
+                    if os.path.exists(product_path):
+                        shutil.rmtree(product_path)
+                    if os.path.exists(incomplete):
+                        shutil.rmtree(incomplete)
+                except:
+                    pass
+                time.sleep(wait_time)
+        else:
+            log(env["General"]["log"], "Starting API download attempt {} of {}".format(attempt + 1, max_attempts),
+                indent=1)
+            try:
+                if os.path.exists(incomplete):
+                    shutil.rmtree(incomplete)
+                token = server_authenticate(auth, env)
+                headers = {'X-Auth-Token': token}
+                response = requests.post(service_url.format("download-options"), json.dumps(payload), headers=headers)
+                if response.status_code != codes.OK:
+                    raise ValueError("Failed to access {}".format(service_url.format("download_options")))
+                downloads = []
+                for product in response.json()["data"]:
+                    if product['available'] == True:
+                        downloads.append({'entityId': product['entityId'],
+                                          'productId': product['id']})
+                label = datetime.now().strftime("%Y%m%d_%H%M%S")  # Customized label using date time
+                payload = {'downloads': downloads,
+                           'label': label}
+                response = requests.post(service_url.format("download-request"), json.dumps(payload), headers=headers)
+                if response.status_code != codes.OK:
+                    raise ValueError("Failed to collect download link")
+                url = response.json()["data"]["availableDownloads"][0]["url"]
+                session = requests.Session()
+                session.headers.update({'X-Auth-Token': f'{token}'})
+                downloaded_bytes = 0
+                with session.get(url, stream=True, timeout=600) as req:
+                    if req.status_code != codes.OK:
+                        raise ValueError("{} ERROR.".format(req.status_code))
+                    with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
+                        chunk_size = 2 ** 20  # download in 1 MB chunks
+                        with open(incomplete, 'wb') as fout:
+                            for chunk in req.iter_content(chunk_size=chunk_size):
+                                if chunk:  # filter out keep-alive new chunks
+                                    fout.write(chunk)
+                                    progress.update(len(chunk))
+                                    downloaded_bytes += len(chunk)
+                os.makedirs(product_path, exist_ok=True)
+                with tarfile.open(incomplete, 'r') as tar_file:
+                    tar_file.extractall(product_path)
+                Path(incomplete).unlink()
+                return
+            except Exception as e:
+                log(env["General"]["log"], "Failed download attempt {} of {}: {}".format(attempt + 1, max_attempts, e), indent=1)
+                try:
+                    if os.path.exists(product_path):
+                        shutil.rmtree(product_path)
+                    if os.path.exists(incomplete):
+                        Path(incomplete).unlink()
+                except:
+                    pass
+                time.sleep(wait_time)
     raise ValueError("Failed to download file after {} attempts".format(max_attempts))
 
 
