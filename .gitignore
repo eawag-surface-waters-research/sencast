@@ -26,6 +26,6 @@ __pycache__
 /processors/ocsmart/landmask_gsw
 acolite_run_*_log_file.txt
 *cache.sqlite
-/examples
+/examples/*
 !/examples/example.py
 !/examples/reprocess.py
