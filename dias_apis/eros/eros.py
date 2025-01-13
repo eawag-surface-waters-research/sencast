@@ -103,7 +103,7 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30):
     os.makedirs(os.path.dirname(product_path), exist_ok=True)
     payload = {'datasetName': product['dataset'], 'entityIds': [product["entityId"]]}
     for attempt in range(max_attempts):
-        if "s3" in env["EROS"] and env["EROS"]["s3"].lower() == "true":
+        if "s3" in env["EROS"] and env["EROS"]["s3"].lower() == "true" and attempt < 1:
             log(env["General"]["log"], "Starting S3 download attempt {} of {}".format(attempt + 1, max_attempts),
                 indent=1)
             try:

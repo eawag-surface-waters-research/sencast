@@ -184,14 +184,18 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
 
     if len(errors) > 0:
         raise RuntimeError("Sencast failed for {}/{} processes.".format(len(errors), len(summary)))
-    elif 'remove_inputs' in params['General'] and params['General']['remove_inputs'] == "True":
-        log(env["General"]["log"], "Deleting input files")
-        for product in products:
-            log(env["General"]["log"], "Removing: {}".format(product["l1_product_path"]), indent=1)
-            if os.path.isfile(product["l1_product_path"]):
-                os.remove(product["l1_product_path"])
-            elif os.path.isdir(product["l1_product_path"]):
-                shutil.rmtree(product["l1_product_path"])
+    else:
+        if 'remove_inputs' in params['General'] and params['General']['remove_inputs'] == "True":
+            log(env["General"]["log"], "Deleting input files")
+            for product in products:
+                log(env["General"]["log"], "Removing: {}".format(product["l1_product_path"]), indent=1)
+                if os.path.isfile(product["l1_product_path"]):
+                    os.remove(product["l1_product_path"])
+                elif os.path.isdir(product["l1_product_path"]):
+                    shutil.rmtree(product["l1_product_path"])
+        if 'remove_outputs' in params['General'] and params['General']['remove_outputs'] == "True":
+            log(env["General"]["log"], "Deleting output files")
+            shutil.rmtree(l2_path)
 
 
 def sencast_product_group(env, params, do_download, auth, products, l2_path, l2product_files_outer, semaphores, group):
