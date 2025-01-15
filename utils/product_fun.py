@@ -79,7 +79,7 @@ def filter_for_tiles(products, tiles, env):
     filtered_products = []
     for i in range(len(products)):
         for tile in tiles:
-            if "_{}_".format(tile) in products[i]["name"]:
+            if "{}_".format(tile) in products[i]["name"]:
                 filtered_products.append(products[i])
     return filtered_products
 
