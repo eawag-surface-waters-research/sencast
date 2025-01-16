@@ -118,6 +118,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
                     elif add:
                         parts = line.split("=")
                         image_metadata[parts[0].strip()] = parts[1].strip().replace('"', '')
+        else:
+            log(env["General"]["log"], "Unable to find metadata file", indent=4)
 
         log(env["General"]["log"], "Combining ST and QA files and calculating parameters", indent=3)
         with Dataset(output_file, 'w') as nc:
