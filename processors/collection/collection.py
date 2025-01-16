@@ -101,12 +101,26 @@ def process(env, params, l1product_path, l2product_files, out_path):
         nc_qa = Dataset(qa_file_temp, 'r')
 
         log(env["General"]["log"], "Reading metadata", indent=3)
-        with open(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.json"), 'r') as file:
-            metadata = json.load(file)
+        image_metadata = {}
+        if os.path.isfile(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.json")):
+            with open(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.json"), 'r') as file:
+                metadata = json.load(file)
+                image_metadata = metadata["LANDSAT_METADATA_FILE"]["IMAGE_ATTRIBUTES"]
+        elif os.path.isfile(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.txt")):
+            with open(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.txt"), 'r') as file:
+                add = False
+                lines = [line.strip() for line in file]
+                for line in lines:
+                    if line == "GROUP = IMAGE_ATTRIBUTES":
+                        add = True
+                    elif line == "END_GROUP = IMAGE_ATTRIBUTES":
+                        add = False
+                    elif add:
+                        parts = line.split("=")
+                        image_metadata[parts[0].strip()] = parts[1].strip().replace('"', '')
 
         log(env["General"]["log"], "Combining ST and QA files and calculating parameters", indent=3)
         with Dataset(output_file, 'w') as nc:
-            image_metadata = metadata["LANDSAT_METADATA_FILE"]["IMAGE_ATTRIBUTES"]
             for key in image_metadata.keys():
                 setattr(nc, key, image_metadata[key])
 
