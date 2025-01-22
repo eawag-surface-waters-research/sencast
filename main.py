@@ -80,12 +80,7 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
 
     # Dynamically import the remote dias api to use
     api = params['General']['remote_dias_api']
-    authenticate = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "authenticate")
-    get_download_requests = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())),
-                                    "get_download_requests")
-    do_download = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())), "do_download")
 
-    auth = authenticate(env[api])
 
     try:
         authenticate_earthdata_anc(env)
@@ -101,11 +96,25 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
 
     start, end = params['General']['start'], params['General']['end']
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
-    try:
-        products = get_download_requests(auth, start, end, sensor, resolution, wkt, env)
-    except Exception as e:
-        print(e)
-        raise ValueError("Unable to access {} API, please check your internet conectivity or try using an alternative API".format(api))
+
+    products = False
+    for api in [a.strip() for a in params['General']['remote_dias_api'].split(",")]:
+        log(env["General"]["log"], "Attempting to access data from {}".format(api))
+        try:
+            authenticate = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())),
+                                   "authenticate")
+            get_download_requests = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())),
+                                            "get_download_requests")
+            do_download = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())),
+                                  "do_download")
+            auth = authenticate(env[api])
+            products = get_download_requests(auth, start, end, sensor, resolution, wkt, env)
+            break
+        except Exception as e:
+            log(env["General"]["log"], "FAILED to access data from {}".format(api))
+            print(e)
+    if not products:
+        raise ValueError("Unable to access API's, please check your internet connectivity or try adding an alternative API")
 
     # filter for timeliness
     products = remove_superseded_products(products, env)
