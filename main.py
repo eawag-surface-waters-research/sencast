@@ -113,7 +113,7 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
         except Exception as e:
             log(env["General"]["log"], "FAILED to access data from {}".format(api))
             print(e)
-    if not products:
+    if products == False:
         raise ValueError("Unable to access API's, please check your internet connectivity or try adding an alternative API")
 
     # filter for timeliness
