@@ -46,6 +46,8 @@ def get_satellite_name_from_product_name(product_name):
         return "S2A"
     elif "S2B" in product_name:
         return "S2B"
+    elif "S2C" in product_name:
+        return "S2C"
     elif "LC08" in product_name:
         return "L8"
     elif "LC09" in product_name:
@@ -220,7 +222,7 @@ def get_l1product_path(env, product_name):
         sensor = "OLCI"
         dataset = product_name[4:12]
         date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
-    elif product_name.startswith("S2A") or product_name.startswith("S2B"):
+    elif product_name.startswith("S2A") or product_name.startswith("S2B") or product_name.startswith("S2C"):
         satellite = "Sentinel-2"
         sensor = "MSI"
         dataset = product_name[7:10]
@@ -268,7 +270,7 @@ def get_main_file_from_product_path(l1product_path):
     """Returns the path to the file to be read by third-party software in order to open a L1 product."""
     product_name = os.path.basename(l1product_path)
     satellite = get_satellite_name_from_product_name(product_name)
-    if satellite in ["S2A", "S2B"]:
+    if satellite in ["S2A", "S2B", "S2C"]:
         return os.path.join(l1product_path, "MTD_MSIL1C.xml")
     elif satellite in ["S3A", "S3B"]:
         return os.path.join(l1product_path, "xfdumanifest.xml")

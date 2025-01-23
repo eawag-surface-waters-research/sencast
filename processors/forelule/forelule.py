@@ -93,7 +93,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             hue_angle_coeff = hue_angle_coefficients(params[PARAMS_SECTION]["sensor"])
             spectral_band_names = params[PARAMS_SECTION]["spectral_band_names"]
             sample_band = params[PARAMS_SECTION]["sample_band"]
-        elif satellite in ['S2A', 'S2B']:
+        elif satellite in ['S2A', 'S2B', 'S2C']:
             resolution = str(params["General"]['resolution'])
             if resolution not in ["10", "20", "60"]:
                 raise RuntimeWarning('Forel-Ule only configured for 10, 20 & 60m Sentinel-2 resolutions')

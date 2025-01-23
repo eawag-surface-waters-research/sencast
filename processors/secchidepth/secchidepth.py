@@ -88,7 +88,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             satellite = get_satellite_name_from_product_name(product_name)
 
             ################## Setup band configuration for Sentinel-2 or Sentinel-3 ##################
-            if satellite in ['S2A', 'S2B']:
+            if satellite in ['S2A', 'S2B', 'S2C']:
                 # ToDo: values for Sentinel-2 are yet to be configured
                 log(env["General"]["log"], 'QAA Secchi for Sentinel-2 should be used with caution. Parameters are not fully validated.', indent=1)
                 # Coefficients for the calculation of the ratio of backscattering to the sum of absorption and backscattering Lee et al. 2002
