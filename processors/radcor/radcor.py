@@ -7,8 +7,10 @@
 import os
 import re
 import sys
+import netCDF4
 import shutil
 import importlib
+import numpy as np
 from utils.auxil import log
 from constants import REPROD_DIR
 
@@ -41,7 +43,7 @@ def process(env, params, l1product_path, _, out_path):
 
     radcor_folder = os.path.join(os.path.dirname(l1product_path), "RADCOR")
     os.makedirs(radcor_folder, exist_ok=True)
-    radcor_file = os.path.join(radcor_folder, os.path.basename(l1product_path).split(".")[0] + ".nc")
+    radcor_file = os.path.join(radcor_folder, os.path.basename(l1product_path))
 
     if os.path.exists(radcor_file):
         if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
@@ -55,18 +57,52 @@ def process(env, params, l1product_path, _, out_path):
     if not os.path.isfile(settings_file):
         rewrite_settings_file(settings_file, sensor, resolution, limit, params[PARAMS_SECTION])
 
-    tmp_path = os.path.join(out_path, "tmp")
-    ac.acolite_run(settings_file, l1product_path, tmp_path)
+    ac.acolite_run(settings_file, l1product_path, out_path)
 
-    for file in os.listdir(tmp_path):
-        if file.endswith("_L1R_projected.nc"):
-            log(env["General"]["log"], "Renaming RADCOR L1R output file.", indent=2)
-            os.rename(os.path.join(tmp_path, file), radcor_file)
+    rf = [f for f in os.listdir(out_path) if f.endswith("_L1R.nc")]
+    if len(rf) != 1:
+        raise ValueError("Cannot find correct Acolite output file.")
 
-    if not os.path.exists(radcor_file):
-        raise RuntimeError("The expected output file is not present: {}".format(radcor_file))
+    tmp_dir = os.path.join(out_path, "tmp", os.path.basename(l1product_path))
 
-    shutil.rmtree(tmp_path)
+    if os.path.exists(tmp_dir):
+        shutil.rmtree(tmp_dir)
+
+    shutil.copytree(l1product_path, tmp_dir)
+
+    if sensor == "OLCI":
+        rad_nc = netCDF4.Dataset(os.path.join(out_path, rf[0]))
+        shape = rad_nc.variables["lon"].shape
+        tl = [float(rad_nc.variables["lat"][0, 0]), float(rad_nc.variables["lon"][0, 0])]
+        br = [float(rad_nc.variables["lat"][shape[0] - 1, shape[1] - 1]),
+              float(rad_nc.variables["lon"][shape[0] - 1, shape[1] - 1])]
+
+        with netCDF4.Dataset(os.path.join(tmp_dir, "geo_coordinates.nc")) as nc:
+            lat = np.array(nc.variables["latitude"][:])
+            lng = np.array(nc.variables["longitude"][:])
+            tl_idx, tl_dist = find_closest_point(lat, lng, tl[0], tl[1])
+            br_idx, br_dist = find_closest_point(lat, lng, br[0], br[1])
+
+            if br_idx[0] - tl_idx[0] != shape[0] - 1:
+                raise ValueError("Incorrect shape")
+
+            if br_idx[1] - tl_idx[1] != shape[1] - 1:
+                raise ValueError("Incorrect shape")
+
+        for file in [f for f in os.listdir(tmp_dir) if "_radiance" in f]:
+            band = file.split("_")[0]
+            rad_band = getattr(rad_nc, "{}_name".format(band))
+            corrected = np.array(rad_nc.variables["rhot_{}".format(rad_band)][:])
+
+            with netCDF4.Dataset(os.path.join(tmp_dir, file), mode="a") as nc:
+                nc.variables["{}_radiance".format(band)][tl_idx[0]: br_idx[0] + 1, tl_idx[1]: br_idx[1] + 1] = corrected
+
+        rad_nc.close()
+    else:
+        raise ValueError("RADCOR not implemented for {}".format(sensor))
+
+    shutil.copytree(tmp_dir, radcor_file)
+    shutil.rmtree(tmp_dir)
 
     return [radcor_file]
 
@@ -130,3 +166,10 @@ def update_settings_file(file_path, parameters):
     if updated:
         with open(file_path, 'w') as file:
             file.writelines(updated_lines)
+
+
+def find_closest_point(lat_array, lon_array, lat_target, lon_target):
+    distances_sq = (lat_array - lat_target) ** 2 + (lon_array - lon_target) ** 2
+    min_index = np.unravel_index(np.argmin(distances_sq), lat_array.shape)
+    min_distance = np.sqrt(distances_sq[min_index])
+    return min_index, min_distance
