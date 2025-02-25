@@ -11,6 +11,8 @@ import netCDF4
 import shutil
 import importlib
 import numpy as np
+from datetime import datetime
+from scipy.interpolate import RegularGridInterpolator
 from utils.auxil import log
 from constants import REPROD_DIR
 
@@ -78,24 +80,34 @@ def process(env, params, l1product_path, _, out_path):
               float(rad_nc.variables["lon"][shape[0] - 1, shape[1] - 1])]
 
         with netCDF4.Dataset(os.path.join(tmp_dir, "geo_coordinates.nc")) as nc:
+            l1_shape = nc.variables["latitude"].shape
             lat = np.array(nc.variables["latitude"][:])
             lng = np.array(nc.variables["longitude"][:])
-            tl_idx, tl_dist = find_closest_point(lat, lng, tl[0], tl[1])
-            br_idx, br_dist = find_closest_point(lat, lng, br[0], br[1])
+        tl_idx, tl_dist = find_closest_point(lat, lng, tl[0], tl[1])
+        br_idx, br_dist = find_closest_point(lat, lng, br[0], br[1])
+        if br_idx[0] - tl_idx[0] != shape[0] - 1:
+            raise ValueError("Incorrect shape")
+        if br_idx[1] - tl_idx[1] != shape[1] - 1:
+            raise ValueError("Incorrect shape")
 
-            if br_idx[0] - tl_idx[0] != shape[0] - 1:
-                raise ValueError("Incorrect shape")
+        d = distance_sun_earth(doy_ocli(os.path.basename(l1product_path)))
+        sza = solar_zenith_angle(os.path.join(tmp_dir, "tie_geometries.nc"), l1_shape)[tl_idx[0]: br_idx[0] + 1,
+              tl_idx[1]: br_idx[1] + 1]
 
-            if br_idx[1] - tl_idx[1] != shape[1] - 1:
-                raise ValueError("Incorrect shape")
+        files = [f for f in os.listdir(tmp_dir) if "_radiance.nc" in f]
+        files.sort()
 
-        for file in [f for f in os.listdir(tmp_dir) if "_radiance" in f]:
+        for file in files:
             band = file.split("_")[0]
+            band_index = int(band[2:]) - 1
             rad_band = getattr(rad_nc, "{}_name".format(band))
-            corrected = np.array(rad_nc.variables["rhot_{}".format(rad_band)][:])
-
+            p_t = np.array(rad_nc.variables["rhot_{}".format(rad_band)][:])
+            gain = gain_value(os.path.basename(l1product_path)[:3], band_index)
+            F0 = solar_flux(band_index, os.path.join(tmp_dir, "instrument_data.nc"), l1_shape)[tl_idx[0]: br_idx[0] + 1,
+                 tl_idx[1]: br_idx[1] + 1]
+            radiance = reflectance_radiance(p_t, F0, sza, d, gain)
             with netCDF4.Dataset(os.path.join(tmp_dir, file), mode="a") as nc:
-                nc.variables["{}_radiance".format(band)][tl_idx[0]: br_idx[0] + 1, tl_idx[1]: br_idx[1] + 1] = corrected
+                nc.variables["{}_radiance".format(band)][tl_idx[0]: br_idx[0] + 1, tl_idx[1]: br_idx[1] + 1] = radiance
 
         rad_nc.close()
     else:
@@ -173,3 +185,64 @@ def find_closest_point(lat_array, lon_array, lat_target, lon_target):
     min_index = np.unravel_index(np.argmin(distances_sq), lat_array.shape)
     min_distance = np.sqrt(distances_sq[min_index])
     return min_index, min_distance
+
+
+def reflectance_radiance(p_t, F0, sza, d, gain):
+    """
+    Calculate OLCI radiance from ACOLITE ρ_t
+
+    Parameters
+    ----------
+
+    ρ_t
+        ACOLITE ρ_t
+    F0
+        Solar flux at TOA from the solar_flux_band_1 variable
+    sza
+        Solar zenith angle
+    d
+        Earth-Sun distance in astronomical units (AU)
+    gain
+        EUMETSAT SVC gain applied to the radiance
+    """
+    return (p_t * F0 * np.cos(np.deg2rad(sza))) / (np.pi * d ** 2 * gain)
+
+def solar_flux(band_index, instrument_file, l1_shape):
+    with netCDF4.Dataset(instrument_file) as nc:
+        solar_flux_raw = np.array(nc.variables["solar_flux"][band_index, :])
+    old_rows = np.linspace(0, l1_shape[0] - 1, solar_flux_raw.shape[0])
+    new_rows = np.arange(l1_shape[0])
+    flux_rows = np.interp(new_rows, old_rows, solar_flux_raw)
+    return np.tile(flux_rows[:, None], (1, l1_shape[1]))
+
+def doy_ocli(filename):
+    matches = re.findall(r"\d{8}T\d{6}", filename)
+    dt_start = datetime.strptime(matches[0], "%Y%m%dT%H%M%S")
+    dt_end = datetime.strptime(matches[1], "%Y%m%dT%H%M%S")
+    dt = dt_start + (dt_end - dt_start) / 2
+    return float(dt.timetuple().tm_yday)
+
+def distance_sun_earth(doy):
+    return 1.00014-0.01671*np.cos(np.pi*(0.9856002831*doy-3.4532868)/180.)-0.00014*np.cos(2*np.pi*(0.9856002831*doy-3.4532868)/180.)
+
+def solar_zenith_angle(tie_geometries_file, l1_shape):
+    with netCDF4.Dataset(tie_geometries_file) as nc:
+        sza_tie = nc.variables['SZA'][:]
+    rows_tie = np.arange(sza_tie.shape[0])
+    cols_tie = np.linspace(0, l1_shape[1] - 1, sza_tie.shape[1])
+    rr, cc = np.meshgrid(np.arange(l1_shape[0]), np.arange(l1_shape[1]), indexing='ij')
+    sza_interpolator = RegularGridInterpolator(
+        (rows_tie, cols_tie),
+        sza_tie,
+        method='nearest',
+        bounds_error=False,
+        fill_value=np.nan
+    )
+    return sza_interpolator((rr, cc))
+
+def gain_value(satellite, band_index):
+    gain_data = {
+        "S3A": [0.975458,0.974061,0.974919,0.968897,0.971844,0.975705,0.980013,0.978339,0.978597,0.979083,0.980135,0.985516,1,1,1,0.987718,0.986,0.986569,1,1,0.913161],
+        "S3B": [0.994584,0.9901,0.992215,0.986199,0.988985,0.99114,0.997689,0.996837,0.997165,0.998016,0.997824,1.001631,1,1,1,1.002586,1,1.000891,1,1,0.940641]
+    }
+    return gain_data[satellite][band_index]
