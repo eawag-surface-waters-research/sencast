@@ -38,7 +38,7 @@ RUN cd /opt/POLYMER/polymer && make all
 RUN cp -avr /opt/POLYMER/polymer/polymer $CONDA_ENV_HOME/lib/python3.11/site-packages/polymer
 RUN cp -avr /opt/POLYMER/polymer/auxdata $CONDA_ENV_HOME/lib/python3.11/site-packages/auxdata
 
-RUN cd /opt &&  git clone --depth 1 --branch main https://github.com/acolite/acolite.git
+RUN cd /opt && git clone --depth 1 --branch main https://github.com/acolite/acolite.git
 
 RUN mkdir /opt/FLUO
 RUN apt-get install unzip

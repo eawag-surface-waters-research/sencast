@@ -33,13 +33,16 @@ def process(env, params, l1product_path, _, out_path):
     sys.path.append(env["ACOLITE"]['root_path'])
     ac = importlib.import_module("acolite.acolite")
 
-    out_path = os.path.join(out_path, OUT_DIR)
-    os.makedirs(out_path, exist_ok=True)
+    product = os.path.basename(l1product_path)
+    start_date = dates_from_name(product)[0]
 
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     lons, lats = get_lons_lats(wkt)
     limit = "{},{},{},{}".format(min(lats), min(lons), max(lats), max(lons))
-    product_name = os.path.basename(l1product_path)
+
+    out_path = os.path.join(out_path, OUT_DIR, "{}_{}".format(product[:3], start_date))
+    os.makedirs(out_path, exist_ok=True)
+
     os.environ['EARTHDATA_u'] = env['EARTHDATA']['username']
     os.environ['EARTHDATA_p'] = env['EARTHDATA']['password']
 
@@ -86,9 +89,9 @@ def process(env, params, l1product_path, _, out_path):
         tl_idx, tl_dist = find_closest_point(lat, lng, tl[0], tl[1])
         br_idx, br_dist = find_closest_point(lat, lng, br[0], br[1])
         if br_idx[0] - tl_idx[0] != shape[0] - 1:
-            raise ValueError("Incorrect shape")
+            raise ValueError("Incorrect shape", br_idx[0] - tl_idx[0], shape[0] - 1)
         if br_idx[1] - tl_idx[1] != shape[1] - 1:
-            raise ValueError("Incorrect shape")
+            raise ValueError("Incorrect shape", br_idx[1] - tl_idx[1], shape[1] - 1)
 
         d = distance_sun_earth(doy_ocli(os.path.basename(l1product_path)))
         sza = solar_zenith_angle(os.path.join(tmp_dir, "tie_geometries.nc"), l1_shape)[tl_idx[0]: br_idx[0] + 1,
@@ -216,11 +219,14 @@ def solar_flux(band_index, instrument_file, l1_shape):
     return np.tile(flux_rows[:, None], (1, l1_shape[1]))
 
 def doy_ocli(filename):
-    matches = re.findall(r"\d{8}T\d{6}", filename)
+    matches = dates_from_name(filename)
     dt_start = datetime.strptime(matches[0], "%Y%m%dT%H%M%S")
     dt_end = datetime.strptime(matches[1], "%Y%m%dT%H%M%S")
     dt = dt_start + (dt_end - dt_start) / 2
     return float(dt.timetuple().tm_yday)
+
+def dates_from_name(filename):
+    return re.findall(r"\d{8}T\d{6}", filename)
 
 def distance_sun_earth(doy):
     return 1.00014-0.01671*np.cos(np.pi*(0.9856002831*doy-3.4532868)/180.)-0.00014*np.cos(2*np.pi*(0.9856002831*doy-3.4532868)/180.)
