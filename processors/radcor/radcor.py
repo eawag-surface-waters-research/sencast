@@ -12,6 +12,7 @@ import shutil
 import importlib
 import numpy as np
 from datetime import datetime
+from scipy.spatial import cKDTree
 from scipy.interpolate import RegularGridInterpolator
 from utils.auxil import log
 from constants import REPROD_DIR
@@ -77,25 +78,30 @@ def process(env, params, l1product_path, _, out_path):
 
     if sensor == "OLCI":
         rad_nc = netCDF4.Dataset(os.path.join(out_path, rf[0]))
-        shape = rad_nc.variables["lon"].shape
-        tl = [float(rad_nc.variables["lat"][0, 0]), float(rad_nc.variables["lon"][0, 0])]
-        br = [float(rad_nc.variables["lat"][shape[0] - 1, shape[1] - 1]),
-              float(rad_nc.variables["lon"][shape[0] - 1, shape[1] - 1])]
+        rad_lat = np.array(rad_nc.variables["lat"][:])
+        rad_lng = np.array(rad_nc.variables["lon"][:])
+        rad_coords = np.column_stack([rad_lat.flatten(), rad_lng.flatten()])
+        rad_idx = np.indices(rad_lat.shape)
+        rad_indices = np.column_stack([rad_idx[0].ravel(), rad_idx[1].ravel()])
 
         with netCDF4.Dataset(os.path.join(tmp_dir, "geo_coordinates.nc")) as nc:
             l1_shape = nc.variables["latitude"].shape
-            lat = np.array(nc.variables["latitude"][:])
-            lng = np.array(nc.variables["longitude"][:])
-        tl_idx, tl_dist = find_closest_point(lat, lng, tl[0], tl[1])
-        br_idx, br_dist = find_closest_point(lat, lng, br[0], br[1])
-        if br_idx[0] - tl_idx[0] != shape[0] - 1:
-            raise ValueError("Incorrect shape", br_idx[0] - tl_idx[0], shape[0] - 1)
-        if br_idx[1] - tl_idx[1] != shape[1] - 1:
-            raise ValueError("Incorrect shape", br_idx[1] - tl_idx[1], shape[1] - 1)
+            l1_lat = np.array(nc.variables["latitude"][:])
+            l1_lng = np.array(nc.variables["longitude"][:])
+            l1_coords = np.column_stack([l1_lat.ravel(), l1_lng.ravel()])
+            tree = cKDTree(l1_coords)
+            distances, indices = tree.query(rad_coords, k=1)
+            threshold = 0.001
+            valid_mask = distances < threshold
+            i, j = np.unravel_index(indices[valid_mask], l1_lat.shape)
+            l1_indices = np.array(list(zip(i, j)))
+
+        if l1_indices.shape[0] != rad_indices.shape[0]:
+            raise ValueError("Cannot match all Acolite pixels to OLCI pixels.")
 
         d = distance_sun_earth(doy_ocli(os.path.basename(l1product_path)))
-        sza = solar_zenith_angle(os.path.join(tmp_dir, "tie_geometries.nc"), l1_shape)[tl_idx[0]: br_idx[0] + 1,
-              tl_idx[1]: br_idx[1] + 1]
+        sza = solar_zenith_angle(os.path.join(tmp_dir, "tie_geometries.nc"), l1_shape)[
+            l1_indices[:, 0], l1_indices[:, 1]]
 
         files = [f for f in os.listdir(tmp_dir) if "_radiance.nc" in f]
         files.sort()
@@ -104,13 +110,17 @@ def process(env, params, l1product_path, _, out_path):
             band = file.split("_")[0]
             band_index = int(band[2:]) - 1
             rad_band = getattr(rad_nc, "{}_name".format(band))
-            p_t = np.array(rad_nc.variables["rhot_{}".format(rad_band)][:])
+            p_t = np.array(rad_nc.variables["rhot_{}".format(rad_band)][:])[rad_indices[:, 0], rad_indices[:, 1]]
             gain = gain_value(os.path.basename(l1product_path)[:3], band_index)
-            F0 = solar_flux(band_index, os.path.join(tmp_dir, "instrument_data.nc"), l1_shape)[tl_idx[0]: br_idx[0] + 1,
-                 tl_idx[1]: br_idx[1] + 1]
+            F0 = solar_flux(band_index, os.path.join(tmp_dir, "instrument_data.nc"), l1_shape)[
+                l1_indices[:, 0], l1_indices[:, 1]]
             radiance = reflectance_radiance(p_t, F0, sza, d, gain)
             with netCDF4.Dataset(os.path.join(tmp_dir, file), mode="a") as nc:
-                nc.variables["{}_radiance".format(band)][tl_idx[0]: br_idx[0] + 1, tl_idx[1]: br_idx[1] + 1] = radiance
+                combined_radiance = np.array(nc.variables["{}_radiance".format(band)][:])
+                if combined_radiance.shape != l1_shape:
+                    raise ValueError("Inconsistent OLCI grids.")
+                combined_radiance[l1_indices[:, 0], l1_indices[:, 1]] = radiance
+                nc.variables["{}_radiance".format(band)][:] = combined_radiance
 
         rad_nc.close()
     else:
