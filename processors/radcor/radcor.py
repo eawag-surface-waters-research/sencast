@@ -11,6 +11,9 @@ import netCDF4
 import shutil
 import importlib
 import numpy as np
+import xarray as xr
+import contextlib
+from osgeo import gdal, osr
 from datetime import datetime
 from scipy.spatial import cKDTree
 from scipy.interpolate import RegularGridInterpolator
@@ -26,7 +29,6 @@ PARAMS_SECTION = "RADCOR"
 OUT_DIR = "L1RADCOR"
 # The name of the settings file for acolite
 SETTINGS_FILENAME = "radcor_{}.properties"
-
 
 def process(env, params, l1product_path, _, out_path):
     """This processor calls acolite for the source product and writes the result to disk. It returns the location of the output product."""
@@ -68,6 +70,7 @@ def process(env, params, l1product_path, _, out_path):
     rf = [f for f in os.listdir(out_path) if f.endswith("_L1R.nc")]
     if len(rf) != 1:
         raise ValueError("Cannot find correct Acolite output file.")
+    acolite_file = os.path.join(out_path, rf[0])
 
     tmp_dir = os.path.join(out_path, "tmp", os.path.basename(l1product_path))
 
@@ -77,7 +80,7 @@ def process(env, params, l1product_path, _, out_path):
     shutil.copytree(l1product_path, tmp_dir)
 
     if sensor == "OLCI":
-        rad_nc = netCDF4.Dataset(os.path.join(out_path, rf[0]))
+        rad_nc = netCDF4.Dataset(acolite_file)
         rad_lat = np.array(rad_nc.variables["lat"][:])
         rad_lng = np.array(rad_nc.variables["lon"][:])
         rad_coords = np.column_stack([rad_lat.flatten(), rad_lng.flatten()])
@@ -123,6 +126,41 @@ def process(env, params, l1product_path, _, out_path):
                 nc.variables["{}_radiance".format(band)][:] = combined_radiance
 
         rad_nc.close()
+    elif sensor == "MSI":
+        if int(resolution) != int(20):
+            raise ValueError("RADCOR for MSI only implemented for 20m")
+        WAVE_TO_BAND = {
+            "442": "B01", "443": "B01", "492": "B02", "559": "B03", "560": "B03", "665": "B04",
+            "704": "B05", "739": "B06", "740": "B06", "780": "B07", "783": "B07", "833": "B08",
+            "842": "B08", "864": "B8A", "865": "B8A", "940": "B09", "943": "B09", "1375": "B10",
+            "1377": "B10", "1610": "B11", "2186": "B12", "2190": "B12",
+        }
+        BANDS_10M = {"B02", "B03", "B04", "B08"}
+        ds = xr.open_dataset(acolite_file)
+        lat, lon = ds["lat"].values, ds["lon"].values
+        if lat.ndim != 2 or lon.ndim != 2:
+            raise ValueError("Expected 2D lat/lon arrays in NetCDF")
+        xres = lon[0, 1] - lon[0, 0]
+        yres = lat[1, 0] - lat[0, 0]
+        if yres >= 0: print("Latitude resolution is non-negative.")
+        src_gt = [lon[0, 0], xres, 0, lat[0, 0], 0, yres]
+        processed_bands = set()
+        for var in sorted(ds.variables):
+            if var.startswith("rhot_"):
+                wl = var.split("_", 1)[1]
+                band = WAVE_TO_BAND.get(wl)
+                if band and band not in processed_bands:
+                    jp2 = find_s2_jp2(tmp_dir, band)
+                    resamp = (gdal.GRA_NearestNeighbour
+                              if band in BANDS_10M
+                              else gdal.GRA_Average)
+                    rho_acolite = ds[var].values
+                    rho_reprojected = reproject_to_band(rho_acolite, src_gt, jp2, resamp)
+                    dn_sub, mask = float_to_uint16(rho_reprojected)
+                    if mask.any():
+                        update_band(jp2, dn_sub, mask)
+                        processed_bands.add(band)
+        ds.close()
     else:
         raise ValueError("RADCOR not implemented for {}".format(sensor))
 
@@ -262,3 +300,90 @@ def gain_value(satellite, band_index):
         "S3B": [0.994584,0.9901,0.992215,0.986199,0.988985,0.99114,0.997689,0.996837,0.997165,0.998016,0.997824,1.001631,1,1,1,1.002586,1,1.000891,1,1,0.940641]
     }
     return gain_data[satellite][band_index]
+
+def find_s2_jp2(safe_path, band):
+    pat = re.compile(fr'_{band}\.jp2$', re.I)
+    granule = os.path.join(safe_path, "GRANULE")
+    for tile in os.listdir(granule):
+        img = os.path.join(granule, tile, "IMG_DATA")
+        if not os.path.isdir(img): continue
+        for root,_,files in os.walk(img):
+            for f in files:
+                if pat.search(f):
+                    return os.path.join(root, f)
+    raise FileNotFoundError(f"{band} not found under any IMG_DATA")
+
+def build_mem(arr, gt, wkt, gtype):
+    ds = gdal.GetDriverByName("MEM") \
+             .Create("", arr.shape[1], arr.shape[0], 1, gtype)
+    if not ds: raise MemoryError("Failed to create GDAL MEM dataset")
+    ds.SetGeoTransform(gt); ds.SetProjection(wkt)
+    ds.GetRasterBand(1).WriteArray(arr)
+    return ds
+
+def reproject_to_band(rho, src_gt, tpl_jp2, resampling):
+    tpl = gdal.Open(tpl_jp2)
+    if not tpl: raise IOError(f"Failed to open template JP2: {tpl_jp2}")
+    w, h        = tpl.RasterXSize, tpl.RasterYSize
+    gt, tgt_wkt = tpl.GetGeoTransform(), tpl.GetProjection()
+    tpl = None
+
+    dst = build_mem(np.full((h,w), np.nan, np.float32),
+                    gt, tgt_wkt, gdal.GDT_Float32)
+    dst.GetRasterBand(1).SetNoDataValue(np.nan)
+
+    srs = osr.SpatialReference(); srs.ImportFromEPSG(4326)
+    src_wkt_epsg4326 = srs.ExportToWkt()
+    src = build_mem(rho.astype(np.float32), src_gt,
+                    src_wkt_epsg4326, gdal.GDT_Float32)
+    src.GetRasterBand(1).SetNoDataValue(np.nan)
+
+    status = gdal.ReprojectImage(src, dst, src_wkt_epsg4326, tgt_wkt, resampling)
+    if status != 0:
+        print(f"gdal.ReprojectImage may have failed with status {status}")
+
+    reprojected_rho = dst.ReadAsArray()
+    src = None
+    dst = None
+    return reprojected_rho
+
+def float_to_uint16(rho):
+    SCALE, OFFSET_DN, NODATA_U16 = 10000, 1000, 0
+    OFFSET_RHO = -OFFSET_DN / SCALE
+    with np.errstate(invalid='ignore'):
+        vals = np.rint(rho * SCALE + OFFSET_DN)
+        dn = np.where(np.isnan(rho),
+                      NODATA_U16,
+                      np.clip(vals, 0, 65535)).astype(np.uint16)
+    mask = ~np.isnan(rho)
+    return dn, mask
+
+def update_band(jp2, dn_sub, mask):
+    src_ds = gdal.Open(jp2, gdal.GA_ReadOnly)
+    if src_ds is None:
+        raise Exception(f"Could not open {jp2}")
+    band = src_ds.GetRasterBand(1)
+    data = band.ReadAsArray()
+    modified_data = data.copy()
+    modified_data[mask] = dn_sub[mask]
+    gdal_dtype = band.DataType
+    temp_ds = gdal.GetDriverByName('MEM').Create(
+        '',
+        src_ds.RasterXSize,
+        src_ds.RasterYSize,
+        1,
+        gdal_dtype
+    )
+    temp_ds.SetGeoTransform(src_ds.GetGeoTransform())
+    crs_wkt = src_ds.GetProjection()
+    temp_ds.SetProjection(crs_wkt)
+    temp_band = temp_ds.GetRasterBand(1)
+    temp_band.WriteArray(modified_data)
+    temp_path = jp2 + '.tmp.jp2'
+    gdal.Translate(temp_path, temp_ds, format='JP2OpenJPEG', creationOptions=['QUALITY=100'])
+    temp_ds = None
+    src_ds = None
+    backup_path = jp2 + '.backup.jp2'
+    shutil.move(jp2, backup_path)
+    shutil.move(temp_path, jp2)
+    os.remove(backup_path)
