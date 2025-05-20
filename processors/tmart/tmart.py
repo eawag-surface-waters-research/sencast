@@ -11,6 +11,7 @@ Adapter authors: James Runnalls
 import os
 import tmart
 import shutil
+import sysconfig
 from utils.auxil import log
 
 
@@ -48,7 +49,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     if "n_photon" in params[PARAMS_SECTION].keys(): n_photon = int(params[PARAMS_SECTION]["n_photon"])
     if "n_jobs" in params[PARAMS_SECTION].keys(): n_jobs = int(params[PARAMS_SECTION]["n_jobs"])
 
-    aec_folder = os.path.join(os.path.dirname(l1product_path), "AEC")
+    aec_folder = os.path.join(os.path.dirname(l1product_path), "TMART")
     os.makedirs(aec_folder, exist_ok=True)
     aec_file = os.path.join(aec_folder, os.path.basename(l1product_path))
 
@@ -60,13 +61,34 @@ def process(env, params, l1product_path, l2product_files, out_path):
             log(env["General"]["log"], 'Skipping T-Mart, target already exists: {}'.format(aec_file), indent=1)
             return [aec_file]
 
+    site_packages_path = sysconfig.get_paths()["purelib"]
+    config_path = os.path.join(site_packages_path, 'tmart/config/config.txt')
+    config_backup_path = os.path.join(site_packages_path, 'tmart/config/config_backup.txt')
+
+    if not os.path.isfile(config_backup_path):
+        shutil.copy(config_path, config_backup_path)
+
+    with open(config_backup_path, 'r') as file:
+        lines = file.readlines()
+
+    for i in range(len(lines)):
+        if not lines[i].startswith("#") and len(lines[i].split("=")) == 2:
+            key = lines[i].split("=")[0].strip()
+            if key in params[PARAMS_SECTION].keys():
+                lines[i] = "{} = {}\n".format(key, params[PARAMS_SECTION][key])
+
+    with open(config_path, 'w') as file:
+        file.writelines(lines)
+
     try:
         if os.path.isfile(l1product_path):
             shutil.copy(l1product_path, aec_file)
         elif os.path.isdir(l1product_path):
             shutil.copytree(l1product_path, aec_file)
         tmart.AEC.run(aec_file, env["EARTHDATA"]["username"], env["EARTHDATA"]["password"], overwrite=True, AOT=aot, n_photon=n_photon, n_jobs=n_jobs)
+        shutil.copy(config_backup_path, config_path)
     except:
+        shutil.copy(config_backup_path, config_path)
         if os.path.exists(aec_file):
             shutil.rmtree(aec_file)
         raise
