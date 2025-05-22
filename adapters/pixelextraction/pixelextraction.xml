@@ -17,9 +17,7 @@
             <exportSubScenes>false</exportSubScenes>
             <subSceneBorderSize>0</subSceneBorderSize>
             <exportKmz>false</exportKmz>
-            <extractTimeFromFilename>true</extractTimeFromFilename>
-            <dateInterpretationPattern>yyyyMMdd</dateInterpretationPattern>
-            <filenameInterpretationPattern>*${startDate}*${endDate}*</filenameInterpretationPattern>
+            <extractTimeFromFilename>false</extractTimeFromFilename>
             <includeOriginalInput>false</includeOriginalInput>
         </parameters>
     </node>

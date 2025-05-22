@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import re
 import os
-from utils.auxil import load_environment, log
+import sys
 import subprocess
+from utils.auxil import log
 
 # The name of the xml file for gpt
 GPT_XML_FILENAME = "pixelextraction.xml"
@@ -13,7 +14,7 @@ PARAMS_SECTION = "PIXELEXTRACTION"
 OUT_DIR = "PixelExtraction"
 
 
-def apply(env, params, l2product_files, date):
+def apply(env, params, l2product_files, group):
     """Apply Pixel Extraction.
 
     Parameters
@@ -57,16 +58,17 @@ def apply(env, params, l2product_files, date):
     if len(files) == 0:
         return
 
-    out_path = os.path.dirname(os.path.dirname(files[0]))
+    out_dir = os.path.join(os.path.dirname(os.path.dirname(files[0])), OUT_DIR, safe_folder_name(group))
+    os.makedirs(out_dir, exist_ok=True)
 
-    if os.path.exists(os.path.join(out_path, OUT_DIR)) and len([f for f in os.listdir(os.path.join(out_path, OUT_DIR)) if "pixEx_" in f]) > 0:
+    if len([f for f in os.listdir(out_dir) if "pixEx_" in f]) > 0:
         log(env["General"]["log"], "Skipping pixel extraction, output files are already present.", indent=1)
         return
 
-    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME)
+    gpt_xml_file = os.path.join(out_dir, "_reproducibility", GPT_XML_FILENAME)
 
     if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, files, os.path.join(out_path, OUT_DIR), coords, window_size)
+        rewrite_xml(gpt_xml_file, files, out_dir, coords, window_size)
 
     args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size']]
     log(env["General"]["log"], "Calling '{}'".format(args), indent=1)
@@ -102,3 +104,15 @@ def rewrite_xml(gpt_xml_file, files, folder, coords, window_size):
     with open(gpt_xml_file, "w") as f:
         f.write(xml)
 
+
+def safe_folder_name(name: str, replacement: str = "_", max_length: int = 255) -> str:
+    reserved = {"CON", "PRN", "AUX", "NUL",
+                *(f"COM{i}" for i in range(1, 10)),
+                *(f"LPT{i}" for i in range(1, 10))}
+    name = re.sub(r'[<>:"/\\|?*\x00-\x1F.\-]', replacement, name)
+    name = re.sub(f'{re.escape(replacement)}+', replacement, name)
+    name = name.strip().strip(replacement)
+    name = name[:max_length]
+    if name.upper() in reserved:
+        name = f"{name}{replacement}"
+    return name
