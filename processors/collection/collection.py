@@ -121,6 +121,12 @@ def process(env, params, l1product_path, l2product_files, out_path):
         else:
             log(env["General"]["log"], "Unable to find metadata file", indent=4)
 
+        if "SCENE_CENTER_TIME" in image_metadata and "DATE_ACQUIRED":
+            exact_datetime = image_metadata["DATE_ACQUIRED"].replace("-", "") + "T" + image_metadata["SCENE_CENTER_TIME"].replace(":", "")[:6]
+            parts = os.path.basename(output_file).split("_")
+            parts[-4:-2] = [exact_datetime]
+            output_file = os.path.join(os.path.dirname(output_file), "_".join(parts))
+
         log(env["General"]["log"], "Combining ST and QA files and calculating parameters", indent=3)
         with Dataset(output_file, 'w') as nc:
             for key in image_metadata.keys():
