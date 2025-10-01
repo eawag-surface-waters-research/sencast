@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3:4.12.0
+FROM condaforge/miniforge3:25.3.1-0
 RUN apt update && apt upgrade -y
 RUN apt-get update
 RUN apt-get install -y gcc
@@ -32,7 +32,7 @@ ENV CONDA_ENV_HOME=$CONDA_HOME/envs/sencast
 ENV PYTHONUNBUFFERED=1
 
 RUN mkdir /opt/POLYMER
-RUN cd /opt/POLYMER &&  git clone --depth 1 --branch master https://github.com/hygeos/polymer.git
+RUN cd /opt/POLYMER && git clone --filter=blob:none --no-checkout https://github.com/hygeos/polymer.git polymer && git -C polymer checkout a7e40d04d110e7f99399620ee760e9565858a5f3
 SHELL ["conda", "run", "-n", "sencast", "/bin/bash", "-c"]
 RUN cd /opt/POLYMER/polymer && make all
 RUN cp -avr /opt/POLYMER/polymer/polymer $CONDA_ENV_HOME/lib/python3.11/site-packages/polymer
