@@ -175,7 +175,11 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30):
                 downloaded_bytes = 0
                 with session.get(url, stream=True, timeout=600) as req:
                     if req.status_code != codes.OK:
-                        raise ValueError("{} ERROR.".format(req.status_code))
+                        try:
+                            error_msg = req.json()
+                        except:
+                            error_msg = req.text
+                        raise ValueError("{} ERROR. {}".format(req.status_code, error_msg))
                     with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
                         chunk_size = 2 ** 20  # download in 1 MB chunks
                         with open(incomplete, 'wb') as fout:
