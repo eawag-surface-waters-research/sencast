@@ -11,11 +11,11 @@ RUN apt-get install -y oathtool
 RUN mkdir /DIAS
 RUN mkdir /sencast
 
-RUN curl -O http://step.esa.int/downloads/9.0/installers/esa-snap_all_unix_9_0_0.sh
-RUN chmod 755 esa-snap_all_unix_9_0_0.sh
-RUN echo "o\n1\n\n\nn\nn\nn\n" | bash esa-snap_all_unix_9_0_0.sh
+RUN curl -O https://download.esa.int/step/snap/12.0/installers/esa-snap_all_linux-12.0.0.sh
+RUN chmod 755 esa-snap_all_linux-12.0.0.sh
+RUN echo "o\n1\n\n\nn\nn\nn\n" | bash esa-snap_all_linux-12.0.0.sh
 
-RUN cd /opt/snap/snap/ && wget https://eawagrs.s3.eu-central-1.amazonaws.com/snap/snap_modules.tar.gz && tar -zxvf snap_modules.tar.gz
+RUN cd /opt/snap/snap/ && wget https://eawagrs.s3.eu-central-1.amazonaws.com/snap/snap_modules_12.tar.gz && tar -zxvf snap_modules.tar.gz
 ENV SNAP_HOME=/opt/snap
 RUN (timeout 250 $SNAP_HOME/bin/snap --nosplash --nogui --modules --update-all; exit 0)
 RUN echo "#SNAP configuration 's3tbx'" >> /opt/snap/etc/s3tbx.properties
