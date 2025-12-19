@@ -41,10 +41,10 @@ RUN cp -avr /opt/POLYMER/polymer/auxdata $CONDA_ENV_HOME/lib/python3.11/site-pac
 
 RUN git clone --filter=blob:none --no-checkout https://github.com/acolite/acolite.git /opt/acolite && git -C /opt/acolite checkout fc3e0cce4f608cf998f7d83cb6d002bb32d43f1a
 
-RUN mkdir /opt/FLUO
-RUN apt-get install unzip
-RUN cd /opt/FLUO && wget https://www.dropbox.com/s/ub3i66l4zqw51cs/snap-eum-fluo-1.0.nbm && unzip /opt/FLUO/snap-eum-fluo-1.0.nbm -d /opt/FLUO/snap-eum-fluo-1.0 && rm /opt/FLUO/snap-eum-fluo-1.0.nbm
-RUN cp -r /opt/FLUO/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
+#RUN mkdir /opt/FLUO
+#RUN apt-get install unzip
+#RUN cd /opt/FLUO && wget https://www.dropbox.com/s/ub3i66l4zqw51cs/snap-eum-fluo-1.0.nbm && unzip /opt/FLUO/snap-eum-fluo-1.0.nbm -d /opt/FLUO/snap-eum-fluo-1.0 && rm /opt/FLUO/snap-eum-fluo-1.0.nbm
+#RUN cp -r /opt/FLUO/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
 
 #RUN mkdir /opt/ICOR
 #RUN cd /opt/ICOR && wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin && chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin && ./icor_install_ubuntu_20_04_x64_3.0.0.bin && rm icor_install_ubuntu_20_04_x64_3.0.0.bin
