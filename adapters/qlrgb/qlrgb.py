@@ -45,7 +45,7 @@ def apply(env, params, l2product_files, date):
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
             ql_name = key[key.find("_") + 1:]
-            log(env["General"]["log"], "Creating {} quicklooks for {}".format(ql_name, processor))
+            log(env["General"]["log"], "Creating {} quicklooks for {}".format(ql_name, processor), indent=1)
             bands = list(filter(None, params[PARAMS_SECTION][key].split(",")))[0:-1]
             bandmax = list(filter(None, params[PARAMS_SECTION][key].split(",")))[-1]
             if params['General']['sensor'] == "OLCI":
@@ -61,12 +61,12 @@ def apply(env, params, l2product_files, date):
                 ql_file = os.path.join(ql_path, "{}-{}.pdf".format(product_name, ql_name))
                 if os.path.exists(ql_file):
                     if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":
-                        log(env["General"]["log"], "Removing file: ${}".format(ql_file))
+                        log(env["General"]["log"], "Removing file: ${}".format(ql_file), indent=2)
                         os.remove(ql_file)
                         plot_pic(env, l2product_file, ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
                     else:
                         log(env["General"]["log"],
-                            "Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)))
+                            "Skipping QLRGB. Target already exists: {}".format(os.path.basename(ql_file)), indent=2)
                 else:
                     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
                     plot_pic(env, l2product_file, ql_file, wkt, rgb_layers=bands, max_val=float(bandmax))
@@ -184,6 +184,6 @@ def plot_pic(env, input_file, output_file, wkt=None, crop_ext=None, rgb_layers=N
             gridlines.ylabel_style = {'size': gridlabel_size, 'color': 'black'}
 
         # Save plot
-        log(env["General"]["log"], 'Saving image {}'.format(os.path.basename(output_file)))
+        log(env["General"]["log"], 'Saving image {}'.format(os.path.basename(output_file)), indent=2)
         plt.savefig(output_file, dpi=300)
         plt.close()

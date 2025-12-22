@@ -1,39 +1,15 @@
 <graph id="sen2cor">
 	<version>1.0</version>
 	<node id="sen2corNode">
-		<operator>Sen2Cor280</operator>
+		<operator>Sen2Cor 2.12.0</operator>
 		<sources>
 			<sourceProduct>${sourceFile}</sourceProduct>
 		</sources>
 		<parameters>
-			<postExecuteTemplate>Sen2Cor-post-template.vm</postExecuteTemplate>
+            <postExecuteTemplate>Sen2Cor-post-template.vm</postExecuteTemplate>
 			<resolution>ALL</resolution>
-			<crOnly>false</crOnly>
-			<gip28L2A>Sen2Cor-gipp28-template.xsl</gip28L2A>
-			<nbThreads>1</nbThreads>
-			<medianFilter>0</medianFilter>
-			<aerosol>RURAL</aerosol>
-			<midLat>SUMMER</midLat>
-			<ozone>h - 331</ozone>
-			<wvCorrection>1</wvCorrection>
-			<visUpdateMode>1</visUpdateMode>
-			<wvWatermask>1</wvWatermask>
-			<cirrusCorrection>FALSE</cirrusCorrection>
-			<DEMTerrainCorrection>FALSE</DEMTerrainCorrection>
-			<brdfCorrection>0</brdfCorrection>
-			<brdfLower>0.22</brdfLower>
-			<visibility>23.0</visibility>
-			<altitude>0.1</altitude>
-			<wvThresCirrus>0.25</wvThresCirrus>
-			<compressionLevel>0</compressionLevel>
-			<demDirectory>NONE</demDirectory>
-			<demReference>http://data_public:GDdci@data.cgiar-csi.org/srtm/tiles/GeoTIFF/</demReference>
-			<adjacencyRange>1.0</adjacencyRange>
-			<smoothWVMap>100.0</smoothWVMap>
-			<generateDEMoutput>FALSE</generateDEMoutput>
-			<generateTCIoutput>TRUE</generateTCIoutput>
-			<generateDDVoutput>FALSE</generateDDVoutput>
-		</parameters>
+			<gip212L2A>Sen2Cor-gipp212-template.xsl</gip212L2A>
+        </parameters>
 	</node>
 	<node id="resamplesen2corNode">
 		<operator>resample</operator>

@@ -11,9 +11,9 @@ RUN apt-get install -y oathtool
 RUN mkdir /DIAS
 RUN mkdir /sencast
 
-RUN curl -O https://download.esa.int/step/snap/12.0/installers/esa-snap_all_linux-12.0.0.sh
-RUN chmod 755 esa-snap_all_linux-12.0.0.sh
-RUN echo "o\n1\n\n\nn\nn\nn\n" | bash esa-snap_all_linux-12.0.0.sh
+RUN curl -O https://download.esa.int/step/snap/13.0/installers/esa-snap_all_linux-13.0.0.sh
+RUN chmod 755 esa-snap_all_linux-13.0.0.sh
+RUN echo "o\n1\n\n\nn\nn\nn\n" | bash esa-snap_all_linux-13.0.0.sh
 RUN mv /opt/esa-snap /opt/snap
 
 ENV SNAP_HOME=/opt/snap
@@ -41,18 +41,9 @@ RUN cp -avr /opt/POLYMER/polymer/auxdata $CONDA_ENV_HOME/lib/python3.11/site-pac
 
 RUN git clone --filter=blob:none --no-checkout https://github.com/acolite/acolite.git /opt/acolite && git -C /opt/acolite checkout fc3e0cce4f608cf998f7d83cb6d002bb32d43f1a
 
-#RUN mkdir /opt/FLUO
-#RUN apt-get install unzip
-#RUN cd /opt/FLUO && wget https://www.dropbox.com/s/ub3i66l4zqw51cs/snap-eum-fluo-1.0.nbm && unzip /opt/FLUO/snap-eum-fluo-1.0.nbm -d /opt/FLUO/snap-eum-fluo-1.0 && rm /opt/FLUO/snap-eum-fluo-1.0.nbm
-#RUN cp -r /opt/FLUO/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
+RUN cd /opt && git clone --depth 1 --branch sencast https://gitlab.eawag.ch/surf/remote-sensing/ocsmart.git && cd /
 
-#RUN mkdir /opt/ICOR
-#RUN cd /opt/ICOR && wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin && chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin && ./icor_install_ubuntu_20_04_x64_3.0.0.bin && rm icor_install_ubuntu_20_04_x64_3.0.0.bin
-
-#RUN mkdir /opt/SEN2COR
-#RUN cd /opt/SEN2COR && wget https://step.esa.int/thirdparties/sen2cor/2.11.0/Sen2Cor-02.11.00-Linux64.run --no-check-certificate && chmod 755 Sen2Cor-02.11.00-Linux64.run && ./Sen2Cor-02.11.00-Linux64.run && rm Sen2Cor-02.11.00-Linux64.run
-
-RUN cd /opt && git clone --depth 1 --branch sencast https://gitlab.renkulab.io/eawagrs/ocsmart.git && cd /
+RUN cd /root/.snap/auxdata && wget https://step.esa.int/thirdparties/sen2cor/2.12.0/Sen2Cor-02.12.03-Linux64.run --no-check-certificate && chmod 755 Sen2Cor-02.12.03-Linux64.run && ./Sen2Cor-02.12.03-Linux64.run && rm Sen2Cor-02.12.03-Linux64.run
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
