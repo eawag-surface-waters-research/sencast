@@ -81,13 +81,14 @@ def apply(env, params, l2product_files, date):
                             os.remove(ql_file)
                         else:
                             log(env["General"]["log"],
-                                "Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)))
+                                "Skipping QLSINGLEBAND. Target already exists: {}".format(os.path.basename(ql_file)), indent=2)
                             continue
                     param_range = None if float(bandmin) == 0 == float(bandmax) else [float(bandmin), float(bandmax)]
                     os.makedirs(os.path.dirname(ql_file), exist_ok=True)
                     try:
                         plot_map(env, l2product_file, ql_file, band, wkt, "esri_shaded", param_range=param_range)
                     except Exception as e:
+                        raise
                         print(e)
                         failed.append(os.path.basename(ql_file))
     if len(failed) > 0:

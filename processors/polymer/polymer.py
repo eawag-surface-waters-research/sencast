@@ -65,14 +65,28 @@ def process(env, params, l1product_path, _, out_path):
         ancillary = None
         anc_name = "NA"
         log(env["General"]["log"], "Polymer not using ancillary data.", indent=1)
+    elif params['POLYMER']['ancillary'] == "NASA":
+        anc_name = "NASA"
     else:
+        anc_name = "ERA5"
 
-        if params['POLYMER']['ancillary'] == "NASA":
+    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
+    if os.path.isfile(output_file):
+        if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":
+            log(env["General"]["log"], "Removing file: ${}".format(output_file), indent=1)
+            os.remove(output_file)
+        else:
+            log(env["General"]["log"],
+                "Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)),
+                indent=1)
+            return output_file
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+    if anc_name != "NA":
+        if anc_name == "NASA":
             ancillary = Ancillary_NASA(directory=env['EARTHDATA']['anc_path'])
-            anc_name = "NASA"
         else:
             ancillary = Ancillary_ERA5(directory=env['CDS']['anc_path'])
-            anc_name = "ERA5"
         log(env["General"]["log"], "Polymer using {} ancillary data.".format(anc_name), indent=1)
         try:
             # Test the retrieval of parameters
@@ -94,16 +108,6 @@ def process(env, params, l1product_path, _, out_path):
             anc_name = "NA"
             os.makedirs("ANCILLARY/METEO", exist_ok=True)
             log(env["General"]["log"], "Polymer failed to collect ancillary data. If using NASA data ensure authentication is setup according to: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget", indent=1)
-
-    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
-    if os.path.isfile(output_file):
-        if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":
-            log(env["General"]["log"], "Removing file: ${}".format(output_file), indent=1)
-            os.remove(output_file)
-        else:
-            log(env["General"]["log"], "Skipping POLYMER, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)), indent=1)
-            return output_file
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     if sensor == "MSI":
         log(env["General"]["log"], "Reading MSI Level 1 data...", indent=1)

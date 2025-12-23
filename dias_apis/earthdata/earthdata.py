@@ -21,7 +21,7 @@ search_address = "https://cmr.earthdata.nasa.gov/search/granules?collection_conc
 
 def get_download_requests(auth, start_date, end_date, sensor, resolution, wkt, env):
     if sensor == "PACE_OCI_1B":
-        collection_concept_id = "C3026581092-OB_CLOUD"
+        collection_concept_id = "C3392966952-OB_CLOUD"
         satellite = "PACE"
     else:
         raise ValueError("No id defined for sensor: {}".format(sensor))

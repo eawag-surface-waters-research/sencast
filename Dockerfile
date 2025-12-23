@@ -18,12 +18,13 @@ RUN mv /opt/esa-snap /opt/snap
 
 ENV SNAP_HOME=/opt/snap
 RUN $SNAP_HOME/bin/snap --nosplash --nogui --modules --update-all
-RUN $SNAP_HOME/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.landsat8 org.esa.snap.idepix.olci org.esa.snap.idepix.s2msi eu.esa.opt.sen2cor212
+RUN $SNAP_HOME/bin/snap --nosplash --nogui --modules --install org.esa.snap.idepix.core org.esa.snap.idepix.landsat8 org.esa.snap.idepix.olci org.esa.snap.idepix.s2msi
 RUN echo "#SNAP configuration 's3tbx'" >> /opt/snap/etc/s3tbx.properties
 RUN echo "#Fri Mar 27 12:55:00 CET 2020" >> /opt/snap/etc/s3tbx.properties
 RUN echo "s3tbx.reader.olci.pixelGeoCoding=true" >> /opt/snap/etc/s3tbx.properties
 RUN echo "s3tbx.reader.meris.pixelGeoCoding=true" >> /opt/snap/etc/s3tbx.properties
 RUN echo "s3tbx.reader.slstrl1b.pixelGeoCodings=true" >> /opt/snap/etc/s3tbx.properties
+RUN echo "s3tbx.landsat.readAs=reflectance" >> /root/.snap/etc/s3tbx.properties
 RUN echo 'use.openjp2.jna=true' >> /root/.snap/etc/s2tbx.properties
 
 COPY ./sencast.yml /sencast/
@@ -42,8 +43,6 @@ RUN cp -avr /opt/POLYMER/polymer/auxdata $CONDA_ENV_HOME/lib/python3.11/site-pac
 RUN git clone --filter=blob:none --no-checkout https://github.com/acolite/acolite.git /opt/acolite && git -C /opt/acolite checkout fc3e0cce4f608cf998f7d83cb6d002bb32d43f1a
 
 RUN cd /opt && git clone --depth 1 --branch sencast https://gitlab.eawag.ch/surf/remote-sensing/ocsmart.git && cd /
-
-RUN cd /root/.snap/auxdata && wget https://step.esa.int/thirdparties/sen2cor/2.12.0/Sen2Cor-02.12.03-Linux64.run --no-check-certificate && chmod 755 Sen2Cor-02.12.03-Linux64.run && ./Sen2Cor-02.12.03-Linux64.run && rm Sen2Cor-02.12.03-Linux64.run
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
