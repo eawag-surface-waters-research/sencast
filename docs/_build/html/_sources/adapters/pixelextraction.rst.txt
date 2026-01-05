@@ -1,7 +1,7 @@
-MDN
+Merge
 ===========
 
-.. automodule:: processors.mdn.mdn
+.. automodule:: adapters.pixelextraction.pixelextraction
    :members:
    :undoc-members:
    :show-inheritance:

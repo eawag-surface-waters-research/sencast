@@ -1,7 +1,7 @@
-ICOR
+TMART
 ===========
 
-.. automodule:: processors.icor.icor
+.. automodule:: processors.tmart.tmart
    :members:
    :undoc-members:
    :show-inheritance:

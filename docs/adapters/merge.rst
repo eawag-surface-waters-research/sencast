@@ -1,7 +1,7 @@
-Datalakes
+Merge
 ===========
 
-.. automodule:: adapters.datalakes.datalakes
+.. automodule:: adapters.merge.merge
    :members:
    :undoc-members:
    :show-inheritance:

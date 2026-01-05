@@ -52,10 +52,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#polymer">POLYMER</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#acolite">Acolite</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ocsmart">OCSMART</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#fluo">FLUO</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#icor">iCOR</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#sen2cor">Sen2Cor</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#lswt">LSWT</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="windows.html">Windows</a></li>
@@ -76,33 +72,28 @@
 <p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../utils/auxil.html">auxil</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../utils/earthdata.html">Earth Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../utils/product_fun.html">product_fun</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Processors</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../processors/acolite.html">Acolite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/c2rcc.html">C2RCC</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/collection.html">Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/forelule.html">ForelUle</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/icor.html">ICOR</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/idepix.html">IDEPIX</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/lswt.html">LSWT</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/mdn.html">MDN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/mph.html">MPH</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/primaryproduction.html">Primary Production</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/secchidepth.html">Secchi Depth</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/tmart.html">TMART</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/whiting.html">Whiting</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/geotiff.html">GeoTIFF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/pixelextraction.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
 </ul>
@@ -110,6 +101,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../apis/coah.html">COAH API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apis/creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/earthdata.html">Earth Data API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/eros.html">EROS API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apis/hda.html">HDA API</a></li>
 </ul>
 
@@ -181,7 +174,7 @@ plugins download all the Idepix plugins. They will be available in Sencast once 
 </section>
 <section id="polymer">
 <h2>POLYMER<a class="headerlink" href="#polymer" title="Link to this heading"></a></h2>
-<p>Request a polymer install tar.gz file from Hygeos, then do following:</p>
+<p>In shell do following</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone --depth 1 --branch master https://github.com/hygeos/polymer.git
 $ cd polymer
 $ conda activate sencast
@@ -190,25 +183,11 @@ $ cp -avr polymer $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer
 $ cp -avr auxdata $CONDA_ENV_HOME/lib/python3.7/site-packages/auxdata
 </pre></div>
 </div>
-<p>Note: On some systems you will need following change: In the file $CONDA_ENV_HOME/lib/python3.7/site-packages/polymer/level1_landsat8.py replace line 13 “import osr” by “from osgeo import osr”</p>
-<p>To use polymer with L8 data you must install l8_angles according to: <a class="reference external" href="https://forum.hygeos.com/viewtopic.php?f=7&amp;t=136">https://forum.hygeos.com/viewtopic.php?f=7&amp;t=136</a></p>
-<p>In shell do following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd ~
-$ wget https://landsat.usgs.gov/sites/default/files/documents/L8_ANGLES_2_7_0.tgz
-$ tar -xvzf ~/setup/L8_ANGLES_2_7_0.tgz
-$ cd ~/l8_angles
-$ make
-</pre></div>
-</div>
-<p>Configure path to l8_angles in your environment file.</p>
 </section>
 <section id="acolite">
 <h2>Acolite<a class="headerlink" href="#acolite" title="Link to this heading"></a></h2>
 <p>In shell do following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd $CONDA_ENV_HOME/lib/python3.7/site-packages
-$ git clone --depth 1 --branch main https://github.com/acolite/acolite.git
-$ cd acolite
-$ git reset --hard e7cb944
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone --depth 1 --branch main https://github.com/acolite/acolite.git
 </pre></div>
 </div>
 <p>Configure your Acolite path in you environment file.</p>
@@ -217,51 +196,6 @@ $ git reset --hard e7cb944
 <h2>OCSMART<a class="headerlink" href="#ocsmart" title="Link to this heading"></a></h2>
 <p>Download the OCSMART linux package from <a class="reference external" href="http://www.rtatmocn.com/oc-smart/">http://www.rtatmocn.com/oc-smart/</a></p>
 <p>Unzip the package somewhere and then add a path the the folder that contains OCSMART.py to your environment file</p>
-</section>
-<section id="fluo">
-<h2>FLUO<a class="headerlink" href="#fluo" title="Link to this heading"></a></h2>
-<p>Somehow bring the installation file snap-eum-fluo-1.0.nbm to the directory ~/setup/</p>
-<p>In shell do following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ wget https://www.dropbox.com/s/ub3i66l4zqw51cs/snap-eum-fluo-1.0.nbm &amp;&amp; unzip ~/snap-eum-fluo-1.0.nbm -d ~/snap-eum-fluo-1.0 &amp;&amp; rm ~/snap-eum-fluo-1.0.nbm
-$ cp -r ~/snap-eum-fluo-1.0/netbeans/* ~/.snap/system
-$ rm -rf ~/snap-eum-fluo-1.0
-</pre></div>
-</div>
-</section>
-<section id="icor">
-<h2>iCOR<a class="headerlink" href="#icor" title="Link to this heading"></a></h2>
-<p>In shell do following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd ~
-$ wget https://ext.vito.be/icor/icor_install_ubuntu_20_04_x64_3.0.0.bin &amp;&amp; chmod 755 icor_install_ubuntu_20_04_x64_3.0.0.bin &amp;&amp; sudo mkdir /home/username/vito &amp;&amp; sudo ./icor_install_ubuntu_20_04_x64_3.0.0.bin &amp;&amp; rm icor_install_ubuntu_20_04_x64_3.0.0.bin
-</pre></div>
-</div>
-<p>Installation of SNAP plugin only necessary if you want to use iCOR from SNAP Desktop:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ mkdir ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
-$ mkdir ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
-$ mkdir ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX
-$ unzip /home/username/vito/icor/sta/iCOR-landsat8-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-landsat8-sta-3.0.0-LINUX
-$ unzip /home/username/vito/icor/sta/iCOR-sentinel2-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX
-$ unzip /home/username/vito/icor/sta/iCOR-sentinel3-sta-3.0.0-LINUX.nbm -d ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX
-$ cp -r ~/setup/iCOR-landsat8-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
-$ cp -r ~/setup/iCOR-sentinel2-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
-$ cp -r ~/setup/iCOR-sentinel3-sta-3.0.0-LINUX/netbeans/* ~/.snap/system
-</pre></div>
-</div>
-<p>Configure your iCOR path in you environment file.</p>
-</section>
-<section id="sen2cor">
-<h2>Sen2Cor<a class="headerlink" href="#sen2cor" title="Link to this heading"></a></h2>
-<p>First you must try to run it from SNAP GUI. It will then prompt you to install some bundle. Only after that the processor will work from GPT. <a class="reference external" href="https://forum.step.esa.int/t/error-processing-template-after-execution-for-parameter-postexecutetemplate/6591">https://forum.step.esa.int/t/error-processing-template-after-execution-for-parameter-postexecutetemplate/6591</a></p>
-</section>
-<section id="lswt">
-<h2>LSWT<a class="headerlink" href="#lswt" title="Link to this heading"></a></h2>
-<p>Somehow bring the installation file snap-musenalp-processor-1.0.5.nbm to the directory ~/setup/</p>
-<p>In shell do following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ~/setup/snap-musenalp-processor-1.0.5
-$ unzip snap-musenalp-processor-1.0.5.nbm -d ~/setup/snap-musenalp-processor-1.0.5
-$ cp ~/setup/snap-musenalp-processor-1.0.5/netbeans/* ~/.snap/system
-</pre></div>
-</div>
 </section>
 </section>
 
@@ -276,7 +210,7 @@ $ cp ~/setup/snap-musenalp-processor-1.0.5/netbeans/* ~/.snap/system
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2026, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

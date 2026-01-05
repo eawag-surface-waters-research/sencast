@@ -62,33 +62,28 @@
 <p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="utils/auxil.html">auxil</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils/earthdata.html">Earth Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils/product_fun.html">product_fun</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Processors</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="processors/acolite.html">Acolite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/c2rcc.html">C2RCC</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/collection.html">Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/forelule.html">ForelUle</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/icor.html">ICOR</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/idepix.html">IDEPIX</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/lswt.html">LSWT</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/mdn.html">MDN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/mph.html">MPH</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/primaryproduction.html">Primary Production</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/secchidepth.html">Secchi Depth</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/tmart.html">TMART</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/whiting.html">Whiting</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="adapters/datalakes.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adapters/geotiff.html">GeoTIFF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adapters/merge.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adapters/pixelextraction.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlsingleband.html">QLSingleBand</a></li>
 </ul>
@@ -96,6 +91,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="apis/coah.html">COAH API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="apis/creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apis/earthdata.html">Earth Data API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apis/eros.html">EROS API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="apis/hda.html">HDA API</a></li>
 </ul>
 
@@ -127,13 +124,12 @@
 <h1>Sencast<a class="headerlink" href="#sencast" title="Link to this heading"></a></h1>
 <a class="reference internal image-reference" href="_images/logo.png"><img alt="Eawag logo" class="align-left" src="_images/logo.png" style="width: 120px;" /></a>
 <p>Sencast is a toolbox to download and derive water quality parameters from satellite images. It acts as a framework for
-the use a variety of processors such as Idepix, Polymer, Sen2Cor and Acolite. It supports ESA satellites Sentinel 2 and
+the use a variety of processors such as Idepix, Polymer and Acolite. It supports ESA satellites Sentinel 2 and
 Sentinel 3 and USGS satellite Landsat 8.</p>
 <p>It is developed and maintained by the <a class="reference external" href="https://www.eawag.ch/en/department/surf/main-focus/remote-sensing/">SURF Remote Sensing group at Eawag</a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Sencast is under active development. The project team are working towards
-the release of a stable v1.0, however for the moment this project remains pre-v1.0.</p>
+<p>Sencast is under active development. Please contact us if you find bugs or issues.</p>
 </div>
 <section id="publications">
 <h2>Publications<a class="headerlink" href="#publications" title="Link to this heading"></a></h2>
@@ -167,21 +163,13 @@ correctly configure your environment.</p>
 <li class="toctree-l2"><a class="reference internal" href="install/linux.html#polymer">POLYMER</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install/linux.html#acolite">Acolite</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install/linux.html#ocsmart">OCSMART</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install/linux.html#fluo">FLUO</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install/linux.html#icor">iCOR</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install/linux.html#sen2cor">Sen2Cor</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install/linux.html#lswt">LSWT</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="install/windows.html">Windows</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="install/windows.html#install-prerequisites">Install prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install/windows.html#clone-sencast">Clone Sencast</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install/windows.html#install-python-environment">Install Python Environment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install/windows.html#snap">SNAP</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install/windows.html#cds-api">CDS API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install/windows.html#nasa-earthdata-api">NASA Earthdata API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install/windows.html#acolite">Acolite</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install/windows.html#sen2cor">Sen2Cor</a></li>
 </ul>
 </li>
 </ul>
@@ -223,36 +211,31 @@ planning on developing the code it is recommended to use the Docker image provid
 <td><p>Required</p></td>
 <td><p>link to the parameters.ini file (required except for tests)</p></td>
 </tr>
-<tr class="row-odd"><td><dl class="option-list">
-<dt><kbd><span class="option">-e</span></kbd></dt>
-<dd><p>–environment</p>
-</dd>
-</dl>
-</td>
+<tr class="row-odd"><td><p>-e –environment</p></td>
 <td><p>${machine-name}.ini</p></td>
 <td><p>link to the environment.ini file</p></td>
 </tr>
-<tr class="row-even"><td><p>-d -–downloads</p></td>
+<tr class="row-even"><td><p>-d –downloads</p></td>
 <td><p>1</p></td>
-<td><p>number of parallell downloads</p></td>
+<td><p>number of parallel downloads</p></td>
 </tr>
-<tr class="row-odd"><td><p>-p –processors</p></td>
+<tr class="row-odd"><td><p>-r –processors</p></td>
 <td><p>1</p></td>
-<td><p>number of parallell processors</p></td>
+<td><p>number of parallel processors</p></td>
 </tr>
 <tr class="row-even"><td><p>-a –adapters</p></td>
 <td><p>1</p></td>
-<td><p>number of parallell adapters</p></td>
+<td><p>number of parallel adapters</p></td>
 </tr>
 </tbody>
 </table>
 <ol class="arabic simple" start="2">
 <li><p>By importing Sencast as a function</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/sencast&quot;</span><span class="p">)</span> <span class="c1"># Path to sencast repository</span>
 
-<span class="kn">from</span> <span class="nn">main</span> <span class="kn">import</span> <span class="n">sencast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">main</span><span class="w"> </span><span class="kn">import</span> <span class="n">sencast</span>
 
 <span class="n">sencast</span><span class="p">(</span><span class="n">params_file</span><span class="p">,</span> <span class="n">env_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_parallel_downloads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_parallel_processors</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_parallel_adapters</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
@@ -297,7 +280,7 @@ in the wkt folder.</p>
 <section id="pull-container">
 <h3>Pull container<a class="headerlink" href="#pull-container" title="Link to this heading"></a></h3>
 <p>The docker image can be downloaded from docker hub using the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>pull<span class="w"> </span>eawag/sencast:0.0.2
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>pull<span class="w"> </span>eawag/sencast:latest
 </pre></div>
 </div>
 </section>
@@ -307,7 +290,7 @@ in the wkt folder.</p>
 functioning of the processors. <strong>This must be run from inside the sencast repository.</strong></p>
 <p>The option <cite>-v /DIAS:/DIAS</cite> maps the input/ output folders to a location outside the container. This should be updated to
 the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/DIAS:/DIAS<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/sencast<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>eawag/sencast:0.0.2<span class="w"> </span>-e<span class="w"> </span>docker.ini<span class="w"> </span>-t
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/DIAS:/DIAS<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/sencast<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>eawag/sencast:latest<span class="w"> </span>-e<span class="w"> </span>docker.ini<span class="w"> </span>-t
 </pre></div>
 </div>
 <p><cite>-e</cite> name of the environment file in <cite>sencast/environments</cite>
@@ -316,7 +299,7 @@ the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
 <section id="run-script">
 <h3>Run script<a class="headerlink" href="#run-script" title="Link to this heading"></a></h3>
 <p>In order to run a parameters file it can be passed to the command as follows using the <cite>-p</cite> flag.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/DIAS:/DIAS<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/sencast<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>eawag/sencast:0.0.2<span class="w"> </span>-e<span class="w"> </span>docker.ini<span class="w"> </span>-p<span class="w"> </span>example.ini
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/DIAS:/DIAS<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/sencast<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>eawag/sencast:latest<span class="w"> </span>-e<span class="w"> </span>docker.ini<span class="w"> </span>-p<span class="w"> </span>example.ini
 </pre></div>
 </div>
 <p><cite>-p</cite> name of the parameter file in <cite>sencast/parameters</cite></p>
@@ -324,13 +307,13 @@ the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
 <section id="run-interactive-container">
 <h3>Run Interactive Container<a class="headerlink" href="#run-interactive-container" title="Link to this heading"></a></h3>
 <p>Sometimes it is desirable to interact directly with the container, this can be achieved with the following command</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/DIAS:/DIAS<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/sencast<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>--entrypoint<span class="w"> </span>/bin/bash<span class="w"> </span>eawag/sencast:0.0.2
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/DIAS:/DIAS<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/sencast<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>--entrypoint<span class="w"> </span>/bin/bash<span class="w"> </span>eawag/sencast:latest
 </pre></div>
 </div>
 </section>
 <section id="locally-build-container">
 <h3>Locally build container<a class="headerlink" href="#locally-build-container" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>eawag/sencast:0.0.2<span class="w"> </span>.
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>eawag/sencast:latest<span class="w"> </span>.
 </pre></div>
 </div>
 <div class="toctree-wrapper compound">
@@ -383,7 +366,6 @@ the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
 <li class="toctree-l2"><a class="reference internal" href="utils/auxil.html#utils.auxil.set_memory_parameters"><code class="docutils literal notranslate"><span class="pre">set_memory_parameters()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="utils/earthdata.html">Earth Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils/product_fun.html">product_fun</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.append_to_valid_pixel_expression"><code class="docutils literal notranslate"><span class="pre">append_to_valid_pixel_expression()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.copy_band"><code class="docutils literal notranslate"><span class="pre">copy_band()</span></code></a></li>
@@ -396,6 +378,7 @@ the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_band_from_nc"><code class="docutils literal notranslate"><span class="pre">get_band_from_nc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_band_names_from_nc"><code class="docutils literal notranslate"><span class="pre">get_band_names_from_nc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_bounds_from_nc"><code class="docutils literal notranslate"><span class="pre">get_bounds_from_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_commit_hash"><code class="docutils literal notranslate"><span class="pre">get_commit_hash()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_l1product_path"><code class="docutils literal notranslate"><span class="pre">get_l1product_path()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_lat_lon_from_x_y"><code class="docutils literal notranslate"><span class="pre">get_lat_lon_from_x_y()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils/product_fun.html#utils.product_fun.get_lat_lon_from_x_y_from_nc"><code class="docutils literal notranslate"><span class="pre">get_lat_lon_from_x_y_from_nc()</span></code></a></li>
@@ -442,11 +425,9 @@ the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
 <li class="toctree-l2"><a class="reference internal" href="processors/c2rcc.html#processors.c2rcc.c2rcc.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="processors/fluo.html">FLUO</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="processors/fluo.html#processors.l_fluo.l_fluo.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/fluo.html#processors.l_fluo.l_fluo.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/fluo.html#processors.r_fluo.r_fluo.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/fluo.html#processors.r_fluo.r_fluo.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/collection.html">Collection</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="processors/collection.html#processors.collection.collection.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors/collection.html#processors.collection.collection.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="processors/forelule.html">ForelUle</a><ul>
@@ -459,41 +440,15 @@ the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
 <li class="toctree-l2"><a class="reference internal" href="processors/forelule.html#processors.forelule.forelule.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="processors/icor.html">ICOR</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="processors/icor.html#processors.icor.icor.create_args_msi"><code class="docutils literal notranslate"><span class="pre">create_args_msi()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/icor.html#processors.icor.icor.create_args_olci"><code class="docutils literal notranslate"><span class="pre">create_args_olci()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/icor.html#processors.icor.icor.create_args_oli_tirs"><code class="docutils literal notranslate"><span class="pre">create_args_oli_tirs()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/icor.html#processors.icor.icor.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="processors/idepix.html">IDEPIX</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="processors/idepix.html#processors.idepix.idepix.get_reproject_params_from_msi"><code class="docutils literal notranslate"><span class="pre">get_reproject_params_from_msi()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="processors/idepix.html#processors.idepix.idepix.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="processors/idepix.html#processors.idepix.idepix.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="processors/lswt.html">LSWT</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="processors/lswt.html#processors.lswt.lswt.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/lswt.html#processors.lswt.lswt.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="processors/mdn.html">MDN</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="processors/mdn.html#processors.mdn.mdn.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="processors/merge.html">Merge</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="processors/merge.html#processors.merge.merge.apply"><code class="docutils literal notranslate"><span class="pre">apply()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/merge.html#processors.merge.merge.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="processors/mph.html">MPH</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="processors/mph.html#processors.mph.mph.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="processors/mph.html#processors.mph.mph.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="processors/ndwi.html">NDWI</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="processors/ndwi.html#processors.ndwi.ndwi.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/ndwi.html#processors.ndwi.ndwi.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="processors/oc3.html">OC3</a><ul>
@@ -528,20 +483,14 @@ the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
 <li class="toctree-l2"><a class="reference internal" href="processors/primaryproduction.html#processors.primaryproduction.primaryproduction.qpar0_lookup"><code class="docutils literal notranslate"><span class="pre">qpar0_lookup()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="processors/s2res.html">S2Res</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="processors/s2res.html#processors.s2res.s2res.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/s2res.html#processors.s2res.s2res.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="processors/secchidepth.html">Secchi Depth</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="processors/secchidepth.html#processors.secchidepth.secchidepth.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s2"><code class="docutils literal notranslate"><span class="pre">secchi_s2()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="processors/secchidepth.html#processors.secchidepth.secchidepth.secchi_s3"><code class="docutils literal notranslate"><span class="pre">secchi_s3()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="processors/sen2cor.html">Sen2cor</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="processors/sen2cor.html#processors.sen2cor.sen2cor.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="processors/sen2cor.html#processors.sen2cor.sen2cor.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/tmart.html">TMART</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="processors/tmart.html#processors.tmart.tmart.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="processors/whiting.html">Whiting</a><ul>
@@ -554,8 +503,23 @@ the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="adapters/datalakes.html">Datalakes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="adapters/datalakes.html#adapters.datalakes.datalakes.apply"><code class="docutils literal notranslate"><span class="pre">apply()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="adapters/geotiff.html">GeoTIFF</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="adapters/geotiff.html#adapters.geotiff.geotiff.apply"><code class="docutils literal notranslate"><span class="pre">apply()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="adapters/geotiff.html#adapters.geotiff.geotiff.convert_valid_pixel_expression"><code class="docutils literal notranslate"><span class="pre">convert_valid_pixel_expression()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="adapters/geotiff.html#adapters.geotiff.geotiff.get_mask_from_geojson"><code class="docutils literal notranslate"><span class="pre">get_mask_from_geojson()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="adapters/geotiff.html#adapters.geotiff.geotiff.netcdf_geotiff"><code class="docutils literal notranslate"><span class="pre">netcdf_geotiff()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="adapters/geotiff.html#adapters.geotiff.geotiff.parse_bands"><code class="docutils literal notranslate"><span class="pre">parse_bands()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="adapters/merge.html">Merge</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="adapters/merge.html#adapters.merge.merge.apply"><code class="docutils literal notranslate"><span class="pre">apply()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="adapters/merge.html#adapters.merge.merge.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="adapters/pixelextraction.html">Merge</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="adapters/pixelextraction.html#adapters.pixelextraction.pixelextraction.apply"><code class="docutils literal notranslate"><span class="pre">apply()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="adapters/pixelextraction.html#adapters.pixelextraction.pixelextraction.rewrite_xml"><code class="docutils literal notranslate"><span class="pre">rewrite_xml()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="adapters/pixelextraction.html#adapters.pixelextraction.pixelextraction.safe_folder_name"><code class="docutils literal notranslate"><span class="pre">safe_folder_name()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlrgb.html">QLRGB</a><ul>
@@ -576,8 +540,47 @@ the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">DIAS API's</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="apis/coah.html">COAH API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="apis/creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apis/coah.html">COAH API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="apis/coah.html#dias_apis.coah.coah.authenticate"><code class="docutils literal notranslate"><span class="pre">authenticate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/coah.html#dias_apis.coah.coah.do_download"><code class="docutils literal notranslate"><span class="pre">do_download()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/coah.html#dias_apis.coah.coah.get_dataset_id"><code class="docutils literal notranslate"><span class="pre">get_dataset_id()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/coah.html#dias_apis.coah.coah.get_download_requests"><code class="docutils literal notranslate"><span class="pre">get_download_requests()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/coah.html#dias_apis.coah.coah.get_token"><code class="docutils literal notranslate"><span class="pre">get_token()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/coah.html#dias_apis.coah.coah.search"><code class="docutils literal notranslate"><span class="pre">search()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/coah.html#dias_apis.coah.coah.server_authenticate"><code class="docutils literal notranslate"><span class="pre">server_authenticate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/coah.html#dias_apis.coah.coah.timeliness_filter"><code class="docutils literal notranslate"><span class="pre">timeliness_filter()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="apis/creodias.html">CREODIAS API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="apis/creodias.html#dias_apis.creodias.creodias.authenticate"><code class="docutils literal notranslate"><span class="pre">authenticate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/creodias.html#dias_apis.creodias.creodias.do_download"><code class="docutils literal notranslate"><span class="pre">do_download()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/creodias.html#dias_apis.creodias.creodias.get_dataset_id"><code class="docutils literal notranslate"><span class="pre">get_dataset_id()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/creodias.html#dias_apis.creodias.creodias.get_download_requests"><code class="docutils literal notranslate"><span class="pre">get_download_requests()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/creodias.html#dias_apis.creodias.creodias.get_token"><code class="docutils literal notranslate"><span class="pre">get_token()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/creodias.html#dias_apis.creodias.creodias.get_totp"><code class="docutils literal notranslate"><span class="pre">get_totp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/creodias.html#dias_apis.creodias.creodias.search"><code class="docutils literal notranslate"><span class="pre">search()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/creodias.html#dias_apis.creodias.creodias.server_authenticate"><code class="docutils literal notranslate"><span class="pre">server_authenticate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/creodias.html#dias_apis.creodias.creodias.timeliness_filter"><code class="docutils literal notranslate"><span class="pre">timeliness_filter()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="apis/earthdata.html">Earth Data API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="apis/earthdata.html#dias_apis.earthdata.earthdata.authenticate"><code class="docutils literal notranslate"><span class="pre">authenticate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/earthdata.html#dias_apis.earthdata.earthdata.do_download"><code class="docutils literal notranslate"><span class="pre">do_download()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/earthdata.html#dias_apis.earthdata.earthdata.get_download_requests"><code class="docutils literal notranslate"><span class="pre">get_download_requests()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/earthdata.html#dias_apis.earthdata.earthdata.search"><code class="docutils literal notranslate"><span class="pre">search()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/earthdata.html#dias_apis.earthdata.earthdata.wkt_to_bounds"><code class="docutils literal notranslate"><span class="pre">wkt_to_bounds()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="apis/eros.html">EROS API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="apis/eros.html#dias_apis.eros.eros.authenticate"><code class="docutils literal notranslate"><span class="pre">authenticate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/eros.html#dias_apis.eros.eros.bounds"><code class="docutils literal notranslate"><span class="pre">bounds()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/eros.html#dias_apis.eros.eros.do_download"><code class="docutils literal notranslate"><span class="pre">do_download()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/eros.html#dias_apis.eros.eros.get_download_requests"><code class="docutils literal notranslate"><span class="pre">get_download_requests()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/eros.html#dias_apis.eros.eros.get_token"><code class="docutils literal notranslate"><span class="pre">get_token()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/eros.html#dias_apis.eros.eros.search"><code class="docutils literal notranslate"><span class="pre">search()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="apis/eros.html#dias_apis.eros.eros.server_authenticate"><code class="docutils literal notranslate"><span class="pre">server_authenticate()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="apis/hda.html">HDA API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="apis/hda.html#dias_apis.hda.hda.accept_tc_if_required"><code class="docutils literal notranslate"><span class="pre">accept_tc_if_required()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="apis/hda.html#dias_apis.hda.hda.authenticate"><code class="docutils literal notranslate"><span class="pre">authenticate()</span></code></a></li>
@@ -618,7 +621,7 @@ the appropriate location, e.g. <cite>-v /home/user/DIAS:/DIAS</cite></p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2026, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

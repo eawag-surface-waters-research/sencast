@@ -1,7 +1,7 @@
-LSWT
+Collection
 ===========
 
-.. automodule:: processors.lswt.lswt
+.. automodule:: processors.collection.collection
    :members:
    :undoc-members:
    :show-inheritance:

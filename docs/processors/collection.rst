@@ -1,7 +1,7 @@
-NDWI
+Collection
 ===========
 
-.. automodule:: processors.ndwi.ndwi
+.. automodule:: processors.collection.collection
    :members:
    :undoc-members:
    :show-inheritance:
