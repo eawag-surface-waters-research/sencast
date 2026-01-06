@@ -4,12 +4,12 @@
 CSCS
 ------------------------------------------------------------------------------------------
 
-The following section provides details on how to run Sencast on the supercomputer Piz Daint at CSCS.
+The following section provides details on how to run Sencast on the supercomputer Alps Eiger at CSCS.
 
 Register for an account
 -------------------------
 
-Get access permission to Daint from your local IT Admin.
+Get access permission from your local IT Admin.
 You will be required to set up multifactor authentication
 
 Access using Jupyter
@@ -22,7 +22,7 @@ Access using Jupyter
 
 Access using ssh
 -------------------------
-This access is only valid for 24 hours after which the process will need to be repeated. For details on how to automate see here: https://user.cscs.ch/access/auth/mfa and for Windows see here: https://user.cscs.ch/access/auth/mfa/windows
+This access is only valid for 24 hours after which the process will need to be repeated.
 
 - Login at https://sshservice.cscs.ch/
 - Click `Get a signed key` follow the instructions and download the private and public key
@@ -40,24 +40,31 @@ This access is only valid for 24 hours after which the process will need to be r
 
    ssh -A username@ela.cscs.ch
 
-- Switch to Piz Daint
+- Switch to Alps Eiger
 
 .. code-block:: bash
 
-   ssh username@daint.cscs.ch
+   ssh username@eiger.cscs.ch
 
 
 Install Sencast
 -------------------------
 
-This step must be completed on the command line after logging into Piz Daint using one of the above methods.
+This step must be completed on the command line after logging in using one of the above methods. This only needs to be performed once.
 
-Load the required modules
+Create environmental definition file (EDF)
+
+Create file `${HOME}/.edf/sencast.toml`
 
 .. code-block:: bash
 
-   module load daint-mc
-   module load sarus
+    image = "eawag/sencast:latest"
+    mounts = [
+        "${SCRATCH}/DIAS:/DIAS",
+        "${HOME}/sencast:/sencast"
+    ]
+    workdir = "/sencast"
+    entrypoint = false
 
 Clone the repo for sencast to your user area:
 
@@ -66,33 +73,24 @@ Clone the repo for sencast to your user area:
    cd ~
    git clone https://github.com/eawag-surface-waters-research/sencast.git
 
-Update the environment and parameters scripts that you want to run.
+Add docker.ini environment file to sencast/environments/
 
-Pull the image you want from dockerhub:
-
-.. code-block:: bash
-
-   srun -C mc -A em09 sarus pull --login eawag/sencast:0.0.2
-
-then enter your credentials for the repository (There is no prompt)
-
-`<username>`
-`<password>`
-
-The docker image (now for sarus) is automatically saved in ${SCRATCH}/.sarus
-
-If this fails try running the command again.
-
-Run Sencast
--------------
-
-Move to the scratch drive and create an output folder **don't save large amounts of data to user area**
-Data stored in the scratch drive is removed after 30 days.
+Move to the scratch drive and create an output folder. **Don't save large amounts of data to user area**,
+data stored in the scratch drive is removed after 30 days.
 
 .. code-block:: bash
 
    cd ${SCRATCH}
    mkdir DIAS
+
+Run Sencast
+-------------
+
+The first step is to check that the environment is working correctly by running the tests.
+
+.. code-block:: bash
+
+    srun --environment=sencast bash -c "source /opt/conda/etc/profile.d/conda.sh && conda activate sencast && python -u /sencast/main.py -e docker.ini -t"
 
 Create a submission script containing the following (adjust details to match your user) - make sure you are writing to scratch.
 
@@ -102,36 +100,13 @@ Create a submission script containing the following (adjust details to match you
 
 .. code-block:: bash
 
-   #!/bin/bash -l
-   #SBATCH --job-name="sencast"
-   #SBATCH --account="em09"
-   #SBATCH --mail-type=ALL
-   #SBATCH --mail-user=username@eawag.ch
-   #SBATCH --time=24:00:00
-   #SBATCH --nodes=1
-   #SBATCH --ntasks-per-core=1
-   #SBATCH --ntasks-per-node=1
-   #SBATCH --cpus-per-task=36
-   #SBATCH --partition=normal
-   #SBATCH --constraint=mc
-   #SBATCH --hint=nomultithread
-   export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
-   module load daint-mc
-   module load sarus
-   image='eawag/sencast:0.0.2'
-   envvars='docker.ini'
-   params='parameters.ini'
-   filepath="${SCRATCH}/DIAS"
-
-.. code-block:: bash
-
-   cd ~/sencast
-   srun sarus run --mount=type=bind,source=${filepath},destination=/DIAS --mount=type=bind,source=$(pwd),dst=/sencast ${image} -e ${envvars} -p ${params}
-
-
-`:w` save file
-
-`:q` exit vim
+    #!/bin/bash
+    #SBATCH --job-name=sencast
+    #SBATCH --time=01:00:00
+    #SBATCH --nodes=1
+    #SBATCH --ntasks=1
+    #SBATCH --account=<your-account>
+    srun --environment=sencast bash -c "source /opt/conda/etc/profile.d/conda.sh && conda activate sencast && python -u /sencast/main.py -e docker.ini -p example.ini"
 
 Then you can run Sencast:
 

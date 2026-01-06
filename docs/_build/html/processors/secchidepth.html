@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Sen2cor" href="sen2cor.html" />
-    <link rel="prev" title="S2Res" href="s2res.html" /> 
+    <link rel="next" title="TMART" href="tmart.html" />
+    <link rel="prev" title="Primary Production" href="primaryproduction.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -63,38 +63,33 @@
 <p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../utils/auxil.html">auxil</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../utils/earthdata.html">Earth Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../utils/product_fun.html">product_fun</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Processors</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="acolite.html">Acolite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="c2rcc.html">C2RCC</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="collection.html">Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="forelule.html">ForelUle</a></li>
-<li class="toctree-l1"><a class="reference internal" href="icor.html">ICOR</a></li>
 <li class="toctree-l1"><a class="reference internal" href="idepix.html">IDEPIX</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lswt.html">LSWT</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mdn.html">MDN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mph.html">MPH</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="primaryproduction.html">Primary Production</a></li>
-<li class="toctree-l1"><a class="reference internal" href="s2res.html">S2Res</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Secchi Depth</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#processors.secchidepth.secchidepth.process"><code class="docutils literal notranslate"><span class="pre">process()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#processors.secchidepth.secchidepth.secchi_s2"><code class="docutils literal notranslate"><span class="pre">secchi_s2()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#processors.secchidepth.secchidepth.secchi_s3"><code class="docutils literal notranslate"><span class="pre">secchi_s3()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tmart.html">TMART</a></li>
 <li class="toctree-l1"><a class="reference internal" href="whiting.html">Whiting</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/geotiff.html">GeoTIFF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/pixelextraction.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
 </ul>
@@ -102,6 +97,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../apis/coah.html">COAH API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apis/creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/earthdata.html">Earth Data API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/eros.html">EROS API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apis/hda.html">HDA API</a></li>
 </ul>
 
@@ -172,14 +169,14 @@ Authors: Luca Brüderlin, Jasmin Kesselring, Daniel Odermatt</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="s2res.html" class="btn btn-neutral float-left" title="S2Res" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="sen2cor.html" class="btn btn-neutral float-right" title="Sen2cor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="primaryproduction.html" class="btn btn-neutral float-left" title="Primary Production" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tmart.html" class="btn btn-neutral float-right" title="TMART" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2026, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

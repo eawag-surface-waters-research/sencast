@@ -70,33 +70,28 @@
 <p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="utils/auxil.html">auxil</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils/earthdata.html">Earth Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils/product_fun.html">product_fun</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Processors</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="processors/acolite.html">Acolite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/c2rcc.html">C2RCC</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/collection.html">Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/forelule.html">ForelUle</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/icor.html">ICOR</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/idepix.html">IDEPIX</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/lswt.html">LSWT</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/mdn.html">MDN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/mph.html">MPH</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/primaryproduction.html">Primary Production</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/secchidepth.html">Secchi Depth</a></li>
-<li class="toctree-l1"><a class="reference internal" href="processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="processors/tmart.html">TMART</a></li>
 <li class="toctree-l1"><a class="reference internal" href="processors/whiting.html">Whiting</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="adapters/datalakes.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adapters/geotiff.html">GeoTIFF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adapters/merge.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adapters/pixelextraction.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="adapters/qlsingleband.html">QLSingleBand</a></li>
 </ul>
@@ -104,6 +99,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="apis/coah.html">COAH API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="apis/creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apis/earthdata.html">Earth Data API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apis/eros.html">EROS API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="apis/hda.html">HDA API</a></li>
 </ul>
 
@@ -133,10 +130,10 @@
              
   <section id="cscs">
 <span id="id1"></span><h1>CSCS<a class="headerlink" href="#cscs" title="Link to this heading"></a></h1>
-<p>The following section provides details on how to run Sencast on the supercomputer Piz Daint at CSCS.</p>
+<p>The following section provides details on how to run Sencast on the supercomputer Alps Eiger at CSCS.</p>
 <section id="register-for-an-account">
 <h2>Register for an account<a class="headerlink" href="#register-for-an-account" title="Link to this heading"></a></h2>
-<p>Get access permission to Daint from your local IT Admin.
+<p>Get access permission from your local IT Admin.
 You will be required to set up multifactor authentication</p>
 </section>
 <section id="access-using-jupyter">
@@ -150,7 +147,7 @@ You will be required to set up multifactor authentication</p>
 </section>
 <section id="access-using-ssh">
 <h2>Access using ssh<a class="headerlink" href="#access-using-ssh" title="Link to this heading"></a></h2>
-<p>This access is only valid for 24 hours after which the process will need to be repeated. For details on how to automate see here: <a class="reference external" href="https://user.cscs.ch/access/auth/mfa">https://user.cscs.ch/access/auth/mfa</a> and for Windows see here: <a class="reference external" href="https://user.cscs.ch/access/auth/mfa/windows">https://user.cscs.ch/access/auth/mfa/windows</a></p>
+<p>This access is only valid for 24 hours after which the process will need to be repeated.</p>
 <ul class="simple">
 <li><p>Login at <a class="reference external" href="https://sshservice.cscs.ch/">https://sshservice.cscs.ch/</a></p></li>
 <li><p>Click <cite>Get a signed key</cite> follow the instructions and download the private and public key</p></li>
@@ -168,18 +165,24 @@ chmod<span class="w"> </span><span class="m">0600</span><span class="w"> </span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>Switch to Piz Daint</p></li>
+<li><p>Switch to Alps Eiger</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ssh<span class="w"> </span>username@daint.cscs.ch
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ssh<span class="w"> </span>username@eiger.cscs.ch
 </pre></div>
 </div>
 </section>
 <section id="install-sencast">
 <h2>Install Sencast<a class="headerlink" href="#install-sencast" title="Link to this heading"></a></h2>
-<p>This step must be completed on the command line after logging into Piz Daint using one of the above methods.</p>
-<p>Load the required modules</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>module<span class="w"> </span>load<span class="w"> </span>daint-mc
-module<span class="w"> </span>load<span class="w"> </span>sarus
+<p>This step must be completed on the command line after logging in using one of the above methods. This only needs to be performed once.</p>
+<p>Create environmental definition file (EDF)</p>
+<p>Create file <cite>${HOME}/.edf/sencast.toml</cite></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">image</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;eawag/sencast:latest&quot;</span>
+<span class="nv">mounts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
+<span class="w">    </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SCRATCH</span><span class="si">}</span><span class="s2">/DIAS:/DIAS&quot;</span>,
+<span class="w">    </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span><span class="s2">/sencast:/sencast&quot;</span>
+<span class="o">]</span>
+<span class="nv">workdir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/sencast&quot;</span>
+<span class="nv">entrypoint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span>
 </pre></div>
 </div>
 <p>Clone the repo for sencast to your user area:</p>
@@ -187,57 +190,33 @@ module<span class="w"> </span>load<span class="w"> </span>sarus
 git<span class="w"> </span>clone<span class="w"> </span>https://github.com/eawag-surface-waters-research/sencast.git
 </pre></div>
 </div>
-<p>Update the environment and parameters scripts that you want to run.</p>
-<p>Pull the image you want from dockerhub:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun<span class="w"> </span>-C<span class="w"> </span>mc<span class="w"> </span>-A<span class="w"> </span>em09<span class="w"> </span>sarus<span class="w"> </span>pull<span class="w"> </span>--login<span class="w"> </span>eawag/sencast:0.0.2
+<p>Add docker.ini environment file to sencast/environments/</p>
+<p>Move to the scratch drive and create an output folder. <strong>Don’t save large amounts of data to user area</strong>,
+data stored in the scratch drive is removed after 30 days.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span><span class="si">${</span><span class="nv">SCRATCH</span><span class="si">}</span>
+mkdir<span class="w"> </span>DIAS
 </pre></div>
 </div>
-<p>then enter your credentials for the repository (There is no prompt)</p>
-<p><cite>&lt;username&gt;</cite>
-<cite>&lt;password&gt;</cite></p>
-<p>The docker image (now for sarus) is automatically saved in ${SCRATCH}/.sarus</p>
-<p>If this fails try running the command again.</p>
 </section>
 <section id="run-sencast">
 <h2>Run Sencast<a class="headerlink" href="#run-sencast" title="Link to this heading"></a></h2>
-<p>Move to the scratch drive and create an output folder <strong>don’t save large amounts of data to user area</strong>
-Data stored in the scratch drive is removed after 30 days.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span><span class="si">${</span><span class="nv">SCRATCH</span><span class="si">}</span>
-mkdir<span class="w"> </span>DIAS
+<p>The first step is to check that the environment is working correctly by running the tests.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun<span class="w"> </span>--environment<span class="o">=</span>sencast<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;source /opt/conda/etc/profile.d/conda.sh &amp;&amp; conda activate sencast &amp;&amp; python -u /sencast/main.py -e docker.ini -t&quot;</span>
 </pre></div>
 </div>
 <p>Create a submission script containing the following (adjust details to match your user) - make sure you are writing to scratch.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>vim<span class="w"> </span>run.sh
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash -l</span>
-<span class="c1">#SBATCH --job-name=&quot;sencast&quot;</span>
-<span class="c1">#SBATCH --account=&quot;em09&quot;</span>
-<span class="c1">#SBATCH --mail-type=ALL</span>
-<span class="c1">#SBATCH --mail-user=username@eawag.ch</span>
-<span class="c1">#SBATCH --time=24:00:00</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1">#SBATCH --job-name=sencast</span>
+<span class="c1">#SBATCH --time=01:00:00</span>
 <span class="c1">#SBATCH --nodes=1</span>
-<span class="c1">#SBATCH --ntasks-per-core=1</span>
-<span class="c1">#SBATCH --ntasks-per-node=1</span>
-<span class="c1">#SBATCH --cpus-per-task=36</span>
-<span class="c1">#SBATCH --partition=normal</span>
-<span class="c1">#SBATCH --constraint=mc</span>
-<span class="c1">#SBATCH --hint=nomultithread</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="nv">$SLURM_CPUS_PER_TASK</span>
-module<span class="w"> </span>load<span class="w"> </span>daint-mc
-module<span class="w"> </span>load<span class="w"> </span>sarus
-<span class="nv">image</span><span class="o">=</span><span class="s1">&#39;eawag/sencast:0.0.2&#39;</span>
-<span class="nv">envvars</span><span class="o">=</span><span class="s1">&#39;docker.ini&#39;</span>
-<span class="nv">params</span><span class="o">=</span><span class="s1">&#39;parameters.ini&#39;</span>
-<span class="nv">filepath</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SCRATCH</span><span class="si">}</span><span class="s2">/DIAS&quot;</span>
+<span class="c1">#SBATCH --ntasks=1</span>
+<span class="c1">#SBATCH --account=&lt;your-account&gt;</span>
+srun<span class="w"> </span>--environment<span class="o">=</span>sencast<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;source /opt/conda/etc/profile.d/conda.sh &amp;&amp; conda activate sencast &amp;&amp; python -u /sencast/main.py -e docker.ini -p example.ini&quot;</span>
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/sencast
-srun<span class="w"> </span>sarus<span class="w"> </span>run<span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span><span class="si">${</span><span class="nv">filepath</span><span class="si">}</span>,destination<span class="o">=</span>/DIAS<span class="w"> </span>--mount<span class="o">=</span><span class="nv">type</span><span class="o">=</span>bind,source<span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>,dst<span class="o">=</span>/sencast<span class="w"> </span><span class="si">${</span><span class="nv">image</span><span class="si">}</span><span class="w"> </span>-e<span class="w"> </span><span class="si">${</span><span class="nv">envvars</span><span class="si">}</span><span class="w"> </span>-p<span class="w"> </span><span class="si">${</span><span class="nv">params</span><span class="si">}</span>
-</pre></div>
-</div>
-<p><cite>:w</cite> save file</p>
-<p><cite>:q</cite> exit vim</p>
 <p>Then you can run Sencast:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sbatch<span class="w"> </span>run.sh
 </pre></div>
@@ -261,7 +240,7 @@ srun<span class="w"> </span>sarus<span class="w"> </span>run<span class="w"> </s
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2026, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

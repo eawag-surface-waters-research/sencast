@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Acolite" href="../processors/acolite.html" />
-    <link rel="prev" title="Earth Data" href="earthdata.html" /> 
+    <link rel="prev" title="auxil" href="auxil.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -63,7 +63,6 @@
 <p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="auxil.html">auxil</a></li>
-<li class="toctree-l1"><a class="reference internal" href="earthdata.html">Earth Data</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">product_fun</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.append_to_valid_pixel_expression"><code class="docutils literal notranslate"><span class="pre">append_to_valid_pixel_expression()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.copy_band"><code class="docutils literal notranslate"><span class="pre">copy_band()</span></code></a></li>
@@ -76,6 +75,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_band_from_nc"><code class="docutils literal notranslate"><span class="pre">get_band_from_nc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_band_names_from_nc"><code class="docutils literal notranslate"><span class="pre">get_band_names_from_nc()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_bounds_from_nc"><code class="docutils literal notranslate"><span class="pre">get_bounds_from_nc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_commit_hash"><code class="docutils literal notranslate"><span class="pre">get_commit_hash()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_l1product_path"><code class="docutils literal notranslate"><span class="pre">get_l1product_path()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_lat_lon_from_x_y"><code class="docutils literal notranslate"><span class="pre">get_lat_lon_from_x_y()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.product_fun.get_lat_lon_from_x_y_from_nc"><code class="docutils literal notranslate"><span class="pre">get_lat_lon_from_x_y_from_nc()</span></code></a></li>
@@ -111,26 +111,22 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../processors/acolite.html">Acolite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/c2rcc.html">C2RCC</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/fluo.html">FLUO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/collection.html">Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/forelule.html">ForelUle</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/icor.html">ICOR</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/idepix.html">IDEPIX</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/lswt.html">LSWT</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/mdn.html">MDN</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/merge.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/mph.html">MPH</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/ndwi.html">NDWI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/oc3.html">OC3</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/polymer.html">Polymer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/primaryproduction.html">Primary Production</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/s2res.html">S2Res</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/secchidepth.html">Secchi Depth</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../processors/sen2cor.html">Sen2cor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../processors/tmart.html">TMART</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../processors/whiting.html">Whiting</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Adapters</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../adapters/datalakes.html">Datalakes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/geotiff.html">GeoTIFF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/merge.html">Merge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../adapters/pixelextraction.html">Merge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlrgb.html">QLRGB</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../adapters/qlsingleband.html">QLSingleBand</a></li>
 </ul>
@@ -138,6 +134,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../apis/coah.html">COAH API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apis/creodias.html">CREODIAS API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/earthdata.html">Earth Data API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apis/eros.html">EROS API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apis/hda.html">HDA API</a></li>
 </ul>
 
@@ -223,6 +221,11 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="utils.product_fun.get_bounds_from_nc">
 <span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_bounds_from_nc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_var_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_var_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_bounds_from_nc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utils.product_fun.get_commit_hash">
+<span class="sig-prename descclassname"><span class="pre">utils.product_fun.</span></span><span class="sig-name descname"><span class="pre">get_commit_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo_root</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utils.product_fun.get_commit_hash" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -387,14 +390,14 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="earthdata.html" class="btn btn-neutral float-left" title="Earth Data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="auxil.html" class="btn btn-neutral float-left" title="auxil" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../processors/acolite.html" class="btn btn-neutral float-right" title="Acolite" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
+    <p>&#169; Copyright 2026, Daniel Odermatt, James Runnalls, Rolf Scheuner.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

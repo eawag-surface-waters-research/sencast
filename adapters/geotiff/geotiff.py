@@ -52,7 +52,7 @@ def apply(env, params, l2product_files, date):
     if not bool(l2product_files):
         raise ValueError("No l2 products available to process")
     errors = []
-    commit_hash = get_commit_hash(os.path.abspath(__file__))
+    commit_hash = get_commit_hash(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()
         if processor in l2product_files.keys():
@@ -122,10 +122,6 @@ def apply(env, params, l2product_files, date):
                             "Reproduce": True
                         }
                         try:
-                            if "S3" in satellite:
-                                # This is legacy and should be removed when Datalakes is updated
-                                json_outfile = os.path.join(out_path, "{}_{}_{}_{}.json".format(processor, val, satellite, date))
-                                netcdf_json(input_file, json_outfile, val, 6, bands_min[idx], bands_max[idx], satellite, date, env)
                             if tile:
                                 geotiff_outfile = os.path.join(out_path, "{}_{}_{}_{}_{}.tif".format(processor, val, satellite, date, tile))
                             else:
@@ -265,61 +261,6 @@ def netcdf_geotiff(input_file, output_file, band, band_min, band_max, metadata, 
         os.unlink(temp_file + ".ovr")
     if os.path.isfile(output_file + ".aux.xml"):
         os.unlink(output_file + ".aux.xml")
-
-
-def netcdf_json(input_file, output_file, band, decimals, band_min, band_max, satellite, date, env, projection=4326):
-    log(env["General"]["log"], "Reading data from {}".format(input_file), indent=4)
-    valid_pixel_expression = ""
-    with Dataset(input_file, "r", format="NETCDF4") as nc:
-        variables = nc.variables.keys()
-        values = np.array(nc.variables[band][:])
-        values_flat = values.flatten()
-        y = np.array(nc.variables[nc.variables[band].dimensions[0]][:])
-        x = np.array(nc.variables[nc.variables[band].dimensions[1]][:])
-        if "proj4_string" in nc.ncattrs():
-            c = CRS.from_string(nc.getncattr("proj4_string"))
-            projection = c.to_epsg()
-            log(env["General"]["log"], 'Adjusted projection to {} based on the proj4_string "{}"'.format(projection, nc.getncattr("proj4_string")), indent=4)
-        try:
-            valid_pixel_expression = nc.variables[band].valid_pixel_expression
-            vpe_dict = {}
-            for variable in variables:
-                if variable in valid_pixel_expression:
-                    extract = np.array(nc.variables[variable][:]).flatten()
-                    if len(extract) == len(values_flat):
-                        vpe_dict[variable] = extract
-            df = pd.DataFrame.from_dict(vpe_dict)
-            converted_vpe = convert_valid_pixel_expression(valid_pixel_expression, variables)
-            valid_pixels = (eval(converted_vpe).astype(int) * -1) + 1
-        except:
-            log(env["General"]["log"], "No valid pixel expression for {}".format(band), indent=4)
-            valid_pixels = np.zeros_like(values_flat)
-
-    valid_pixels[values_flat < band_min] = 1
-    valid_pixels[values_flat > band_max] = 1
-    valid_pixels[np.isnan(values_flat)] = 1
-
-    log(env["General"]["log"], "Outputting JSON file {}".format(output_file), indent=4)
-    out_dict = {band: values_flat}
-    df = pd.DataFrame.from_dict(out_dict)
-    if len(y.shape) > 1:
-        df["lon"] = x.flatten()
-        df["y"] = y.flatten()
-        xmin, ymin, xmax, ymax = [np.nanmin(x), np.nanmin(y), np.nanmax(x), np.nanmax(y)]
-        lonres, latres = (xmax - xmin) / float(values.shape[0]), (ymax - ymin) / float(values.shape[1])
-    else:
-        df["lon"] = np.repeat(x[np.newaxis, :], len(y), axis=0).flatten()
-        df["lat"] = np.repeat(y[:, np.newaxis], len(x), axis=1).flatten()
-        lonres, latres = float(round(abs(x[1] - x[0]), 12)), float(round(abs(y[1] - y[0]), 12))
-    df["valid_pixels"] = valid_pixels
-    df.dropna(subset=[band], inplace=True)
-    df = df.astype(float).round(decimals)
-    with open(output_file, "w") as f:
-        f.truncate()
-        dump({'lonres': lonres, 'latres': latres, 'lon': list(df["lon"]), 'lat': list(df["lat"]),
-              'v': list(df[band]), 'vp': list(df["valid_pixels"]), 'vpe': valid_pixel_expression,
-              'satellite': satellite, 'datetime': date}, f, separators=(',', ':'))
-
 
 def parse_bands(bands):
     bands_min = []

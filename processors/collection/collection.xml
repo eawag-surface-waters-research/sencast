@@ -1,9 +1,19 @@
 <graph id="collection">
     <version>1.0</version>
+    <node id="subsetNode">
+		<operator>subset</operator>
+		<sources>
+			<source>${sourceFile}</source>
+		</sources>
+		<parameters>
+			<geoRegion>${wkt}</geoRegion>
+			<tiePointGridNames>,</tiePointGridNames>
+		</parameters>
+	</node>
 	<node id="reprojectNode">
 		<operator>reproject</operator>
 		<sources>
-			<source>${sourceFile}</source>
+			<source>subsetNode</source>
 		</sources>
 		<parameters>
 			<crs>EPSG:4326</crs>
