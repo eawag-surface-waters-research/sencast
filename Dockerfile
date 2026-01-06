@@ -44,6 +44,9 @@ RUN git clone --filter=blob:none --no-checkout https://github.com/acolite/acolit
 
 RUN cd /opt && git clone --depth 1 --branch sencast https://gitlab.eawag.ch/surf/remote-sensing/ocsmart.git && cd /
 
+RUN mkdir /opt/SEN2COR
+RUN cd /opt/SEN2COR && wget https://step.esa.int/thirdparties/sen2cor/2.12.0/Sen2Cor-02.12.03-Linux64.run --no-check-certificate && chmod 755 Sen2Cor-02.12.03-Linux64.run && ./Sen2Cor-02.12.03-Linux64.run && rm Sen2Cor-02.12.03-Linux64.run
+
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
