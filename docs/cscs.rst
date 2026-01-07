@@ -12,14 +12,6 @@ Register for an account
 Get access permission from your local IT Admin.
 You will be required to set up multifactor authentication
 
-Access using Jupyter
--------------------------
-
-- Login at https://jupyter.cscs.ch/
-- Select `Node Type = Multicore`
-- Click `Launch Jupyterlab`
-- Select `Terminal`
-
 Access using ssh
 -------------------------
 This access is only valid for 24 hours after which the process will need to be repeated.
