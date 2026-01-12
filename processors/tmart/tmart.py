@@ -43,12 +43,14 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     aot = "MERRA2"
     n_photon = 100000
-    n_jobs = 1
+    n_jobs = 100
+    mask_swir_threshold=None
 
     if "aot" in params[PARAMS_SECTION].keys(): aot = float(params[PARAMS_SECTION]["aot"])
     if "n_photon" in params[PARAMS_SECTION].keys(): n_photon = int(params[PARAMS_SECTION]["n_photon"])
     if "n_jobs" in params[PARAMS_SECTION].keys(): n_jobs = int(params[PARAMS_SECTION]["n_jobs"])
-
+    if "mask_swir_threshold" in params[PARAMS_SECTION]: mask_swir_threshold=float(params[PARAMS_SECTION]["mask_swir_threshold"])
+    
     aec_folder = os.path.join(os.path.dirname(l1product_path), "TMART")
     os.makedirs(aec_folder, exist_ok=True)
     aec_file = os.path.join(aec_folder, os.path.basename(l1product_path))
@@ -85,7 +87,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
             shutil.copy(l1product_path, aec_file)
         elif os.path.isdir(l1product_path):
             shutil.copytree(l1product_path, aec_file)
-        tmart.AEC.run(aec_file, env["EARTHDATA"]["username"], env["EARTHDATA"]["password"], overwrite=True, AOT=aot, n_photon=n_photon, n_jobs=n_jobs)
+        tmart.AEC.run(aec_file, env["EARTHDATA"]["username"], env["EARTHDATA"]["password"], overwrite=True, AOT=aot, n_photon=n_photon, n_jobs=n_jobs, mask_SWIR_threshold=mask_swir_threshold)
         shutil.copy(config_backup_path, config_path)
     except:
         shutil.copy(config_backup_path, config_path)
