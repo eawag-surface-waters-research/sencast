@@ -67,10 +67,18 @@ def process(env, params, l1product_path, _, out_path):
 
     ac.acolite_run(settings_file, l1product_path, out_path)
 
-    rf = [f for f in os.listdir(out_path) if f.endswith("_L1R.nc")]
-    if len(rf) != 1:
-        raise ValueError("Cannot find correct Acolite output file.")
-    acolite_file = os.path.join(out_path, rf[0])
+    toa_prefix=None; acolite_file=None
+    rf=[f for f in os.listdir(out_path) if f.endswith("_L2R.nc")]
+    if len(rf)==1:
+        acolite_file=os.path.join(out_path, rf[0])
+        toa_prefix="rhotc_"
+    else:
+        rf=[f for f in os.listdir(out_path) if f.endswith("_L1RC.nc")]
+        if len(rf)==1:
+            acolite_file=os.path.join(out_path, rf[0])
+            toa_prefix="rhot_"
+    if acolite_file is None:
+        raise ValueError("Cannot find ACOLITE L2R (rhotc_) or L1RC output.")
 
     tmp_dir = os.path.join(out_path, "tmp", os.path.basename(l1product_path))
 
@@ -146,7 +154,7 @@ def process(env, params, l1product_path, _, out_path):
         src_gt = [lon[0, 0], xres, 0, lat[0, 0], 0, yres]
         processed_bands = set()
         for var in sorted(ds.variables):
-            if var.startswith("rhot_"):
+            if var.startswith(toa_prefix):
                 wl = var.split("_", 1)[1]
                 band = WAVE_TO_BAND.get(wl)
                 if band and band not in processed_bands:
