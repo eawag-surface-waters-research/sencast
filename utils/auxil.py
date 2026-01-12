@@ -286,3 +286,10 @@ def authenticate_cds_anc(env):
         with open(os.path.join(os.path.expanduser("~"), ".cdsapirc"), "w") as f:
             f.write("url: https://cds.climate.copernicus.eu/api/v2\n")
             f.write("key: {}:{}".format(uid, api_key))
+
+def chmod_recursive(path, mode):
+    """Recursively chmod a directory"""
+    for root, dirs, files in os.walk(path):
+        os.chmod(root, mode)
+        for file in files:
+            os.chmod(os.path.join(root, file), mode)
