@@ -30,6 +30,28 @@ OUT_DIR = "L1RADCOR"
 # The name of the settings file for acolite
 SETTINGS_FILENAME = "radcor_{}.properties"
 
+def _tile_id_from_product(product_id):
+    match = re.search(r"_T\d{2}[A-Z]{3}_", product_id)
+    if match:
+        return match.group(0).strip("_")
+    return None
+
+def _select_acolite_output(out_dir, product_id, suffix):
+    candidates = [f for f in os.listdir(out_dir) if f.endswith(suffix)]
+    if not candidates:
+        return None
+    if len(candidates) == 1:
+        return candidates[0]
+    exact = [f for f in candidates if product_id in f]
+    if len(exact) == 1:
+        return exact[0]
+    tile_id = _tile_id_from_product(product_id)
+    if tile_id:
+        tile_matches = [f for f in candidates if tile_id in f]
+        if len(tile_matches) == 1:
+            return tile_matches[0]
+    return None
+
 def process(env, params, l1product_path, _, out_path):
     """This processor calls acolite for the source product and writes the result to disk. It returns the location of the output product."""
 
@@ -38,12 +60,13 @@ def process(env, params, l1product_path, _, out_path):
 
     product = os.path.basename(l1product_path)
     start_date = dates_from_name(product)[0]
+    product_id = os.path.splitext(product)[0]
 
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     lons, lats = get_lons_lats(wkt)
     limit = "{},{},{},{}".format(min(lats), min(lons), max(lats), max(lons))
 
-    out_path = os.path.join(out_path, OUT_DIR, "{}_{}".format(product[:3], start_date))
+    out_path = os.path.join(out_path, OUT_DIR, "{}_{}".format(product[:3], start_date), product_id)
     os.makedirs(out_path, exist_ok=True)
 
     os.environ['EARTHDATA_u'] = env['EARTHDATA']['username']
@@ -67,18 +90,17 @@ def process(env, params, l1product_path, _, out_path):
 
     ac.acolite_run(settings_file, l1product_path, out_path)
 
-    toa_prefix=None; acolite_file=None
-    rf=[f for f in os.listdir(out_path) if f.endswith("_L2R.nc")]
-    if len(rf)==1:
-        acolite_file=os.path.join(out_path, rf[0])
-        toa_prefix="rhotc_"
-    else:
-        rf=[f for f in os.listdir(out_path) if f.endswith("_L1RC.nc")]
-        if len(rf)==1:
-            acolite_file=os.path.join(out_path, rf[0])
-            toa_prefix="rhot_"
-    if acolite_file is None:
-        raise ValueError("Cannot find ACOLITE L2R (rhotc_) or L1RC output.")
+    toa_prefix = None
+    acolite_file = None
+    rf = _select_acolite_output(out_path, product_id, "_L2R.nc")
+    if not rf:
+        raise ValueError(
+            "ACOLITE L2R output is required for RADCOR because rhotc bands are needed. "
+            "No unique L2R file found for product {}.".format(product_id)
+        )
+    acolite_file = os.path.join(out_path, rf)
+    toa_prefix = "rhotc_"
+    log(env["General"]["log"], "Selected ACOLITE L2R output (rhotc_): {}".format(rf), indent=1)
 
     tmp_dir = os.path.join(out_path, "tmp", os.path.basename(l1product_path))
 
