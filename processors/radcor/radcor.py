@@ -143,7 +143,7 @@ def process(env, params, l1product_path, _, out_path):
             band = file.split("_")[0]
             band_index = int(band[2:]) - 1
             rad_band = getattr(rad_nc, "{}_name".format(band))
-            p_t = np.array(rad_nc.variables["rhot_{}".format(rad_band)][:])[rad_indices[:, 0], rad_indices[:, 1]]
+            p_t = np.array(rad_nc.variables[f"{toa_prefix}{rad_band}"][:])[rad_indices[:,0], rad_indices[:,1]]
             gain = gain_value(os.path.basename(l1product_path)[:3], band_index)
             F0 = solar_flux(band_index, os.path.join(tmp_dir, "instrument_data.nc"), l1_shape)[
                 l1_indices[:, 0], l1_indices[:, 1]]
