@@ -36,12 +36,21 @@ def get_download_requests(auth, start_date, end_date, sensor, resolution, wkt, e
     spatial_filter = {'filterType' : "mbr",
                       'lowerLeft' : {'latitude' : lat_min, 'longitude' : lng_min},
                       'upperRight' : { 'latitude' : lat_max, 'longitude' : lng_max}}
+    max_cloud = 100
+    if "max_cloud" in env["EROS"]:
+        max_cloud = env["EROS"]["max_cloud"]
     payload = {'datasetName': sensor,
                'maxResults': max_records,
                'startingNumber': 1,
                'sceneFilter': {
                    'spatialFilter': spatial_filter,
-                   'acquisitionFilter': acquisition_filter}
+                   'acquisitionFilter': acquisition_filter,
+                   "cloudCoverFilter": {
+                       "max": max_cloud,
+                       "min": 0,
+                       "includeUnknown": True
+                        },
+                    }
                }
     products = search(service_url.format("scene-search"), payload, env, auth)
     return products
