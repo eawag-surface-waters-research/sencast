@@ -36,12 +36,21 @@ def get_download_requests(auth, start_date, end_date, sensor, resolution, wkt, e
     spatial_filter = {'filterType' : "mbr",
                       'lowerLeft' : {'latitude' : lat_min, 'longitude' : lng_min},
                       'upperRight' : { 'latitude' : lat_max, 'longitude' : lng_max}}
+    max_cloud = 100
+    if "max_cloud" in env["EROS"]:
+        max_cloud = env["EROS"]["max_cloud"]
     payload = {'datasetName': sensor,
                'maxResults': max_records,
                'startingNumber': 1,
                'sceneFilter': {
                    'spatialFilter': spatial_filter,
-                   'acquisitionFilter': acquisition_filter}
+                   'acquisitionFilter': acquisition_filter,
+                   "cloudCoverFilter": {
+                       "max": max_cloud,
+                       "min": 0,
+                       "includeUnknown": True
+                        },
+                    }
                }
     products = search(service_url.format("scene-search"), payload, env, auth)
     return products
@@ -175,7 +184,11 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30):
                 downloaded_bytes = 0
                 with session.get(url, stream=True, timeout=600) as req:
                     if req.status_code != codes.OK:
-                        raise ValueError("{} ERROR.".format(req.status_code))
+                        try:
+                            error_msg = req.json()
+                        except:
+                            error_msg = req.text
+                        raise ValueError("{} ERROR. {}".format(req.status_code, error_msg))
                     with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
                         chunk_size = 2 ** 20  # download in 1 MB chunks
                         with open(incomplete, 'wb') as fout:

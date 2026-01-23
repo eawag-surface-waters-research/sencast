@@ -117,7 +117,7 @@ def get_dataset_id(sensor, resolution):
     elif sensor == 'MSI-L2A':
         return 'SENTINEL-2', 'S2MSI2A'
     elif sensor == 'OLI_TIRS':
-        return 'LANDSAT-8-ESA', 'L1TP'
+        return 'LANDSAT-8', 'L1TP'
     else:
         raise RuntimeError("CREODIAS API is not yet implemented for sensor: {}".format(sensor))
 
@@ -166,8 +166,12 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30, bucket_name="D
                 url = download_address.format(uuid, token)
                 downloaded_bytes = 0
                 with requests.get(url, stream=True, timeout=600) as req:
-                    if int(req.status_code) > 400:
-                        raise ValueError("{} ERROR. {}".format(req.status_code, req.json()))
+                    if int(req.status_code) >= 400:
+                        try:
+                            error_msg = req.json()
+                        except:
+                            error_msg = req.text
+                        raise ValueError("{} ERROR. {}".format(req.status_code, error_msg))
                     with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
                         chunk_size = 2 ** 20  # download in 1 MB chunks
                         with open(file_temp, 'wb') as fout:

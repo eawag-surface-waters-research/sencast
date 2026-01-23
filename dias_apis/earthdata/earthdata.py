@@ -21,7 +21,7 @@ search_address = "https://cmr.earthdata.nasa.gov/search/granules?collection_conc
 
 def get_download_requests(auth, start_date, end_date, sensor, resolution, wkt, env):
     if sensor == "PACE_OCI_1B":
-        collection_concept_id = "C3026581092-OB_CLOUD"
+        collection_concept_id = "C3392966952-OB_CLOUD"
         satellite = "PACE"
     else:
         raise ValueError("No id defined for sensor: {}".format(sensor))
@@ -91,8 +91,12 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30):
         try:
             downloaded_bytes = 0
             with session.get(url, stream=True, timeout=600) as req:
-                if int(req.status_code) > 400:
-                    raise ValueError("{} ERROR. {}".format(req.status_code, req.json()))
+                if int(req.status_code) >= 400:
+                    try:
+                        error_msg = req.json()
+                    except:
+                        error_msg = req.text
+                    raise ValueError("{} ERROR. {}".format(req.status_code, error_msg))
                 with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
                     chunk_size = 2 ** 20  # download in 1 MB chunks
                     with open(file_temp, 'wb') as fout:

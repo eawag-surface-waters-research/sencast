@@ -551,14 +551,16 @@ def get_np_data_type(nc, band_name):
     else:
         raise ValueError("Cannot handle band of data_sh type '{}'".format(str(dtype)))
 
-def get_commit_hash(script_path):
+def get_commit_hash(repo_root):
     try:
-        file_dir = os.path.dirname(os.path.abspath(script_path))
-        repo_root = subprocess.check_output(
-            ['git', 'rev-parse', '--show-toplevel'],
-            cwd=file_dir,
-            text=True
-        ).strip()
+        try:
+            subprocess.run(
+                ['git', 'config', '--global', '--add', 'safe.directory', repo_root],
+                capture_output=True,
+                check=False
+            )
+        except Exception:
+            pass
 
         commit_hash = subprocess.check_output(
             ['git', 'rev-parse', 'HEAD'],

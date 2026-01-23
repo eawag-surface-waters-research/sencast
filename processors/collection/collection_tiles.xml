@@ -1,0 +1,24 @@
+<graph id="collection">
+    <version>1.0</version>
+	<node id="reprojectNode">
+		<operator>reproject</operator>
+		<sources>
+			<source>${sourceFile}</source>
+		</sources>
+		<parameters>
+			<crs>EPSG:4326</crs>
+			<resampling>Nearest</resampling>
+			<noDataValue>NaN</noDataValue>
+		</parameters>
+	</node>
+    <node id="writeNode">
+        <operator>write</operator>
+		<sources>
+			<source>reprojectNode</source>
+		</sources>
+		<parameters>
+			<file>${outputFile}</file>
+			<formatName>NetCDF4-BEAM</formatName>
+		</parameters>
+    </node>
+</graph>

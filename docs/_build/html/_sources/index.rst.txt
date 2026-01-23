@@ -7,15 +7,14 @@ Sencast
     :align: left
 
 Sencast is a toolbox to download and derive water quality parameters from satellite images. It acts as a framework for
-the use a variety of processors such as Idepix, Polymer, Sen2Cor and Acolite. It supports ESA satellites Sentinel 2 and
+the use a variety of processors such as Idepix, Polymer and Acolite. It supports ESA satellites Sentinel 2 and
 Sentinel 3 and USGS satellite Landsat 8.
 
 It is developed and maintained by the `SURF Remote Sensing group at Eawag`_.
 
 .. warning::
 
-  Sencast is under active development. The project team are working towards
-  the release of a stable v1.0, however for the moment this project remains pre-v1.0.
+  Sencast is under active development. Please contact us if you find bugs or issues.
 
 Publications
 -------------
@@ -77,13 +76,13 @@ Sencast can be run in two ways:
 +-------------------+---------------------+-------------------------------------------------------------------+
 | -p --parameters   | Required            | link to the parameters.ini file (required except for tests)       |
 +-------------------+---------------------+-------------------------------------------------------------------+
-| -e  --environment | ${machine-name}.ini | link to the environment.ini file                                  |
+| -e --environment  | ${machine-name}.ini | link to the environment.ini file                                  |
 +-------------------+---------------------+-------------------------------------------------------------------+
-| -d -–downloads    | 1                   | number of parallell downloads                                     |
+| -d --downloads    | 1                   | number of parallel downloads                                      |
 +-------------------+---------------------+-------------------------------------------------------------------+
-| -p --processors   | 1                   | number of parallell processors                                    |
+| -r --processors   | 1                   | number of parallel processors                                     |
 +-------------------+---------------------+-------------------------------------------------------------------+
-| -a --adapters     | 1                   | number of parallell adapters                                      |
+| -a --adapters     | 1                   | number of parallel adapters                                       |
 +-------------------+---------------------+-------------------------------------------------------------------+
 
 2. By importing Sencast as a function
@@ -151,7 +150,7 @@ The docker image can be downloaded from docker hub using the following command:
 
 .. code-block:: bash
 
-   docker pull eawag/sencast:0.0.2
+   docker pull eawag/sencast:latest
 
 Run Tests
 ~~~~~~~~~~~
@@ -164,7 +163,7 @@ the appropriate location, e.g. `-v /home/user/DIAS:/DIAS`
 
 .. code-block:: bash
 
-   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.2 -e docker.ini -t
+   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:latest -e docker.ini -t
 
 `-e` name of the environment file in `sencast/environments`
 `-t` flag to indicate a test should be run
@@ -176,7 +175,7 @@ In order to run a parameters file it can be passed to the command as follows usi
 
 .. code-block:: bash
 
-   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.2 -e docker.ini -p example.ini
+   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:latest -e docker.ini -p example.ini
 
 `-p` name of the parameter file in `sencast/parameters`
 
@@ -187,14 +186,14 @@ Sometimes it is desirable to interact directly with the container, this can be a
 
 .. code-block:: bash
 
-   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it --entrypoint /bin/bash eawag/sencast:0.0.2
+   docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it --entrypoint /bin/bash eawag/sencast:latest
 
 Locally build container
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
-   docker build -t eawag/sencast:0.0.2 .
+   docker build -t eawag/sencast:latest .
 
 
 .. toctree::
@@ -221,7 +220,6 @@ Locally build container
    :caption: Utilities
 
    utils/auxil.rst
-   utils/earthdata.rst
    utils/product_fun.rst
 
 .. toctree::
@@ -230,28 +228,24 @@ Locally build container
 
    processors/acolite.rst
    processors/c2rcc.rst
-   processors/fluo.rst
+   processors/collection.rst
    processors/forelule.rst
-   processors/icor.rst
    processors/idepix.rst
-   processors/lswt.rst
-   processors/mdn.rst
-   processors/merge.rst
    processors/mph.rst
-   processors/ndwi.rst
    processors/oc3.rst
    processors/polymer.rst
    processors/primaryproduction.rst
-   processors/s2res.rst
    processors/secchidepth.rst
-   processors/sen2cor.rst
+   processors/tmart.rst
    processors/whiting.rst
 
 .. toctree::
    :maxdepth: 2
    :caption: Adapters
 
-   adapters/datalakes.rst
+   adapters/geotiff.rst
+   adapters/merge.rst
+   adapters/pixelextraction.rst
    adapters/qlrgb.rst
    adapters/qlsingleband.rst
 
@@ -261,10 +255,12 @@ Locally build container
 
    apis/coah.rst
    apis/creodias.rst
+   apis/earthdata.rst
+   apis/eros.rst
    apis/hda.rst
 
 .. _SURF Remote Sensing group at Eawag: https://www.eawag.ch/en/department/surf/main-focus/remote-sensing/
-.. _polymer: https://forum.hygeos.com/viewtopic.php?f=5&t=56
+.. _polymer: https://github.com/hygeos/polymer
 .. _SNAP: http://step.esa.int/main/toolboxes/snap/
 .. _European Space Agency: http://www.esa.int/
 .. _Daniel Odermatt: https://www.eawag.ch/de/ueberuns/portraet/organisation/mitarbeitende/profile/daniel-odermatt/show/

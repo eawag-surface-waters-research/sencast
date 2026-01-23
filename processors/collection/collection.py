@@ -46,15 +46,43 @@ def process(env, params, l1product_path, l2product_files, out_path):
         unused
     """
     gpt = env['General']['gpt_path']
+    wkt = params['General']['wkt']
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(os.path.basename(l1product_path)))
+
+    log(env["General"]["log"], "Reading metadata", indent=2)
+    image_metadata = {}
+    if os.path.isfile(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.json")):
+        with open(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.json"), 'r') as file:
+            metadata = json.load(file)
+            image_metadata = metadata["LANDSAT_METADATA_FILE"]["IMAGE_ATTRIBUTES"]
+    elif os.path.isfile(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.txt")):
+        with open(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.txt"), 'r') as file:
+            add = False
+            lines = [line.strip() for line in file]
+            for line in lines:
+                if line == "GROUP = IMAGE_ATTRIBUTES":
+                    add = True
+                elif line == "END_GROUP = IMAGE_ATTRIBUTES":
+                    add = False
+                elif add:
+                    parts = line.split("=")
+                    image_metadata[parts[0].strip()] = parts[1].strip().replace('"', '')
+    else:
+        log(env["General"]["log"], "Unable to find metadata file", indent=4)
+
+    if "SCENE_CENTER_TIME" in image_metadata and "DATE_ACQUIRED":
+        exact_datetime = image_metadata["DATE_ACQUIRED"].replace("-", "") + "T" + image_metadata[
+            "SCENE_CENTER_TIME"].replace(":", "")[:6]
+        parts = os.path.basename(output_file).split("_")
+        parts[-4:-2] = [exact_datetime]
+        output_file = os.path.join(os.path.dirname(output_file), "_".join(parts))
 
     if os.path.exists(output_file):
         log(env["General"]["log"], "Collection file exists, skipping...", indent=2)
         return output_file
-
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
-    if params["General"]['sensor'] == "landsat_ot_c2_l2":
 
+    if params["General"]['sensor'] == "landsat_ot_c2_l2":
         water_only = False
         if PARAMS_SECTION in params and "water_only" in params[PARAMS_SECTION]:
             water_only = params[PARAMS_SECTION]["water_only"] == "true"
@@ -74,14 +102,18 @@ def process(env, params, l1product_path, l2product_files, out_path):
         else:
             timeout = DEFAULT_TIMEOUT
 
-        gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", "collection.xml")
-        os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
-        shutil.copy(os.path.join(os.path.dirname(__file__), "collection.xml"), gpt_xml_file)
+        if PARAMS_SECTION in params and "tiles" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["tiles"].lower() == "true":
+            gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", "collection_tiles.xml")
+            os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
+            shutil.copy(os.path.join(os.path.dirname(__file__), "collection_tiles.xml"), gpt_xml_file)
+        else:
+            gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", "collection.xml")
+            rewrite_xml(os.path.join(os.path.dirname(__file__), "collection.xml"), gpt_xml_file, wkt)
 
         log(env["General"]["log"], "Reprojecting {}".format(os.path.basename(st_file)), indent=2)
         if os.path.exists(st_file_temp):
-
             os.remove(st_file_temp)
+
         args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
                 "-SsourceFile={}".format(st_file),
                 "-PoutputFile={}".format(st_file_temp)]
@@ -99,27 +131,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
         nc_st = Dataset(st_file_temp, 'r')
         nc_qa = Dataset(qa_file_temp, 'r')
-
-        log(env["General"]["log"], "Reading metadata", indent=3)
-        image_metadata = {}
-        if os.path.isfile(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.json")):
-            with open(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.json"), 'r') as file:
-                metadata = json.load(file)
-                image_metadata = metadata["LANDSAT_METADATA_FILE"]["IMAGE_ATTRIBUTES"]
-        elif os.path.isfile(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.txt")):
-            with open(os.path.join(l1product_path, os.path.basename(l1product_path) + "_MTL.txt"), 'r') as file:
-                add = False
-                lines = [line.strip() for line in file]
-                for line in lines:
-                    if line == "GROUP = IMAGE_ATTRIBUTES":
-                        add = True
-                    elif line == "END_GROUP = IMAGE_ATTRIBUTES":
-                        add = False
-                    elif add:
-                        parts = line.split("=")
-                        image_metadata[parts[0].strip()] = parts[1].strip().replace('"', '')
-        else:
-            log(env["General"]["log"], "Unable to find metadata file", indent=4)
 
         log(env["General"]["log"], "Combining ST and QA files and calculating parameters", indent=3)
         with Dataset(output_file, 'w') as nc:
@@ -204,3 +215,11 @@ def process(env, params, l1product_path, l2product_files, out_path):
     else:
         raise ValueError("Collection not implemented for {}".format(params["General"]['sensor']))
     return output_file
+
+def rewrite_xml(input_xml, gpt_xml_file, wkt):
+    with open(input_xml, "r") as f:
+        xml = f.read()
+    xml = xml.replace("${wkt}", wkt)
+    os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
+    with open(gpt_xml_file, "w") as f:
+        f.write(xml)

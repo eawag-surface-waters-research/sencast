@@ -11,7 +11,7 @@ Anaconda and Snap Desktop are required to install Sencast
 - [SNAP Desktop](https://step.esa.int/main/download/snap-download/)
 ```
 git clone git@github.com:eawag-surface-waters-research/sencast.git
-conda env create -f ~/sencast/sencast.yml
+conda env create -f sencast.yml
 ```
 Then create your **environment file** (use environments/example.ini as a template) and test your installation as follows:
 ```
@@ -43,9 +43,9 @@ python main.py
 | -x --delete_tests |       	False        | delete previous test run                                          |
 | -p --parameters 	 |      	Required      | link to the parameters.ini file (required when not running tests) |
 | -e  --environment | ${machine-name}.ini | link to the environment.ini file                                  |
-| -d -–downloads 	  |         	1	         | number of parallell downloads                                     |
-| -p --processors   |         1	          | number of parallell processors                                    |
-| -a --adapters	    |          1          | number of parallell adapters                                      |
+| -d -–downloads 	  |         	1	         | number of parallel downloads                                      |
+| -r --processors   |         1	          | number of parallel processors                                     |
+| -a --adapters	    |          1          | number of parallel adapters                                       |
 
 ## Papers
 
@@ -62,7 +62,7 @@ Users should first ensure they have a functioning docker installation.
 ### Pull container
 
 The docker image can be downloaded from docker hub using the following command:
-`docker pull eawag/sencast:0.0.2`
+`docker pull eawag/sencast:latest`
 
 ### Run Tests
 
@@ -72,7 +72,7 @@ functioning of the processors. **This must be run from inside the sencast reposi
 The option `-v /DIAS:/DIAS` maps the input/ output folders to a location outside the container. This should be updated to 
 the appropriate location, e.g. `-v /home/user/DIAS:/DIAS`
 
-`docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.2 -e docker.ini -t`
+`docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:latest -e docker.ini -t`
 
 `-e` name of the environment file in `sencast/environments`
 `-t` flag to indicate a test should be run 
@@ -81,7 +81,7 @@ the appropriate location, e.g. `-v /home/user/DIAS:/DIAS`
 
 In order to run a parameters file it can be passed to the command as follows using the `-p` flag.
 
-`docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:0.0.2 -e docker.ini -p example.ini`
+`docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it eawag/sencast:latest -e docker.ini -p example.ini`
 
 `-p` name of the parameter file in `sencast/parameters`
 
@@ -89,8 +89,8 @@ In order to run a parameters file it can be passed to the command as follows usi
 
 Sometimes it is desirable to interact directly with the container, this can be achieved with the following command:
 
-`docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it --entrypoint /bin/bash eawag/sencast:0.0.2`
+`docker run -v /DIAS:/DIAS -v $(pwd):/sencast --rm -it --entrypoint /bin/bash eawag/sencast:latest`
 
 ### Locally build container
 
-`docker build -t eawag/sencast:0.0.2 .`
+`docker build -t eawag/sencast:latest .`

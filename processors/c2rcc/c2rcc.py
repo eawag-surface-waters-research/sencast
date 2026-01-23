@@ -47,7 +47,25 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     ancillary_obj = {"ozone": "330", "surf_press": "1000", "useEcmwfAuxData": "False"}
     anc_name = "NA"
+
     if params['C2RCC']['ancillary_data'] == 'ERA5':
+        anc_name = "ERA5"
+
+    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
+    if os.path.isfile(output_file):
+        if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":
+            log(env["General"]["log"], "Removing file: ${}".format(output_file))
+            os.remove(output_file)
+        else:
+            log(env["General"]["log"],
+                "Skipping C2RCC, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)),
+                indent=1)
+            return output_file
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+
+
+    if anc_name == 'ERA5':
         ancillary_path = env['CDS']['anc_path']
         try:
             ancillary = Ancillary_ERA5(ancillary_path)
@@ -57,32 +75,21 @@ def process(env, params, l1product_path, l2product_files, out_path):
             ozone = round(ancillary.get("ozone", date)[coords])
             surf_press = round(ancillary.get("surf_press", date)[coords])
             ancillary_obj = {"ozone": ozone, "surf_press": surf_press, "useEcmwfAuxData": "False"}
-            anc_name = "ERA5"
             log(env["General"]["log"], "C2RCC Ancillary Data successfully retrieved. Ozone: {}, Surface Pressure {}".
-                format(ozone, surf_press))
+                format(ozone, surf_press), indent=2)
         except RuntimeError:
             log(env["General"]["log"],
-                "C2RCC Ancillary Data not retrieved using default values. Ozone: 330, Surface Pressure 1000")
+                "C2RCC Ancillary Data not retrieved using default values. Ozone: 330, Surface Pressure 1000", indent=2)
             if ancillary_path.endwith("METEO"):
                 ancillary_obj["useEcmwfAuxData"] = "True"
             pass
 
-    output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
-    if os.path.isfile(output_file):
-        if "overwrite" in params["General"].keys() and params['General']['overwrite'] == "true":
-            log(env["General"]["log"], "Removing file: ${}".format(output_file))
-            os.remove(output_file)
-        else:
-            log(env["General"]["log"], "Skipping C2RCC, target already exists: {}".format(OUT_FILENAME.format(anc_name, product_name)))
-            return output_file
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-
     if "processor" in params[PARAMS_SECTION]:
         if params[PARAMS_SECTION]["processor"] == "IDEPIX" and "IDEPIX" in l2product_files:
-            log(env["General"]["log"], "Using IDEPIX as input file.", indent=1)
+            log(env["General"]["log"], "Using IDEPIX as input file.", indent=2)
             input_file = l2product_files['IDEPIX']
         elif params[PARAMS_SECTION]["processor"] == "S2RES" and "S2RES" in l2product_files:
-            log(env["General"]["log"], "Using S2RES as input file.", indent=1)
+            log(env["General"]["log"], "Using S2RES as input file.", indent=2)
             input_file = l2product_files['S2RES']
         else:
             if params[PARAMS_SECTION]["processor"] in ["IDEPIX", "S2RES"]:
@@ -92,7 +99,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
                     'Processor {} is not recognised. Please choose from IDEPIX and S2RES'.format(
                         params[PARAMS_SECTION]["processor"]))
     else:
-        log(env["General"]["log"], "Using L1 product as input file.", indent=1)
+        log(env["General"]["log"], "Using L1 product as input file.", indent=2)
         input_file = l1product_path
         if sensor == "MSI":
             sensor = "MSI_RES"
@@ -121,7 +128,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     else:
         if os.path.exists(output_file):
             os.remove(output_file)
-            log(env["General"]["log"], "Removed corrupted output file.", indent=2)
+            log(env["General"]["log"], "Removed corrupted output file.", indent=3)
         raise RuntimeError("GPT Failed.")
 
 

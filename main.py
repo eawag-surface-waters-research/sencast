@@ -8,7 +8,7 @@ import importlib
 import traceback
 from threading import Semaphore, Thread
 
-from utils.auxil import authenticate_earthdata_anc, init_hindcast, log, authenticate_cds_anc
+from utils.auxil import authenticate_earthdata_anc, init_hindcast, log, authenticate_cds_anc, chmod_recursive
 from utils.product_fun import remove_superseded_products, get_l1product_path, filter_for_tiles, filter_for_baseline
 
 conda_env_path = os.environ.get("CONDA_PREFIX")
@@ -190,6 +190,13 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
         log(env["General"]["log"], "SUCCEEDED: {}".format(p))
     for p in errors:
         log(env["General"]["log"], "FAILED: {}".format(p))
+
+    if 'set_output_permissions' in env['General'] and env['General']['set_output_permissions'].lower() == "true":
+        try:
+            log(env["General"]["log"], "Setting output permissions to 777")
+            chmod_recursive(l2_path, 0o777)
+        except Exception as e:
+            log(env["General"]["log"], "Failed to set output permissions")
 
     if len(errors) > 0:
         raise RuntimeError("Sencast failed for {}/{} processes.".format(len(errors), len(summary)))
