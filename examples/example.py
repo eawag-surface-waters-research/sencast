@@ -11,5 +11,5 @@ sys.path.append("/sencast")
 
 from main import sencast
 
-sencast("radcor.ini")
+sencast("test_S3_processors.ini")
 

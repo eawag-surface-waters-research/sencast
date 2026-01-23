@@ -262,7 +262,13 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
 
     with semaphores['process']:
         l2product_files = {}
+        failed_process = False
         for processor in [p.strip() for p in filter(None, params['General']['processors'].split(","))]:
+            if failed_process:
+                log(env["General"]["log"], "", blank=True)
+                log(env["General"]["log"], "Terminating processing chain after failure")
+                break
+
             log(env["General"]["log"], "", blank=True)
             log(env["General"]["log"], "Processor {} starting...".format(processor))
             try:
@@ -306,6 +312,8 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
                     log(env["General"]["log"], traceback.format_exc(), indent=2)
                     log(env["General"]["log"], "{} failed for {} in {}s.".format(processor, product["l1_product_path"], duration), indent=1)
                     summary.append({"group": group, "input": product["l1_product_path"], "output": "", "type": "processor", "name": processor, "status": "Failed", "time": duration, "message": e})
+                    if "process_halt_on_error" in env["General"] and env["General"]["process_halt_on_error"].lower() == "true":
+                        failed_process = True
 
             if len(processor_outputs) == 1:
                 l2product_files[processor] = processor_outputs[0]
