@@ -1,7 +1,35 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Radcor processor for adjacency effect (part of Acolite)"""
+"""
+Radcor processor for adjacency effect correction using ACOLITE outputs.
+
+Scientific objective:
+- Replace sensor radiance values with adjacency corrected equivalents derived
+  from ACOLITE reflectance, supporting downstream water quality processing.
+
+Inputs and data dependencies:
+- Sentinel-3 OLCI or Sentinel-2 MSI Level 1 products on disk.
+- ACOLITE installation path and ancillary credentials provided in env.
+- NetCDF geometry and instrument files within the Level 1 product.
+- Configuration parameters from the Sencast ini file, especially the RADCOR section.
+
+Outputs or side effects:
+- Writes a RADCOR product folder under the input product directory.
+- Writes temporary processing folders under the output directory and removes them after completion.
+- Writes or updates ACOLITE settings files under the reproducibility folder.
+
+Manual parameters or settings to review:
+- RADCOR section values such as radcor_max_vza, radcor_aot_estimate,
+  radcor_kernel_radius, and radcor_rhotc_tolerance_nm.
+- ACOLITE settings template and LUT selection for the relevant sensor and resolution.
+
+Hardcoded input and output paths:
+- Reads geo_coordinates.nc, tie_geometries.nc, and instrument_data.nc within the Level 1 product.
+- Writes temporary processing data under <out_path>/tmp and final output under
+  <out_path>/L1RADCOR/<platform_date>/<product_id>.
+- Uses settings template processors/radcor/radcor_<sensor>.properties.
+"""
 
 
 import os
@@ -52,6 +80,84 @@ def _select_acolite_output(out_dir, product_id, suffix):
             return tile_matches[0]
     return None
 
+def _parse_wavelength(value):
+    match = re.search(r"\d+(?:\.\d+)?", str(value))
+    if not match:
+        return None
+    try:
+        return float(match.group(0))
+    except ValueError:
+        return None
+
+
+def _parse_ac_bands(value):
+    """Parse ACOLITE ac_bands attribute into a list of OLCI band names.
+
+    Expected format example: "Oa01,Oa02,Oa03".
+    Returns None if the value is missing or cannot be parsed.
+    """
+
+    if value is None:
+        return None
+
+    text = str(value)
+    parts = []
+    for item in text.split(","):
+        item = item.strip()
+        if re.match(r"^Oa\d{2}$", item):
+            parts.append(item)
+
+    if not parts:
+        return None
+
+    return parts
+
+
+def _read_float_param(parameters, key, default, log_path=None):
+    if key not in parameters:
+        return default
+    try:
+        return float(parameters[key])
+    except (TypeError, ValueError):
+        if log_path:
+            log(log_path, "Invalid value for {}. Using default {}.".format(key, default), indent=1)
+        return default
+
+def _select_rhotc_variable(rad_nc, toa_prefix, rad_band, log_path=None, tolerance_nm=2.0):
+    target_name = "{}{}".format(toa_prefix, rad_band)
+    if target_name in rad_nc.variables:
+        return target_name
+
+    target_wl = _parse_wavelength(rad_band)
+    if target_wl is None:
+        raise KeyError("Missing {} and the band value could not be parsed.".format(target_name))
+
+    candidates = []
+    for var in rad_nc.variables:
+        if not var.startswith(toa_prefix):
+            continue
+        wl = _parse_wavelength(var[len(toa_prefix):])
+        if wl is None:
+            continue
+        candidates.append((abs(wl - target_wl), wl, var))
+
+    if not candidates:
+        raise KeyError("Missing {} and no numeric {} variables were found.".format(target_name, toa_prefix))
+
+    candidates.sort(key=lambda item: item[0])
+    diff, nearest_wl, nearest_name = candidates[0]
+    if diff > tolerance_nm:
+        raise KeyError(
+            "Missing {} and nearest band {} differs by {:.2f} nm.".format(target_name, nearest_name, diff)
+        )
+    if log_path:
+        log(
+            log_path,
+            "Using {} for missing {} with nearest wavelength {:.2f} nm.".format(nearest_name, target_name, diff),
+            indent=1,
+        )
+    return nearest_name
+
 def process(env, params, l1product_path, _, out_path):
     """This processor calls acolite for the source product and writes the result to disk. It returns the location of the output product."""
 
@@ -100,7 +206,18 @@ def process(env, params, l1product_path, _, out_path):
         )
     acolite_file = os.path.join(out_path, rf)
     toa_prefix = "rhotc_"
+
+    wf = _select_acolite_output(out_path, product_id, "_L2W.nc")
+    acolite_l2w_file = None
+    if wf:
+        acolite_l2w_file = os.path.join(out_path, wf)
+
+    log(env["General"]["log"], "RADCOR: using ACOLITE adjacency-corrected reflectances (prefix rhotc_)", indent=1)
     log(env["General"]["log"], "Selected ACOLITE L2R output (rhotc_): {}".format(rf), indent=1)
+    if acolite_l2w_file:
+        log(env["General"]["log"], "RADCOR: L2W found for metadata fallback: {}".format(wf), indent=1)
+    else:
+        log(env["General"]["log"], "RADCOR: no unique L2W found for metadata fallback", indent=1)
 
     tmp_dir = os.path.join(out_path, "tmp", os.path.basename(l1product_path))
 
@@ -111,6 +228,49 @@ def process(env, params, l1product_path, _, out_path):
 
     if sensor == "OLCI":
         rad_nc = netCDF4.Dataset(acolite_file)
+
+        rhotc_wavelengths = []
+        for var_name in rad_nc.variables:
+            if not var_name.startswith(toa_prefix):
+                continue
+            wl = _parse_wavelength(var_name[len(toa_prefix):])
+            if wl is None:
+                continue
+            rhotc_wavelengths.append(wl)
+        rhotc_wavelengths = sorted(set(rhotc_wavelengths))
+        log(
+            env["General"]["log"],
+            "RADCOR: detected {} rhotc_ bands in ACOLITE L2R: {}".format(
+                len(rhotc_wavelengths), rhotc_wavelengths
+            ),
+            indent=1,
+        )
+
+        ac_bands = _parse_ac_bands(getattr(rad_nc, "ac_bands", None))
+        ac_bands_source = "L2R"
+        if ac_bands is None:
+            ac_bands_source = "L2W"
+            if acolite_l2w_file:
+                with netCDF4.Dataset(acolite_l2w_file) as nc_w:
+                    ac_bands = _parse_ac_bands(getattr(nc_w, "ac_bands", None))
+
+        keep_bands = set()
+        if ac_bands:
+            keep_bands = set(ac_bands)
+            log(
+                env["General"]["log"],
+                "RADCOR: selecting radiance bands from ACOLITE ac_bands ({}) : {}".format(
+                    ac_bands_source, sorted(keep_bands)
+                ),
+                indent=1,
+            )
+        else:
+            log(
+                env["General"]["log"],
+                "RADCOR: ac_bands not found in L2R or L2W. No radiance bands will be adjacency-corrected.",
+                indent=1,
+            )
+
         rad_lat = np.array(rad_nc.variables["lat"][:])
         rad_lng = np.array(rad_nc.variables["lon"][:])
         rad_coords = np.column_stack([rad_lat.flatten(), rad_lng.flatten()])
@@ -136,14 +296,56 @@ def process(env, params, l1product_path, _, out_path):
         sza = solar_zenith_angle(os.path.join(tmp_dir, "tie_geometries.nc"), l1_shape)[
             l1_indices[:, 0], l1_indices[:, 1]]
 
-        files = [f for f in os.listdir(tmp_dir) if "_radiance.nc" in f]
+        rhotc_tolerance_nm = _read_float_param(
+            params[PARAMS_SECTION],
+            "radcor_rhotc_tolerance_nm",
+            2.0,
+            log_path=env["General"]["log"],
+        )
+
+        files = [f for f in os.listdir(tmp_dir) if f.endswith("_radiance.nc")]
         files.sort()
+        files = [f for f in files if f.split("_", 1)[0] in keep_bands]
+
+        corrected_bands = []
+        skipped_bands = {}
+
+        log(
+            env["General"]["log"],
+            "RADCOR: attempting adjacency correction for {} radiance band files using {} variables".format(
+                len(files), toa_prefix
+            ),
+            indent=1,
+        )
 
         for file in files:
-            band = file.split("_")[0]
+            band = file.split("_", 1)[0]
             band_index = int(band[2:]) - 1
-            rad_band = getattr(rad_nc, "{}_name".format(band))
-            p_t = np.array(rad_nc.variables[f"{toa_prefix}{rad_band}"][:])[rad_indices[:,0], rad_indices[:,1]]
+
+            rad_band = getattr(rad_nc, "{}_name".format(band), None)
+            if rad_band is None:
+                skipped_bands[band] = "missing {}_name attribute in ACOLITE file".format(band)
+                continue
+
+            try:
+                rhotc_var = _select_rhotc_variable(
+                    rad_nc,
+                    toa_prefix,
+                    rad_band,
+                    log_path=None,
+                    tolerance_nm=rhotc_tolerance_nm,
+                )
+            except KeyError as e:
+                skipped_bands[band] = str(e)
+                continue
+
+            log(
+                env["General"]["log"],
+                "RADCOR: {} uses {}".format(band, rhotc_var),
+                indent=2,
+            )
+
+            p_t = np.array(rad_nc.variables[rhotc_var][:])[rad_indices[:, 0], rad_indices[:, 1]]
             gain = gain_value(os.path.basename(l1product_path)[:3], band_index)
             F0 = solar_flux(band_index, os.path.join(tmp_dir, "instrument_data.nc"), l1_shape)[
                 l1_indices[:, 0], l1_indices[:, 1]]
@@ -154,6 +356,27 @@ def process(env, params, l1product_path, _, out_path):
                     raise ValueError("Inconsistent OLCI grids.")
                 combined_radiance[l1_indices[:, 0], l1_indices[:, 1]] = radiance
                 nc.variables["{}_radiance".format(band)][:] = combined_radiance
+
+            corrected_bands.append(band)
+
+        log(
+            env["General"]["log"],
+            "RADCOR: adjacency-corrected bands: {}".format(sorted(corrected_bands)),
+            indent=1,
+        )
+
+        if skipped_bands:
+            log(
+                env["General"]["log"],
+                "RADCOR: bands kept as ORIGINAL radiance (not adjacency-corrected):",
+                indent=1,
+            )
+            for band in sorted(skipped_bands.keys()):
+                log(
+                    env["General"]["log"],
+                    "{} skipped: {}".format(band, skipped_bands[band]),
+                    indent=2,
+                )
 
         rad_nc.close()
     elif sensor == "MSI":
