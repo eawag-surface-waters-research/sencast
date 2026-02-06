@@ -7,6 +7,7 @@ EO data access - COAH API
 
 import os
 import time
+import boto3
 import shutil
 import requests
 import requests_cache
@@ -26,6 +27,8 @@ search_address = "https://catalogue.dataspace.copernicus.eu/odata/v1/Products{}"
 download_address = "https://zipper.dataspace.copernicus.eu/odata/v1/Products({})/$value"
 
 token_address = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
+
+bucket_address = "https://eodata.dataspace.copernicus.eu"
 
 
 def get_download_requests(auth, start_date, end_date, sensor, resolution, wkt, env):
@@ -120,48 +123,82 @@ def get_dataset_id(sensor, resolution):
         raise RuntimeError("COAH API is not yet implemented for sensor: {}".format(sensor))
 
 
-def do_download(auth, product, env, max_attempts=4, wait_time=30):
+def do_download(auth, product, env, max_attempts=4, wait_time=30, bucket_name="eodata"):
     uuid = product["uuid"]
     product_path = product["l1_product_path"]
+    s3_key = product["s3"]
+    os.makedirs(os.path.dirname(product_path), exist_ok=True)
     for attempt in range(max_attempts):
-        log(env["General"]["log"], "Starting download attempt {} of {}".format(attempt + 1, max_attempts), indent=1)
-        token = server_authenticate(auth, env)
-        os.makedirs(os.path.dirname(product_path), exist_ok=True)
-        file_temp = "{}.incomplete".format(product_path)
-        session = requests.Session()
-        session.headers.update({'Authorization': f'Bearer {token}'})
-        url = download_address.format(uuid)
-        try:
-            downloaded_bytes = 0
-            with session.get(url, stream=True, timeout=600) as req:
-                if int(req.status_code) >= 400:
-                    try:
-                        error_msg = req.json()
-                    except:
-                        error_msg = req.text
-                    raise ValueError("{} ERROR. {}".format(req.status_code, error_msg))
-                with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
-                    chunk_size = 2 ** 20  # download in 1 MB chunks
-                    with open(file_temp, 'wb') as fout:
-                        for chunk in req.iter_content(chunk_size=chunk_size):
-                            if chunk:  # filter out keep-alive new chunks
-                                fout.write(chunk)
-                                progress.update(len(chunk))
-                                downloaded_bytes += len(chunk)
-            with ZipFile(file_temp, 'r') as zip_file:
-                zip_file.extractall(os.path.dirname(product_path))
-            Path(file_temp).unlink()
-            return
-        except Exception as e:
-            log(env["General"]["log"], "Failed download attempt {} of {}: {}".format(attempt + 1, max_attempts, e), indent=1)
+        if "s3" in env["COAH"] and env["COAH"]["s3"].lower() == "true":
+            log(env["General"]["log"], "Starting S3 download attempt {} of {}".format(attempt + 1, max_attempts),
+                indent=1)
+            folder_temp = "{}.incomplete".format(product_path)
             try:
-                if os.path.exists(product_path):
-                    shutil.rmtree(product_path)
-                if os.path.exists(file_temp):
-                    Path(file_temp).unlink()
-            except:
-                pass
-            time.sleep(wait_time)
+                s3 = boto3.resource('s3',
+                                    aws_access_key_id=env["COAH"]["access_key"],
+                                    aws_secret_access_key=env["COAH"]["secret_key"],
+                                    endpoint_url=bucket_address, )
+                bucket = s3.Bucket(bucket_name)
+                prefix = s3_key.replace("/eodata/", "")
+                objects = [o.key for o in bucket.objects.filter(Prefix=prefix) if not o.key.endswith("/")]
+                for i in range(len(objects)):
+                    print("Downloading sub-file {} ({}/{})".format(os.path.basename(objects[i]), i + 1, len(objects)))
+                    local_path = folder_temp + objects[i].replace(prefix, "")
+                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    bucket.download_file(objects[i], local_path)
+                shutil.move(folder_temp, product_path)
+                log(env["General"]["log"], "Download complete", indent=1)
+                return
+            except Exception as e:
+                log(env["General"]["log"],
+                    "Failed S3 download attempt {} of {}: {}".format(attempt + 1, max_attempts, e), indent=1)
+                try:
+                    if os.path.exists(product_path):
+                        shutil.rmtree(product_path)
+                    if os.path.exists(folder_temp):
+                        Path(folder_temp).unlink()
+                except:
+                    pass
+                time.sleep(wait_time)
+        else:
+            log(env["General"]["log"], "Starting download attempt {} of {}".format(attempt + 1, max_attempts), indent=1)
+            token = server_authenticate(auth, env)
+            os.makedirs(os.path.dirname(product_path), exist_ok=True)
+            file_temp = "{}.incomplete".format(product_path)
+            session = requests.Session()
+            session.headers.update({'Authorization': f'Bearer {token}'})
+            url = download_address.format(uuid)
+            try:
+                downloaded_bytes = 0
+                with session.get(url, stream=True, timeout=600) as req:
+                    if int(req.status_code) >= 400:
+                        try:
+                            error_msg = req.json()
+                        except:
+                            error_msg = req.text
+                        raise ValueError("{} ERROR. {}".format(req.status_code, error_msg))
+                    with tqdm(unit='B', unit_scale=True, disable=not True) as progress:
+                        chunk_size = 2 ** 20  # download in 1 MB chunks
+                        with open(file_temp, 'wb') as fout:
+                            for chunk in req.iter_content(chunk_size=chunk_size):
+                                if chunk:  # filter out keep-alive new chunks
+                                    fout.write(chunk)
+                                    progress.update(len(chunk))
+                                    downloaded_bytes += len(chunk)
+                with ZipFile(file_temp, 'r') as zip_file:
+                    zip_file.extractall(os.path.dirname(product_path))
+                Path(file_temp).unlink()
+                return
+            except Exception as e:
+                log(env["General"]["log"], "Failed download attempt {} of {}: {}".format(attempt + 1, max_attempts, e), indent=1)
+                try:
+                    if os.path.exists(product_path):
+                        shutil.rmtree(product_path)
+                    if os.path.exists(file_temp):
+                        Path(file_temp).unlink()
+                except:
+                    pass
+                time.sleep(wait_time)
     raise ValueError("Failed to download file after {} attempts".format(max_attempts))
 
 

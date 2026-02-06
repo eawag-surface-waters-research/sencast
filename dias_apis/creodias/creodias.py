@@ -29,6 +29,7 @@ download_address = "https://zipper.creodias.eu/download/{}?token={}"
 
 token_address = 'https://identity.cloudferro.com/auth/realms/Creodias-new/protocol/openid-connect/token'
 
+bucket_address = "https://eodata.cloudferro.com"
 
 def get_download_requests(auth, start_date, end_date, sensor, resolution, wkt, env):
     start = datetime.fromisoformat(start_date)
@@ -135,7 +136,7 @@ def do_download(auth, product, env, max_attempts=4, wait_time=30, bucket_name="D
                 s3 = boto3.resource('s3',
                                     aws_access_key_id=env["CREODIAS"]["access_key"],
                                     aws_secret_access_key=env["CREODIAS"]["secret_key"],
-                                    endpoint_url=env["CREODIAS"]["host"], )
+                                    endpoint_url=bucket_address, )
                 bucket = s3.Bucket(bucket_name)
                 prefix = s3_key.replace("/eodata/", "")
                 objects = [o.key for o in bucket.objects.filter(Prefix=prefix) if not o.key.endswith("/")]
