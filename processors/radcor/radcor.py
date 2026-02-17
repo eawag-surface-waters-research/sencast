@@ -6,7 +6,8 @@ Radcor processor for adjacency effect correction using ACOLITE outputs.
 
 Scientific objective:
 - Replace sensor radiance values with adjacency corrected equivalents derived
-  from ACOLITE reflectance, supporting downstream water quality processing.
+  from ACOLITE reflectance, supporting downstream atmospheric correction processing.
+- Enforce deterministic MSI band mapping.
 
 Inputs and data dependencies:
 - Sentinel-3 OLCI or Sentinel-2 MSI Level 1 products on disk.
@@ -18,6 +19,9 @@ Outputs or side effects:
 - Writes a RADCOR product folder under the input product directory.
 - Writes temporary processing folders under the output directory and removes them after completion.
 - Writes or updates ACOLITE settings files under the reproducibility folder.
+- For MSI runs at 20 m, writes adjacency corrected values into native band files
+  using nearest resampling for B02, B03, B04, and B08, and average resampling
+  for the remaining MSI bands to avoid inventing subpixel structure.
 
 Manual parameters or settings to review:
 - RADCOR section values such as radcor_max_vza, radcor_aot_estimate,
@@ -49,14 +53,46 @@ from utils.auxil import log
 from constants import REPROD_DIR
 
 
-# Key of the params section for this processor
 from utils.product_fun import get_lons_lats
 
 PARAMS_SECTION = "RADCOR"
-# The name of the folder to which the output product will be saved
 OUT_DIR = "L1RADCOR"
-# The name of the settings file for acolite
 SETTINGS_FILENAME = "radcor_{}.properties"
+
+# Keep aliases deterministic across S2A, S2B, and S2C to avoid ambiguity when
+# ACOLITE exposes slightly different wavelengths for the same MSI band.
+MSI_BAND_TO_WAVELENGTHS = {
+    "B01": ("443", "442", "444"),
+    "B02": ("492", "493", "489"),
+    "B03": ("560", "559", "561"),
+    "B04": ("665", "667"),
+    "B05": ("705", "704", "707"),
+    "B06": ("740", "739", "741"),
+    "B07": ("783", "780", "781", "784", "785"),
+    "B08": ("842", "833", "835", "844"),
+    "B8A": ("865", "864", "866"),
+    "B09": ("943", "944", "945", "946", "947", "948", "940"),
+    "B10": ("1375", "1374", "1373", "1372", "1377", "1378"),
+    "B11": ("1610", "1611", "1612", "1614"),
+    "B12": ("2190", "2186", "2184", "2191", "2193", "2198", "2202"),
+}
+MSI_BAND_ORDER = tuple(MSI_BAND_TO_WAVELENGTHS.keys())
+MSI_AC_TOKEN_TO_BAND = {
+    "1": "B01", "01": "B01", "B1": "B01", "B01": "B01",
+    "2": "B02", "02": "B02", "B2": "B02", "B02": "B02",
+    "3": "B03", "03": "B03", "B3": "B03", "B03": "B03",
+    "4": "B04", "04": "B04", "B4": "B04", "B04": "B04",
+    "5": "B05", "05": "B05", "B5": "B05", "B05": "B05",
+    "6": "B06", "06": "B06", "B6": "B06", "B06": "B06",
+    "7": "B07", "07": "B07", "B7": "B07", "B07": "B07",
+    "8": "B08", "08": "B08", "B8": "B08", "B08": "B08",
+    "8A": "B8A", "B8A": "B8A",
+    "9": "B09", "09": "B09", "B9": "B09", "B09": "B09",
+    "10": "B10", "B10": "B10",
+    "11": "B11", "B11": "B11",
+    "12": "B12", "B12": "B12",
+}
+MSI_BANDS_10M = {"B02", "B03", "B04", "B08"}
 
 def _tile_id_from_product(product_id):
     match = re.search(r"_T\d{2}[A-Z]{3}_", product_id)
@@ -113,6 +149,39 @@ def _parse_ac_bands(value):
     return parts
 
 
+def _parse_msi_ac_bands(value):
+    """Parse ACOLITE MSI ac_bands tokens into canonical MSI band ids."""
+
+    if value is None:
+        return None
+
+    if isinstance(value, (list, tuple, np.ndarray)):
+        tokens = [str(item).strip().strip("'\"") for item in value]
+    else:
+        text = str(value).strip()
+        text = text.strip("[]")
+        tokens = [item.strip().strip("'\"") for item in text.split(",")]
+
+    selected = set()
+    unknown = []
+    for token in tokens:
+        if not token:
+            continue
+        key = token.upper()
+        if key not in MSI_AC_TOKEN_TO_BAND:
+            unknown.append(token)
+            continue
+        selected.add(MSI_AC_TOKEN_TO_BAND[key])
+
+    if unknown:
+        raise ValueError("RADCOR MSI fail-fast: unrecognised ACOLITE ac_bands tokens: {}".format(unknown))
+
+    if not selected:
+        return None
+
+    return [band for band in MSI_BAND_ORDER if band in selected]
+
+
 def _read_float_param(parameters, key, default, log_path=None):
     if key not in parameters:
         return default
@@ -157,6 +226,155 @@ def _select_rhotc_variable(rad_nc, toa_prefix, rad_band, log_path=None, toleranc
             indent=1,
         )
     return nearest_name
+
+
+def _list_rhotc_variables(ds, toa_prefix):
+    return sorted(var for var in ds.variables if var.startswith(toa_prefix))
+
+
+def _build_msi_src_geotransform(ds):
+    lat, lon = ds["lat"].values, ds["lon"].values
+    if lat.ndim != 2 or lon.ndim != 2:
+        raise ValueError("Expected 2D lat/lon arrays in NetCDF")
+    xres = lon[0, 1] - lon[0, 0]
+    yres = lat[1, 0] - lat[0, 0]
+    if yres >= 0:
+        raise ValueError("Latitude resolution is non-negative.")
+    return [lon[0, 0], xres, 0, lat[0, 0], 0, yres]
+
+
+def _resolve_msi_band_to_variable(ds, toa_prefix, bands_expected, log_path):
+    band_to_var = {}
+    missing_bands = {}
+
+    for band in bands_expected:
+        wl_tokens = MSI_BAND_TO_WAVELENGTHS[band]
+        matches = [f"{toa_prefix}{wl}" for wl in wl_tokens if f"{toa_prefix}{wl}" in ds.variables]
+        if not matches:
+            missing_bands[band] = wl_tokens
+            continue
+        band_to_var[band] = matches[0]
+        if len(matches) > 1:
+            log(
+                log_path,
+                "RADCOR: multiple {} matches for {}: {}. Using {}.".format(
+                    toa_prefix, band, matches, matches[0]
+                ),
+                indent=2,
+            )
+
+    if missing_bands:
+        details = []
+        for band in bands_expected:
+            if band in missing_bands:
+                details.append("{} expects one of {}".format(band, list(missing_bands[band])))
+        raise ValueError(
+            "RADCOR MSI fail-fast: missing required {} variables. {}".format(
+                toa_prefix, "; ".join(details)
+            )
+        )
+
+    return band_to_var
+
+
+def _derive_expected_msi_bands(ds, toa_prefix, log_path):
+    ac_bands_raw = ds.attrs.get("ac_bands")
+    ac_bands = _parse_msi_ac_bands(ac_bands_raw)
+    if ac_bands:
+        log(
+            log_path,
+            "RADCOR: using ACOLITE ac_bands for MSI fail-fast requirement: {}".format(ac_bands),
+            indent=1,
+        )
+        return ac_bands
+
+    inferred = []
+    for band in MSI_BAND_ORDER:
+        aliases = MSI_BAND_TO_WAVELENGTHS[band]
+        if any("{}{}".format(toa_prefix, wl) in ds.variables for wl in aliases):
+            inferred.append(band)
+
+    if not inferred:
+        raise ValueError(
+            "RADCOR MSI fail-fast: ACOLITE ac_bands is missing and no {} variables could be mapped to MSI bands.".format(
+                toa_prefix
+            )
+        )
+
+    log(
+        log_path,
+        "RADCOR: ACOLITE ac_bands missing, inferred MSI fail-fast requirement from available {} variables: {}".format(
+            toa_prefix, inferred
+        ),
+        indent=1,
+    )
+    return inferred
+
+
+def _apply_msi_band_update(ds, tmp_dir, band, rhotc_var, src_gt, log_path):
+    jp2 = find_s2_jp2(tmp_dir, band)
+    resamp = gdal.GRA_NearestNeighbour if band in MSI_BANDS_10M else gdal.GRA_Average
+    resamp_name = "nearest" if band in MSI_BANDS_10M else "average"
+    log(log_path, "RADCOR: {} uses {} (resampling: {})".format(band, rhotc_var, resamp_name), indent=2)
+    rho_acolite = ds[rhotc_var].values
+    rho_reprojected = reproject_to_band(rho_acolite, src_gt, jp2, resamp, log_path=log_path)
+    dn_sub, mask = float_to_uint16(rho_reprojected)
+    if not mask.any():
+        raise ValueError(
+            "RADCOR MSI fail-fast: no valid pixels available to update {} using {}.".format(
+                band, rhotc_var
+            )
+        )
+    update_band(jp2, dn_sub, mask)
+    return band
+
+
+def _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix):
+    ds = xr.open_dataset(acolite_file)
+    try:
+        src_gt = _build_msi_src_geotransform(ds)
+
+        rhotc_variables = _list_rhotc_variables(ds, toa_prefix)
+        if not rhotc_variables:
+            raise ValueError("RADCOR MSI fail-fast: no {} variables found in ACOLITE L2R output.".format(toa_prefix))
+        log(
+            env["General"]["log"],
+            "RADCOR: detected {} {} variables in ACOLITE L2R: {}".format(
+                len(rhotc_variables), toa_prefix, rhotc_variables
+            ),
+            indent=1,
+        )
+
+        bands_expected = _derive_expected_msi_bands(ds, toa_prefix, env["General"]["log"])
+        band_to_var = _resolve_msi_band_to_variable(ds, toa_prefix, bands_expected, env["General"]["log"])
+        log(
+            env["General"]["log"],
+            "RADCOR: MSI resampling policy is nearest for B02, B03, B04, B08 and average for other bands.",
+            indent=1,
+        )
+        log(
+            env["General"]["log"],
+            "RADCOR: attempting adjacency correction for {} radiance band files using {} variables".format(
+                len(bands_expected), toa_prefix
+            ),
+            indent=1,
+        )
+
+        processed_bands = []
+        for band in bands_expected:
+            processed_bands.append(
+                _apply_msi_band_update(ds, tmp_dir, band, band_to_var[band], src_gt, env["General"]["log"])
+            )
+
+        if set(processed_bands) != set(bands_expected):
+            missing_after = sorted(set(bands_expected) - set(processed_bands))
+            raise ValueError(
+                "RADCOR MSI fail-fast: bands were not adjacency-corrected: {}".format(missing_after)
+            )
+
+        log(env["General"]["log"], "RADCOR: adjacency-corrected bands: {}".format(processed_bands), indent=1)
+    finally:
+        ds.close()
 
 def process(env, params, l1product_path, _, out_path):
     """This processor calls acolite for the source product and writes the result to disk. It returns the location of the output product."""
@@ -382,38 +600,7 @@ def process(env, params, l1product_path, _, out_path):
     elif sensor == "MSI":
         if int(resolution) != int(20):
             raise ValueError("RADCOR for MSI only implemented for 20m")
-        WAVE_TO_BAND = {
-            "442": "B01", "443": "B01", "492": "B02", "559": "B03", "560": "B03", "665": "B04",
-            "704": "B05", "739": "B06", "740": "B06", "780": "B07", "783": "B07", "833": "B08",
-            "842": "B08", "864": "B8A", "865": "B8A", "940": "B09", "943": "B09", "1375": "B10",
-            "1377": "B10", "1610": "B11", "2186": "B12", "2190": "B12",
-        }
-        BANDS_10M = {"B02", "B03", "B04", "B08"}
-        ds = xr.open_dataset(acolite_file)
-        lat, lon = ds["lat"].values, ds["lon"].values
-        if lat.ndim != 2 or lon.ndim != 2:
-            raise ValueError("Expected 2D lat/lon arrays in NetCDF")
-        xres = lon[0, 1] - lon[0, 0]
-        yres = lat[1, 0] - lat[0, 0]
-        if yres >= 0: print("Latitude resolution is non-negative.")
-        src_gt = [lon[0, 0], xres, 0, lat[0, 0], 0, yres]
-        processed_bands = set()
-        for var in sorted(ds.variables):
-            if var.startswith(toa_prefix):
-                wl = var.split("_", 1)[1]
-                band = WAVE_TO_BAND.get(wl)
-                if band and band not in processed_bands:
-                    jp2 = find_s2_jp2(tmp_dir, band)
-                    resamp = (gdal.GRA_NearestNeighbour
-                              if band in BANDS_10M
-                              else gdal.GRA_Average)
-                    rho_acolite = ds[var].values
-                    rho_reprojected = reproject_to_band(rho_acolite, src_gt, jp2, resamp)
-                    dn_sub, mask = float_to_uint16(rho_reprojected)
-                    if mask.any():
-                        update_band(jp2, dn_sub, mask)
-                        processed_bands.add(band)
-        ds.close()
+        _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix)
     else:
         raise ValueError("RADCOR not implemented for {}".format(sensor))
 
@@ -444,41 +631,33 @@ def update_settings_file(file_path, parameters):
     keys_in_file = set()
     updated = False
 
-    # Iterate through the file to update existing parameters
     for line in lines:
         match = key_value_pattern.match(line)
         if match:
-            key = match.group(1).strip()  # Key
-            value = match.group(2).strip()  # Value before any comments
-            comment = match.group(4) if match.group(4) else ''  # Inline comment if any
+            key = match.group(1).strip()
+            value = match.group(2).strip()
+            comment = match.group(4) if match.group(4) else ''
 
-            # Check if the key exists in the parameters dict
             if key in parameters:
-                # Only update if the value has actually changed
                 if value != str(parameters[key]):
                     updated_lines.append(f"{key}={parameters[key]} {comment}\n")
-                    updated = True  # Mark that we made an update
+                    updated = True
                 else:
-                    # Keep the original line if the value has not changed
                     updated_lines.append(line)
                 keys_in_file.add(key)
             else:
-                # Keep the original line if key is not in the dict
                 updated_lines.append(line)
         else:
-            # Keep non key-value lines (comments or blank lines)
             updated_lines.append(line)
 
     if updated_lines and not updated_lines[-1].endswith("\n"):
         updated_lines[-1] = updated_lines[-1] + "\n"
 
-    # Add missing key-value pairs at the end of the file
     for key, value in parameters.items():
         if key not in keys_in_file:
             updated_lines.append(f"{key}={value}\n")
             updated = True
 
-    # Write the updated content back to the file only if changes were made
     if updated:
         with open(file_path, 'w') as file:
             file.writelines(updated_lines)
@@ -574,7 +753,7 @@ def build_mem(arr, gt, wkt, gtype):
     ds.GetRasterBand(1).WriteArray(arr)
     return ds
 
-def reproject_to_band(rho, src_gt, tpl_jp2, resampling):
+def reproject_to_band(rho, src_gt, tpl_jp2, resampling, log_path=None):
     tpl = gdal.Open(tpl_jp2)
     if not tpl: raise IOError(f"Failed to open template JP2: {tpl_jp2}")
     w, h        = tpl.RasterXSize, tpl.RasterYSize
@@ -592,8 +771,8 @@ def reproject_to_band(rho, src_gt, tpl_jp2, resampling):
     src.GetRasterBand(1).SetNoDataValue(np.nan)
 
     status = gdal.ReprojectImage(src, dst, src_wkt_epsg4326, tgt_wkt, resampling)
-    if status != 0:
-        print(f"gdal.ReprojectImage may have failed with status {status}")
+    if status != 0 and log_path:
+        log(log_path, "gdal.ReprojectImage may have failed with status {}".format(status), indent=2)
 
     reprojected_rho = dst.ReadAsArray()
     src = None
