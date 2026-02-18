@@ -221,7 +221,7 @@ def secchi_s2(width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
 
         # Zsd(broadband) according to Jiang et al.(2019)
         K_ratio = (1.04 * (1 + 5.4 * usa[:, non_nan_rows][minKd_ind].diagonal()) ** 0.5) / (
-                1 / (1 - (np.sin(sza[non_nan_rows]) ** 2 / 1.34)) ** 0.5)
+                1 / (1 - (np.sin(np.deg2rad(sza[non_nan_rows])) ** 2 / (1.34 ** 2))) ** 0.5)
         Zsd_jiang[non_nan_rows] = (1 / ((1 + K_ratio) * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
             (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
 
@@ -292,7 +292,7 @@ def secchi_s3(width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
 
         # Zsd(broadband) according to Jiang et al.(2019)
         K_ratio = (1.04 * (1 + 5.4 * usa[:, non_nan_rows][minKd_ind].diagonal()) ** 0.5) / (
-                1 / (1 - (np.sin(sza[non_nan_rows]) ** 2 / 1.34)) ** 0.5)
+                1 / (1 - (np.sin(np.deg2rad(sza[non_nan_rows])) ** 2 / (1.34 ** 2))) ** 0.5)
         Zsd_jiang[non_nan_rows] = (1 / ((1 + K_ratio) * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
             (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
 
