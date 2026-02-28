@@ -25,7 +25,7 @@ Outputs or side effects:
 
 Manual parameters or settings to review:
 - RADCOR section values such as radcor_max_vza, radcor_aot_estimate,
-  radcor_kernel_radius, and radcor_rhotc_tolerance_nm.
+  radcor_kernel_radius, radcor_rhotc_tolerance_nm, and recompute.
 - ACOLITE settings template and LUT selection for the relevant sensor and resolution.
 
 Hardcoded input and output paths:
@@ -39,6 +39,7 @@ Hardcoded input and output paths:
 import os
 import re
 import sys
+import time
 import netCDF4
 import shutil
 import importlib
@@ -93,6 +94,9 @@ MSI_AC_TOKEN_TO_BAND = {
     "12": "B12", "B12": "B12",
 }
 MSI_BANDS_10M = {"B02", "B03", "B04", "B08"}
+MSI_REQUIRED_BANDS = tuple(MSI_BAND_ORDER)
+SCENE_LOCK_POLL_SECONDS = 5.0
+SCENE_LOCK_STALE_SECONDS = 6 * 60 * 60
 
 def _tile_id_from_product(product_id):
     match = re.search(r"_T\d{2}[A-Z]{3}_", product_id)
@@ -191,6 +195,112 @@ def _read_float_param(parameters, key, default, log_path=None):
         if log_path:
             log(log_path, "Invalid value for {}. Using default {}.".format(key, default), indent=1)
         return default
+
+
+def _read_bool_param(parameters, key, default=False, log_path=None):
+    if key not in parameters:
+        return default
+
+    value = str(parameters[key]).strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off"}:
+        return False
+
+    if log_path:
+        log(log_path, "Invalid value for {}. Using default {}.".format(key, default), indent=1)
+    return default
+
+
+def _remove_tree_if_exists(path):
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+
+
+def _list_msi_bands_present(product_path):
+    granule_root = os.path.join(product_path, "GRANULE")
+    if not os.path.isdir(granule_root):
+        return set()
+
+    pattern = re.compile(r"_B(0[1-9]|1[0-2]|8A)\.jp2$", re.IGNORECASE)
+    present = set()
+    for root, _, files in os.walk(granule_root):
+        for name in files:
+            match = pattern.search(name)
+            if not match:
+                continue
+            present.add("B{}".format(match.group(1).upper()))
+    return present
+
+
+def _is_complete_cached_product(sensor, product_path):
+    if not os.path.isdir(product_path):
+        return False
+
+    if sensor == "MSI":
+        if not os.path.isfile(os.path.join(product_path, "MTD_MSIL1C.xml")):
+            return False
+        present = _list_msi_bands_present(product_path)
+        return all(band in present for band in MSI_REQUIRED_BANDS)
+
+    if sensor == "OLCI":
+        required = ("geo_coordinates.nc", "tie_geometries.nc", "instrument_data.nc")
+        for name in required:
+            if not os.path.isfile(os.path.join(product_path, name)):
+                return False
+        return any(name.endswith("_radiance.nc") for name in os.listdir(product_path))
+
+    return True
+
+
+@contextlib.contextmanager
+def _scene_lock(lock_path, log_path=None, poll_seconds=SCENE_LOCK_POLL_SECONDS, stale_seconds=SCENE_LOCK_STALE_SECONDS):
+    wait_started = None
+    next_wait_log = 0.0
+
+    while True:
+        try:
+            fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                handle.write("pid={}\n".format(os.getpid()))
+                handle.write("created_utc={}\n".format(datetime.utcnow().isoformat()))
+            if wait_started is not None and log_path:
+                waited = time.time() - wait_started
+                log(log_path, "RADCOR: acquired scene lock after waiting {:.1f}s: {}".format(waited, lock_path), indent=1)
+            break
+        except FileExistsError:
+            now = time.time()
+            if wait_started is None:
+                wait_started = now
+                next_wait_log = 0.0
+
+            try:
+                age = now - os.path.getmtime(lock_path)
+                if age > stale_seconds:
+                    if log_path:
+                        log(
+                            log_path,
+                            "RADCOR: removing stale scene lock older than {:.1f} min: {}".format(stale_seconds / 60.0, lock_path),
+                            indent=1,
+                        )
+                    os.remove(lock_path)
+                    continue
+            except FileNotFoundError:
+                continue
+
+            waited = now - wait_started
+            if log_path and waited >= next_wait_log:
+                log(log_path, "RADCOR: waiting for scene lock {:.1f}s: {}".format(waited, lock_path), indent=1)
+                next_wait_log += 60.0
+            time.sleep(poll_seconds)
+
+    try:
+        yield
+    finally:
+        try:
+            os.remove(lock_path)
+        except FileNotFoundError:
+            pass
 
 def _select_rhotc_variable(rad_nc, toa_prefix, rad_band, log_path=None, tolerance_nm=2.0):
     target_name = "{}{}".format(toa_prefix, rad_band)
@@ -396,218 +506,235 @@ def process(env, params, l1product_path, _, out_path):
     os.environ['EARTHDATA_u'] = env['EARTHDATA']['username']
     os.environ['EARTHDATA_p'] = env['EARTHDATA']['password']
 
+    if hasattr(params, "has_section") and params.has_section(PARAMS_SECTION):
+        radcor_params = params[PARAMS_SECTION]
+    elif PARAMS_SECTION in params:
+        radcor_params = params[PARAMS_SECTION]
+    else:
+        radcor_params = {}
+    recompute = _read_bool_param(
+        radcor_params,
+        "recompute",
+        default=False,
+        log_path=env["General"]["log"],
+    )
+
     radcor_folder = os.path.join(os.path.dirname(l1product_path), "RADCOR")
     os.makedirs(radcor_folder, exist_ok=True)
     radcor_file = os.path.join(radcor_folder, os.path.basename(l1product_path))
+    lock_file = "{}.lock".format(radcor_file)
 
-    if os.path.exists(radcor_file):
-        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
-            log(env["General"]["log"], "Removing file: ${}".format(radcor_file))
-            shutil.rmtree(radcor_file)
-        else:
-            log(env["General"]["log"], 'Skipping RADCOR, target already exists: {}'.format(radcor_file), indent=1)
-            return [radcor_file]
-
-    settings_file = os.path.join(out_path, REPROD_DIR, SETTINGS_FILENAME.format(sensor))
-    if not os.path.isfile(settings_file):
-        rewrite_settings_file(settings_file, sensor, resolution, limit, params[PARAMS_SECTION])
-
-    ac.acolite_run(settings_file, l1product_path, out_path)
-
-    toa_prefix = None
-    acolite_file = None
-    rf = _select_acolite_output(out_path, product_id, "_L2R.nc")
-    if not rf:
-        raise ValueError(
-            "ACOLITE L2R output is required for RADCOR because rhotc bands are needed. "
-            "No unique L2R file found for product {}.".format(product_id)
-        )
-    acolite_file = os.path.join(out_path, rf)
-    toa_prefix = "rhotc_"
-
-    wf = _select_acolite_output(out_path, product_id, "_L2W.nc")
-    acolite_l2w_file = None
-    if wf:
-        acolite_l2w_file = os.path.join(out_path, wf)
-
-    log(env["General"]["log"], "RADCOR: using ACOLITE adjacency-corrected reflectances (prefix rhotc_)", indent=1)
-    log(env["General"]["log"], "Selected ACOLITE L2R output (rhotc_): {}".format(rf), indent=1)
-    if acolite_l2w_file:
-        log(env["General"]["log"], "RADCOR: L2W found for metadata fallback: {}".format(wf), indent=1)
-    else:
-        log(env["General"]["log"], "RADCOR: no unique L2W found for metadata fallback", indent=1)
-
-    tmp_dir = os.path.join(out_path, "tmp", os.path.basename(l1product_path))
-
-    if os.path.exists(tmp_dir):
-        shutil.rmtree(tmp_dir)
-
-    shutil.copytree(l1product_path, tmp_dir)
-
-    if sensor == "OLCI":
-        rad_nc = netCDF4.Dataset(acolite_file)
-
-        rhotc_wavelengths = []
-        for var_name in rad_nc.variables:
-            if not var_name.startswith(toa_prefix):
-                continue
-            wl = _parse_wavelength(var_name[len(toa_prefix):])
-            if wl is None:
-                continue
-            rhotc_wavelengths.append(wl)
-        rhotc_wavelengths = sorted(set(rhotc_wavelengths))
-        log(
-            env["General"]["log"],
-            "RADCOR: detected {} rhotc_ bands in ACOLITE L2R: {}".format(
-                len(rhotc_wavelengths), rhotc_wavelengths
-            ),
-            indent=1,
-        )
-
-        ac_bands = _parse_ac_bands(getattr(rad_nc, "ac_bands", None))
-        ac_bands_source = "L2R"
-        if ac_bands is None:
-            ac_bands_source = "L2W"
-            if acolite_l2w_file:
-                with netCDF4.Dataset(acolite_l2w_file) as nc_w:
-                    ac_bands = _parse_ac_bands(getattr(nc_w, "ac_bands", None))
-
-        keep_bands = set()
-        if ac_bands:
-            keep_bands = set(ac_bands)
-            log(
-                env["General"]["log"],
-                "RADCOR: selecting radiance bands from ACOLITE ac_bands ({}) : {}".format(
-                    ac_bands_source, sorted(keep_bands)
-                ),
-                indent=1,
-            )
-        else:
-            log(
-                env["General"]["log"],
-                "RADCOR: ac_bands not found in L2R or L2W. No radiance bands will be adjacency-corrected.",
-                indent=1,
-            )
-
-        rad_lat = np.array(rad_nc.variables["lat"][:])
-        rad_lng = np.array(rad_nc.variables["lon"][:])
-        rad_coords = np.column_stack([rad_lat.flatten(), rad_lng.flatten()])
-        rad_idx = np.indices(rad_lat.shape)
-        rad_indices = np.column_stack([rad_idx[0].ravel(), rad_idx[1].ravel()])
-
-        with netCDF4.Dataset(os.path.join(tmp_dir, "geo_coordinates.nc")) as nc:
-            l1_shape = nc.variables["latitude"].shape
-            l1_lat = np.array(nc.variables["latitude"][:])
-            l1_lng = np.array(nc.variables["longitude"][:])
-            l1_coords = np.column_stack([l1_lat.ravel(), l1_lng.ravel()])
-            tree = cKDTree(l1_coords)
-            distances, indices = tree.query(rad_coords, k=1)
-            threshold = 0.001
-            valid_mask = distances < threshold
-            i, j = np.unravel_index(indices[valid_mask], l1_lat.shape)
-            l1_indices = np.array(list(zip(i, j)))
-
-        if l1_indices.shape[0] != rad_indices.shape[0]:
-            raise ValueError("Cannot match all Acolite pixels to OLCI pixels.")
-
-        d = distance_sun_earth(doy_ocli(os.path.basename(l1product_path)))
-        sza = solar_zenith_angle(os.path.join(tmp_dir, "tie_geometries.nc"), l1_shape)[
-            l1_indices[:, 0], l1_indices[:, 1]]
-
-        rhotc_tolerance_nm = _read_float_param(
-            params[PARAMS_SECTION],
-            "radcor_rhotc_tolerance_nm",
-            2.0,
-            log_path=env["General"]["log"],
-        )
-
-        files = [f for f in os.listdir(tmp_dir) if f.endswith("_radiance.nc")]
-        files.sort()
-        files = [f for f in files if f.split("_", 1)[0] in keep_bands]
-
-        corrected_bands = []
-        skipped_bands = {}
-
-        log(
-            env["General"]["log"],
-            "RADCOR: attempting adjacency correction for {} radiance band files using {} variables".format(
-                len(files), toa_prefix
-            ),
-            indent=1,
-        )
-
-        for file in files:
-            band = file.split("_", 1)[0]
-            band_index = int(band[2:]) - 1
-
-            rad_band = getattr(rad_nc, "{}_name".format(band), None)
-            if rad_band is None:
-                skipped_bands[band] = "missing {}_name attribute in ACOLITE file".format(band)
-                continue
-
-            try:
-                rhotc_var = _select_rhotc_variable(
-                    rad_nc,
-                    toa_prefix,
-                    rad_band,
-                    log_path=None,
-                    tolerance_nm=rhotc_tolerance_nm,
-                )
-            except KeyError as e:
-                skipped_bands[band] = str(e)
-                continue
-
-            log(
-                env["General"]["log"],
-                "RADCOR: {} uses {}".format(band, rhotc_var),
-                indent=2,
-            )
-
-            p_t = np.array(rad_nc.variables[rhotc_var][:])[rad_indices[:, 0], rad_indices[:, 1]]
-            gain = gain_value(os.path.basename(l1product_path)[:3], band_index)
-            F0 = solar_flux(band_index, os.path.join(tmp_dir, "instrument_data.nc"), l1_shape)[
-                l1_indices[:, 0], l1_indices[:, 1]]
-            radiance = reflectance_radiance(p_t, F0, sza, d, gain)
-            with netCDF4.Dataset(os.path.join(tmp_dir, file), mode="a") as nc:
-                combined_radiance = np.array(nc.variables["{}_radiance".format(band)][:])
-                if combined_radiance.shape != l1_shape:
-                    raise ValueError("Inconsistent OLCI grids.")
-                combined_radiance[l1_indices[:, 0], l1_indices[:, 1]] = radiance
-                nc.variables["{}_radiance".format(band)][:] = combined_radiance
-
-            corrected_bands.append(band)
-
-        log(
-            env["General"]["log"],
-            "RADCOR: adjacency-corrected bands: {}".format(sorted(corrected_bands)),
-            indent=1,
-        )
-
-        if skipped_bands:
-            log(
-                env["General"]["log"],
-                "RADCOR: bands kept as ORIGINAL radiance (not adjacency-corrected):",
-                indent=1,
-            )
-            for band in sorted(skipped_bands.keys()):
+    with _scene_lock(lock_file, log_path=env["General"]["log"]):
+        if os.path.exists(radcor_file):
+            is_complete = _is_complete_cached_product(sensor, radcor_file)
+            if is_complete and not recompute:
                 log(
                     env["General"]["log"],
-                    "{} skipped: {}".format(band, skipped_bands[band]),
-                    indent=2,
+                    "Skipping RADCOR, target already exists and is complete: {}".format(radcor_file),
+                    indent=1,
                 )
+                return [radcor_file]
 
-        rad_nc.close()
-    elif sensor == "MSI":
-        if int(resolution) != int(20):
-            raise ValueError("RADCOR for MSI only implemented for 20m")
-        _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix)
-    else:
-        raise ValueError("RADCOR not implemented for {}".format(sensor))
+            if recompute:
+                log(env["General"]["log"], "RADCOR: recompute=true, replacing cached target: {}".format(radcor_file), indent=1)
+            else:
+                log(env["General"]["log"], "RADCOR: cached target is incomplete, rebuilding: {}".format(radcor_file), indent=1)
+            _remove_tree_if_exists(radcor_file)
 
-    shutil.copytree(tmp_dir, radcor_file)
-    shutil.rmtree(tmp_dir)
+        settings_file = os.path.join(out_path, REPROD_DIR, SETTINGS_FILENAME.format(sensor))
+        if not os.path.isfile(settings_file):
+            rewrite_settings_file(settings_file, sensor, resolution, limit, radcor_params)
 
-    return [radcor_file]
+        ac.acolite_run(settings_file, l1product_path, out_path)
+
+        rf = _select_acolite_output(out_path, product_id, "_L2R.nc")
+        if not rf:
+            raise ValueError(
+                "ACOLITE L2R output is required for RADCOR because rhotc bands are needed. "
+                "No unique L2R file found for product {}.".format(product_id)
+            )
+        acolite_file = os.path.join(out_path, rf)
+        toa_prefix = "rhotc_"
+
+        wf = _select_acolite_output(out_path, product_id, "_L2W.nc")
+        acolite_l2w_file = os.path.join(out_path, wf) if wf else None
+
+        log(env["General"]["log"], "RADCOR: using ACOLITE adjacency-corrected reflectances (prefix rhotc_)", indent=1)
+        log(env["General"]["log"], "Selected ACOLITE L2R output (rhotc_): {}".format(rf), indent=1)
+        if acolite_l2w_file:
+            log(env["General"]["log"], "RADCOR: L2W found for metadata fallback: {}".format(wf), indent=1)
+        else:
+            log(env["General"]["log"], "RADCOR: no unique L2W found for metadata fallback", indent=1)
+
+        tmp_dir = os.path.join(out_path, "tmp", os.path.basename(l1product_path))
+        _remove_tree_if_exists(tmp_dir)
+
+        try:
+            shutil.copytree(l1product_path, tmp_dir)
+
+            if sensor == "OLCI":
+                with netCDF4.Dataset(acolite_file) as rad_nc:
+                    rhotc_wavelengths = []
+                    for var_name in rad_nc.variables:
+                        if not var_name.startswith(toa_prefix):
+                            continue
+                        wl = _parse_wavelength(var_name[len(toa_prefix):])
+                        if wl is None:
+                            continue
+                        rhotc_wavelengths.append(wl)
+                    rhotc_wavelengths = sorted(set(rhotc_wavelengths))
+                    log(
+                        env["General"]["log"],
+                        "RADCOR: detected {} rhotc_ bands in ACOLITE L2R: {}".format(
+                            len(rhotc_wavelengths), rhotc_wavelengths
+                        ),
+                        indent=1,
+                    )
+
+                    ac_bands = _parse_ac_bands(getattr(rad_nc, "ac_bands", None))
+                    ac_bands_source = "L2R"
+                    if ac_bands is None:
+                        ac_bands_source = "L2W"
+                        if acolite_l2w_file:
+                            with netCDF4.Dataset(acolite_l2w_file) as nc_w:
+                                ac_bands = _parse_ac_bands(getattr(nc_w, "ac_bands", None))
+
+                    keep_bands = set()
+                    if ac_bands:
+                        keep_bands = set(ac_bands)
+                        log(
+                            env["General"]["log"],
+                            "RADCOR: selecting radiance bands from ACOLITE ac_bands ({}) : {}".format(
+                                ac_bands_source, sorted(keep_bands)
+                            ),
+                            indent=1,
+                        )
+                    else:
+                        log(
+                            env["General"]["log"],
+                            "RADCOR: ac_bands not found in L2R or L2W. No radiance bands will be adjacency-corrected.",
+                            indent=1,
+                        )
+
+                    rad_lat = np.array(rad_nc.variables["lat"][:])
+                    rad_lng = np.array(rad_nc.variables["lon"][:])
+                    rad_coords = np.column_stack([rad_lat.flatten(), rad_lng.flatten()])
+                    rad_idx = np.indices(rad_lat.shape)
+                    rad_indices = np.column_stack([rad_idx[0].ravel(), rad_idx[1].ravel()])
+
+                    with netCDF4.Dataset(os.path.join(tmp_dir, "geo_coordinates.nc")) as nc:
+                        l1_shape = nc.variables["latitude"].shape
+                        l1_lat = np.array(nc.variables["latitude"][:])
+                        l1_lng = np.array(nc.variables["longitude"][:])
+                        l1_coords = np.column_stack([l1_lat.ravel(), l1_lng.ravel()])
+                        tree = cKDTree(l1_coords)
+                        distances, indices = tree.query(rad_coords, k=1)
+                        threshold = 0.001
+                        valid_mask = distances < threshold
+                        i, j = np.unravel_index(indices[valid_mask], l1_lat.shape)
+                        l1_indices = np.array(list(zip(i, j)))
+
+                    if l1_indices.shape[0] != rad_indices.shape[0]:
+                        raise ValueError("Cannot match all Acolite pixels to OLCI pixels.")
+
+                    d = distance_sun_earth(doy_ocli(os.path.basename(l1product_path)))
+                    sza = solar_zenith_angle(os.path.join(tmp_dir, "tie_geometries.nc"), l1_shape)[
+                        l1_indices[:, 0], l1_indices[:, 1]]
+
+                    rhotc_tolerance_nm = _read_float_param(
+                        radcor_params,
+                        "radcor_rhotc_tolerance_nm",
+                        2.0,
+                        log_path=env["General"]["log"],
+                    )
+
+                    files = [f for f in os.listdir(tmp_dir) if f.endswith("_radiance.nc")]
+                    files.sort()
+                    files = [f for f in files if f.split("_", 1)[0] in keep_bands]
+
+                    corrected_bands = []
+                    skipped_bands = {}
+
+                    log(
+                        env["General"]["log"],
+                        "RADCOR: attempting adjacency correction for {} radiance band files using {} variables".format(
+                            len(files), toa_prefix
+                        ),
+                        indent=1,
+                    )
+
+                    for file in files:
+                        band = file.split("_", 1)[0]
+                        band_index = int(band[2:]) - 1
+
+                        rad_band = getattr(rad_nc, "{}_name".format(band), None)
+                        if rad_band is None:
+                            skipped_bands[band] = "missing {}_name attribute in ACOLITE file".format(band)
+                            continue
+
+                        try:
+                            rhotc_var = _select_rhotc_variable(
+                                rad_nc,
+                                toa_prefix,
+                                rad_band,
+                                log_path=None,
+                                tolerance_nm=rhotc_tolerance_nm,
+                            )
+                        except KeyError as e:
+                            skipped_bands[band] = str(e)
+                            continue
+
+                        log(
+                            env["General"]["log"],
+                            "RADCOR: {} uses {}".format(band, rhotc_var),
+                            indent=2,
+                        )
+
+                        p_t = np.array(rad_nc.variables[rhotc_var][:])[rad_indices[:, 0], rad_indices[:, 1]]
+                        gain = gain_value(os.path.basename(l1product_path)[:3], band_index)
+                        F0 = solar_flux(band_index, os.path.join(tmp_dir, "instrument_data.nc"), l1_shape)[
+                            l1_indices[:, 0], l1_indices[:, 1]]
+                        radiance = reflectance_radiance(p_t, F0, sza, d, gain)
+                        with netCDF4.Dataset(os.path.join(tmp_dir, file), mode="a") as nc:
+                            combined_radiance = np.array(nc.variables["{}_radiance".format(band)][:])
+                            if combined_radiance.shape != l1_shape:
+                                raise ValueError("Inconsistent OLCI grids.")
+                            combined_radiance[l1_indices[:, 0], l1_indices[:, 1]] = radiance
+                            nc.variables["{}_radiance".format(band)][:] = combined_radiance
+
+                        corrected_bands.append(band)
+
+                    log(
+                        env["General"]["log"],
+                        "RADCOR: adjacency-corrected bands: {}".format(sorted(corrected_bands)),
+                        indent=1,
+                    )
+
+                    if skipped_bands:
+                        log(
+                            env["General"]["log"],
+                            "RADCOR: bands kept as ORIGINAL radiance (not adjacency-corrected):",
+                            indent=1,
+                        )
+                        for band in sorted(skipped_bands.keys()):
+                            log(
+                                env["General"]["log"],
+                                "{} skipped: {}".format(band, skipped_bands[band]),
+                                indent=2,
+                            )
+            elif sensor == "MSI":
+                if int(resolution) != int(20):
+                    raise ValueError("RADCOR for MSI only implemented for 20m")
+                _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix)
+            else:
+                raise ValueError("RADCOR not implemented for {}".format(sensor))
+
+            _remove_tree_if_exists(radcor_file)
+            shutil.copytree(tmp_dir, radcor_file)
+        finally:
+            _remove_tree_if_exists(tmp_dir)
+
+        return [radcor_file]
 
 
 def rewrite_settings_file(settings_file, sensor, resolution, limit, parameters):
