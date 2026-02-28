@@ -12,11 +12,63 @@ import os
 import tmart
 import shutil
 import sysconfig
+import glob
 from utils.auxil import log
 
 
 # key of the params section for this adapter
 PARAMS_SECTION = 'TMART'
+
+
+def _validate_msi_safe_input(l1product_path):
+    """
+    Validate that an MSI SAFE directory contains the minimum files required by T-Mart.
+    """
+    if not os.path.isdir(l1product_path):
+        return
+
+    if not os.path.basename(l1product_path).upper().endswith(".SAFE"):
+        return
+
+    metadata_path = os.path.join(l1product_path, "MTD_MSIL1C.xml")
+    if not os.path.isfile(metadata_path):
+        raise RuntimeError(
+            "TMART input validation failed: missing MTD_MSIL1C.xml in {}".format(l1product_path)
+        )
+
+    granule_root = os.path.join(l1product_path, "GRANULE")
+    granule_dirs = []
+    if os.path.isdir(granule_root):
+        granule_dirs = [
+            os.path.join(granule_root, entry)
+            for entry in os.listdir(granule_root)
+            if os.path.isdir(os.path.join(granule_root, entry))
+        ]
+    if len(granule_dirs) == 0:
+        raise RuntimeError(
+            "TMART input validation failed: no GRANULE directory found in {}".format(l1product_path)
+        )
+
+    required_bands = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B10", "B11", "B12"]
+    missing_entries = []
+    for granule_dir in granule_dirs:
+        img_data_dir = os.path.join(granule_dir, "IMG_DATA")
+        if not os.path.isdir(img_data_dir):
+            missing_entries.append("{}::IMG_DATA".format(granule_dir))
+            continue
+        for band in required_bands:
+            band_files = glob.glob(os.path.join(img_data_dir, "*_{}.jp2".format(band)))
+            if len(band_files) == 0:
+                missing_entries.append("{}::{}".format(img_data_dir, band))
+
+    if len(missing_entries) > 0:
+        raise RuntimeError(
+            "TMART input validation failed: missing required SAFE content ({} entries missing). "
+            "First missing entries: {}".format(
+                len(missing_entries),
+                ", ".join(missing_entries[:10]),
+            )
+        )
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
@@ -83,6 +135,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         file.writelines(lines)
 
     try:
+        _validate_msi_safe_input(l1product_path)
         if os.path.isfile(l1product_path):
             shutil.copy(l1product_path, aec_file)
         elif os.path.isdir(l1product_path):
