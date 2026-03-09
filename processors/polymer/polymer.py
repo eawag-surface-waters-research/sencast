@@ -50,6 +50,47 @@ DEFAULT_ATTEMPTS = 1
 DEFAULT_TIMEOUT = False
 
 
+def _parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    text = str(value).strip().lower()
+    if text in {"1", "true", "yes", "y", "on"}:
+        return True
+    if text in {"0", "false", "no", "n", "off"}:
+        return False
+    raise ValueError("Invalid boolean value: {}".format(value))
+
+
+def _collect_polymer_runtime_overrides(polymer_params):
+    runtime = {}
+
+    float_keys = {
+        "thres_rcloud": "thres_Rcloud",
+        "thres_rcloud_std": "thres_Rcloud_std",
+    }
+    int_keys = {
+        "bitmask_invalid": "BITMASK_INVALID",
+        "bitmask_reject": "BITMASK_REJECT",
+    }
+    bool_keys = {
+        "rprime_consistency": "Rprime_consistency",
+        "force_initialization": "force_initialization",
+        "reinit_rw_neg": "reinit_rw_neg",
+    }
+
+    for key, target in float_keys.items():
+        if key in polymer_params:
+            runtime[target] = float(polymer_params[key])
+    for key, target in int_keys.items():
+        if key in polymer_params:
+            runtime[target] = int(polymer_params[key])
+    for key, target in bool_keys.items():
+        if key in polymer_params:
+            runtime[target] = _parse_bool(polymer_params[key])
+
+    return runtime
+
+
 def process(env, params, l1product_path, _, out_path):
     """This processor applies polymer to the source product and stores the result."""
 
@@ -149,8 +190,27 @@ def process(env, params, l1product_path, _, out_path):
                                  OUT_FILENAME.format(anc_name, product_name).replace("reproj", "unproj"))
     l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
     os.makedirs(os.path.dirname(poly_tmp_file), exist_ok=True)
+    processors = []
+    if "General" in params and "processors" in params["General"]:
+        processors = [token.strip().upper() for token in params["General"]["processors"].split(",") if token.strip()]
+    is_radcor_plus_polymer = "RADCOR" in processors
+
+    atm_kwargs = {"water_model": water_model, "calib": calib_gains}
+    if is_radcor_plus_polymer:
+        # For RAdCor+Polymer, disable Polymer internal bitmask influence to keep the atmospheric correction independent from Polymer flagging behaviour.
+        atm_kwargs.update({
+            "thres_Rcloud": -1.0,
+            "thres_Rcloud_std": -1.0,
+            "Rprime_consistency": False,
+            "force_initialization": True,
+            "BITMASK_INVALID": 549,
+        })
+
+    atm_kwargs.update(_collect_polymer_runtime_overrides(params["POLYMER"]))
     log(env["General"]["log"], "Running atmospheric correction...", indent=1)
-    run_atm_corr(l1, l2, water_model=water_model, calib=calib_gains)
+    if is_radcor_plus_polymer:
+        log(env["General"]["log"], "RADCOR+POLYMER mode: Polymer flag influence disabled.", indent=2)
+    run_atm_corr(l1, l2, **atm_kwargs)
     log(env["General"]["log"], "Atmospheric correction complete.", indent=1)
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor))
