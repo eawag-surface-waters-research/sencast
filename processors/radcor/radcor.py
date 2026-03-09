@@ -48,6 +48,7 @@ import xarray as xr
 import contextlib
 from osgeo import gdal, osr
 from datetime import datetime
+from pyproj import Transformer
 from scipy.spatial import cKDTree
 from scipy.interpolate import RegularGridInterpolator
 from utils.auxil import log
@@ -342,15 +343,55 @@ def _list_rhotc_variables(ds, toa_prefix):
     return sorted(var for var in ds.variables if var.startswith(toa_prefix))
 
 
-def _build_msi_src_geotransform(ds):
+def _build_msi_src_geotransform(ds, target_wkt, log_path=None):
     lat, lon = ds["lat"].values, ds["lon"].values
     if lat.ndim != 2 or lon.ndim != 2:
         raise ValueError("Expected 2D lat/lon arrays in NetCDF")
-    xres = lon[0, 1] - lon[0, 0]
-    yres = lat[1, 0] - lat[0, 0]
-    if yres >= 0:
-        raise ValueError("Latitude resolution is non-negative.")
-    return [lon[0, 0], xres, 0, lat[0, 0], 0, yres]
+
+    # ACOLITE MSI lon/lat arrays are geolocated pixel centres on a projected Sentinel-2 grid.
+    # Treating them as a north-up EPSG:4326 affine raster introduces a scene-wide spatial offset. 
+    # Here we fit the source affine directly in the target projected CRS instead.
+    transformer = Transformer.from_crs("EPSG:4326", target_wkt, always_xy=True)
+    x, y = transformer.transform(lon, lat)
+
+    rows, cols = np.indices(lon.shape, dtype=float)
+    step = max(1, int(np.ceil(max(lon.shape) / 200.0)))
+    sample_rows = rows[::step, ::step].ravel()
+    sample_cols = cols[::step, ::step].ravel()
+    sample_x = x[::step, ::step].ravel()
+    sample_y = y[::step, ::step].ravel()
+
+    design = np.column_stack([
+        np.ones_like(sample_rows),
+        sample_cols + 0.5,
+        sample_rows + 0.5,
+    ])
+    coef_x, _, _, _ = np.linalg.lstsq(design, sample_x, rcond=None)
+    coef_y, _, _, _ = np.linalg.lstsq(design, sample_y, rcond=None)
+
+    gt = [
+        float(coef_x[0]),
+        float(coef_x[1]),
+        float(coef_x[2]),
+        float(coef_y[0]),
+        float(coef_y[1]),
+        float(coef_y[2]),
+    ]
+
+    if log_path:
+        pred_x = gt[0] + (cols + 0.5) * gt[1] + (rows + 0.5) * gt[2]
+        pred_y = gt[3] + (cols + 0.5) * gt[4] + (rows + 0.5) * gt[5]
+        fit_error = np.sqrt((pred_x - x) ** 2 + (pred_y - y) ** 2)
+        log(
+            log_path,
+            "RADCOR: fitted MSI source affine in target CRS with median / p95 error {:.3f} m / {:.3f} m.".format(
+                float(np.nanmedian(fit_error)),
+                float(np.nanquantile(fit_error, 0.95)),
+            ),
+            indent=1,
+        )
+
+    return gt, target_wkt
 
 
 def _resolve_msi_band_to_variable(ds, toa_prefix, bands_expected, log_path):
@@ -421,13 +462,13 @@ def _derive_expected_msi_bands(ds, toa_prefix, log_path):
     return inferred
 
 
-def _apply_msi_band_update(ds, tmp_dir, band, rhotc_var, src_gt, log_path):
+def _apply_msi_band_update(ds, tmp_dir, band, rhotc_var, src_gt, src_wkt, log_path):
     jp2 = find_s2_jp2(tmp_dir, band)
     resamp = gdal.GRA_NearestNeighbour if band in MSI_BANDS_10M else gdal.GRA_Average
     resamp_name = "nearest" if band in MSI_BANDS_10M else "average"
     log(log_path, "RADCOR: {} uses {} (resampling: {})".format(band, rhotc_var, resamp_name), indent=2)
     rho_acolite = ds[rhotc_var].values
-    rho_reprojected = reproject_to_band(rho_acolite, src_gt, jp2, resamp, log_path=log_path)
+    rho_reprojected = reproject_to_band(rho_acolite, src_gt, src_wkt, jp2, resamp, log_path=log_path)
     dn_sub, mask = float_to_uint16(rho_reprojected)
     if not mask.any():
         raise ValueError(
@@ -442,8 +483,6 @@ def _apply_msi_band_update(ds, tmp_dir, band, rhotc_var, src_gt, log_path):
 def _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix):
     ds = xr.open_dataset(acolite_file)
     try:
-        src_gt = _build_msi_src_geotransform(ds)
-
         rhotc_variables = _list_rhotc_variables(ds, toa_prefix)
         if not rhotc_variables:
             raise ValueError("RADCOR MSI fail-fast: no {} variables found in ACOLITE L2R output.".format(toa_prefix))
@@ -470,10 +509,23 @@ def _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix):
             indent=1,
         )
 
+        first_template_jp2 = find_s2_jp2(tmp_dir, bands_expected[0])
+        template_ds = gdal.Open(first_template_jp2)
+        if not template_ds:
+            raise IOError("Failed to open MSI template JP2: {}".format(first_template_jp2))
+        try:
+            src_gt, src_wkt = _build_msi_src_geotransform(
+                ds,
+                template_ds.GetProjection(),
+                log_path=env["General"]["log"],
+            )
+        finally:
+            template_ds = None
+
         processed_bands = []
         for band in bands_expected:
             processed_bands.append(
-                _apply_msi_band_update(ds, tmp_dir, band, band_to_var[band], src_gt, env["General"]["log"])
+                _apply_msi_band_update(ds, tmp_dir, band, band_to_var[band], src_gt, src_wkt, env["General"]["log"])
             )
 
         if set(processed_bands) != set(bands_expected):
@@ -880,7 +932,7 @@ def build_mem(arr, gt, wkt, gtype):
     ds.GetRasterBand(1).WriteArray(arr)
     return ds
 
-def reproject_to_band(rho, src_gt, tpl_jp2, resampling, log_path=None):
+def reproject_to_band(rho, src_gt, src_wkt, tpl_jp2, resampling, log_path=None):
     tpl = gdal.Open(tpl_jp2)
     if not tpl: raise IOError(f"Failed to open template JP2: {tpl_jp2}")
     w, h        = tpl.RasterXSize, tpl.RasterYSize
@@ -891,13 +943,11 @@ def reproject_to_band(rho, src_gt, tpl_jp2, resampling, log_path=None):
                     gt, tgt_wkt, gdal.GDT_Float32)
     dst.GetRasterBand(1).SetNoDataValue(np.nan)
 
-    srs = osr.SpatialReference(); srs.ImportFromEPSG(4326)
-    src_wkt_epsg4326 = srs.ExportToWkt()
     src = build_mem(rho.astype(np.float32), src_gt,
-                    src_wkt_epsg4326, gdal.GDT_Float32)
+                    src_wkt, gdal.GDT_Float32)
     src.GetRasterBand(1).SetNoDataValue(np.nan)
 
-    status = gdal.ReprojectImage(src, dst, src_wkt_epsg4326, tgt_wkt, resampling)
+    status = gdal.ReprojectImage(src, dst, src_wkt, tgt_wkt, resampling)
     if status != 0 and log_path:
         log(log_path, "gdal.ReprojectImage may have failed with status {}".format(status), indent=2)
 
