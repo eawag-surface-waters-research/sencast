@@ -50,7 +50,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         raise RuntimeWarning('processor must be defined in the parameter file under {}.'.format(PARAMS_SECTION))
 
     processor = params[PARAMS_SECTION]['processor']
-    if processor != 'POLYMER':
+    if processor != "POLYMER" and not (processor == "COMBINE" and "polymer" in params["COMBINE"]):
         raise RuntimeWarning('Secchi depth adapter only works with Polymer processor output')
 
     # Check for precursor datasets

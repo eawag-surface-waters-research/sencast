@@ -246,19 +246,23 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
     log(env["General"]["log"], "", blank=True)
     log(env["General"]["log"], 'Processing group: "{}"'.format(group))
     log(env["General"]["log"], 'Outputting to folder : "{}"'.format(l2_path))
-    for product in products:
-        if not os.path.exists(product["l1_product_path"]):
-            with semaphores['download']:
-                log(env["General"]["log"], "Downloading file: " + product["l1_product_path"])
-                try:
-                    do_download(auth, product, env)
-                except (Exception,):
-                    log(env["General"]["log"], traceback.format_exc(), indent=2)
-                    log(env["General"]["log"], "Failed to download file {}.".format(product["l1_product_path"]))
-                    summary.append(
-                        {"group": group, "input": product["l1_product_path"], "output": "", "type": "download",
-                         "name": "Download", "status": "Failed", "time": "", "message": traceback.format_exc()})
-                    return
+
+    if "skip_dias" in params['General'] and params['General']['skip_dias'].lower() == "true":
+        log(env["General"]["log"], 'Skipping download, skip_dias = true')
+    else:
+        for product in products:
+            if not os.path.exists(product["l1_product_path"]):
+                with semaphores['download']:
+                    log(env["General"]["log"], "Downloading file: " + product["l1_product_path"])
+                    try:
+                        do_download(auth, product, env)
+                    except (Exception,):
+                        log(env["General"]["log"], traceback.format_exc(), indent=2)
+                        log(env["General"]["log"], "Failed to download file {}.".format(product["l1_product_path"]))
+                        summary.append(
+                            {"group": group, "input": product["l1_product_path"], "output": "", "type": "download",
+                             "name": "Download", "status": "Failed", "time": "", "message": traceback.format_exc()})
+                        return
 
     with semaphores['process']:
         l2product_files = {}
