@@ -79,7 +79,9 @@ def process(env, params, l1product_path, l2product_files, out_path):
     for proc, path, bands in sources:
         with Dataset(path) as src:
             _, width, height = get_name_width_height_from_nc(src, path)
-            bounds = get_bounds_from_nc(src)
+            lat_var = 'lat' if 'lat' in src.variables else 'latitude'
+            lon_var = 'lon' if 'lon' in src.variables else 'longitude'
+            bounds = get_bounds_from_nc(src, lat_var_name=lat_var, lon_var_name=lon_var)
             if ref_width is None:
                 ref_width, ref_height, ref_bounds = width, height, bounds
             else:
