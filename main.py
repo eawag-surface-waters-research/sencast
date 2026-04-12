@@ -304,6 +304,11 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
                     input_file = product["l1_product_path"]
                     if isinstance(output_file, list):
                         output_file = output_file[0]
+                        if output_file not in l2product_files:
+                            l2product_files[output_file] = {}
+                        for k, v in l2product_files[input_file].items():
+                            if v is not False:
+                                l2product_files[output_file].setdefault(k, v)
                         product["l1_product_path"] = output_file
                         l2product_files[input_file][processor] = False
                     else:
