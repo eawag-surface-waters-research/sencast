@@ -321,11 +321,15 @@ def get_mask_from_geojson(input_file, geojson_path, reverse=False):
     lon_min, lon_max = np.min(longitudes), np.max(longitudes)
     netcdf_bounds = box(lon_min, lat_min, lon_max, lat_max)
 
-    filtered_geometries = [
-        shape(feature['geometry']) for feature in geojson_data['features']
-        if shape(feature['geometry']).intersects(netcdf_bounds)
-    ]
-    multi_polygon = MultiPolygon(filtered_geometries)
+    polygons = []
+    for feature in geojson_data['features']:
+        geom = shape(feature['geometry'])
+        if geom.intersects(netcdf_bounds):
+            if isinstance(geom, MultiPolygon):
+                polygons.extend(geom.geoms)
+            else:
+                polygons.append(geom)
+    multi_polygon = MultiPolygon(polygons)
     if len(latitudes.shape) == 1:
         x, y = len(longitudes), len(latitudes)
         latitudes = np.transpose(np.tile(latitudes, (x, 1)))
