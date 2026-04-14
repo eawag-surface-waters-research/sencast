@@ -108,23 +108,6 @@ def apply(env, params, l2product_files, date):
                                 print(e)
                                 log(env["General"]["log"], "Failed to merge with {}".format(mask_file), indent=2)
 
-                    if "shallow_mask" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["shallow_mask"].lower() == "true":
-                        mask_file = "shallow_water_mask.geojson"
-                        mask_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), mask_file)
-                        if not os.path.isfile(mask_file_path):
-                            log(env["General"]["log"], "No shallow water mask available", indent=2)
-                        else:
-                            try:
-                                log(env["General"]["log"], "Merging {} with {}".format(os.path.basename(input_file), mask_file), indent=2)
-                                shallow_mask = get_mask_from_geojson(input_file, mask_file_path, reverse=True)
-                                with Dataset(input_file, mode='r+') as dst:
-                                    create_band(dst, "shallow_mask", "", "shallow_mask>0")
-                                    write_all_pixels_to_nc(dst, "shallow_mask", shallow_mask)
-                                    append_to_valid_pixel_expression(dst, "shallow_mask>0")
-                            except Exception as e:
-                                print(e)
-                                log(env["General"]["log"], "Failed to merge with {}".format(mask_file), indent=2)
-
                     for idx, val in enumerate(bands):
                         log(env["General"]["log"], "Processing {} band {}".format(processor, val), indent=3)
                         metadata = {
