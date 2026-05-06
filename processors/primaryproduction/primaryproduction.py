@@ -2,19 +2,21 @@
 # -*- coding: utf-8 -*-
 
 """
-The Primary Production processor is an implementation of `T.Soomets et al. 2019 <https://core.ac.uk/reader/211997910>`_
-in order to derive primary production from Satellite images.
+Primary Production processor using the Lee et al. quantum yield model
+with ERA5 hourly PAR.
 """
 
 import os
 import numpy as np
-from scipy.integrate import trapezoid
+import xarray as xr
 
+import cdsapi
 from netCDF4 import Dataset
 from utils.auxil import log
 from utils.product_fun import copy_nc, get_band_names_from_nc, get_name_width_height_from_nc, \
-    get_satellite_name_from_product_name, get_valid_pe_from_nc, write_pixels_to_nc, create_band, read_pixels_from_nc, \
+    get_valid_pe_from_nc, write_pixels_to_nc, create_band, read_pixels_from_nc, \
     get_sensing_date_from_product_name, copy_band
+from processors.primaryproduction.lee_pp import lee_pp
 
 # key of the params section for this adapter
 PARAMS_SECTION = "PRIMARYPRODUCTION"
@@ -22,6 +24,37 @@ PARAMS_SECTION = "PRIMARYPRODUCTION"
 OUT_DIR = 'L2PP'
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
 OUT_FILENAME = 'L2PP_{}'
+
+# ERA5 ssrd (J/m² per hour) to surface PAR (µmol/m²/s)
+# ssrd/3600 → W/m², ×0.45 PAR fraction, ×4.57 W/m²→µmol/m²/s, ×0.95 surface transmission
+SSRD_TO_PAR = (1.0 / 3600) * 0.45 * 4.57 * 0.95
+
+
+def read_era5_par(era5_dir, date, lat, lon):
+    """Read 24h of ERA5 ssrd and convert to hourly surface PAR.
+    Downloads from CDS if not cached.
+    """
+    year, month, day = date[:4], date[4:6], date[6:8]
+    target = os.path.join(era5_dir, year, month, day, f'era5_ssrd_{date}.nc')
+    if not os.path.exists(target):
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        client = cdsapi.Client()
+        client.retrieve(
+            'reanalysis-era5-single-levels',
+            {
+                'product_type': 'reanalysis',
+                'variable': 'surface_solar_radiation_downwards',
+                'year': year,
+                'month': month,
+                'day': day,
+                'time': [f'{h:02d}:00' for h in range(24)],
+                'format': 'netcdf',
+            },
+            target)
+    ds = xr.open_dataset(target)
+    ssrd = ds.ssrd.sel(latitude=lat, longitude=lon, method='nearest').values.flatten()
+    ds.close()
+    return ssrd * SSRD_TO_PAR
 
 
 def process(env, params, l1product_path, l2product_files, out_path):
@@ -77,12 +110,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
-    log(env["General"]["log"], "Collecting depths", indent=1)
-    zvals = np.array([0, 1, 2, 3.5, 5, 7.5, 10, 15, 20, 30])
-    if "depths" in params[PARAMS_SECTION]:
-        zvals = np.array(params[PARAMS_SECTION]["depths"])
-    zvals_fine = np.linspace(np.min(zvals), np.max(zvals), 100)  # Fine spaced depths for integration
-
     with Dataset(product_path) as chl_src, Dataset(kd_product_path) as kd_src, Dataset(output_file, mode='w') as dst:
         log(env["General"]["log"], "Reading Chlorophyll values from {}".format(product_path), indent=1)
         chl_band_names = get_band_names_from_nc(chl_src)
@@ -92,10 +119,6 @@ def process(env, params, l1product_path, l2product_files, out_path):
         chl_data = np.zeros(width * height, np.float32)
         read_pixels_from_nc(chl_src, chl_bandname, 0, 0, width, height, chl_data)
         chl_valid_pixel_expression = get_valid_pe_from_nc(chl_src, chl_bandname)
-
-        if "chl_parameter" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["chl_parameter"] == "PH":
-            log(env["General"]["log"], "Convert from PH to CHL", indent=1)
-            chl_data = PhytoplanktonToChlorophyll(chl_data)
 
         log(env["General"]["log"], "Reading kd values from {}".format(kd_product_path), indent=1)
         kd_band_names = get_band_names_from_nc(kd_src)
@@ -118,97 +141,28 @@ def process(env, params, l1product_path, l2product_files, out_path):
                 copy_band(kd_src, dst, band_name)
         valid_pixel_expression = None
         if chl_valid_pixel_expression is not None and kd_valid_pixel_expression is not None and chl_valid_pixel_expression != kd_valid_pixel_expression:
-            valid_pixel_expression = '({}) and (){}'.format(chl_valid_pixel_expression, kd_valid_pixel_expression)
+            valid_pixel_expression = '({}) and ({})'.format(chl_valid_pixel_expression, kd_valid_pixel_expression)
         elif chl_valid_pixel_expression is not None:
             valid_pixel_expression = chl_valid_pixel_expression
         elif kd_valid_pixel_expression is not None:
             valid_pixel_expression = kd_valid_pixel_expression
 
-        log(env["General"]["log"], "Looking up PAR values.", indent=1)
         date = get_sensing_date_from_product_name(product_name)
-        month = datetomonth(date)
-        qpar0 = qpar0_lookup(month, chl_data)
 
-        log(env["General"]["log"], "Calculating KdMorel.", indent=1)
-        KdMorel = 0.0864 + 0.884 * kd_data - 0.00137/kd_data
+        log(env["General"]["log"], "Reading ERA5 hourly PAR.", indent=1)
+        lat_mean = float(np.nanmean(kd_src.variables['lat'][:]))
+        lon_mean = float(np.nanmean(kd_src.variables['lon'][:]))
+        par_hourly = read_era5_par(env['CDS']['anc_path'], date, lat_mean, lon_mean)
 
-        log(env["General"]["log"], "Calculating Primary Production.", indent=1)
-        pp_data = pp_trapezoidal_numerical_integration(zvals_fine, qpar0, chl_data, KdMorel)
+        log(env["General"]["log"], "Calculating Lee Primary Production.", indent=1)
+        pp_data, kdpar_data = lee_pp(chl_data, kd_data, par_hourly)
+        pp_data = pp_data.astype(np.float32)
+        kdpar_data = kdpar_data.astype(np.float32)
 
         log(env["General"]["log"], "Writing new bands to file.", indent=1)
-        create_band(dst, 'pp_integral', 'mg C m^-2 h^-1', valid_pixel_expression)
+        create_band(dst, 'pp_integral', 'mg C m^-2 day^-1', valid_pixel_expression)
         write_pixels_to_nc(dst, 'pp_integral', 0, 0, width, height, pp_data)
+        create_band(dst, 'kdpar', 'm^-1', valid_pixel_expression)
+        write_pixels_to_nc(dst, 'kdpar', 0, 0, width, height, kdpar_data)
 
     return output_file
-
-
-def PhytoplanktonToChlorophyll(ph):
-    # a_CHL = 0.054 CHL ** 0.96
-    return (ph / 0.054) ** (1/0.96)
-
-
-def pp_trapezoidal_numerical_integration(zvals, qpar0, Cchl, KdMorel):
-    if qpar0.shape == Cchl.shape and Cchl.shape == KdMorel.shape:
-        pp_tni = np.zeros_like(Cchl)
-        pp_tni[:] = np.nan
-        for i in range(1, pp_tni.shape[0] - 1):
-            if np.isfinite(Cchl[i]) and np.isfinite(qpar0[i]) and np.isfinite(KdMorel[i]) and Cchl[i] > 0:
-                pp_tni[i] = trapezoid(PP(zvals, qpar0[i], Cchl[i], KdMorel[i]), zvals)
-            else:
-                continue
-    else:
-        raise RuntimeWarning("Matrices are not of consistent shape")
-    return pp_tni
-
-
-def datetomonth(date):
-    return int(date[4:6])
-
-
-def qpar0_lookup(month, matrix):
-    lookup = {1: 2.5, 2: 2.5, 3: 4.0, 4: 4.0, 5: 6.5, 6: 6.5, 7: 6.5, 8: 6.5, 9: 4.0, 10: 4.0, 11: 2.5, 12: 2.5}
-    qpar0 = np.zeros_like(matrix)
-    try:
-        qpar_constant = lookup[month]
-    except KeyError:
-        qpar_constant = 6  # Default value
-    return qpar0 + qpar_constant
-
-
-def absorption(Cchl):
-    staehr = np.array([[405,415,425,435,445,455,465,475,485,495,505,515,525,535,545,555,565,575,585,595,605,615,625,635,645,655,665,675,685,695],
-    [0.0354096166,0.0421678948,0.0473295299,0.0518112242,0.0528416913,0.0492712169,0.0468541233,0.0438758593,0.0396055613,0.0344464397,0.0279767283,0.0218711903,0.0174634833,0.0144184829,0.0120222884,0.0099181185,0.0082114226,0.007502871,0.0076737813,0.0079705761,0.0079189265,0.0082036874,0.0091286864,0.010055497,0.0109449428,0.0124636724,0.0179222053,0.0238667838,0.0187654866,0.0081258648],
-    [0.23925,0.25175,0.2665,0.27725,0.28625,0.29725,0.297,0.30275,0.30675,0.28,0.23575,0.19325,0.1535,0.123,0.104,0.099,0.1115,0.1205,0.1495,0.17375,0.188,0.16625,0.1715,0.18575,0.202,0.21875,0.21175,0.18075,0.13575,0.1185]])
-    return staehr[1,:]*(Cchl**(1-staehr[2,:]))  # Should the 1 be removed?
-
-
-def q0par(z, qpar0, Cchl, Kpar):
-    C1 = 1.32*Kpar**0.153
-    C2 = 0.0023*Cchl + 0.016
-    return C1*np.exp(C2*z) * 0.94*qpar0*np.exp(-Kpar*z)
-
-
-def Qstarpar(z, q0par, Cchl):
-    return q0par*np.average(absorption(Cchl))
-
-
-def M (qpar0, Cchl, Kpar):
-    if Cchl < 35:
-        return 3.18-0.2125*Kpar**2.5+0.34*qpar0
-    if Cchl < 80:
-        return 3.58-0.31*qpar0-0.0072*Cchl
-    if Cchl < 120:
-        return 2.46 - 0.106*qpar0 - 0.00083*Cchl**1.5
-    else:
-        return 0.67
-
-
-def Fpar(z, q0par, M):
-    Fmax = 0.08
-    return Fmax/(1+M*q0par)**1.5
-
-
-def PP(z, qpar0, Cchl, Kpar):
-    Mval = M(qpar0, Cchl, Kpar)
-    rad = q0par(z, qpar0, Cchl, Kpar)
-    return 12000*Fpar(z, rad, Mval)*Qstarpar(z, rad, Cchl)
