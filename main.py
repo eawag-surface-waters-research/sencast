@@ -97,24 +97,48 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
     start, end = params['General']['start'], params['General']['end']
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
 
-    products = False
+    ODATA_COMPATIBLE_APIS = {"COAH", "CREODIAS"}
+
+    download_backends = []
     for api in [a.strip() for a in params['General']['remote_dias_api'].split(",")]:
-        log(env["General"]["log"], "Attempting to access data from {}".format(api))
+        log(env["General"]["log"], "Attempting to authenticate API: {}".format(api))
         try:
-            authenticate = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())),
-                                   "authenticate")
-            get_download_requests = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())),
-                                            "get_download_requests")
-            do_download = getattr(importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower())),
-                                  "do_download")
+            module = importlib.import_module("dias_apis.{}.{}".format(api.lower(), api.lower()))
+            authenticate = getattr(module, "authenticate")
+            get_download_requests = getattr(module, "get_download_requests")
+            do_download = getattr(module, "do_download")
             auth = authenticate(env[api])
-            products = get_download_requests(auth, start, end, sensor, resolution, wkt, env)
-            break
         except Exception as e:
             log(env["General"]["log"], "FAILED to access data from {}".format(api))
             print(e)
-    if products == False:
+            continue
+        download_backends.append({
+            "name": api,
+            "do_download": do_download,
+            "get_download_requests": get_download_requests,
+            "auth": auth,
+        })
+
+    if not download_backends:
         raise ValueError("Unable to access API's, please check your internet connectivity or try adding an alternative API")
+
+    if len(download_backends) > 1 and not all(b["name"] in ODATA_COMPATIBLE_APIS for b in download_backends):
+        non_odata = [b["name"] for b in download_backends if b["name"] not in ODATA_COMPATIBLE_APIS]
+        raise ValueError(
+            "Download-time failover only supports OData-compatible APIs ({}). "
+            "Cannot mix with: {}".format(sorted(ODATA_COMPATIBLE_APIS), non_odata))
+
+    products = False
+    for backend in download_backends:
+        try:
+            products = backend["get_download_requests"](backend["auth"], start, end, sensor, resolution, wkt, env)
+            break
+        except Exception as e:
+            log(env["General"]["log"], "FAILED to list products from {}".format(backend["name"]))
+            print(e)
+
+    if products is False:
+        raise ValueError("Unable to list products from any configured API")
 
     # filter for timeliness
     products = remove_superseded_products(products, env)
@@ -166,12 +190,12 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
     if "threading" in env["General"] and env["General"]["threading"].lower() == "false":
         log(env["General"]["log"], "Each group is run sequentially.")
         for group in product_groups.keys():
-            sencast_product_group(env, params, do_download, auth, product_groups[group], l2_path, l2product_files, semaphores, group)
+            sencast_product_group(env, params, download_backends, product_groups[group], l2_path, l2product_files, semaphores, group)
     else:
         log(env["General"]["log"], "Each group is handled by an individual thread.")
         hindcast_threads = []
         for group in product_groups.keys():
-            args = (env, params, do_download, auth, product_groups[group], l2_path, l2product_files, semaphores, group)
+            args = (env, params, download_backends, product_groups[group], l2_path, l2product_files, semaphores, group)
             hindcast_threads.append(Thread(target=sencast_product_group, args=args, name="Thread-{}".format(group)))
             hindcast_threads[-1].start()
 
@@ -214,7 +238,7 @@ def sencast_core(env, params, l2_path, l2product_files, max_parallel_downloads=1
             shutil.rmtree(l2_path)
 
 
-def sencast_product_group(env, params, do_download, auth, products, l2_path, l2product_files_outer, semaphores, group):
+def sencast_product_group(env, params, download_backends, products, l2_path, l2product_files_outer, semaphores, group):
     """
     Run Sencast for given thread.
     1. Downloads required products
@@ -229,11 +253,9 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
         Dictionary of parameters, loaded from input file
     env
         Dictionary of environment parameters, loaded from input file
-    do_download
-        Download function from the selected API
-        The output folder in which to save the output files
-    auth
-        Auth details for the selected API
+    download_backends
+        Ordered list of authenticated DIAS API backends ({"name", "do_download", "auth"})
+        to try in turn for each download.
     products
         Array of dictionary's that contain product information
     l2_path
@@ -254,14 +276,24 @@ def sencast_product_group(env, params, do_download, auth, products, l2_path, l2p
             if not os.path.exists(product["l1_product_path"]):
                 with semaphores['download']:
                     log(env["General"]["log"], "Downloading file: " + product["l1_product_path"])
-                    try:
-                        do_download(auth, product, env)
-                    except (Exception,):
-                        log(env["General"]["log"], traceback.format_exc(), indent=2)
-                        log(env["General"]["log"], "Failed to download file {}.".format(product["l1_product_path"]))
+                    last_exc = None
+                    for backend in download_backends:
+                        try:
+                            log(env["General"]["log"], "Attempting download via {}".format(backend["name"]), indent=1)
+                            backend["do_download"](backend["auth"], product, env)
+                            last_exc = None
+                            break
+                        except (Exception,):
+                            last_exc = traceback.format_exc()
+                            log(env["General"]["log"], last_exc, indent=2)
+                            log(env["General"]["log"],
+                                "Download via {} failed; trying next API.".format(backend["name"]), indent=1)
+                    if last_exc is not None:
+                        log(env["General"]["log"],
+                            "Failed to download file {} from all APIs.".format(product["l1_product_path"]))
                         summary.append(
                             {"group": group, "input": product["l1_product_path"], "output": "", "type": "download",
-                             "name": "Download", "status": "Failed", "time": "", "message": traceback.format_exc()})
+                             "name": "Download", "status": "Failed", "time": "", "message": last_exc})
                         return
 
     with semaphores['process']:
