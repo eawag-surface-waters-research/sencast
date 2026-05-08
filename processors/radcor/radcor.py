@@ -251,6 +251,14 @@ def _is_complete_cached_product(sensor, product_path):
                 return False
         return any(name.endswith("_radiance.nc") for name in os.listdir(product_path))
 
+    if sensor == "OLI_TIRS":
+        if not any(name.endswith("_MTL.txt") for name in os.listdir(product_path)):
+            return False
+        return all(
+            any(name.endswith("_B{}.TIF".format(band)) for name in os.listdir(product_path))
+            for band in range(1, 10)
+        )
+
     return True
 
 
@@ -545,7 +553,7 @@ def process(env, params, l1product_path, _, out_path):
     ac = importlib.import_module("acolite.acolite")
 
     product = os.path.basename(l1product_path)
-    start_date = dates_from_name(product)[0]
+    start_date = sensing_date_from_name(product)
     product_id = os.path.splitext(product)[0]
 
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
@@ -778,6 +786,61 @@ def process(env, params, l1product_path, _, out_path):
                 if int(resolution) != int(20):
                     raise ValueError("RADCOR for MSI only implemented for 20m")
                 _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix)
+            elif sensor == "OLI_TIRS":
+                metadata = read_landsat_mtl(tmp_dir)
+                wave_to_band = {
+                    "442": "B1", "443": "B1",
+                    "482": "B2", "483": "B2",
+                    "561": "B3",
+                    "654": "B4", "655": "B4",
+                    "865": "B5",
+                    "1608": "B6", "1609": "B6",
+                    "2201": "B7",
+                    "592": "B8", "594": "B8",
+                    "1373": "B9", "1374": "B9",
+                }
+                ds = xr.open_dataset(acolite_file)
+                try:
+                    lat, lon = ds["lat"].values, ds["lon"].values
+                    if lat.ndim != 2 or lon.ndim != 2:
+                        raise ValueError("Expected 2D lat/lon arrays in ACOLITE NetCDF")
+                    src_gt, src_wkt = build_lonlat_src_geotransform(lat, lon)
+
+                    processed_bands = []
+                    for var in sorted(ds.variables):
+                        if not var.startswith(toa_prefix):
+                            continue
+                        wl = var.split("_", 1)[1]
+                        band = wave_to_band.get(wl)
+                        if not band or band in processed_bands:
+                            continue
+                        tif = find_landsat_tif(tmp_dir, band)
+                        rho_reprojected = reproject_to_band(
+                            ds[var].values,
+                            src_gt,
+                            src_wkt,
+                            tif,
+                            gdal.GRA_NearestNeighbour,
+                            log_path=env["General"]["log"],
+                        )
+                        dn_sub, mask = landsat_reflectance_to_dn(rho_reprojected, tif, band, metadata)
+                        if not mask.any():
+                            log(
+                                env["General"]["log"],
+                                "RADCOR: skipping Landsat {} because the reprojected mask is empty".format(band),
+                                indent=2,
+                            )
+                            continue
+                        update_geotiff_band(tif, dn_sub, mask)
+                        processed_bands.append(band)
+
+                    log(
+                        env["General"]["log"],
+                        "RADCOR: adjacency-corrected Landsat bands: {}".format(processed_bands),
+                        indent=1,
+                    )
+                finally:
+                    ds.close()
             else:
                 raise ValueError("RADCOR not implemented for {}".format(sensor))
 
@@ -887,6 +950,15 @@ def doy_ocli(filename):
 def dates_from_name(filename):
     return re.findall(r"\d{8}T\d{6}", filename)
 
+def sensing_date_from_name(filename):
+    datetimes = dates_from_name(filename)
+    if datetimes:
+        return datetimes[0]
+    dates = re.findall(r"\d{8}", filename)
+    if dates:
+        return dates[0]
+    raise ValueError("Cannot extract sensing date from {}".format(filename))
+
 def distance_sun_earth(doy):
     return 1.00014-0.01671*np.cos(np.pi*(0.9856002831*doy-3.4532868)/180.)-0.00014*np.cos(2*np.pi*(0.9856002831*doy-3.4532868)/180.)
 
@@ -923,6 +995,33 @@ def find_s2_jp2(safe_path, band):
                 if pat.search(f):
                     return os.path.join(root, f)
     raise FileNotFoundError(f"{band} not found under any IMG_DATA")
+
+def read_landsat_mtl(product_path):
+    mtl_files = [f for f in os.listdir(product_path) if f.endswith("_MTL.txt")]
+    if len(mtl_files) != 1:
+        raise FileNotFoundError("Expected exactly one Landsat *_MTL.txt file in {}".format(product_path))
+    metadata = {}
+    with open(os.path.join(product_path, mtl_files[0]), "r") as f:
+        for line in f:
+            if "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            metadata[key.strip()] = value.strip().strip('"')
+    return metadata
+
+def find_landsat_tif(product_path, band):
+    pat = re.compile(fr'_{band}\.TIF$', re.I)
+    for f in os.listdir(product_path):
+        if pat.search(f):
+            return os.path.join(product_path, f)
+    raise FileNotFoundError("{} not found in {}".format(band, product_path))
+
+def build_lonlat_src_geotransform(lat, lon):
+    xres = lon[0, 1] - lon[0, 0]
+    yres = lat[1, 0] - lat[0, 0]
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    return [lon[0, 0], xres, 0, lat[0, 0], 0, yres], srs.ExportToWkt()
 
 def build_mem(arr, gt, wkt, gtype):
     ds = gdal.GetDriverByName("MEM") \
@@ -967,6 +1066,84 @@ def float_to_uint16(rho):
     mask = ~np.isnan(rho)
     return dn, mask
 
+def landsat_reflectance_to_dn(rho, tif, band, metadata):
+    band_number = int(band[1:])
+    mult_key = "REFLECTANCE_MULT_BAND_{}".format(band_number)
+    add_key = "REFLECTANCE_ADD_BAND_{}".format(band_number)
+    if mult_key not in metadata or add_key not in metadata:
+        raise KeyError("Missing {} or {} in Landsat metadata".format(mult_key, add_key))
+    mult = float(metadata[mult_key])
+    add = float(metadata[add_key])
+
+    sza_path = tif.replace("_{}.TIF".format(band), "_SZA.TIF")
+    if os.path.exists(sza_path):
+        sza = read_raster_matching_template(sza_path, tif, gdal.GRA_Bilinear).astype(np.float32) * 0.01
+        mus = np.cos(np.deg2rad(sza))
+    else:
+        mus = np.sin(np.deg2rad(float(metadata["SUN_ELEVATION"])))
+
+    with np.errstate(invalid="ignore", divide="ignore"):
+        vals = np.rint((rho * mus - add) / mult)
+
+    src_ds = gdal.Open(tif)
+    if src_ds is None:
+        raise IOError("Failed to open {}".format(tif))
+    src_band = src_ds.GetRasterBand(1)
+    nodata = src_band.GetNoDataValue()
+    src_dtype = src_band.DataType
+    src_ds = None
+
+    gdal_min, gdal_max = gdal_dtype_range(src_dtype)
+    fill = 0 if nodata is None else nodata
+    dn = np.where(np.isnan(rho), fill, np.clip(vals, gdal_min, gdal_max)).astype(np.uint16)
+    mask = ~np.isnan(rho)
+    return dn, mask
+
+def read_raster_matching_template(source_path, template_path, resampling):
+    source = gdal.Open(source_path)
+    if source is None:
+        raise IOError("Failed to open {}".format(source_path))
+    template = gdal.Open(template_path)
+    if template is None:
+        raise IOError("Failed to open {}".format(template_path))
+
+    dst = gdal.GetDriverByName("MEM").Create(
+        "",
+        template.RasterXSize,
+        template.RasterYSize,
+        1,
+        gdal.GDT_Float32
+    )
+    dst.SetGeoTransform(template.GetGeoTransform())
+    dst.SetProjection(template.GetProjection())
+    status = gdal.ReprojectImage(
+        source,
+        dst,
+        source.GetProjection(),
+        template.GetProjection(),
+        resampling
+    )
+    if status != 0:
+        print("gdal.ReprojectImage may have failed with status {}".format(status))
+    data = dst.ReadAsArray()
+    source = None
+    template = None
+    dst = None
+    return data
+
+def gdal_dtype_range(gdal_dtype):
+    if gdal_dtype == gdal.GDT_Byte:
+        return 0, 255
+    if gdal_dtype == gdal.GDT_UInt16:
+        return 0, 65535
+    if gdal_dtype == gdal.GDT_Int16:
+        return -32768, 32767
+    if gdal_dtype == gdal.GDT_UInt32:
+        return 0, 4294967295
+    if gdal_dtype == gdal.GDT_Int32:
+        return -2147483648, 2147483647
+    return -np.inf, np.inf
+
 def update_band(jp2, dn_sub, mask):
     src_ds = gdal.Open(jp2, gdal.GA_ReadOnly)
     if src_ds is None:
@@ -995,4 +1172,42 @@ def update_band(jp2, dn_sub, mask):
     backup_path = jp2 + '.backup.jp2'
     shutil.move(jp2, backup_path)
     shutil.move(temp_path, jp2)
+    os.remove(backup_path)
+
+def update_geotiff_band(tif, dn_sub, mask):
+    src_ds = gdal.Open(tif, gdal.GA_ReadOnly)
+    if src_ds is None:
+        raise Exception("Could not open {}".format(tif))
+    band = src_ds.GetRasterBand(1)
+    data = band.ReadAsArray()
+    modified_data = data.copy()
+    modified_data[mask] = dn_sub[mask]
+    gdal_dtype = band.DataType
+    nodata = band.GetNoDataValue()
+
+    temp_ds = gdal.GetDriverByName("MEM").Create(
+        "",
+        src_ds.RasterXSize,
+        src_ds.RasterYSize,
+        1,
+        gdal_dtype
+    )
+    temp_ds.SetGeoTransform(src_ds.GetGeoTransform())
+    temp_ds.SetProjection(src_ds.GetProjection())
+    temp_band = temp_ds.GetRasterBand(1)
+    if nodata is not None:
+        temp_band.SetNoDataValue(nodata)
+    temp_band.WriteArray(modified_data)
+    temp_path = tif + ".tmp.tif"
+    gdal.Translate(
+        temp_path,
+        temp_ds,
+        format="GTiff",
+        creationOptions=["TILED=YES", "COMPRESS=DEFLATE", "PREDICTOR=2"]
+    )
+    temp_ds = None
+    src_ds = None
+    backup_path = tif + ".backup.tif"
+    shutil.move(tif, backup_path)
+    shutil.move(temp_path, tif)
     os.remove(backup_path)
