@@ -50,7 +50,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         raise RuntimeWarning('processor must be defined in the parameter file under {}.'.format(PARAMS_SECTION))
 
     processor = params[PARAMS_SECTION]['processor']
-    if processor != 'POLYMER':
+    if processor != "POLYMER" and not (processor == "COMBINE" and "polymer" in params["COMBINE"]):
         raise RuntimeWarning('Secchi depth adapter only works with Polymer processor output')
 
     # Check for precursor datasets
@@ -134,8 +134,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
             secchi_band_names = ['Z' + band_name[2:] for band_name in spectral_band_names] + [a_gelb_band] + \
                                 ['a_dg' + band_name[2:] for band_name in spectral_band_names] + \
-                                ['a_ph' + band_name[2:] for band_name in spectral_band_names] + ['Zsd_lee', 'Zsd_jiang']
-            secchi_band_units = ['m' if 'Z' in bn else ('m^-1' if 'a' in bn else None) for bn in secchi_band_names]
+                                ['a_ph' + band_name[2:] for band_name in spectral_band_names] + ['Zsd_lee', 'Zsd_jiang', 'Kd490']
+            secchi_band_units = ['m' if 'Z' in bn else ('m^-1' if ('a' in bn or 'Kd' in bn) else None) for bn in secchi_band_names]
 
             valid_pixel_expression = get_valid_pe_from_nc(src)
             inclusions = []
@@ -212,7 +212,7 @@ def secchi_s2(width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
     usa = np.array(us)
     Kda[Kda < 0] = np.nan
     non_nan_rows = np.any(Kda > 0, axis=0)
-    if np.any(non_nan_rows is True):
+    if np.any(non_nan_rows == True):
         minKd_ind = np.nanargmin(Kda[:, non_nan_rows], axis=0)
 
         # Zsd(broadband) according to Lee et al. (2015)
@@ -232,15 +232,14 @@ def secchi_s2(width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
     s = 0.015 + (0.002 / (0.6 + ratio))
     xi = np.exp(s * (442.5 - 412.5))
     # gelbstoff and detritus for 442.5 nm:
+    # TODO: S2 has no 412 band, using index 0 (443) for both — verify decomposition is valid
     a_g = ((a_s[0] - (zeta * a_s[0])) / (xi - zeta)) - ((aws[0] - (zeta * aws[0])) / (xi - zeta))
     # a_g for whole spectrum:
     a_g_s = [a_g * np.exp(-s * (wv - 442.5)) for wv in wvl]
     # phytoplancton pigments:
     a_ph = [a - aw - a_g_s for (a, a_g_s, aw) in zip(a_s, a_g_s, aws)]
     Zs.append(a_g)
-    rrs.append(Zsd_lee)
-    rrs.append(Zsd_jiang)
-    output = Zs + a_ph + rrs
+    output = Zs + a_g_s + a_ph + [Zsd_lee, Zsd_jiang, Kds[1]]
 
     # Mark infinite values as NAN
     for bds in output:
@@ -309,9 +308,7 @@ def secchi_s3(width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
     # phytoplancton pigments:
     a_ph = [a - aw - a_g_s for (a, a_g_s, aw) in zip(a_s, a_g_s, aws)]
     Zs.append(a_g)
-    rrs.append(Zsd_lee)
-    rrs.append(Zsd_jiang)
-    output = Zs + a_ph + rrs
+    output = Zs + a_g_s + a_ph + [Zsd_lee, Zsd_jiang, Kds[2]]
 
     # Mark infinite values as NAN
     for bds in output:

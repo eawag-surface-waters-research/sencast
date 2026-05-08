@@ -289,7 +289,7 @@ def convert_valid_pixel_expression(vpe, variables):
     return vpe
 
 
-def get_mask_from_geojson(input_file, geojson_path):
+def get_mask_from_geojson(input_file, geojson_path, reverse=False):
     with open(geojson_path, 'r') as file:
         geojson_data = json.load(file)
     with Dataset(input_file, 'r+') as nc:
@@ -304,13 +304,20 @@ def get_mask_from_geojson(input_file, geojson_path):
     lon_min, lon_max = np.min(longitudes), np.max(longitudes)
     netcdf_bounds = box(lon_min, lat_min, lon_max, lat_max)
 
-    filtered_geometries = [
-        shape(feature['geometry']) for feature in geojson_data['features']
-        if shape(feature['geometry']).intersects(netcdf_bounds)
-    ]
-    multi_polygon = MultiPolygon(filtered_geometries)
+    polygons = []
+    for feature in geojson_data['features']:
+        geom = shape(feature['geometry'])
+        if geom.intersects(netcdf_bounds):
+            if isinstance(geom, MultiPolygon):
+                polygons.extend(geom.geoms)
+            else:
+                polygons.append(geom)
+    multi_polygon = MultiPolygon(polygons)
     if len(latitudes.shape) == 1:
         x, y = len(longitudes), len(latitudes)
         latitudes = np.transpose(np.tile(latitudes, (x, 1)))
         longitudes = np.tile(longitudes, (y, 1))
-    return shapely.vectorized.contains(multi_polygon, longitudes, latitudes).astype("int") * 255
+    mask = shapely.vectorized.contains(multi_polygon, longitudes, latitudes)
+    if reverse:
+        mask = ~mask
+    return mask.astype("int") * 255

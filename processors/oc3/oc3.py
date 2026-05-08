@@ -45,7 +45,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         raise RuntimeWarning("OC3 processor must be defined in the parameter file.")
 
     processor = params[PARAMS_SECTION]["processor"]
-    if processor != "POLYMER":
+    if processor != "POLYMER" and not (processor == "COMBINE" and "polymer" in params["COMBINE"]):
         raise RuntimeWarning("OC3 adapter only works with Polymer processor output")
 
     # Check for precursor datasets

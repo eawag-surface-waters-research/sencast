@@ -30,3 +30,4 @@ acolite_run_*_log_file.txt
 /examples/*
 !/examples/example.py
 !/examples/reprocess.py
+hq/
