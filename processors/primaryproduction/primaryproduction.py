@@ -110,7 +110,10 @@ def process(env, params, l1product_path, l2product_files, out_path):
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
-    with Dataset(product_path) as chl_src, Dataset(kd_product_path) as kd_src, Dataset(output_file, mode='w') as dst:
+    tmp_output_file = output_file + '.tmp'
+    if os.path.isfile(tmp_output_file):
+        os.remove(tmp_output_file)
+    with Dataset(product_path) as chl_src, Dataset(kd_product_path) as kd_src, Dataset(tmp_output_file, mode='w') as dst:
         log(env["General"]["log"], "Reading Chlorophyll values from {}".format(product_path), indent=1)
         chl_band_names = get_band_names_from_nc(chl_src)
         if chl_bandname not in chl_band_names:
@@ -165,4 +168,5 @@ def process(env, params, l1product_path, l2product_files, out_path):
         create_band(dst, 'kdpar', 'm^-1', valid_pixel_expression)
         write_pixels_to_nc(dst, 'kdpar', 0, 0, width, height, kdpar_data)
 
+    os.rename(tmp_output_file, output_file)
     return output_file
