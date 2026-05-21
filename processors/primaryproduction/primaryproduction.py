@@ -153,8 +153,8 @@ def process(env, params, l1product_path, l2product_files, out_path):
         date = get_sensing_date_from_product_name(product_name)
 
         log(env["General"]["log"], "Reading ERA5 hourly PAR.", indent=1)
-        lat_mean = float(np.nanmean(kd_src.variables['lat'][:]))
-        lon_mean = float(np.nanmean(kd_src.variables['lon'][:]))
+        lat_mean = float(np.nanmean(np.array(kd_src.variables['lat'][:], dtype=float)))
+        lon_mean = float(np.nanmean(np.array(kd_src.variables['lon'][:], dtype=float)))
         par_hourly = read_era5_par(env['CDS']['anc_path'], date, lat_mean, lon_mean)
 
         log(env["General"]["log"], "Calculating Lee Primary Production.", indent=1)
