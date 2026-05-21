@@ -52,6 +52,7 @@ def apply(env, params, l2product_files, date):
     if not bool(l2product_files):
         raise ValueError("No l2 products available to process")
     errors = []
+    l2product_file = None
     commit_hash = get_commit_hash(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     for key in params[PARAMS_SECTION].keys():
         processor = key[0:key.find("_")].upper()
@@ -151,27 +152,30 @@ def apply(env, params, l2product_files, date):
     if "aws_access_key_id" not in env["AWS"] or "aws_secret_access_key" not in env["AWS"]:
         raise ValueError("aws_access_key_id and aws_secret_access_key must be defined in [AWS] in the environment file")
 
-    if l2product_file:
-        log(env["General"]["log"], "Uploading files to {}".format(params[PARAMS_SECTION]["bucket"]), indent=1)
-        client = boto3.client(
-            's3',
-            aws_access_key_id=env["AWS"]["aws_access_key_id"],
-            aws_secret_access_key=env["AWS"]["aws_secret_access_key"]
-        )
-        out_folders = os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR)
-        failed = False
-        bucket_path = params[PARAMS_SECTION]["bucket_path"]
-        for root, dirs, files in os.walk(out_folders):
-            for file in files:
-                if file.endswith(".tif") or file.endswith(".json") or file.endswith(".ini"):
-                    try:
-                        log(env["General"]["log"], "Uploading {}".format(file), indent=2)
-                        client.upload_file(os.path.join(root, file), params[PARAMS_SECTION]["bucket"], os.path.join(bucket_path, os.path.relpath(os.path.join(root, file), out_folders)))
-                    except:
-                        failed = True
-                        log(env["General"]["log"], "Failed to upload: {}".format(file), indent=2)
-        if failed:
-            raise RuntimeError("Failed to upload all files to {}".format(params[PARAMS_SECTION]["bucket"]))
+    if l2product_file is None:
+        log(env["General"]["log"], "Skipping GEOTIFF upload: no upstream l2 products available.", indent=1)
+        return
+
+    log(env["General"]["log"], "Uploading files to {}".format(params[PARAMS_SECTION]["bucket"]), indent=1)
+    client = boto3.client(
+        's3',
+        aws_access_key_id=env["AWS"]["aws_access_key_id"],
+        aws_secret_access_key=env["AWS"]["aws_secret_access_key"]
+    )
+    out_folders = os.path.join(os.path.dirname(os.path.dirname(l2product_file)), OUT_DIR)
+    failed = False
+    bucket_path = params[PARAMS_SECTION]["bucket_path"]
+    for root, dirs, files in os.walk(out_folders):
+        for file in files:
+            if file.endswith(".tif") or file.endswith(".json") or file.endswith(".ini"):
+                try:
+                    log(env["General"]["log"], "Uploading {}".format(file), indent=2)
+                    client.upload_file(os.path.join(root, file), params[PARAMS_SECTION]["bucket"], os.path.join(bucket_path, os.path.relpath(os.path.join(root, file), out_folders)))
+                except:
+                    failed = True
+                    log(env["General"]["log"], "Failed to upload: {}".format(file), indent=2)
+    if failed:
+        raise RuntimeError("Failed to upload all files to {}".format(params[PARAMS_SECTION]["bucket"]))
 
     if len(errors) > 0:
         raise ValueError(". ".join(errors))
