@@ -22,7 +22,11 @@ def get_download_requests(auth, start_date, end_date, sensor, resolution, wkt, e
 
     log(env["General"]["log"], "Searching local products in {}".format(root), indent=1)
     if not os.path.isdir(root):
-        log(env["General"]["log"], "Local input root does not exist: {}".format(root), indent=2)
+        log(
+            env["General"]["log"],
+            "Local input root does not exist: {}. Check DIAS l1_path: {}".format(root, env["DIAS"]["l1_path"]),
+            indent=2,
+        )
         return products
 
     for product_path in iter_product_paths(root):
@@ -58,7 +62,6 @@ def get_input_root(env, sensor=None, start=None):
     l1_path = env["DIAS"]["l1_path"]
     replacements = {
         "sensor": sensor,
-        "dataset": sensor,
     }
     if start is not None:
         replacements.update({
@@ -73,15 +76,36 @@ def get_input_root(env, sensor=None, start=None):
 
     marker = "{product_name}"
     if marker in l1_path:
-        return l1_path.split(marker)[0].rstrip("/\\")
-    return os.path.dirname(l1_path)
+        product_root = l1_path.split(marker)[0].rstrip("/\\")
+        if "{" not in product_root:
+            return product_root
+        return root_before_first_placeholder(product_root)
+    return root_before_first_placeholder(l1_path)
 
 
 def iter_product_paths(root):
-    for name in os.listdir(root):
-        path = os.path.join(root, name)
-        if is_landsat_product(name, path) or is_sentinel_product(name, path):
-            yield path
+    for current_root, dirs, _ in os.walk(root):
+        product_dirs = []
+        for name in dirs:
+            path = os.path.join(current_root, name)
+            if is_landsat_product(name, path) or is_sentinel_product(name, path):
+                product_dirs.append(name)
+                yield path
+        if product_dirs:
+            dirs[:] = [name for name in dirs if name not in product_dirs]
+
+
+def root_before_first_placeholder(path_template):
+    first_placeholder = path_template.find("{")
+    if first_placeholder == -1:
+        return os.path.dirname(path_template)
+
+    root = path_template[:first_placeholder].rstrip("/\\")
+    if not root or root == os.sep:
+        raise ValueError(
+            "LOCAL DIAS l1_path needs a stable directory before the first placeholder: {}".format(path_template)
+        )
+    return root or os.sep
 
 
 def matches_sensor(product_name, sensor):
