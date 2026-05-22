@@ -96,6 +96,18 @@ MSI_AC_TOKEN_TO_BAND = {
 }
 MSI_BANDS_10M = {"B02", "B03", "B04", "B08"}
 MSI_REQUIRED_BANDS = tuple(MSI_BAND_ORDER)
+OLI_BAND_TO_WAVELENGTHS = {
+    "B1": ("443", "442"),
+    "B2": ("483", "482"),
+    "B3": ("561",),
+    "B4": ("655", "654"),
+    "B5": ("865",),
+    "B6": ("1609", "1608"),
+    "B7": ("2201",),
+    "B8": ("594", "592"),
+    "B9": ("1374", "1373"),
+}
+OLI_BAND_ORDER = tuple(OLI_BAND_TO_WAVELENGTHS.keys())
 SCENE_LOCK_POLL_SECONDS = 5.0
 SCENE_LOCK_STALE_SECONDS = 6 * 60 * 60
 
@@ -185,6 +197,46 @@ def _parse_msi_ac_bands(value):
         return None
 
     return [band for band in MSI_BAND_ORDER if band in selected]
+
+
+def _parse_oli_ac_bands(value):
+    """Parse ACOLITE OLI ac_bands tokens into canonical Landsat band ids."""
+
+    if value is None:
+        return None
+
+    if isinstance(value, (list, tuple, np.ndarray)):
+        tokens = [str(item).strip().strip("'\"") for item in value]
+    else:
+        text = str(value).strip()
+        text = text.strip("[]")
+        tokens = [item.strip().strip("'\"") for item in re.split(r"[\s,;]+", text)]
+
+    selected = set()
+    unknown = []
+    wavelength_to_band = {
+        wl: band
+        for band, wavelengths in OLI_BAND_TO_WAVELENGTHS.items()
+        for wl in wavelengths
+    }
+    for token in tokens:
+        if not token:
+            continue
+        key = token.upper()
+        match = re.fullmatch(r"B?0?([1-9])", key)
+        band = "B{}".format(match.group(1)) if match else wavelength_to_band.get(token)
+        if band not in OLI_BAND_TO_WAVELENGTHS:
+            unknown.append(token)
+            continue
+        selected.add(band)
+
+    if unknown:
+        raise ValueError("RADCOR OLI fail-fast: unrecognised ACOLITE ac_bands tokens: {}".format(unknown))
+
+    if not selected:
+        return None
+
+    return [band for band in OLI_BAND_ORDER if band in selected]
 
 
 def _read_float_param(parameters, key, default, log_path=None):
@@ -352,12 +404,20 @@ def _list_rhotc_variables(ds, toa_prefix):
 
 
 def _build_msi_src_geotransform(ds, target_wkt, log_path=None):
+    return _fit_acolite_src_geotransform(ds, target_wkt, "MSI", log_path=log_path)
+
+
+def _build_oli_src_geotransform(ds, target_wkt, log_path=None):
+    return _fit_acolite_src_geotransform(ds, target_wkt, "OLI", log_path=log_path)
+
+
+def _fit_acolite_src_geotransform(ds, target_wkt, sensor_label, log_path=None):
     lat, lon = ds["lat"].values, ds["lon"].values
     if lat.ndim != 2 or lon.ndim != 2:
         raise ValueError("Expected 2D lat/lon arrays in NetCDF")
 
-    # ACOLITE MSI lon/lat arrays are geolocated pixel centres on a projected Sentinel-2 grid.
-    # Treating them as a north-up EPSG:4326 affine raster introduces a scene-wide spatial offset. 
+    # ACOLITE lon/lat arrays are geolocated pixel centres.
+    # Treating them as a north-up EPSG:4326 affine raster introduces a scene-wide spatial offset.
     # Here we fit the source affine directly in the target projected CRS instead.
     transformer = Transformer.from_crs("EPSG:4326", target_wkt, always_xy=True)
     x, y = transformer.transform(lon, lat)
@@ -392,7 +452,8 @@ def _build_msi_src_geotransform(ds, target_wkt, log_path=None):
         fit_error = np.sqrt((pred_x - x) ** 2 + (pred_y - y) ** 2)
         log(
             log_path,
-            "RADCOR: fitted MSI source affine in target CRS with median / p95 error {:.3f} m / {:.3f} m.".format(
+            "RADCOR: fitted {} source affine in target CRS with median / p95 error {:.3f} m / {:.3f} m.".format(
+                sensor_label,
                 float(np.nanmedian(fit_error)),
                 float(np.nanquantile(fit_error, 0.95)),
             ),
@@ -436,6 +497,65 @@ def _resolve_msi_band_to_variable(ds, toa_prefix, bands_expected, log_path):
     return band_to_var
 
 
+def _resolve_oli_band_to_variable(ds, toa_prefix, bands_expected, log_path, tolerance_nm=2.0):
+    band_to_var = {}
+    missing_bands = {}
+    used_vars = set()
+
+    for band in bands_expected:
+        wl_tokens = OLI_BAND_TO_WAVELENGTHS[band]
+        matches = [f"{toa_prefix}{wl}" for wl in wl_tokens if f"{toa_prefix}{wl}" in ds.variables]
+
+        if matches:
+            selected = matches[0]
+        else:
+            try:
+                selected = _select_rhotc_variable(
+                    ds,
+                    toa_prefix,
+                    wl_tokens[0],
+                    log_path=log_path,
+                    tolerance_nm=tolerance_nm,
+                )
+            except KeyError as exc:
+                missing_bands[band] = "{} expects one of {} or a variable within {:.2f} nm: {}".format(
+                    band, list(wl_tokens), tolerance_nm, exc
+                )
+                continue
+
+        if selected in used_vars:
+            raise ValueError(
+                "RADCOR OLI fail-fast: ACOLITE variable {} was matched to multiple Landsat bands.".format(selected)
+            )
+
+        band_to_var[band] = selected
+        used_vars.add(selected)
+        if selected not in matches:
+            log(
+                log_path,
+                "RADCOR: {} uses {} via wavelength tolerance.".format(band, selected),
+                indent=2,
+            )
+        elif len(matches) > 1:
+            log(
+                log_path,
+                "RADCOR: multiple {} matches for {}: {}. Using {}.".format(
+                    toa_prefix, band, matches, selected
+                ),
+                indent=2,
+            )
+
+    if missing_bands:
+        details = [missing_bands[band] for band in bands_expected if band in missing_bands]
+        raise ValueError(
+            "RADCOR OLI fail-fast: missing required {} variables. {}".format(
+                toa_prefix, "; ".join(details)
+            )
+        )
+
+    return band_to_var
+
+
 def _derive_expected_msi_bands(ds, toa_prefix, log_path):
     ac_bands_raw = ds.attrs.get("ac_bands")
     ac_bands = _parse_msi_ac_bands(ac_bands_raw)
@@ -470,6 +590,38 @@ def _derive_expected_msi_bands(ds, toa_prefix, log_path):
     return inferred
 
 
+def _derive_expected_oli_bands(ds, tmp_dir, log_path):
+    ac_bands_raw = ds.attrs.get("ac_bands")
+    ac_bands = _parse_oli_ac_bands(ac_bands_raw)
+    if ac_bands:
+        log(
+            log_path,
+            "RADCOR: using ACOLITE ac_bands for OLI fail-fast requirement: {}".format(ac_bands),
+            indent=1,
+        )
+        return ac_bands
+
+    inferred = []
+    for band in OLI_BAND_ORDER:
+        try:
+            find_landsat_tif(tmp_dir, band)
+        except FileNotFoundError:
+            continue
+        inferred.append(band)
+
+    if not inferred:
+        raise ValueError("RADCOR OLI fail-fast: no Landsat reflective band GeoTIFFs found in product.")
+
+    log(
+        log_path,
+        "RADCOR: ACOLITE ac_bands missing, inferred OLI fail-fast requirement from available Landsat GeoTIFFs: {}".format(
+            inferred
+        ),
+        indent=1,
+    )
+    return inferred
+
+
 def _apply_msi_band_update(ds, tmp_dir, band, rhotc_var, src_gt, src_wkt, log_path):
     jp2 = find_s2_jp2(tmp_dir, band)
     resamp = gdal.GRA_NearestNeighbour if band in MSI_BANDS_10M else gdal.GRA_Average
@@ -485,6 +637,28 @@ def _apply_msi_band_update(ds, tmp_dir, band, rhotc_var, src_gt, src_wkt, log_pa
             )
         )
     update_band(jp2, dn_sub, mask)
+    return band
+
+
+def _apply_oli_band_update(ds, tmp_dir, band, rhotc_var, src_gt, src_wkt, metadata, log_path):
+    tif = find_landsat_tif(tmp_dir, band)
+    log(log_path, "RADCOR: {} uses {}".format(band, rhotc_var), indent=2)
+    rho_reprojected = reproject_to_band(
+        ds[rhotc_var].values,
+        src_gt,
+        src_wkt,
+        tif,
+        gdal.GRA_NearestNeighbour,
+        log_path=log_path,
+    )
+    dn_sub, mask = landsat_reflectance_to_dn(rho_reprojected, tif, band, metadata)
+    if not mask.any():
+        raise ValueError(
+            "RADCOR OLI fail-fast: no valid pixels available to update {} using {}.".format(
+                band, rhotc_var
+            )
+        )
+    update_geotiff_band(tif, dn_sub, mask)
     return band
 
 
@@ -545,6 +719,76 @@ def _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix):
         log(env["General"]["log"], "RADCOR: adjacency-corrected bands: {}".format(processed_bands), indent=1)
     finally:
         ds.close()
+
+
+def _process_oli_fail_fast(env, radcor_params, tmp_dir, acolite_file, toa_prefix):
+    metadata = read_landsat_mtl(tmp_dir)
+    ds = xr.open_dataset(acolite_file)
+    try:
+        rhotc_variables = _list_rhotc_variables(ds, toa_prefix)
+        if not rhotc_variables:
+            raise ValueError("RADCOR OLI fail-fast: no {} variables found in ACOLITE L2R output.".format(toa_prefix))
+        log(
+            env["General"]["log"],
+            "RADCOR: detected {} {} variables in ACOLITE L2R: {}".format(
+                len(rhotc_variables), toa_prefix, rhotc_variables
+            ),
+            indent=1,
+        )
+
+        rhotc_tolerance_nm = _read_float_param(
+            radcor_params,
+            "radcor_rhotc_tolerance_nm",
+            2.0,
+            log_path=env["General"]["log"],
+        )
+        bands_expected = _derive_expected_oli_bands(ds, tmp_dir, env["General"]["log"])
+        band_to_var = _resolve_oli_band_to_variable(
+            ds,
+            toa_prefix,
+            bands_expected,
+            env["General"]["log"],
+            tolerance_nm=rhotc_tolerance_nm,
+        )
+
+        first_template_tif = find_landsat_tif(tmp_dir, bands_expected[0])
+        template_ds = gdal.Open(first_template_tif)
+        if not template_ds:
+            raise IOError("Failed to open OLI template GeoTIFF: {}".format(first_template_tif))
+        try:
+            src_gt, src_wkt = _build_oli_src_geotransform(
+                ds,
+                template_ds.GetProjection(),
+                log_path=env["General"]["log"],
+            )
+        finally:
+            template_ds = None
+
+        processed_bands = []
+        for band in bands_expected:
+            processed_bands.append(
+                _apply_oli_band_update(
+                    ds,
+                    tmp_dir,
+                    band,
+                    band_to_var[band],
+                    src_gt,
+                    src_wkt,
+                    metadata,
+                    env["General"]["log"],
+                )
+            )
+
+        if set(processed_bands) != set(bands_expected):
+            missing_after = sorted(set(bands_expected) - set(processed_bands))
+            raise ValueError(
+                "RADCOR OLI fail-fast: bands were not adjacency-corrected: {}".format(missing_after)
+            )
+
+        log(env["General"]["log"], "RADCOR: adjacency-corrected Landsat bands: {}".format(processed_bands), indent=1)
+    finally:
+        ds.close()
+
 
 def process(env, params, l1product_path, _, out_path):
     """This processor calls acolite for the source product and writes the result to disk. It returns the location of the output product."""
@@ -787,60 +1031,7 @@ def process(env, params, l1product_path, _, out_path):
                     raise ValueError("RADCOR for MSI only implemented for 20m")
                 _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix)
             elif sensor == "OLI_TIRS":
-                metadata = read_landsat_mtl(tmp_dir)
-                wave_to_band = {
-                    "442": "B1", "443": "B1",
-                    "482": "B2", "483": "B2",
-                    "561": "B3",
-                    "654": "B4", "655": "B4",
-                    "865": "B5",
-                    "1608": "B6", "1609": "B6",
-                    "2201": "B7",
-                    "592": "B8", "594": "B8",
-                    "1373": "B9", "1374": "B9",
-                }
-                ds = xr.open_dataset(acolite_file)
-                try:
-                    lat, lon = ds["lat"].values, ds["lon"].values
-                    if lat.ndim != 2 or lon.ndim != 2:
-                        raise ValueError("Expected 2D lat/lon arrays in ACOLITE NetCDF")
-                    src_gt, src_wkt = build_lonlat_src_geotransform(lat, lon)
-
-                    processed_bands = []
-                    for var in sorted(ds.variables):
-                        if not var.startswith(toa_prefix):
-                            continue
-                        wl = var.split("_", 1)[1]
-                        band = wave_to_band.get(wl)
-                        if not band or band in processed_bands:
-                            continue
-                        tif = find_landsat_tif(tmp_dir, band)
-                        rho_reprojected = reproject_to_band(
-                            ds[var].values,
-                            src_gt,
-                            src_wkt,
-                            tif,
-                            gdal.GRA_NearestNeighbour,
-                            log_path=env["General"]["log"],
-                        )
-                        dn_sub, mask = landsat_reflectance_to_dn(rho_reprojected, tif, band, metadata)
-                        if not mask.any():
-                            log(
-                                env["General"]["log"],
-                                "RADCOR: skipping Landsat {} because the reprojected mask is empty".format(band),
-                                indent=2,
-                            )
-                            continue
-                        update_geotiff_band(tif, dn_sub, mask)
-                        processed_bands.append(band)
-
-                    log(
-                        env["General"]["log"],
-                        "RADCOR: adjacency-corrected Landsat bands: {}".format(processed_bands),
-                        indent=1,
-                    )
-                finally:
-                    ds.close()
+                _process_oli_fail_fast(env, radcor_params, tmp_dir, acolite_file, toa_prefix)
             else:
                 raise ValueError("RADCOR not implemented for {}".format(sensor))
 

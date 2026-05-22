@@ -17,7 +17,7 @@ def authenticate(env):
 def get_download_requests(auth, start_date, end_date, sensor, resolution, wkt, env):
     start = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
     end = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
-    root = get_input_root(env)
+    root = get_input_root(env, sensor=sensor, start=start)
     products = []
 
     log(env["General"]["log"], "Searching local products in {}".format(root), indent=1)
@@ -54,11 +54,26 @@ def do_download(auth, product, env, max_attempts=1, wait_time=0):
     log(env["General"]["log"], "Skipping download for local product: {}".format(product["name"]), indent=1)
 
 
-def get_input_root(env):
+def get_input_root(env, sensor=None, start=None):
     l1_path = env["DIAS"]["l1_path"]
+    replacements = {
+        "sensor": sensor,
+        "dataset": sensor,
+    }
+    if start is not None:
+        replacements.update({
+            "year": start.strftime("%Y"),
+            "month": start.strftime("%m"),
+            "day": start.strftime("%d"),
+        })
+
+    for key, value in replacements.items():
+        if value is not None:
+            l1_path = l1_path.replace("{{{}}}".format(key), str(value))
+
     marker = "{product_name}"
     if marker in l1_path:
-        return l1_path.split(marker)[0].rstrip(os.sep)
+        return l1_path.split(marker)[0].rstrip("/\\")
     return os.path.dirname(l1_path)
 
 
