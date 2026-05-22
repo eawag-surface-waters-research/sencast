@@ -96,6 +96,18 @@ MSI_AC_TOKEN_TO_BAND = {
 }
 MSI_BANDS_10M = {"B02", "B03", "B04", "B08"}
 MSI_REQUIRED_BANDS = tuple(MSI_BAND_ORDER)
+OLI_BAND_TO_WAVELENGTHS = {
+    "B1": ("443", "442"),
+    "B2": ("483", "482"),
+    "B3": ("561",),
+    "B4": ("655", "654"),
+    "B5": ("865",),
+    "B6": ("1609", "1608"),
+    "B7": ("2201",),
+    "B8": ("594", "592"),
+    "B9": ("1374", "1373"),
+}
+OLI_BAND_ORDER = tuple(OLI_BAND_TO_WAVELENGTHS.keys())
 SCENE_LOCK_POLL_SECONDS = 5.0
 SCENE_LOCK_STALE_SECONDS = 6 * 60 * 60
 
@@ -187,6 +199,46 @@ def _parse_msi_ac_bands(value):
     return [band for band in MSI_BAND_ORDER if band in selected]
 
 
+def _parse_oli_ac_bands(value):
+    """Parse ACOLITE OLI ac_bands tokens into canonical Landsat band ids."""
+
+    if value is None:
+        return None
+
+    if isinstance(value, (list, tuple, np.ndarray)):
+        tokens = [str(item).strip().strip("'\"") for item in value]
+    else:
+        text = str(value).strip()
+        text = text.strip("[]")
+        tokens = [item.strip().strip("'\"") for item in re.split(r"[\s,;]+", text)]
+
+    selected = set()
+    unknown = []
+    wavelength_to_band = {
+        wl: band
+        for band, wavelengths in OLI_BAND_TO_WAVELENGTHS.items()
+        for wl in wavelengths
+    }
+    for token in tokens:
+        if not token:
+            continue
+        key = token.upper()
+        match = re.fullmatch(r"B?0?([1-9])", key)
+        band = "B{}".format(match.group(1)) if match else wavelength_to_band.get(token)
+        if band not in OLI_BAND_TO_WAVELENGTHS:
+            unknown.append(token)
+            continue
+        selected.add(band)
+
+    if unknown:
+        raise ValueError("RADCOR OLI fail-fast: unrecognised ACOLITE ac_bands tokens: {}".format(unknown))
+
+    if not selected:
+        return None
+
+    return [band for band in OLI_BAND_ORDER if band in selected]
+
+
 def _read_float_param(parameters, key, default, log_path=None):
     if key not in parameters:
         return default
@@ -250,6 +302,14 @@ def _is_complete_cached_product(sensor, product_path):
             if not os.path.isfile(os.path.join(product_path, name)):
                 return False
         return any(name.endswith("_radiance.nc") for name in os.listdir(product_path))
+
+    if sensor == "OLI_TIRS":
+        if not any(name.endswith("_MTL.txt") for name in os.listdir(product_path)):
+            return False
+        return all(
+            any(name.endswith("_B{}.TIF".format(band)) for name in os.listdir(product_path))
+            for band in range(1, 10)
+        )
 
     return True
 
@@ -344,12 +404,20 @@ def _list_rhotc_variables(ds, toa_prefix):
 
 
 def _build_msi_src_geotransform(ds, target_wkt, log_path=None):
+    return _fit_acolite_src_geotransform(ds, target_wkt, "MSI", log_path=log_path)
+
+
+def _build_oli_src_geotransform(ds, target_wkt, log_path=None):
+    return _fit_acolite_src_geotransform(ds, target_wkt, "OLI", log_path=log_path)
+
+
+def _fit_acolite_src_geotransform(ds, target_wkt, sensor_label, log_path=None):
     lat, lon = ds["lat"].values, ds["lon"].values
     if lat.ndim != 2 or lon.ndim != 2:
         raise ValueError("Expected 2D lat/lon arrays in NetCDF")
 
-    # ACOLITE MSI lon/lat arrays are geolocated pixel centres on a projected Sentinel-2 grid.
-    # Treating them as a north-up EPSG:4326 affine raster introduces a scene-wide spatial offset. 
+    # ACOLITE lon/lat arrays are geolocated pixel centres.
+    # Treating them as a north-up EPSG:4326 affine raster introduces a scene-wide spatial offset.
     # Here we fit the source affine directly in the target projected CRS instead.
     transformer = Transformer.from_crs("EPSG:4326", target_wkt, always_xy=True)
     x, y = transformer.transform(lon, lat)
@@ -384,7 +452,8 @@ def _build_msi_src_geotransform(ds, target_wkt, log_path=None):
         fit_error = np.sqrt((pred_x - x) ** 2 + (pred_y - y) ** 2)
         log(
             log_path,
-            "RADCOR: fitted MSI source affine in target CRS with median / p95 error {:.3f} m / {:.3f} m.".format(
+            "RADCOR: fitted {} source affine in target CRS with median / p95 error {:.3f} m / {:.3f} m.".format(
+                sensor_label,
                 float(np.nanmedian(fit_error)),
                 float(np.nanquantile(fit_error, 0.95)),
             ),
@@ -428,6 +497,65 @@ def _resolve_msi_band_to_variable(ds, toa_prefix, bands_expected, log_path):
     return band_to_var
 
 
+def _resolve_oli_band_to_variable(ds, toa_prefix, bands_expected, log_path, tolerance_nm=2.0):
+    band_to_var = {}
+    missing_bands = {}
+    used_vars = set()
+
+    for band in bands_expected:
+        wl_tokens = OLI_BAND_TO_WAVELENGTHS[band]
+        matches = [f"{toa_prefix}{wl}" for wl in wl_tokens if f"{toa_prefix}{wl}" in ds.variables]
+
+        if matches:
+            selected = matches[0]
+        else:
+            try:
+                selected = _select_rhotc_variable(
+                    ds,
+                    toa_prefix,
+                    wl_tokens[0],
+                    log_path=log_path,
+                    tolerance_nm=tolerance_nm,
+                )
+            except KeyError as exc:
+                missing_bands[band] = "{} expects one of {} or a variable within {:.2f} nm: {}".format(
+                    band, list(wl_tokens), tolerance_nm, exc
+                )
+                continue
+
+        if selected in used_vars:
+            raise ValueError(
+                "RADCOR OLI fail-fast: ACOLITE variable {} was matched to multiple Landsat bands.".format(selected)
+            )
+
+        band_to_var[band] = selected
+        used_vars.add(selected)
+        if selected not in matches:
+            log(
+                log_path,
+                "RADCOR: {} uses {} via wavelength tolerance.".format(band, selected),
+                indent=2,
+            )
+        elif len(matches) > 1:
+            log(
+                log_path,
+                "RADCOR: multiple {} matches for {}: {}. Using {}.".format(
+                    toa_prefix, band, matches, selected
+                ),
+                indent=2,
+            )
+
+    if missing_bands:
+        details = [missing_bands[band] for band in bands_expected if band in missing_bands]
+        raise ValueError(
+            "RADCOR OLI fail-fast: missing required {} variables. {}".format(
+                toa_prefix, "; ".join(details)
+            )
+        )
+
+    return band_to_var
+
+
 def _derive_expected_msi_bands(ds, toa_prefix, log_path):
     ac_bands_raw = ds.attrs.get("ac_bands")
     ac_bands = _parse_msi_ac_bands(ac_bands_raw)
@@ -462,6 +590,38 @@ def _derive_expected_msi_bands(ds, toa_prefix, log_path):
     return inferred
 
 
+def _derive_expected_oli_bands(ds, tmp_dir, log_path):
+    ac_bands_raw = ds.attrs.get("ac_bands")
+    ac_bands = _parse_oli_ac_bands(ac_bands_raw)
+    if ac_bands:
+        log(
+            log_path,
+            "RADCOR: using ACOLITE ac_bands for OLI fail-fast requirement: {}".format(ac_bands),
+            indent=1,
+        )
+        return ac_bands
+
+    inferred = []
+    for band in OLI_BAND_ORDER:
+        try:
+            find_landsat_tif(tmp_dir, band)
+        except FileNotFoundError:
+            continue
+        inferred.append(band)
+
+    if not inferred:
+        raise ValueError("RADCOR OLI fail-fast: no Landsat reflective band GeoTIFFs found in product.")
+
+    log(
+        log_path,
+        "RADCOR: ACOLITE ac_bands missing, inferred OLI fail-fast requirement from available Landsat GeoTIFFs: {}".format(
+            inferred
+        ),
+        indent=1,
+    )
+    return inferred
+
+
 def _apply_msi_band_update(ds, tmp_dir, band, rhotc_var, src_gt, src_wkt, log_path):
     jp2 = find_s2_jp2(tmp_dir, band)
     resamp = gdal.GRA_NearestNeighbour if band in MSI_BANDS_10M else gdal.GRA_Average
@@ -477,6 +637,28 @@ def _apply_msi_band_update(ds, tmp_dir, band, rhotc_var, src_gt, src_wkt, log_pa
             )
         )
     update_band(jp2, dn_sub, mask)
+    return band
+
+
+def _apply_oli_band_update(ds, tmp_dir, band, rhotc_var, src_gt, src_wkt, metadata, log_path):
+    tif = find_landsat_tif(tmp_dir, band)
+    log(log_path, "RADCOR: {} uses {}".format(band, rhotc_var), indent=2)
+    rho_reprojected = reproject_to_band(
+        ds[rhotc_var].values,
+        src_gt,
+        src_wkt,
+        tif,
+        gdal.GRA_NearestNeighbour,
+        log_path=log_path,
+    )
+    dn_sub, mask = landsat_reflectance_to_dn(rho_reprojected, tif, band, metadata)
+    if not mask.any():
+        raise ValueError(
+            "RADCOR OLI fail-fast: no valid pixels available to update {} using {}.".format(
+                band, rhotc_var
+            )
+        )
+    update_geotiff_band(tif, dn_sub, mask)
     return band
 
 
@@ -538,6 +720,76 @@ def _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix):
     finally:
         ds.close()
 
+
+def _process_oli_fail_fast(env, radcor_params, tmp_dir, acolite_file, toa_prefix):
+    metadata = read_landsat_mtl(tmp_dir)
+    ds = xr.open_dataset(acolite_file)
+    try:
+        rhotc_variables = _list_rhotc_variables(ds, toa_prefix)
+        if not rhotc_variables:
+            raise ValueError("RADCOR OLI fail-fast: no {} variables found in ACOLITE L2R output.".format(toa_prefix))
+        log(
+            env["General"]["log"],
+            "RADCOR: detected {} {} variables in ACOLITE L2R: {}".format(
+                len(rhotc_variables), toa_prefix, rhotc_variables
+            ),
+            indent=1,
+        )
+
+        rhotc_tolerance_nm = _read_float_param(
+            radcor_params,
+            "radcor_rhotc_tolerance_nm",
+            2.0,
+            log_path=env["General"]["log"],
+        )
+        bands_expected = _derive_expected_oli_bands(ds, tmp_dir, env["General"]["log"])
+        band_to_var = _resolve_oli_band_to_variable(
+            ds,
+            toa_prefix,
+            bands_expected,
+            env["General"]["log"],
+            tolerance_nm=rhotc_tolerance_nm,
+        )
+
+        first_template_tif = find_landsat_tif(tmp_dir, bands_expected[0])
+        template_ds = gdal.Open(first_template_tif)
+        if not template_ds:
+            raise IOError("Failed to open OLI template GeoTIFF: {}".format(first_template_tif))
+        try:
+            src_gt, src_wkt = _build_oli_src_geotransform(
+                ds,
+                template_ds.GetProjection(),
+                log_path=env["General"]["log"],
+            )
+        finally:
+            template_ds = None
+
+        processed_bands = []
+        for band in bands_expected:
+            processed_bands.append(
+                _apply_oli_band_update(
+                    ds,
+                    tmp_dir,
+                    band,
+                    band_to_var[band],
+                    src_gt,
+                    src_wkt,
+                    metadata,
+                    env["General"]["log"],
+                )
+            )
+
+        if set(processed_bands) != set(bands_expected):
+            missing_after = sorted(set(bands_expected) - set(processed_bands))
+            raise ValueError(
+                "RADCOR OLI fail-fast: bands were not adjacency-corrected: {}".format(missing_after)
+            )
+
+        log(env["General"]["log"], "RADCOR: adjacency-corrected Landsat bands: {}".format(processed_bands), indent=1)
+    finally:
+        ds.close()
+
+
 def process(env, params, l1product_path, _, out_path):
     """This processor calls acolite for the source product and writes the result to disk. It returns the location of the output product."""
 
@@ -545,7 +797,7 @@ def process(env, params, l1product_path, _, out_path):
     ac = importlib.import_module("acolite.acolite")
 
     product = os.path.basename(l1product_path)
-    start_date = dates_from_name(product)[0]
+    start_date = sensing_date_from_name(product)
     product_id = os.path.splitext(product)[0]
 
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
@@ -778,6 +1030,8 @@ def process(env, params, l1product_path, _, out_path):
                 if int(resolution) != int(20):
                     raise ValueError("RADCOR for MSI only implemented for 20m")
                 _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix)
+            elif sensor == "OLI_TIRS":
+                _process_oli_fail_fast(env, radcor_params, tmp_dir, acolite_file, toa_prefix)
             else:
                 raise ValueError("RADCOR not implemented for {}".format(sensor))
 
@@ -887,6 +1141,15 @@ def doy_ocli(filename):
 def dates_from_name(filename):
     return re.findall(r"\d{8}T\d{6}", filename)
 
+def sensing_date_from_name(filename):
+    datetimes = dates_from_name(filename)
+    if datetimes:
+        return datetimes[0]
+    dates = re.findall(r"\d{8}", filename)
+    if dates:
+        return dates[0]
+    raise ValueError("Cannot extract sensing date from {}".format(filename))
+
 def distance_sun_earth(doy):
     return 1.00014-0.01671*np.cos(np.pi*(0.9856002831*doy-3.4532868)/180.)-0.00014*np.cos(2*np.pi*(0.9856002831*doy-3.4532868)/180.)
 
@@ -923,6 +1186,33 @@ def find_s2_jp2(safe_path, band):
                 if pat.search(f):
                     return os.path.join(root, f)
     raise FileNotFoundError(f"{band} not found under any IMG_DATA")
+
+def read_landsat_mtl(product_path):
+    mtl_files = [f for f in os.listdir(product_path) if f.endswith("_MTL.txt")]
+    if len(mtl_files) != 1:
+        raise FileNotFoundError("Expected exactly one Landsat *_MTL.txt file in {}".format(product_path))
+    metadata = {}
+    with open(os.path.join(product_path, mtl_files[0]), "r") as f:
+        for line in f:
+            if "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            metadata[key.strip()] = value.strip().strip('"')
+    return metadata
+
+def find_landsat_tif(product_path, band):
+    pat = re.compile(fr'_{band}\.TIF$', re.I)
+    for f in os.listdir(product_path):
+        if pat.search(f):
+            return os.path.join(product_path, f)
+    raise FileNotFoundError("{} not found in {}".format(band, product_path))
+
+def build_lonlat_src_geotransform(lat, lon):
+    xres = lon[0, 1] - lon[0, 0]
+    yres = lat[1, 0] - lat[0, 0]
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    return [lon[0, 0], xres, 0, lat[0, 0], 0, yres], srs.ExportToWkt()
 
 def build_mem(arr, gt, wkt, gtype):
     ds = gdal.GetDriverByName("MEM") \
@@ -967,6 +1257,84 @@ def float_to_uint16(rho):
     mask = ~np.isnan(rho)
     return dn, mask
 
+def landsat_reflectance_to_dn(rho, tif, band, metadata):
+    band_number = int(band[1:])
+    mult_key = "REFLECTANCE_MULT_BAND_{}".format(band_number)
+    add_key = "REFLECTANCE_ADD_BAND_{}".format(band_number)
+    if mult_key not in metadata or add_key not in metadata:
+        raise KeyError("Missing {} or {} in Landsat metadata".format(mult_key, add_key))
+    mult = float(metadata[mult_key])
+    add = float(metadata[add_key])
+
+    sza_path = tif.replace("_{}.TIF".format(band), "_SZA.TIF")
+    if os.path.exists(sza_path):
+        sza = read_raster_matching_template(sza_path, tif, gdal.GRA_Bilinear).astype(np.float32) * 0.01
+        mus = np.cos(np.deg2rad(sza))
+    else:
+        mus = np.sin(np.deg2rad(float(metadata["SUN_ELEVATION"])))
+
+    with np.errstate(invalid="ignore", divide="ignore"):
+        vals = np.rint((rho * mus - add) / mult)
+
+    src_ds = gdal.Open(tif)
+    if src_ds is None:
+        raise IOError("Failed to open {}".format(tif))
+    src_band = src_ds.GetRasterBand(1)
+    nodata = src_band.GetNoDataValue()
+    src_dtype = src_band.DataType
+    src_ds = None
+
+    gdal_min, gdal_max = gdal_dtype_range(src_dtype)
+    fill = 0 if nodata is None else nodata
+    dn = np.where(np.isnan(rho), fill, np.clip(vals, gdal_min, gdal_max)).astype(np.uint16)
+    mask = ~np.isnan(rho)
+    return dn, mask
+
+def read_raster_matching_template(source_path, template_path, resampling):
+    source = gdal.Open(source_path)
+    if source is None:
+        raise IOError("Failed to open {}".format(source_path))
+    template = gdal.Open(template_path)
+    if template is None:
+        raise IOError("Failed to open {}".format(template_path))
+
+    dst = gdal.GetDriverByName("MEM").Create(
+        "",
+        template.RasterXSize,
+        template.RasterYSize,
+        1,
+        gdal.GDT_Float32
+    )
+    dst.SetGeoTransform(template.GetGeoTransform())
+    dst.SetProjection(template.GetProjection())
+    status = gdal.ReprojectImage(
+        source,
+        dst,
+        source.GetProjection(),
+        template.GetProjection(),
+        resampling
+    )
+    if status != 0:
+        print("gdal.ReprojectImage may have failed with status {}".format(status))
+    data = dst.ReadAsArray()
+    source = None
+    template = None
+    dst = None
+    return data
+
+def gdal_dtype_range(gdal_dtype):
+    if gdal_dtype == gdal.GDT_Byte:
+        return 0, 255
+    if gdal_dtype == gdal.GDT_UInt16:
+        return 0, 65535
+    if gdal_dtype == gdal.GDT_Int16:
+        return -32768, 32767
+    if gdal_dtype == gdal.GDT_UInt32:
+        return 0, 4294967295
+    if gdal_dtype == gdal.GDT_Int32:
+        return -2147483648, 2147483647
+    return -np.inf, np.inf
+
 def update_band(jp2, dn_sub, mask):
     src_ds = gdal.Open(jp2, gdal.GA_ReadOnly)
     if src_ds is None:
@@ -995,4 +1363,42 @@ def update_band(jp2, dn_sub, mask):
     backup_path = jp2 + '.backup.jp2'
     shutil.move(jp2, backup_path)
     shutil.move(temp_path, jp2)
+    os.remove(backup_path)
+
+def update_geotiff_band(tif, dn_sub, mask):
+    src_ds = gdal.Open(tif, gdal.GA_ReadOnly)
+    if src_ds is None:
+        raise Exception("Could not open {}".format(tif))
+    band = src_ds.GetRasterBand(1)
+    data = band.ReadAsArray()
+    modified_data = data.copy()
+    modified_data[mask] = dn_sub[mask]
+    gdal_dtype = band.DataType
+    nodata = band.GetNoDataValue()
+
+    temp_ds = gdal.GetDriverByName("MEM").Create(
+        "",
+        src_ds.RasterXSize,
+        src_ds.RasterYSize,
+        1,
+        gdal_dtype
+    )
+    temp_ds.SetGeoTransform(src_ds.GetGeoTransform())
+    temp_ds.SetProjection(src_ds.GetProjection())
+    temp_band = temp_ds.GetRasterBand(1)
+    if nodata is not None:
+        temp_band.SetNoDataValue(nodata)
+    temp_band.WriteArray(modified_data)
+    temp_path = tif + ".tmp.tif"
+    gdal.Translate(
+        temp_path,
+        temp_ds,
+        format="GTiff",
+        creationOptions=["TILED=YES", "COMPRESS=DEFLATE", "PREDICTOR=2"]
+    )
+    temp_ds = None
+    src_ds = None
+    backup_path = tif + ".backup.tif"
+    shutil.move(tif, backup_path)
+    shutil.move(temp_path, tif)
     os.remove(backup_path)
