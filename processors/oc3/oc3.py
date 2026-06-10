@@ -77,7 +77,13 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
         log(env["General"]["log"], "Copying relevant bands from source product.", indent=2)
         valid_pixel_expression = get_valid_pe_from_nc(src)
-        inclusions = [band for band in product_band_names if band in valid_pixel_expression]
+        oc3_valid_pixel_expression = params[PARAMS_SECTION].get("validexpression", "").strip()
+        if oc3_valid_pixel_expression:
+            if valid_pixel_expression:
+                valid_pixel_expression = "({}) and ({})".format(valid_pixel_expression, oc3_valid_pixel_expression)
+            else:
+                valid_pixel_expression = oc3_valid_pixel_expression
+        inclusions = [band for band in product_band_names if valid_pixel_expression and band in valid_pixel_expression]
         copy_nc(src, dst, inclusions)
 
         log(env["General"]["log"], "Creating new bands.", indent=2)
