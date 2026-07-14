@@ -38,7 +38,7 @@ def read_era5_par(era5_dir, date, lat, lon):
     target = os.path.join(era5_dir, year, month, day, f'era5_ssrd_{date}.nc')
     if not os.path.exists(target):
         os.makedirs(os.path.dirname(target), exist_ok=True)
-        client = cdsapi.Client()
+        client = cdsapi.Client(retry_max=3)
         client.retrieve(
             'reanalysis-era5-single-levels',
             {
