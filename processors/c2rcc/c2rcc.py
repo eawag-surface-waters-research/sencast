@@ -14,9 +14,11 @@ https://www.brockmann-consult.de/wp-content/uploads/2017/11/sco1_12brockmann.pdf
 import os
 
 from datetime import datetime
+from xml.sax.saxutils import escape
 from polymer.ancillary_era5 import Ancillary_ERA5
 from utils.auxil import load_properties, log, gpt_subprocess
-from utils.product_fun import get_lons_lats, get_sensing_date_from_product_name
+from utils.product_fun import (get_lons_lats, get_main_file_from_product_path,
+                               get_sensing_datetime_from_product_name)
 
 # Key of the params section for this processor
 PARAMS_SECTION = "C2RCC"
@@ -39,11 +41,12 @@ DEFAULT_TIMEOUT = False
 def process(env, params, l1product_path, l2product_files, out_path):
     """This processor applies c2rcc to the source product and stores the result."""
 
-    gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
+    gpt, product_name = env['General']['gpt_path'], get_product_name(l1product_path)
     sensor, resolution, wkt, resolution = params['General']['sensor'], params['General']['resolution'], params['General']['wkt'], params['General']['resolution']
-    altnn, validexpression = params[PARAMS_SECTION]['altnn'], params[PARAMS_SECTION]['validexpression']
-    vicar_properties_filename = params[PARAMS_SECTION]['vicar_properties_filename']
-    date_str = get_sensing_date_from_product_name(product_name)
+    altnn = params[PARAMS_SECTION].get('altnn', '')
+    validexpression = params[PARAMS_SECTION].get('validexpression', '')
+    vicar_properties_filename = params[PARAMS_SECTION].get('vicar_properties_filename', '')
+    date_str = get_sensing_datetime_from_product_name(product_name)
 
     ancillary_obj = {"ozone": "330", "surf_press": "1000", "useEcmwfAuxData": "False"}
     anc_name = "NA"
@@ -74,44 +77,49 @@ def process(env, params, l1product_path, l2product_files, out_path):
             coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
             ozone = round(ancillary.get("ozone", date)[coords])
             surf_press = round(ancillary.get("surf_press", date)[coords])
-            ancillary_obj = {"ozone": ozone, "surf_press": surf_press, "useEcmwfAuxData": "False"}
+            ancillary_obj = {"ozone": str(ozone), "surf_press": str(surf_press), "useEcmwfAuxData": "False"}
             log(env["General"]["log"], "C2RCC Ancillary Data successfully retrieved. Ozone: {}, Surface Pressure {}".
                 format(ozone, surf_press), indent=2)
         except RuntimeError:
             log(env["General"]["log"],
                 "C2RCC Ancillary Data not retrieved using default values. Ozone: 330, Surface Pressure 1000", indent=2)
-            if ancillary_path.endwith("METEO"):
+            if ancillary_path.endswith("METEO"):
                 ancillary_obj["useEcmwfAuxData"] = "True"
             pass
 
-    if "processor" in params[PARAMS_SECTION]:
-        if params[PARAMS_SECTION]["processor"] == "IDEPIX" and "IDEPIX" in l2product_files:
+    processor = params[PARAMS_SECTION].get("processor", "").strip()
+    if processor:
+        if processor == "IDEPIX" and "IDEPIX" in l2product_files:
             log(env["General"]["log"], "Using IDEPIX as input file.", indent=2)
             input_file = l2product_files['IDEPIX']
-        elif params[PARAMS_SECTION]["processor"] == "S2RES" and "S2RES" in l2product_files:
+        elif processor == "S2RES" and "S2RES" in l2product_files:
             log(env["General"]["log"], "Using S2RES as input file.", indent=2)
             input_file = l2product_files['S2RES']
         else:
-            if params[PARAMS_SECTION]["processor"] in ["IDEPIX", "S2RES"]:
-                raise RuntimeWarning('Processor {} was not found in l2 products. Ensure this processor is run before C2RCC'.format(params[PARAMS_SECTION]["processor"]))
+            if processor in ["IDEPIX", "S2RES"]:
+                raise RuntimeWarning('Processor {} was not found in l2 products. Ensure this processor is run before C2RCC'.format(processor))
             else:
                 raise RuntimeWarning(
                     'Processor {} is not recognised. Please choose from IDEPIX and S2RES'.format(
-                        params[PARAMS_SECTION]["processor"]))
+                        processor))
     else:
         log(env["General"]["log"], "Using L1 product as input file.", indent=2)
-        input_file = l1product_path
+        input_file = get_main_file_from_product_path(l1product_path) if sensor == "OLI_TIRS" else l1product_path
         if sensor == "MSI":
             sensor = "MSI_RES"
 
     gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor, date_str))
     rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_properties_filename, wkt, ancillary_obj, resolution)
 
+    args = [gpt, gpt_xml_file]
+    if sensor == "OLI_TIRS" and not processor:
+        args.extend(["-Ds3tbx.landsat.readAs=reflectance", "-Dopttbx.landsat.readAs=reflectance"])
+
     if "gpt_use_default" in env['General'] and env['General']['gpt_use_default'] == "True":
-        args = [gpt, gpt_xml_file, "-SsourceFile={}".format(input_file), "-PoutputFile={}".format(output_file)]
+        args.extend(["-SsourceFile={}".format(input_file), "-PoutputFile={}".format(output_file)])
     else:
-        args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
-                "-SsourceFile={}".format(input_file), "-PoutputFile={}".format(output_file)]
+        args.extend(["-c", env['General']['gpt_cache_size'], "-e",
+                     "-SsourceFile={}".format(input_file), "-PoutputFile={}".format(output_file)])
 
     if PARAMS_SECTION in params and "attempts" in params[PARAMS_SECTION]:
         attempts = int(params[PARAMS_SECTION]["attempts"])
@@ -141,7 +149,8 @@ def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_pr
     xml = xml.replace("${resolution}", resolution)
     xml = xml.replace("${press}", ancillary["surf_press"])
     xml = xml.replace("${useEcmwfAuxData}", ancillary["useEcmwfAuxData"])
-    xml = xml.replace("${validPixelExpression}", validexpression)
+    xml = xml.replace("${wkt}", escape(wkt))
+    xml = xml.replace("${validPixelExpression}", escape(validexpression))
     xml = xml.replace("${salinity}", str(0.05))
     xml = xml.replace("${temperature}", str(15.0))
     xml = xml.replace("${TSMfakBpart}", str(1.72))
@@ -162,3 +171,10 @@ def rewrite_xml(gpt_xml_file, date_str, sensor, altnn, validexpression, vicar_pr
     os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
     with open(gpt_xml_file, "w") as f:
         f.write(xml)
+
+
+def get_product_name(l1product_path):
+    product_name = os.path.basename(l1product_path)
+    if product_name.endswith("_MTL.txt"):
+        return product_name[:-len("_MTL.txt")]
+    return product_name
