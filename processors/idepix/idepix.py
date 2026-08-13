@@ -60,11 +60,15 @@ def process(env, params, l1product_path, _, out_path):
     if sensor == "OLI_TIRS":
         l1product_path = get_main_file_from_product_path(l1product_path)
 
+    args = [gpt, gpt_xml_file]
+    if sensor == "OLI_TIRS":
+        args.extend(["-Ds3tbx.landsat.readAs=reflectance", "-Dopttbx.landsat.readAs=reflectance"])
+
     if "gpt_use_default" in env['General'] and env['General']['gpt_use_default'] == "True":
-        args = [gpt, gpt_xml_file, "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
+        args.extend(["-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)])
     else:
-        args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
-                "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
+        args.extend(["-c", env['General']['gpt_cache_size'], "-e",
+                     "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)])
 
     if PARAMS_SECTION in params and "attempts" in params[PARAMS_SECTION]:
         attempts = int(params[PARAMS_SECTION]["attempts"])
@@ -120,7 +124,6 @@ def get_reproject_params_from_msi(source_file, resolution):
     band = bands[res.index(int(resolution))]
     file_path = glob.glob(os.path.join(msi_images, "*_{}.jp2".format(band)))[0]
     return get_reproject_params_from_jp2(file_path, resolution)
-
 
 
 

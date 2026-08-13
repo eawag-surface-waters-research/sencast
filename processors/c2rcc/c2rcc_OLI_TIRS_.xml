@@ -1,32 +1,45 @@
 <graph id="c2rcc">
-	<version>1.0</version>
-	<node id="c2rccNode">
+    <version>1.0</version>
+
+    <node id="c2rccNode">
         <operator>c2rcc.landsat8</operator>
-		<sources>
-			<sourceProduct>${sourceFile}</sourceProduct>
-		</sources>
-		<parameters>
-			<validPixelExpression>${validPixelExpression}</validPixelExpression>
-			<salinity>${salinity}</salinity>
-			<temperature>${temperature}</temperature>
-			<ozone>${ozone}</ozone>
-			<press>${press}</press>
-			<CHLexp>${CHLexp}</CHLexp>
-			<CHLfak>${CHLfak}</CHLfak>
-			<thresholdRtosaOOS>${thresholdRtosaOOS}</thresholdRtosaOOS>
-			<thresholdAcReflecOos>${thresholdAcReflecOos}</thresholdAcReflecOos>
-			<thresholdCloudTDown865>${thresholdCloudTDown865}</thresholdCloudTDown865>
-			<alternativeNNPath>${alternativeNNPath}</alternativeNNPath>
-		</parameters>
-	</node>
-	<node id="writeNode">
-		<operator>write</operator>
-		<sources>
-			<source>c2rccNode</source>
-		</sources>
-		<parameters>
-			<file>${outputFile}</file>
-			<formatName>NetCDF4-BEAM</formatName>
-		</parameters>
-	</node>
+        <sources>
+            <sourceProduct>${sourceFile}</sourceProduct>
+        </sources>
+        <parameters>
+            <validPixelExpression>${validPixelExpression}</validPixelExpression>
+            <salinity>${salinity}</salinity>
+            <temperature>${temperature}</temperature>
+            <ozone>${ozone}</ozone>
+            <press>${press}</press>
+            <CHLexp>${CHLexp}</CHLexp>
+            <CHLfak>${CHLfak}</CHLfak>
+            <thresholdRtosaOOS>${thresholdRtosaOOS}</thresholdRtosaOOS>
+            <thresholdAcReflecOos>${thresholdAcReflecOos}</thresholdAcReflecOos>
+            <thresholdCloudTDown865>${thresholdCloudTDown865}</thresholdCloudTDown865>
+            <alternativeNNPath>${alternativeNNPath}</alternativeNNPath>
+        </parameters>
+    </node>
+
+    <node id="subsetNode">
+        <operator>subset</operator>
+        <sources>
+            <sourceProduct>c2rccNode</sourceProduct>
+        </sources>
+        <parameters>
+            <geoRegion>${wkt}</geoRegion>
+        </parameters>
+    </node>
+
+    <node id="writeNode">
+        <operator>write</operator>
+        <sources>
+            <source>subsetNode</source>
+        </sources>
+        <parameters>
+            <file>${outputFile}</file>
+            <formatName>NetCDF4-BEAM</formatName>
+        </parameters>
+    </node>
+
 </graph>

@@ -217,35 +217,36 @@ def get_tile_name_from_product_name(product_name):
 def get_l1product_path(env, product_name):
     l2 = False
     """Fills the placeholders in the configured DIAS path with actual values."""
-    if product_name.startswith("S3A") or product_name.startswith("S3B"):
+    product_id = os.path.basename(product_name.rstrip(os.sep).rstrip("/"))
+    if product_id.startswith("S3A") or product_id.startswith("S3B"):
         satellite = "Sentinel-3"
         sensor = "OLCI"
-        dataset = product_name[4:12]
-        date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
-    elif product_name.startswith("S2A") or product_name.startswith("S2B") or product_name.startswith("S2C"):
+        dataset = product_id[4:12]
+        date = datetime.strptime(get_sensing_date_from_product_name(product_id), r"%Y%m%d")
+    elif product_id.startswith("S2A") or product_id.startswith("S2B") or product_id.startswith("S2C"):
         satellite = "Sentinel-2"
         sensor = "MSI"
-        dataset = product_name[7:10]
-        date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
-    elif product_name.startswith("LC08"):
-        if product_name.startswith("LC08_L2"):
+        dataset = product_id[7:10]
+        date = datetime.strptime(get_sensing_date_from_product_name(product_id), r"%Y%m%d")
+    elif product_id.startswith("LC08"):
+        if product_id.startswith("LC08_L2"):
             l2 = True
         satellite = "Landsat8"
         sensor = "OLI_TIRS"
-        dataset = product_name[5:9]
-        date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
-    elif product_name.startswith("LC09"):
-        if product_name.startswith("LC09_L2"):
+        dataset = product_id[5:9]
+        date = datetime.strptime(get_sensing_date_from_product_name(product_id), r"%Y%m%d")
+    elif product_id.startswith("LC09"):
+        if product_id.startswith("LC09_L2"):
             l2 = True
         satellite = "Landsat9"
         sensor = "OLI_TIRS"
-        dataset = product_name[5:9]
-        date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
-    elif product_name.startswith("PACE_OCI"):
+        dataset = product_id[5:9]
+        date = datetime.strptime(get_sensing_date_from_product_name(product_id), r"%Y%m%d")
+    elif product_id.startswith("PACE_OCI"):
         satellite = "PACE"
         sensor = "OCI"
-        dataset = product_name[5:8]
-        date = datetime.strptime(get_sensing_date_from_product_name(product_name), r"%Y%m%d")
+        dataset = product_id[5:8]
+        date = datetime.strptime(get_sensing_date_from_product_name(product_id), r"%Y%m%d")
     else:
         raise RuntimeError("Unable to retrieve satellite from product name: {}".format(product_name))
 
@@ -274,7 +275,7 @@ def get_main_file_from_product_path(l1product_path):
         return os.path.join(l1product_path, "MTD_MSIL1C.xml")
     elif satellite in ["S3A", "S3B"]:
         return os.path.join(l1product_path, "xfdumanifest.xml")
-    elif satellite == "L8":
+    elif satellite in ["L8", "L9"]:
         return os.path.join(l1product_path, "{}_MTL.txt".format(product_name))
     else:
         raise RuntimeError("Unknown satellite: {}".format(satellite))
