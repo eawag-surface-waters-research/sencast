@@ -11,6 +11,7 @@ or for more details: https://forum.hygeos.com/viewforum.php?f=3
 import math
 import os
 import re
+from glob import glob
 from datetime import datetime
 from math import ceil, floor
 from osgeo import gdal, osr
@@ -175,8 +176,7 @@ def process(env, params, l1product_path, _, out_path):
         additional_ds = ['vaa', 'vza', 'saa', 'sza']
     elif sensor == "OLI_TIRS":
         log(env["General"]["log"], "Reading OLI_TIRS data...", indent=1)
-        if generate_l8_angle_files(env, l1product_path):
-            raise RuntimeError("Could not create angle files for L8 product: {}".format(l1product_path))
+        ensure_landsat_angle_files(env, l1product_path)
         calib_gains = polymer_vicarious.oli_vicarious(vicar_version)
         ul, ur, lr, ll = get_corner_pixels_roi_oli(l1product_path, wkt)
         sline, scol, eline, ecol = min(ul[0], ur[0]), min(ul[1], ur[1]), max(ll[0], lr[0]), max(ll[1], lr[1])
@@ -193,7 +193,9 @@ def process(env, params, l1product_path, _, out_path):
     processors = []
     if "General" in params and "processors" in params["General"]:
         processors = [token.strip().upper() for token in params["General"]["processors"].split(",") if token.strip()]
-    is_radcor_plus_polymer = "RADCOR" in processors
+    is_radcor_plus_polymer = "RADCOR" in processors or _parse_bool(
+        params["POLYMER"].get("radcor_corrected_input", "False")
+    )
 
     atm_kwargs = {"water_model": water_model, "calib": calib_gains}
     if is_radcor_plus_polymer:
@@ -318,8 +320,7 @@ def get_corner_pixels_roi_oli(l1product_path, wkt):
 
     south, east, north, west = get_south_east_north_west_bound(wkt)
 
-    product_name = os.path.basename(l1product_path)
-    sample_file_path = os.path.join(l1product_path, "{}_BQA.TIF".format(product_name))
+    sample_file_path = get_landsat_sample_tif(l1product_path)
 
     dataset = gdal.Open(sample_file_path)
     w, h = dataset.RasterXSize, dataset.RasterYSize
@@ -337,19 +338,51 @@ def get_corner_pixels_roi_oli(l1product_path, wkt):
     return ul, ur, lr, ll
 
 
+def ensure_landsat_angle_files(env, l1product_path):
+    if landsat_angle_files_exist(l1product_path):
+        log(env["General"]["log"], "Using existing Landsat angle files.", indent=2)
+        return
+
+    log(env["General"]["log"], "Generating Landsat angle files.", indent=2)
+    if generate_l8_angle_files(env, l1product_path):
+        raise RuntimeError("Could not create angle files for Landsat product: {}".format(l1product_path))
+
+
+def landsat_angle_files_exist(l1product_path):
+    product_name = os.path.basename(l1product_path)
+    angle_suffixes = ["SAA", "SZA", "VAA", "VZA"]
+    return all(os.path.isfile(os.path.join(l1product_path, "{}_{}.TIF".format(product_name, suffix)))
+               for suffix in angle_suffixes)
+
+
+def get_landsat_sample_tif(l1product_path):
+    product_name = os.path.basename(l1product_path)
+    preferred_files = [
+        "{}_B2.TIF".format(product_name),
+        "{}_B1.TIF".format(product_name),
+        "{}_B3.TIF".format(product_name),
+        "{}_QA_PIXEL.TIF".format(product_name),
+        "{}_BQA.TIF".format(product_name),
+    ]
+
+    for filename in preferred_files:
+        sample_file_path = os.path.join(l1product_path, filename)
+        if os.path.isfile(sample_file_path):
+            return sample_file_path
+
+    matches = sorted(glob(os.path.join(l1product_path, "{}_B*.TIF".format(product_name))))
+    if matches:
+        return matches[0]
+
+    raise FileNotFoundError("Could not find a Landsat sample TIFF in {}".format(l1product_path))
+
+
 def get_pixel_pos_gdal(dataset, lon, lat, crs):
     w, h = dataset.RasterXSize, dataset.RasterYSize
     if isinstance(crs, bool):
-        wkt = dataset.GetProjection()
-        spatial_ref = osr.SpatialReference()
-        spatial_ref.ImportFromWkt(wkt)
-        epsg = spatial_ref.GetAttrValue('AUTHORITY', 1)
-        if epsg:
-            crs = f"EPSG:{epsg}"
-        else:
-            raise ValueError("Failed to parse projection")
-    transformer = Transformer.from_crs("epsg:4326", crs)
-    x, y = transformer.transform(lat, lon)
+        crs = get_dataset_horizontal_crs(dataset)
+    transformer = Transformer.from_crs("epsg:4326", crs, always_xy=True)
+    x, y = transformer.transform(lon, lat)
     geo_transform = dataset.GetGeoTransform()
     inv_geo_transform = gdal.InvGeoTransform(geo_transform)
     col, row = gdal.ApplyGeoTransform(inv_geo_transform, x, y)
@@ -357,6 +390,54 @@ def get_pixel_pos_gdal(dataset, lon, lat, crs):
     xx = col if 0 < col <= w else -1
     yy = row if 0 < row <= h else -1
     return [xx, yy]
+
+
+def get_dataset_horizontal_crs(dataset):
+    wkt = dataset.GetProjection()
+    spatial_ref = osr.SpatialReference()
+    spatial_ref.ImportFromWkt(wkt)
+    epsg = spatial_ref.GetAttrValue('AUTHORITY', 1)
+    if epsg and epsg != "9122":
+        return "EPSG:{}".format(epsg)
+
+    crs = get_landsat_crs_from_mtl(os.path.dirname(dataset.GetDescription()))
+    if crs:
+        return crs
+
+    raise ValueError("Failed to parse horizontal projection")
+
+
+def get_landsat_crs_from_mtl(product_dir):
+    mtl_files = glob(os.path.join(product_dir, "*_MTL.txt"))
+    if not mtl_files:
+        return None
+
+    values = {}
+    with open(mtl_files[0], "r", encoding="utf-8") as f:
+        for line in f:
+            if "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            values[key.strip()] = value.strip().strip('"')
+
+    zone = values.get("UTM_ZONE")
+    if not zone:
+        return None
+
+    try:
+        zone_int = int(zone)
+    except ValueError:
+        return None
+
+    corner_lats = []
+    for key, value in values.items():
+        if key.startswith("CORNER_") and key.endswith("_LAT_PRODUCT"):
+            try:
+                corner_lats.append(float(value))
+            except ValueError:
+                pass
+    north = (sum(corner_lats) / len(corner_lats)) >= 0 if corner_lats else True
+    return "EPSG:{}{:02d}".format(326 if north else 327, zone_int)
 
 
 def get_horizontal_cs_code(file_path):
