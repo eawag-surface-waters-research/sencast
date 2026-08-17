@@ -188,60 +188,67 @@ def process(env, params, l1product_path, _, out_path):
 
     poly_tmp_file = os.path.join(out_path, OUT_DIR, "_reproducibility",
                                  OUT_FILENAME.format(anc_name, product_name).replace("reproj", "unproj"))
-    l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
-    os.makedirs(os.path.dirname(poly_tmp_file), exist_ok=True)
-    processors = []
-    if "General" in params and "processors" in params["General"]:
-        processors = [token.strip().upper() for token in params["General"]["processors"].split(",") if token.strip()]
-    is_radcor_plus_polymer = "RADCOR" in processors
+    try:
+        l2 = Level2(filename=poly_tmp_file, fmt='netcdf4', overwrite=True, datasets=default_datasets + additional_ds)
+        os.makedirs(os.path.dirname(poly_tmp_file), exist_ok=True)
+        processors = []
+        if "General" in params and "processors" in params["General"]:
+            processors = [token.strip().upper() for token in params["General"]["processors"].split(",") if token.strip()]
+        is_radcor_plus_polymer = "RADCOR" in processors
 
-    atm_kwargs = {"water_model": water_model, "calib": calib_gains}
-    if is_radcor_plus_polymer:
-        # For RAdCor+Polymer, disable Polymer internal bitmask influence to keep the atmospheric correction independent from Polymer flagging behaviour.
-        atm_kwargs.update({
-            "thres_Rcloud": -1.0,
-            "thres_Rcloud_std": -1.0,
-            "Rprime_consistency": False,
-            "force_initialization": True,
-            "BITMASK_INVALID": 549,
-        })
+        atm_kwargs = {"water_model": water_model, "calib": calib_gains}
+        if is_radcor_plus_polymer:
+            # For RAdCor+Polymer, disable Polymer internal bitmask influence to keep the atmospheric correction independent from Polymer flagging behaviour.
+            atm_kwargs.update({
+                "thres_Rcloud": -1.0,
+                "thres_Rcloud_std": -1.0,
+                "Rprime_consistency": False,
+                "force_initialization": True,
+                "BITMASK_INVALID": 549,
+            })
 
-    atm_kwargs.update(_collect_polymer_runtime_overrides(params["POLYMER"]))
-    log(env["General"]["log"], "Running atmospheric correction...", indent=1)
-    if is_radcor_plus_polymer:
-        log(env["General"]["log"], "RADCOR+POLYMER mode: Polymer flag influence disabled.", indent=2)
-    run_atm_corr(l1, l2, **atm_kwargs)
-    log(env["General"]["log"], "Atmospheric correction complete.", indent=1)
+        atm_kwargs.update(_collect_polymer_runtime_overrides(params["POLYMER"]))
+        log(env["General"]["log"], "Running atmospheric correction...", indent=1)
+        if is_radcor_plus_polymer:
+            log(env["General"]["log"], "RADCOR+POLYMER mode: Polymer flag influence disabled.", indent=2)
+        run_atm_corr(l1, l2, **atm_kwargs)
+        log(env["General"]["log"], "Atmospheric correction complete.", indent=1)
 
-    gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor))
+        gpt_xml_file = os.path.join(out_path, OUT_DIR, "_reproducibility", GPT_XML_FILENAME.format(sensor))
 
-    tiles = True if "tiles" in params['General'] and params['General']["tiles"] != "" else False
-    if tiles:
-        gpt_xml_file = gpt_xml_file.replace(".xml", "_{}.xml".format(get_s2_tile_name_from_product_name(l1product_path)))
+        tiles = True if "tiles" in params['General'] and params['General']["tiles"] != "" else False
+        if tiles:
+            gpt_xml_file = gpt_xml_file.replace(".xml", "_{}.xml".format(get_s2_tile_name_from_product_name(l1product_path)))
 
-    if not os.path.isfile(gpt_xml_file):
-        rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt, poly_tmp_file, tiles)
+        if not os.path.isfile(gpt_xml_file):
+            rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt, poly_tmp_file, tiles)
 
-    args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(poly_tmp_file),
-            "-PoutputFile={}".format(output_file)]
+        args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e", "-SsourceFile={}".format(poly_tmp_file),
+                "-PoutputFile={}".format(output_file)]
 
-    if PARAMS_SECTION in params and "attempts" in params[PARAMS_SECTION]:
-        attempts = int(params[PARAMS_SECTION]["attempts"])
-    else:
-        attempts = DEFAULT_ATTEMPTS
+        if PARAMS_SECTION in params and "attempts" in params[PARAMS_SECTION]:
+            attempts = int(params[PARAMS_SECTION]["attempts"])
+        else:
+            attempts = DEFAULT_ATTEMPTS
 
-    if PARAMS_SECTION in params and "timeout" in params[PARAMS_SECTION]:
-        timeout = int(params[PARAMS_SECTION]["timeout"])
-    else:
-        timeout = DEFAULT_TIMEOUT
+        if PARAMS_SECTION in params and "timeout" in params[PARAMS_SECTION]:
+            timeout = int(params[PARAMS_SECTION]["timeout"])
+        else:
+            timeout = DEFAULT_TIMEOUT
 
-    if gpt_subprocess(args, env["General"]["log"], attempts=attempts, timeout=timeout):
-        return output_file
-    else:
-        if os.path.exists(output_file):
-            os.remove(output_file)
-            log(env["General"]["log"], "Removed corrupted output file.", indent=2)
+        if gpt_subprocess(args, env["General"]["log"], attempts=attempts, timeout=timeout):
+            return output_file
         raise RuntimeError("GPT Failed.")
+    except Exception:
+        # Remove any partial output so the next run re-processes from scratch rather than reading a truncated NetCDF.
+        for partial in (output_file, poly_tmp_file):
+            if partial and os.path.exists(partial):
+                try:
+                    os.remove(partial)
+                    log(env["General"]["log"], "Removed partial output file: {}".format(os.path.basename(partial)), indent=2)
+                except OSError:
+                    pass
+        raise
 
 
 def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt, source_file, tiles):

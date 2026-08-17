@@ -274,18 +274,16 @@ def authenticate_earthdata_anc(env):
 
 
 def authenticate_cds_anc(env):
-    """If the configuration contains username and password for CDS anc data api, create ~/.cdsapirc containing these
-    credentials"""
-    if "CDS" not in env or "uid" not in env['CDS'] or "api_key" not in env['CDS']:
+    """If the configuration contains a CDS personal access token, create ~/.cdsapirc containing it."""
+    if "CDS" not in env or "api_key" not in env['CDS']:
         return
     os.makedirs(env['CDS']['anc_path'], exist_ok=True)
-    uid = env['CDS']['uid']
     api_key = env['CDS']['api_key']
 
     if not os.path.isfile(os.path.join(os.path.expanduser("~"), ".cdsapirc")):
         with open(os.path.join(os.path.expanduser("~"), ".cdsapirc"), "w") as f:
-            f.write("url: https://cds.climate.copernicus.eu/api/v2\n")
-            f.write("key: {}:{}".format(uid, api_key))
+            f.write("url: https://cds.climate.copernicus.eu/api\n")
+            f.write("key: {}".format(api_key))
 
 def chmod_recursive(path, mode):
     """Recursively chmod a directory"""

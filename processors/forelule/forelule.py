@@ -50,7 +50,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         raise RuntimeWarning('processor must be defined in the parameter file.')
 
     processor = params[PARAMS_SECTION]['processor']
-    if processor not in ['POLYMER', 'C2RCC', 'MSI-L2A']:
+    if processor not in ['POLYMER', 'C2RCC', 'MSI-L2A'] and not (processor == "COMBINE" and "polymer" in params["COMBINE"]):
         raise RuntimeWarning('Forel-Ule adapter only works with Polymer, C2RCC and MSI-L2A processor output')
 
     # Check for precursor datasets
@@ -124,7 +124,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         elif satellite in ['S3A', 'S3B']:
             chromaticity = chromaticity_values("OLCI")
             hue_angle_coeff = hue_angle_coefficients("OLCI")
-            if processor == 'POLYMER':
+            if processor == 'POLYMER' or (processor == "COMBINE" and "polymer" in params["COMBINE"]):
                 spectral_band_names = ["Rw400", "Rw412", "Rw443", "Rw490", "Rw510", "Rw560", "Rw620", "Rw665", "Rw681", "Rw709"]
                 sample_band = 'tsm_binding754'
             elif processor == 'C2RCC':
