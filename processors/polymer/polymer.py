@@ -11,14 +11,19 @@ or for more details: https://forum.hygeos.com/viewforum.php?f=3
 import math
 import os
 import re
+import numpy as np
 from datetime import datetime
+from glob import glob
 from math import ceil, floor
 from osgeo import gdal, osr
 from netCDF4 import Dataset
 from pyproj import Transformer
 
 from polymer.ancillary_era5 import Ancillary_ERA5
-from polymer.ancillary import Ancillary_NASA
+from polymer.ancillary import Ancillary_NASA, LUT_LatLon, default_met_resources, default_oz_resources, \
+    forecast_resources
+from polymer.luts import LUT, Idx
+from polymer.utils import round_date
 from polymer.gsw import GSW
 from polymer.level1_msi import Level1_MSI
 from polymer.level1_olci import Level1_OLCI
@@ -48,6 +53,127 @@ GPT_XML_FILENAME = "polymer_{}.xml"
 DEFAULT_ATTEMPTS = 1
 # Default timeout for the GPT (doesn't apply to last attempt) in seconds
 DEFAULT_TIMEOUT = False
+# Constant ancillary values (ozone in DU, wind speed in m/s, surface pressure in hPa) used when no
+# ancillary source is available
+FALLBACK_ANCILLARY = {"ozone": 330.0, "wind_speed": 5.0, "surf_press": 1013.25}
+# GEOS-IT ancillary data, the hourly NRT stream which replaces the GMAO_FP forecast that polymer
+# still asks for and which NASA no longer produces
+GEOS_IT_RESOURCES = [
+    lambda date: [('GMAO_IT.%Y%m%dT%H0000.MET.NRT.nc', d)
+                  for d in round_date(date, 1)],
+]
+
+
+class FallbackAncillary:
+    """Ancillary source which returns constant values everywhere.
+
+    Polymer reads ancillary data embedded in the L1 product for OLCI, but for MSI and OLI_TIRS it
+    interprets ancillary=None as "build a default Ancillary_NASA". Passing None after a failed
+    download therefore makes polymer repeat the same downloads and then fail in
+    Ancillary_NASA.get(), so this is passed instead.
+    """
+
+    def __init__(self, values=None):
+        self.values = dict(FALLBACK_ANCILLARY)
+        if values is not None:
+            self.values.update(values)
+
+    def get(self, param, date):
+        if param not in self.values:
+            raise ValueError('Invalid parameter "{}"'.format(param))
+        value = self.values[param]
+        # LUT_LatLon interpolates a global lat/lon grid, it requires more columns than rows
+        lut = LUT_LatLon(np.full((181, 360), value, dtype="float32"))
+        lut.date = date
+        lut.filename = {param: "constant_{}".format(value)}
+        return lut
+
+
+class EmbeddedAncillaryGrid:
+    """A single ancillary parameter on the regional grid of an embedded ECMWF forecast.
+
+    Provides the same interface as the LUT_LatLon polymer builds from its own ancillary sources,
+    but over the axes of the embedded grid rather than a global one.
+    """
+
+    def __init__(self, values, lats, lons, filename, date):
+        self.data = LUT(np.array(values, dtype="float32"), names=["latitude", "longitude"],
+                        axes=[np.array(lats), np.array(lons)])
+        self.dtype = np.dtype("float32")
+        self.filename = filename
+        self.date = date
+
+    def __getitem__(self, coords):
+        lat, lon = coords
+        # The grid only covers the tile, clamp to its edges instead of failing for pixels which
+        # fall just outside of it
+        return self.data[Idx(lat, fill_value="extrema"), Idx(lon, fill_value="extrema")]
+
+
+class EmbeddedAncillary:
+    """Ancillary source reading the ECMWF forecast embedded in an MSI Level 1 product.
+
+    Every MSI L1C product carries GRANULE/<granule>/AUX_DATA/AUX_ECMWFT, a small grib file with
+    total column ozone, mean sea level pressure and 10m wind over the tile, valid at the sensing
+    time. Polymer can read it itself when passed ancillary='ECMWFT', but only through cfgrib, which
+    isn't installed and which writes index files into the product, so it is read here instead and
+    served through the same interface as the other ancillary sources.
+    """
+
+    # Grib field names and the units polymer expects them in, per parameter
+    FIELDS = {
+        "ozone": (["tco3"], "kg m**-2"),
+        "surf_press": (["msl"], "Pa"),
+        "wind_speed": (["10u", "10v"], "m s**-1"),
+    }
+
+    def __init__(self, l1product_path):
+        import pygrib
+
+        paths = glob(os.path.join(l1product_path, "GRANULE", "*", "AUX_DATA", "AUX_ECMWFT"))
+        if len(paths) != 1:
+            raise FileNotFoundError("Expected one AUX_ECMWFT file in {}, found {}"
+                                    .format(l1product_path, len(paths)))
+        self.path = paths[0]
+
+        fields = {}
+        grbs = pygrib.open(self.path)
+        try:
+            for grb in grbs:
+                fields[grb.shortName] = grb
+            self.date = None
+            self.values = {}
+            for param, (short_names, units) in self.FIELDS.items():
+                grbs_param = []
+                for short_name in short_names:
+                    if short_name not in fields:
+                        raise KeyError("Field {} missing from {}".format(short_name, self.path))
+                    grb = fields[short_name]
+                    if grb.units != units:
+                        raise ValueError("Field {} of {} is in {}, expected {}"
+                                         .format(short_name, self.path, grb.units, units))
+                    grbs_param.append(grb)
+                self.values[param] = self._convert(param, grbs_param)
+            # All fields share the same grid, the axes are read from any one of them
+            lats, lons = fields["tco3"].latlons()
+            self.lats, self.lons = lats[:, 0], lons[0, :]
+        finally:
+            grbs.close()
+
+    @staticmethod
+    def _convert(param, grbs):
+        """Convert the grib fields to the units polymer works in, as polymer does itself"""
+        if param == "ozone":
+            return grbs[0].values / 2.1415e-5  # convert kg/m2 to DU
+        if param == "surf_press":
+            return grbs[0].values / 100  # convert Pa to hPa
+        return np.sqrt(grbs[0].values ** 2 + grbs[1].values ** 2)  # wind speed from its components
+
+    def get(self, param, date):
+        if param not in self.values:
+            raise ValueError('Invalid parameter "{}"'.format(param))
+        return EmbeddedAncillaryGrid(self.values[param], self.lats, self.lons,
+                                     {param: self.path}, date)
 
 
 def _parse_bool(value):
@@ -102,14 +228,11 @@ def process(env, params, l1product_path, _, out_path):
     gsw_path = env['GSW']['root_path']
     os.makedirs(gsw_path, exist_ok=True)
 
-    if "ancillary" in params['POLYMER'] and params['POLYMER']['ancillary'] not in ["NASA", "ERA5"]:
+    anc_name = params['POLYMER']['ancillary'] if "ancillary" in params['POLYMER'] else "NA"
+    if anc_name not in ["NASA", "ERA5"]:
         ancillary = None
         anc_name = "NA"
         log(env["General"]["log"], "Polymer not using ancillary data.", indent=1)
-    elif params['POLYMER']['ancillary'] == "NASA":
-        anc_name = "NASA"
-    else:
-        anc_name = "ERA5"
 
     output_file = os.path.join(out_path, OUT_DIR, OUT_FILENAME.format(anc_name, product_name))
     if os.path.isfile(output_file):
@@ -126,6 +249,8 @@ def process(env, params, l1product_path, _, out_path):
     if anc_name != "NA":
         if anc_name == "NASA":
             ancillary = Ancillary_NASA(directory=env['EARTHDATA']['anc_path'])
+            ancillary.met_resources = default_met_resources + GEOS_IT_RESOURCES + forecast_resources
+            ancillary.ozone_resources = default_oz_resources + GEOS_IT_RESOURCES + forecast_resources
         else:
             ancillary = Ancillary_ERA5(directory=env['CDS']['anc_path'])
         log(env["General"]["log"], "Polymer using {} ancillary data.".format(anc_name), indent=1)
@@ -140,15 +265,33 @@ def process(env, params, l1product_path, _, out_path):
             print(he)
             ancillary = None
             anc_name = "NA"
-            os.makedirs("ANCILLARY/METEO", exist_ok=True)
             log(env["General"]["log"],
                 "Polymer failed to read ancillary file. HDF4 ERROR.", indent=1)
         except Exception as e:
             print(e)
             ancillary = None
             anc_name = "NA"
-            os.makedirs("ANCILLARY/METEO", exist_ok=True)
             log(env["General"]["log"], "Polymer failed to collect ancillary data. If using NASA data ensure authentication is setup according to: https://wiki.earthdata.nasa.gov/display/EL/How+To+Access+Data+With+cURL+And+Wget", indent=1)
+
+    if ancillary is None and sensor != "OLCI":
+        # OLCI reads ancillary data embedded in the L1 product, the other sensors would silently
+        # fall back to downloading NASA ancillary data, which just failed or isn't wanted
+        if sensor == "MSI":
+            try:
+                ancillary = EmbeddedAncillary(l1product_path)
+                log(env["General"]["log"],
+                    "Polymer using ancillary data embedded in the MSI product: {}".format(ancillary.path),
+                    indent=1)
+            except Exception as e:
+                print(e)
+                log(env["General"]["log"],
+                    "Polymer failed to read the ancillary data embedded in the MSI product.", indent=1)
+        if ancillary is None:
+            ancillary = FallbackAncillary()
+            log(env["General"]["log"],
+                "Polymer using constant ancillary values. Ozone: {} DU, wind speed: {} m/s, surface pressure: {} hPa."
+                .format(FALLBACK_ANCILLARY["ozone"], FALLBACK_ANCILLARY["wind_speed"], FALLBACK_ANCILLARY["surf_press"]),
+                indent=1)
 
     if sensor == "MSI":
         log(env["General"]["log"], "Reading MSI Level 1 data...", indent=1)
