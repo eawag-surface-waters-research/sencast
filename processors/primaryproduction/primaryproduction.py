@@ -30,14 +30,37 @@ OUT_FILENAME = 'L2PP_{}'
 SSRD_TO_PAR = (1.0 / 3600) * 0.45 * 4.57 * 0.95
 
 
-def read_era5_par(era5_dir, date, lat, lon):
-    """Read 24h of ERA5 ssrd and convert to hourly surface PAR.
-    Downloads from CDS if not cached.
+def validate_era5_file(path):
+    """Return None if the cached ERA5 ssrd file is usable, else a reason string.
+
+    A truncated download raises on open/read; an empty response from CDS opens
+    fine but has zero-length coordinates, which surfaces later as
+    KeyError("not all values found in index 'latitude'").
     """
-    year, month, day = date[:4], date[4:6], date[6:8]
-    target = os.path.join(era5_dir, year, month, day, f'era5_ssrd_{date}.nc')
-    if not os.path.exists(target):
-        os.makedirs(os.path.dirname(target), exist_ok=True)
+    try:
+        with xr.open_dataset(path) as ds:
+            if 'ssrd' not in ds:
+                return "no 'ssrd' variable"
+            for dim in ('latitude', 'longitude'):
+                if ds.sizes.get(dim, 0) == 0:
+                    return "empty '{}' dimension".format(dim)
+            if ds.ssrd.size == 0:
+                return "empty 'ssrd' variable"
+            ds.ssrd.isel({d: 0 for d in ds.ssrd.dims}).load()
+    except Exception as e:
+        return "{}: {}".format(type(e).__name__, e)
+    return None
+
+
+def download_era5_ssrd(target, year, month, day):
+    """Download one day of hourly ERA5 ssrd from CDS to target.
+
+    Writes to a per-process temp file and only renames onto target once the
+    file validates, so a killed or empty download never poisons the cache.
+    """
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    tmp = "{}.{}.tmp".format(target, os.getpid())
+    try:
         client = cdsapi.Client(retry_max=3)
         client.retrieve(
             'reanalysis-era5-single-levels',
@@ -48,12 +71,35 @@ def read_era5_par(era5_dir, date, lat, lon):
                 'month': month,
                 'day': day,
                 'time': [f'{h:02d}:00' for h in range(24)],
-                'format': 'netcdf',
+                'data_format': 'netcdf',
+                'download_format': 'unarchived',
             },
-            target)
-    ds = xr.open_dataset(target)
-    ssrd = ds.ssrd.sel(latitude=lat, longitude=lon, method='nearest').values.flatten()
-    ds.close()
+            tmp)
+        reason = validate_era5_file(tmp)
+        if reason is not None:
+            raise RuntimeError("Downloaded ERA5 file for {}-{}-{} is invalid ({})".format(year, month, day, reason))
+        os.replace(tmp, target)
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+
+
+def read_era5_par(era5_dir, date, lat, lon, logfile=None):
+    """Read 24h of ERA5 ssrd and convert to hourly surface PAR.
+    Downloads from CDS if not cached, or if the cached file is unusable.
+    """
+    year, month, day = date[:4], date[4:6], date[6:8]
+    target = os.path.join(era5_dir, year, month, day, f'era5_ssrd_{date}.nc')
+    if os.path.exists(target):
+        reason = validate_era5_file(target)
+        if reason is not None:
+            if logfile is not None:
+                log(logfile, "Cached ERA5 file {} is invalid ({}), re-downloading.".format(target, reason), indent=2)
+            os.remove(target)
+    if not os.path.exists(target):
+        download_era5_ssrd(target, year, month, day)
+    with xr.open_dataset(target) as ds:
+        ssrd = ds.ssrd.sel(latitude=lat, longitude=lon, method='nearest').values.flatten()
     return ssrd * SSRD_TO_PAR
 
 
@@ -155,7 +201,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         log(env["General"]["log"], "Reading ERA5 hourly PAR.", indent=1)
         lat_mean = float(np.nanmean(np.array(kd_src.variables['lat'][:], dtype=float)))
         lon_mean = float(np.nanmean(np.array(kd_src.variables['lon'][:], dtype=float)))
-        par_hourly = read_era5_par(env['CDS']['anc_path'], date, lat_mean, lon_mean)
+        par_hourly = read_era5_par(env['CDS']['anc_path'], date, lat_mean, lon_mean, logfile=env["General"]["log"])
 
         log(env["General"]["log"], "Calculating Lee Primary Production.", indent=1)
         pp_data, kdpar_data = lee_pp(chl_data, kd_data, par_hourly)
