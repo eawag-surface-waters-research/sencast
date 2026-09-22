@@ -212,18 +212,22 @@ def secchi_s2(width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
     usa = np.array(us)
     Kda[Kda < 0] = np.nan
     non_nan_rows = np.any(Kda > 0, axis=0)
-    if np.any(non_nan_rows == True):
+    if np.any(non_nan_rows):
         minKd_ind = np.nanargmin(Kda[:, non_nan_rows], axis=0)
 
+        # Per pixel, pick the band with the minimum Kd (gather, not an MxM fancy-index + diagonal)
+        cols = np.arange(minKd_ind.size)
+        Kd_min = Kda[:, non_nan_rows][minKd_ind, cols]
+        rrs_min = rrsa[:, non_nan_rows][minKd_ind, cols]
+        u_min = usa[:, non_nan_rows][minKd_ind, cols]
+
         # Zsd(broadband) according to Lee et al. (2015)
-        Zsd_lee[non_nan_rows] = (1 / (2.5 * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
-            (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
+        Zsd_lee[non_nan_rows] = (1 / (2.5 * Kd_min)) * np.log((np.absolute(0.14 - rrs_min)) / 0.013)
 
         # Zsd(broadband) according to Jiang et al.(2019)
-        K_ratio = (1.04 * (1 + 5.4 * usa[:, non_nan_rows][minKd_ind].diagonal()) ** 0.5) / (
+        K_ratio = (1.04 * (1 + 5.4 * u_min) ** 0.5) / (
                 1 / (1 - (np.sin(np.deg2rad(sza[non_nan_rows])) ** 2 / (1.34 ** 2))) ** 0.5)
-        Zsd_jiang[non_nan_rows] = (1 / ((1 + K_ratio) * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
-            (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
+        Zsd_jiang[non_nan_rows] = (1 / ((1 + K_ratio) * Kd_min)) * np.log((np.absolute(0.14 - rrs_min)) / 0.013)
 
     ############################### Decomposition of the total absorption coefficient ###########
 
@@ -282,18 +286,22 @@ def secchi_s3(width, rs, rrs, us, sza, aws, bws, wvl, m0, m1, m2, m3, y1):
     usa = np.array(us)
     Kda[Kda < 0] = np.nan
     non_nan_rows = np.any(Kda > 0, axis=0)
-    if np.any(non_nan_rows == True):
+    if np.any(non_nan_rows):
         minKd_ind = np.nanargmin(Kda[:, non_nan_rows], axis=0)
 
+        # Per pixel, pick the band with the minimum Kd (gather, not an MxM fancy-index + diagonal)
+        cols = np.arange(minKd_ind.size)
+        Kd_min = Kda[:, non_nan_rows][minKd_ind, cols]
+        rrs_min = rrsa[:, non_nan_rows][minKd_ind, cols]
+        u_min = usa[:, non_nan_rows][minKd_ind, cols]
+
         # Zsd(broadband) according to Lee et al. (2015)
-        Zsd_lee[non_nan_rows] = (1 / (2.5 * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
-            (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
+        Zsd_lee[non_nan_rows] = (1 / (2.5 * Kd_min)) * np.log((np.absolute(0.14 - rrs_min)) / 0.013)
 
         # Zsd(broadband) according to Jiang et al.(2019)
-        K_ratio = (1.04 * (1 + 5.4 * usa[:, non_nan_rows][minKd_ind].diagonal()) ** 0.5) / (
+        K_ratio = (1.04 * (1 + 5.4 * u_min) ** 0.5) / (
                 1 / (1 - (np.sin(np.deg2rad(sza[non_nan_rows])) ** 2 / (1.34 ** 2))) ** 0.5)
-        Zsd_jiang[non_nan_rows] = (1 / ((1 + K_ratio) * Kda[:, non_nan_rows][minKd_ind].diagonal())) * np.log(
-            (np.absolute(0.14 - rrsa[:, non_nan_rows][minKd_ind].diagonal())) / 0.013)
+        Zsd_jiang[non_nan_rows] = (1 / ((1 + K_ratio) * Kd_min)) * np.log((np.absolute(0.14 - rrs_min)) / 0.013)
 
     ############################### Decomposition of the total absorption coefficient ###########
 
