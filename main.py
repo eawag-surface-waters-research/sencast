@@ -382,7 +382,7 @@ def sencast_product_group(env, params, download_backends, products, l2_path, l2p
             try:
                 del (l2product_files[product["l1_product_path"]])
             except:
-                log(env["General"]["log"], "Failed to delete: {}".format(product["l1_product_path"]))
+                log(env["General"]["log"], "No product entry to clean up for: {}".format(product["l1_product_path"]))
 
     if "adapters" in params["General"]:
         with semaphores['adapt']:
