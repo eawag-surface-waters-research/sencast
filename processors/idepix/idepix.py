@@ -30,6 +30,8 @@ GPT_XML_FILENAME = "idepix_{}.xml"
 DEFAULT_ATTEMPTS = 1
 # Default timeout for the GPT (doesn't apply to last attempt) in seconds
 DEFAULT_TIMEOUT = False
+# Default max number of parallel threads for the GPT (False leaves gpt at its default of one per core)
+DEFAULT_PARALLELISM = False
 
 
 def process(env, params, l1product_path, _, out_path):
@@ -60,11 +62,22 @@ def process(env, params, l1product_path, _, out_path):
     if sensor == "OLI_TIRS":
         l1product_path = get_main_file_from_product_path(l1product_path)
 
-    if "gpt_use_default" in env['General'] and env['General']['gpt_use_default'] == "True":
-        args = [gpt, gpt_xml_file, "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
+    if PARAMS_SECTION in params and "parallelism" in params[PARAMS_SECTION]:
+        parallelism = int(params[PARAMS_SECTION]["parallelism"])
     else:
-        args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e",
-                "-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
+        parallelism = DEFAULT_PARALLELISM
+
+    if "gpt_use_default" in env['General'] and env['General']['gpt_use_default'] == "True":
+        args = [gpt, gpt_xml_file]
+    else:
+        args = [gpt, gpt_xml_file, "-c", env['General']['gpt_cache_size'], "-e"]
+
+    # gpt defaults to one thread per core, and each holds tiles which the cache cannot evict, so on a
+    # many-core machine the reprojection can exhaust the heap ("Cannot construct DataBuffer").
+    if parallelism:
+        args += ["-q", str(parallelism)]
+
+    args += ["-SsourceFile={}".format(l1product_path), "-PoutputFile={}".format(output_file)]
 
     if PARAMS_SECTION in params and "attempts" in params[PARAMS_SECTION]:
         attempts = int(params[PARAMS_SECTION]["attempts"])
