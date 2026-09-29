@@ -148,6 +148,11 @@ def get_reproject_params_from_nc(img, resolution):
         south = np.array(nc.variables["latitude"][:]).min()
         east = np.array(nc.variables["longitude"][:]).max()
         west = np.array(nc.variables["longitude"][:]).min()
+    return get_reproject_params_from_bounds(north, south, east, west, width, height, resolution)
+
+
+def get_reproject_params_from_bounds(north, south, east, west, width, height, resolution):
+    """Pixel size from the lat/lon bounds at the given resolution, with the output size fixed to width x height."""
     x_dist = haversine((south, west), (south, east))
     y_dist = haversine((south, west), (north, west))
     x_pix = int(round(x_dist / (int(resolution) / 1000)))
@@ -156,6 +161,108 @@ def get_reproject_params_from_nc(img, resolution):
     y_pixsize = (north - south) / y_pix
     return {'easting': str(west), 'northing': str(north), 'pixelSizeX': str(x_pixsize),
             'pixelSizeY': str(y_pixsize), 'width': str(width), 'height': str(height)}
+
+
+def get_reproject_params_from_msi_roi(l1product_path, wkt, resolution):
+    """Reprojection parameters matching the POLYMER output grid for an MSI tile.
+
+    POLYMER derives its grid from the lat/lon of its output pixels (see get_reproject_params_from_nc). This rebuilds
+    those lat/lon from the tile metadata, using the same pixel centres as polymer's Level1_MSI and the same crop
+    window as POLYMER, so other processors can be reprojected onto an identical grid before POLYMER has run.
+    """
+    granule_path = os.path.join(l1product_path, "GRANULE")
+    granule_path = os.path.join(granule_path, os.listdir(granule_path)[0])
+    with open(os.path.join(granule_path, "MTD_TL.xml"), "r", encoding="utf-8") as f:
+        xml_content = f.read()
+    crs = re.search(r'<HORIZONTAL_CS_CODE>(.*?)</HORIZONTAL_CS_CODE>', xml_content).group(1)
+    geoposition = re.search(r'<Geoposition resolution="{}">(.*?)</Geoposition>'.format(int(resolution)),
+                            xml_content, re.DOTALL).group(1)
+    ulx, uly, xdim, ydim = [int(re.search(r'<{0}>(.*?)</{0}>'.format(tag), geoposition).group(1))
+                            for tag in ("ULX", "ULY", "XDIM", "YDIM")]
+
+    sline, eline, scol, ecol = get_msi_roi_window(granule_path, wkt, resolution)
+
+    # Pixel centres as in polymer Level1_MSI.init_latlon. The lat/lon extremes of a UTM rectangle lie on its
+    # boundary, so only the edges need transforming.
+    xs = ulx + xdim // 2 + xdim * np.arange(scol, ecol)
+    ys = uly + ydim // 2 + ydim * np.arange(sline, eline)
+    x = np.concatenate([xs, xs, np.full(ys.size, xs[0]), np.full(ys.size, xs[-1])])
+    y = np.concatenate([np.full(xs.size, ys[0]), np.full(xs.size, ys[-1]), ys, ys])
+    lat, lon = Transformer.from_crs(crs, "epsg:4326").transform(x, y)
+
+    return get_reproject_params_from_bounds(lat.max(), lat.min(), lon.max(), lon.min(),
+                                            ecol - scol, eline - sline, resolution)
+
+
+def get_msi_roi_window(granule_path, wkt, resolution):
+    """Rows and columns of an MSI tile at the given resolution covering the wkt, snapped to the 60m grid."""
+    ul, ur, lr, ll = get_corner_pixels_roi_msi(granule_path, wkt)
+    sline, scol, eline, ecol = min(ul[0], ur[0]), min(ul[1], ur[1]), max(ll[0], lr[0]), max(ll[1], lr[1])
+    # Normalize to correct resolution
+    target_divisor = 60 / int(resolution)
+    sline, scol, eline, ecol = [(i * 10 / int(resolution)) for i in [sline, scol, eline, ecol]]
+    sline, scol = [int(math.floor(i / target_divisor) * target_divisor) for i in [sline, scol]]
+    eline, ecol = [int(math.ceil(i / target_divisor) * target_divisor) for i in [eline, ecol]]
+    return sline, eline, scol, ecol
+
+
+def get_corner_pixels_roi_msi(l1product_path, wkt):
+    """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
+
+    south, east, north, west = get_south_east_north_west_bound(wkt)
+
+    metadata_path = os.path.join(l1product_path, "MTD_TL.xml")
+    crs = get_horizontal_cs_code(metadata_path)
+
+    img_dirs = list(filter(lambda d: d.endswith("_TCI.jp2"), os.listdir(os.path.join(l1product_path, "IMG_DATA"))))
+    l1product_path = os.path.join(l1product_path, "IMG_DATA", img_dirs[0])
+
+    dataset = gdal.Open(l1product_path)
+    w, h = dataset.RasterXSize, dataset.RasterYSize
+    ul_pos = get_pixel_pos_gdal(dataset, west, north, crs)
+    ur_pos = get_pixel_pos_gdal(dataset, east, north, crs)
+    ll_pos = get_pixel_pos_gdal(dataset, west, south, crs)
+    lr_pos = get_pixel_pos_gdal(dataset, east, south, crs)
+    dataset = None
+
+    ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
+    ur = [int(ur_pos[1]) if (0 <= ur_pos[1] < h) else 0, int(ur_pos[0]) if (0 <= ur_pos[0] < w) else w]
+    ll = [int(ll_pos[1]) if (0 <= ll_pos[1] < h) else h, int(ll_pos[0]) if (0 <= ll_pos[0] < w) else 0]
+    lr = [int(lr_pos[1]) if (0 <= lr_pos[1] < h) else h, int(lr_pos[0]) if (0 <= lr_pos[0] < w) else w]
+
+    return ul, ur, lr, ll
+
+
+def get_pixel_pos_gdal(dataset, lon, lat, crs):
+    w, h = dataset.RasterXSize, dataset.RasterYSize
+    if isinstance(crs, bool):
+        wkt = dataset.GetProjection()
+        spatial_ref = osr.SpatialReference()
+        spatial_ref.ImportFromWkt(wkt)
+        epsg = spatial_ref.GetAttrValue('AUTHORITY', 1)
+        if epsg:
+            crs = f"EPSG:{epsg}"
+        else:
+            raise ValueError("Failed to parse projection")
+    transformer = Transformer.from_crs("epsg:4326", crs)
+    x, y = transformer.transform(lat, lon)
+    geo_transform = dataset.GetGeoTransform()
+    inv_geo_transform = gdal.InvGeoTransform(geo_transform)
+    col, row = gdal.ApplyGeoTransform(inv_geo_transform, x, y)
+    col, row = math.floor(col), math.floor(row)
+    xx = col if 0 < col <= w else -1
+    yy = row if 0 < row <= h else -1
+    return [xx, yy]
+
+
+def get_horizontal_cs_code(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            xml_content = file.read()
+        match = re.search(r'<HORIZONTAL_CS_CODE>(.*?)</HORIZONTAL_CS_CODE>', xml_content)
+        return match.group(1) if match else False
+    except Exception as e:
+        return False
 
 
 def get_reproject_params_from_jp2(source_file, resolution):

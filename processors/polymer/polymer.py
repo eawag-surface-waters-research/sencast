@@ -8,16 +8,12 @@ Ocean Colour) from the signal measured by satellite sensors in the visible spect
 For an overview of the processor: https://www.hygeos.com/polymer
 or for more details: https://forum.hygeos.com/viewforum.php?f=3
 """
-import math
 import os
-import re
 import numpy as np
 from datetime import datetime
 from glob import glob
-from math import ceil, floor
-from osgeo import gdal, osr
+from osgeo import gdal
 from netCDF4 import Dataset
-from pyproj import Transformer
 
 from polymer.ancillary_era5 import Ancillary_ERA5
 from polymer.ancillary import Ancillary_NASA, LUT_LatLon, default_met_resources, default_oz_resources, \
@@ -34,7 +30,8 @@ from pyhdf.error import HDF4Error
 
 from utils.auxil import log, gpt_subprocess
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
-    get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos, get_reproject_params_from_nc, get_s2_tile_name_from_product_name
+    get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos, get_reproject_params_from_nc, get_s2_tile_name_from_product_name, \
+    get_msi_roi_window, get_pixel_pos_gdal
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
 # Key of the params section for this processor
@@ -298,13 +295,7 @@ def process(env, params, l1product_path, _, out_path):
         calib_gains = polymer_vicarious.msi_vicarious(vicar_version)
         granule_path = os.path.join(l1product_path, "GRANULE")
         msi_product_path = os.path.join(granule_path, os.listdir(granule_path)[0])
-        ul, ur, lr, ll = get_corner_pixels_roi_msi(msi_product_path, wkt)
-        sline, scol, eline, ecol = min(ul[0], ur[0]), min(ul[1], ur[1]), max(ll[0], lr[0]), max(ll[1], lr[1])
-        # Normalize to correct resolution
-        target_divisor = 60 / int(resolution)
-        sline, scol, eline, ecol = [(i * 10 / int(resolution)) for i in [sline, scol, eline, ecol]]
-        sline, scol = [int(floor(i / target_divisor) * target_divisor) for i in [sline, scol]]
-        eline, ecol = [int(ceil(i / target_divisor) * target_divisor) for i in [eline, ecol]]
+        sline, eline, scol, ecol = get_msi_roi_window(msi_product_path, wkt, resolution)
         gsw = GSW(directory=gsw_path)
         l1 = Level1_MSI(msi_product_path, sline=sline, eline=eline, scol=scol, ecol=ecol, landmask=gsw, ancillary=ancillary, resolution=resolution)#, altitude=altitude)
         additional_ds = ['sza']
@@ -414,32 +405,6 @@ def rewrite_xml(gpt_xml_file, sensor, validexpression, resolution, wkt, source_f
         f.write(xml)
 
 
-def get_corner_pixels_roi_msi(l1product_path, wkt):
-    """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
-
-    south, east, north, west = get_south_east_north_west_bound(wkt)
-
-    metadata_path = os.path.join(l1product_path, "MTD_TL.xml")
-    crs = get_horizontal_cs_code(metadata_path)
-
-    img_dirs = list(filter(lambda d: d.endswith("_TCI.jp2"), os.listdir(os.path.join(l1product_path, "IMG_DATA"))))
-    l1product_path = os.path.join(l1product_path, "IMG_DATA", img_dirs[0])
-
-    dataset = gdal.Open(l1product_path)
-    w, h = dataset.RasterXSize, dataset.RasterYSize
-    ul_pos = get_pixel_pos_gdal(dataset, west, north, crs)
-    ur_pos = get_pixel_pos_gdal(dataset, east, north, crs)
-    ll_pos = get_pixel_pos_gdal(dataset, west, south, crs)
-    lr_pos = get_pixel_pos_gdal(dataset, east, south, crs)
-    dataset = None
-
-    ul = [int(ul_pos[1]) if (0 <= ul_pos[1] < h) else 0, int(ul_pos[0]) if (0 <= ul_pos[0] < w) else 0]
-    ur = [int(ur_pos[1]) if (0 <= ur_pos[1] < h) else 0, int(ur_pos[0]) if (0 <= ur_pos[0] < w) else w]
-    ll = [int(ll_pos[1]) if (0 <= ll_pos[1] < h) else h, int(ll_pos[0]) if (0 <= ll_pos[0] < w) else 0]
-    lr = [int(lr_pos[1]) if (0 <= lr_pos[1] < h) else h, int(lr_pos[0]) if (0 <= lr_pos[0] < w) else w]
-
-    return ul, ur, lr, ll
-
 
 def get_corner_pixels_roi_olci(l1product_path, wkt):
     """ Get the uper left, upper right, lower right, and lower left pixel position of the wkt containing rectangle """
@@ -485,35 +450,3 @@ def get_corner_pixels_roi_oli(l1product_path, wkt):
     lr = [int(lr_pos[1]) if (0 <= lr_pos[1] < h) else h, int(lr_pos[0]) if (0 <= lr_pos[0] < w) else w]
 
     return ul, ur, lr, ll
-
-
-def get_pixel_pos_gdal(dataset, lon, lat, crs):
-    w, h = dataset.RasterXSize, dataset.RasterYSize
-    if isinstance(crs, bool):
-        wkt = dataset.GetProjection()
-        spatial_ref = osr.SpatialReference()
-        spatial_ref.ImportFromWkt(wkt)
-        epsg = spatial_ref.GetAttrValue('AUTHORITY', 1)
-        if epsg:
-            crs = f"EPSG:{epsg}"
-        else:
-            raise ValueError("Failed to parse projection")
-    transformer = Transformer.from_crs("epsg:4326", crs)
-    x, y = transformer.transform(lat, lon)
-    geo_transform = dataset.GetGeoTransform()
-    inv_geo_transform = gdal.InvGeoTransform(geo_transform)
-    col, row = gdal.ApplyGeoTransform(inv_geo_transform, x, y)
-    col, row = math.floor(col), math.floor(row)
-    xx = col if 0 < col <= w else -1
-    yy = row if 0 < row <= h else -1
-    return [xx, yy]
-
-
-def get_horizontal_cs_code(file_path):
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            xml_content = file.read()
-        match = re.search(r'<HORIZONTAL_CS_CODE>(.*?)</HORIZONTAL_CS_CODE>', xml_content)
-        return match.group(1) if match else False
-    except Exception as e:
-        return False

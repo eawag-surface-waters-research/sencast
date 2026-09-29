@@ -9,10 +9,9 @@ For an overview of the processor: https://www.brockmann-consult.de/portfolio/ide
 """
 
 import os
-import glob
 from utils.auxil import log, gpt_subprocess
 from utils.product_fun import (get_reproject_params_from_wkt, get_main_file_from_product_path,
-                               get_s2_tile_name_from_product_name, get_reproject_params_from_jp2)
+                               get_s2_tile_name_from_product_name, get_reproject_params_from_msi_roi)
 
 # Key of the params section for this processor
 PARAMS_SECTION = "IDEPIX"
@@ -107,7 +106,8 @@ def rewrite_xml(gpt_xml_file, sensor, resolution, wkt, source_file, tiles):
         xml = f.read()
 
     if tiles:
-        reproject_params = get_reproject_params_from_msi(source_file, resolution)
+        # Same grid as POLYMER so the products can be combined
+        reproject_params = get_reproject_params_from_msi_roi(source_file, wkt, resolution)
     else:
         reproject_params = get_reproject_params_from_wkt(wkt, resolution)
     xml = xml.replace("${wkt}", wkt)
@@ -122,18 +122,3 @@ def rewrite_xml(gpt_xml_file, sensor, resolution, wkt, source_file, tiles):
     os.makedirs(os.path.dirname(gpt_xml_file), exist_ok=True)
     with open(gpt_xml_file, "w") as f:
         f.write(xml)
-
-
-def get_reproject_params_from_msi(source_file, resolution):
-    granule_path = os.path.join(source_file, "GRANULE")
-    msi_images = os.path.join(granule_path, os.listdir(granule_path)[0], "IMG_DATA")
-    res, bands = [60, 10, 20], ["B01", "B02", "B05"]
-    if int(resolution) not in res:
-        raise ValueError("Resolution must be 10, 20 or 60 not {}".format(resolution))
-    band = bands[res.index(int(resolution))]
-    file_path = glob.glob(os.path.join(msi_images, "*_{}.jp2".format(band)))[0]
-    return get_reproject_params_from_jp2(file_path, resolution)
-
-
-
-
