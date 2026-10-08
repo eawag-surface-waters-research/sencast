@@ -30,7 +30,7 @@ from pyhdf.error import HDF4Error
 
 from utils.auxil import log, gpt_subprocess
 from utils.product_fun import get_reproject_params_from_wkt, get_south_east_north_west_bound, generate_l8_angle_files, \
-    get_lons_lats, get_sensing_date_from_product_name, get_pixel_pos, get_reproject_params_from_nc, get_s2_tile_name_from_product_name, \
+    get_lons_lats, get_sensing_date_from_product_name, get_sensing_datetime_from_product_name, get_pixel_pos, get_reproject_params_from_nc, get_s2_tile_name_from_product_name, \
     get_msi_roi_window, get_pixel_pos_gdal
 import processors.polymer.vicarious.polymer_vicarious as polymer_vicarious
 
@@ -218,7 +218,6 @@ def process(env, params, l1product_path, _, out_path):
     """This processor applies polymer to the source product and stores the result."""
 
     gpt, product_name = env['General']['gpt_path'], os.path.basename(l1product_path)
-    date_str = get_sensing_date_from_product_name(product_name)
     sensor, resolution, wkt = params['General']['sensor'], params['General']['resolution'], params['General']['wkt']
     water_model, validexpression = params['POLYMER']['water_model'], params['POLYMER']['validexpression']
     vicar_version = params['POLYMER']['vicar_version']
@@ -252,8 +251,8 @@ def process(env, params, l1product_path, _, out_path):
             ancillary = Ancillary_ERA5(directory=env['CDS']['anc_path'])
         log(env["General"]["log"], "Polymer using {} ancillary data.".format(anc_name), indent=1)
         try:
-            # Test the retrieval of parameters
-            date = datetime.strptime(date_str, "%Y%m%d")
+            # Test the retrieval of parameters at the sensing time, which is when polymer reads them.
+            date = datetime.strptime(get_sensing_datetime_from_product_name(product_name), "%Y%m%dT%H%M%S")
             lons, lats = get_lons_lats(wkt)
             coords = (max(lats) + min(lats)) / 2, (max(lons) + min(lons)) / 2
             ozone = round(ancillary.get("ozone", date)[coords])
