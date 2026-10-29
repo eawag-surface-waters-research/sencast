@@ -214,6 +214,16 @@ def _collect_polymer_runtime_overrides(polymer_params):
     return runtime
 
 
+def _polymer_flag_influence_overrides():
+    return {
+        "thres_Rcloud": -1.0,
+        "thres_Rcloud_std": -1.0,
+        "Rprime_consistency": False,
+        "force_initialization": True,
+        "BITMASK_INVALID": 549,
+    }
+
+
 def process(env, params, l1product_path, _, out_path):
     """This processor applies polymer to the source product and stores the result."""
 
@@ -328,22 +338,21 @@ def process(env, params, l1product_path, _, out_path):
         if "General" in params and "processors" in params["General"]:
             processors = [token.strip().upper() for token in params["General"]["processors"].split(",") if token.strip()]
         is_radcor_plus_polymer = "RADCOR" in processors
+        disable_polymer_flag_influence = False
+        if "disable_polymer_flag_influence" in params["POLYMER"]:
+            disable_polymer_flag_influence = _parse_bool(params["POLYMER"]["disable_polymer_flag_influence"])
 
         atm_kwargs = {"water_model": water_model, "calib": calib_gains}
-        if is_radcor_plus_polymer:
-            # For RAdCor+Polymer, disable Polymer internal bitmask influence to keep the atmospheric correction independent from Polymer flagging behaviour.
-            atm_kwargs.update({
-                "thres_Rcloud": -1.0,
-                "thres_Rcloud_std": -1.0,
-                "Rprime_consistency": False,
-                "force_initialization": True,
-                "BITMASK_INVALID": 549,
-            })
+        if is_radcor_plus_polymer or disable_polymer_flag_influence:
+            # Disable Polymer internal flag influence when explicitly requested, or for RAdCor+Polymer where the atmospheric correction should remain independent from Polymer flagging behaviour.
+            atm_kwargs.update(_polymer_flag_influence_overrides())
 
         atm_kwargs.update(_collect_polymer_runtime_overrides(params["POLYMER"]))
         log(env["General"]["log"], "Running atmospheric correction...", indent=1)
         if is_radcor_plus_polymer:
             log(env["General"]["log"], "RADCOR+POLYMER mode: Polymer flag influence disabled.", indent=2)
+        elif disable_polymer_flag_influence:
+            log(env["General"]["log"], "POLYMER mode: Polymer flag influence disabled by ini setting.", indent=2)
         run_atm_corr(l1, l2, **atm_kwargs)
         log(env["General"]["log"], "Atmospheric correction complete.", indent=1)
 
