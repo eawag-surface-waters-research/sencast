@@ -16,7 +16,11 @@ Inputs and data dependencies:
 - Configuration parameters from the Sencast ini file, especially the RADCOR section.
 
 Outputs or side effects:
-- Writes a RADCOR product folder under the input product directory.
+- Writes a RADCOR product folder under the input product directory. With cache_per_area=true the folder is
+  RADCOR/<key>/ with a key derived from the job area (WKT), the resolution and the RADCOR settings.
+- After a successful correction, writes the completion marker <RADCOR product folder>.radcor_done beside that
+  folder (not inside it, so the product is unchanged). A cached folder is reused only when it is complete and has
+  its marker. Otherwise it is rebuilt, for example a copy written by an earlier version without the marker.
 - Writes temporary processing folders under the output directory and removes them after completion.
 - Writes or updates ACOLITE settings files under the reproducibility folder.
 - For MSI runs at 20 m, writes adjacency corrected values into native band files
@@ -25,7 +29,7 @@ Outputs or side effects:
 
 Manual parameters or settings to review:
 - RADCOR section values such as radcor_max_vza, radcor_aot_estimate,
-  radcor_kernel_radius, radcor_rhotc_tolerance_nm, and recompute.
+  radcor_kernel_radius, radcor_rhotc_tolerance_nm, recompute, and cache_per_area.
 - ACOLITE settings template and LUT selection for the relevant sensor and resolution.
 
 Hardcoded input and output paths:
@@ -42,6 +46,7 @@ import sys
 import time
 import netCDF4
 import shutil
+import hashlib
 import importlib
 import numpy as np
 import xarray as xr
@@ -110,6 +115,11 @@ OLI_BAND_TO_WAVELENGTHS = {
 OLI_BAND_ORDER = tuple(OLI_BAND_TO_WAVELENGTHS.keys())
 SCENE_LOCK_POLL_SECONDS = 5.0
 SCENE_LOCK_STALE_SECONDS = 6 * 60 * 60
+CACHE_KEY_LENGTH = 12
+# RADCOR keys that only control the cache and do not change the corrected product.
+CACHE_KEY_IGNORED_PARAMS = ("recompute", "cache_per_area")
+# Written beside a RADCOR copy after a successful correction. A cached copy without it is rebuilt.
+COMPLETION_MARKER_SUFFIX = ".radcor_done"
 
 def _tile_id_from_product(product_id):
     match = re.search(r"_T\d{2}[A-Z]{3}_", product_id)
@@ -265,9 +275,43 @@ def _read_bool_param(parameters, key, default=False, log_path=None):
     return default
 
 
+def _cache_key(wkt, resolution, parameters):
+    """Key of the RADCOR cache for one job area and one set of RAdCor settings (cache_per_area=true).
+
+    Returns the first CACHE_KEY_LENGTH hex digits of the SHA-256 of the WKT, the resolution and the RADCOR
+    parameters (sorted by key, without CACHE_KEY_IGNORED_PARAMS), and the list of these inputs.
+    """
+
+    inputs = [("wkt", str(wkt).strip()), ("resolution", str(resolution).strip())]
+    for key in sorted(parameters):
+        if key not in CACHE_KEY_IGNORED_PARAMS:
+            inputs.append((key, str(parameters[key]).strip()))
+    text = "\n".join("{}={}".format(key, value) for key, value in inputs)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:CACHE_KEY_LENGTH], inputs
+
+
 def _remove_tree_if_exists(path):
     if os.path.isdir(path):
         shutil.rmtree(path)
+
+
+def _remove_file_if_exists(path):
+    if os.path.isfile(path):
+        os.remove(path)
+
+
+def _write_completion_marker(marker_file, product, sensor, cache_key, band_to_var):
+    """Write the completion marker of a corrected RADCOR copy as key=value lines, beside the copy (not inside it)."""
+
+    lines = [
+        "product={}".format(product),
+        "sensor={}".format(sensor),
+        "cache_key={}".format(cache_key),
+        "band_to_variable={}".format(",".join("{}:{}".format(band, var) for band, var in band_to_var.items())),
+        "created_utc={}".format(datetime.utcnow().isoformat()),
+    ]
+    with open(marker_file, "w", encoding="utf-8") as handle:
+        handle.write("\n".join(lines) + "\n")
 
 
 def _list_msi_bands_present(product_path):
@@ -717,6 +761,7 @@ def _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix):
             )
 
         log(env["General"]["log"], "RADCOR: adjacency-corrected bands: {}".format(processed_bands), indent=1)
+        return band_to_var
     finally:
         ds.close()
 
@@ -823,15 +868,31 @@ def process(env, params, l1product_path, _, out_path):
         log_path=env["General"]["log"],
     )
 
+    cache_per_area = _read_bool_param(
+        radcor_params,
+        "cache_per_area",
+        default=False,
+        log_path=env["General"]["log"],
+    )
+
     radcor_folder = os.path.join(os.path.dirname(l1product_path), "RADCOR")
+    cache_key = ""
+    if cache_per_area:
+        cache_key, cache_inputs = _cache_key(wkt, resolution, radcor_params)
+        log(env["General"]["log"], "RADCOR: cache_per_area=true, cache key {} from:".format(cache_key), indent=1)
+        for key, value in cache_inputs:
+            log(env["General"]["log"], "{} = {}".format(key, value), indent=2)
+        radcor_folder = os.path.join(radcor_folder, cache_key)
     os.makedirs(radcor_folder, exist_ok=True)
     radcor_file = os.path.join(radcor_folder, os.path.basename(l1product_path))
     lock_file = "{}.lock".format(radcor_file)
+    marker_file = "{}{}".format(radcor_file, COMPLETION_MARKER_SUFFIX)
 
     with _scene_lock(lock_file, log_path=env["General"]["log"]):
         if os.path.exists(radcor_file):
             is_complete = _is_complete_cached_product(sensor, radcor_file)
-            if is_complete and not recompute:
+            has_marker = os.path.isfile(marker_file)
+            if is_complete and has_marker and not recompute:
                 log(
                     env["General"]["log"],
                     "Skipping RADCOR, target already exists and is complete: {}".format(radcor_file),
@@ -841,8 +902,11 @@ def process(env, params, l1product_path, _, out_path):
 
             if recompute:
                 log(env["General"]["log"], "RADCOR: recompute=true, replacing cached target: {}".format(radcor_file), indent=1)
+            elif is_complete:
+                log(env["General"]["log"], "RADCOR: cached target has no completion marker, rebuilding: {}".format(radcor_file), indent=1)
             else:
                 log(env["General"]["log"], "RADCOR: cached target is incomplete, rebuilding: {}".format(radcor_file), indent=1)
+            _remove_file_if_exists(marker_file)
             _remove_tree_if_exists(radcor_file)
 
         settings_file = os.path.join(out_path, REPROD_DIR, SETTINGS_FILENAME.format(sensor))
@@ -873,6 +937,7 @@ def process(env, params, l1product_path, _, out_path):
         tmp_dir = os.path.join(out_path, "tmp", os.path.basename(l1product_path))
         _remove_tree_if_exists(tmp_dir)
 
+        band_to_var = {}
         try:
             shutil.copytree(l1product_path, tmp_dir)
 
@@ -1007,6 +1072,7 @@ def process(env, params, l1product_path, _, out_path):
                             nc.variables["{}_radiance".format(band)][:] = combined_radiance
 
                         corrected_bands.append(band)
+                        band_to_var[band] = rhotc_var
 
                     log(
                         env["General"]["log"],
@@ -1029,14 +1095,17 @@ def process(env, params, l1product_path, _, out_path):
             elif sensor == "MSI":
                 if int(resolution) != int(20):
                     raise ValueError("RADCOR for MSI only implemented for 20m")
-                _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix)
+                band_to_var = _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix)
             elif sensor == "OLI_TIRS":
                 _process_oli_fail_fast(env, radcor_params, tmp_dir, acolite_file, toa_prefix)
             else:
                 raise ValueError("RADCOR not implemented for {}".format(sensor))
 
+            _remove_file_if_exists(marker_file)
             _remove_tree_if_exists(radcor_file)
             shutil.copytree(tmp_dir, radcor_file)
+            _write_completion_marker(marker_file, product, sensor, cache_key, band_to_var)
+            log(env["General"]["log"], "RADCOR: wrote completion marker: {}".format(marker_file), indent=1)
         finally:
             _remove_tree_if_exists(tmp_dir)
 
