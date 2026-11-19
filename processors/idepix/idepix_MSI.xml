@@ -30,7 +30,8 @@
 		</sources>
 		<parameters>
 			<computeCloudBuffer>true</computeCloudBuffer>
-			<cloudBufferWidth>5</cloudBufferWidth>
+			<cloudBufferWidth>10</cloudBufferWidth>
+			<computeCloudShadow>true</computeCloudShadow>
 		</parameters>
 	</node>
 	<node id="mergeNode">

@@ -19,8 +19,36 @@ OUT_DIR = 'L2OC3'
 # A pattern for the name of the file to which the output product will be saved (completed with product name)
 OUT_FILENAME = 'L2OC3_{}'
 
-# Optimised OC3 parameters
+# Optimised OC3 parameters (Sentinel-3 OLCI, production)
 p0_oc3_shift = [0.4960541484773382, -2.2511498967428705, 1.5193, -0.7702, -0.4291]
+
+# OC3 parameters for Sentinel-2 MSI, tuned against concurrent OLCI observations over 24 lakes
+# (Polymer atmospheric correction): Warren, Simis & Selmes (2021), Remote Sensing of Environment 265, 112651, Table 8.
+# Note: these align MSI with the standard OLCI/MERIS OC3 coefficients (0.2521, -2.2146, 1.5193, -0.7702, -0.4291),
+# not with p0_oc3_shift, so S2 and S3 OC3 outputs are not calibrated identically.
+# The polynomial is only valid in the range it was tuned on (OLCI chl-a approx. 0.2 - 10 mg m-3); outside that range
+# chl-a can bend back down. Restrict the valid range through the validexpression in the parameter file.
+p0_oc3_msi = [0.3121, -1.7612, 2.9117, 3.2944, -28.3593]
+
+# Per-sensor configuration: bands read from the Polymer output, the bands of the max(blue) / green ratio,
+# the default coefficients and the wavelengths of the bands passed to the QA scores.
+SENSOR_CONFIG = {
+    "OLCI": {
+        "bands": ["Rw400", "Rw412", "Rw443", "Rw490", "Rw510", "Rw560", "Rw620", "Rw665", "Rw681", "Rw709", "Rw754",
+                  "Rw779", "Rw865", "Rw1020"],
+        "wavelengths": [400, 412, 443, 490, 510, 560, 620, 665, 681, 709, 754, 779, 865, 1020],
+        "blue": ["Rw443", "Rw490"],
+        "green": "Rw560",
+        "coefficients": p0_oc3_shift,
+    },
+    "MSI": {
+        "bands": ["Rw443", "Rw490", "Rw560", "Rw665", "Rw705"],
+        "wavelengths": [443, 490, 560, 665, 705],
+        "blue": ["Rw443", "Rw490"],
+        "green": "Rw560",
+        "coefficients": p0_oc3_msi,
+    },
+}
 
 def process(env, params, l1product_path, l2product_files, out_path):
     """Apply OC3 adapter.
@@ -66,6 +94,22 @@ def process(env, params, l1product_path, l2product_files, out_path):
             return output_file
     os.makedirs(product_dir, exist_ok=True)
 
+    satellite = get_satellite_name_from_product_name(product_name)
+    if satellite in ["S2A", "S2B", "S2C"]:
+        sensor = "MSI"
+    elif satellite in ["S3A", "S3B"]:
+        sensor = "OLCI"
+    else:
+        raise RuntimeError("OC3 adapter not implemented for satellite {}".format(satellite))
+    config = SENSOR_CONFIG[sensor]
+    coefficients = config["coefficients"]
+    if "coefficients" in params[PARAMS_SECTION] and params[PARAMS_SECTION]["coefficients"].strip():
+        coefficients = [float(c) for c in params[PARAMS_SECTION]["coefficients"].split(",") if c.strip()]
+        if len(coefficients) != 5:
+            raise RuntimeWarning("OC3 coefficients must contain 5 comma separated values (a0,a1,a2,a3,a4).")
+        log(env["General"]["log"], "Using OC3 coefficients from parameter file: {}".format(coefficients), indent=1)
+    log(env["General"]["log"], "Sensor: {}, OC3 coefficients: {}".format(sensor, coefficients), indent=1)
+
     log(env["General"]["log"], "Reading POLYMER output from {}".format(product_path), indent=1)
     with Dataset(product_path) as src, Dataset(output_file, mode='w') as dst:
         name, width, height = get_name_width_height_from_nc(src, product_path)
@@ -93,11 +137,15 @@ def process(env, params, l1product_path, l2product_files, out_path):
         create_band(dst, "totScore", "", valid_pixel_expression)
 
         log(env["General"]["log"], "Reading input RRS data.", indent=2)
-        rrs = read_rrs_polymer(src, width, height)
+        rrs = read_rrs_polymer(src, config["bands"], width, height)
+        band = dict(zip(config["bands"], rrs))
 
         log(env["General"]["log"], "Computing ChlA", indent=2)
-        xx_oc3 = np.log10(np.maximum(rrs[2], rrs[3]) / rrs[5])
-        chla = ocx(xx_oc3, *p0_oc3_shift)
+        blue = band[config["blue"][0]]
+        for blue_band in config["blue"][1:]:
+            blue = np.maximum(blue, band[blue_band])
+        xx_oc3 = np.log10(blue / band[config["green"]])
+        chla = ocx(xx_oc3, *coefficients)
         write_pixels_to_nc(dst, "chla", 0, 0, width, height, chla)
 
         log(env["General"]["log"], "Computing QA Scores", indent=2)
@@ -108,8 +156,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
         clusterID[:] = np.nan
         totScore[:] = np.nan
 
-        wavelengths = [400, 412, 443, 490, 510, 560, 620, 665, 681, 709, 754, 779, 865, 1020]
-        maxCos, cos, clusterID, totScore = QAscores(rrs, wavelengths)
+        maxCos, cos, clusterID, totScore = QAscores(rrs, config["wavelengths"])
 
         write_pixels_to_nc(dst, "maxCos", 0, 0, width, height, maxCos)
         write_pixels_to_nc(dst, "clusterID", 0, 0, width, height, clusterID)
@@ -118,8 +165,7 @@ def process(env, params, l1product_path, l2product_files, out_path):
     return output_file
 
 
-def read_rrs_polymer(nc, width, height):
-    polymer_band_names = ["Rw400", "Rw412", "Rw443", "Rw490", "Rw510", "Rw560", "Rw620", "Rw665", "Rw681", "Rw709", "Rw754", "Rw779", "Rw865", "Rw1020"]
+def read_rrs_polymer(nc, polymer_band_names, width, height):
     rrs = []
     for band_name in polymer_band_names:
         temp_arr = np.zeros(width * height)
