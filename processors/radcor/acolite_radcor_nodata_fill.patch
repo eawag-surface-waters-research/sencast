@@ -1,0 +1,129 @@
+--- a/acolite/adjacency/radcor/radcor.py
++++ b/acolite/adjacency/radcor/radcor.py
+@@ -42,12 +42,108 @@
+ ##                2025-04-17 (QV) track settings in output gatts
+ ##                2025-05-08 (QV) changed LUT handling
+ ##                2025-07-07 (QV) check sun zenith angle
++##                2026-11-20 added radcor_nodata_fill, radcor_nodata_fill_inset and radcor_nodata_fill_mask
++
++## def nodata_fill
++## fills the pixels without data (e.g. beyond the swath edge) of a TOA array before the RAdCor convolution
++## method = average: the given average, i.e. the scene average as before
++##        = nearest: the nearest pixel with data that lies at least inset pixels inside the data
++##        = water_mask: as nearest, but by class, water takes the nearest water pixel and land the nearest land pixel
++##          pixels within inset pixels of the other class are not copied from, they are mixed or misplaced in the mask
++## the pixels within inset pixels of the no data area are filled as well, since the last pixels before a swath edge
++## are not reliable
++## 2026-11-20
++
++def nodata_fill(x_a, average, method = 'average', inset = 0, water = None):
++    import numpy as np
++    import scipy.ndimage
++
++    gap = np.isnan(x_a)
++    if (method == 'average') or (not gap.any()):
++        x_a[gap] = average
++        return(x_a)
++    if method not in ('nearest', 'water_mask'):
++        raise ValueError('radcor_nodata_fill={} is not one of average, nearest, water_mask'.format(method))
++
++    if inset > 0: gap = scipy.ndimage.binary_dilation(gap, iterations = inset)
++    if gap.all(): ## nothing to copy from
++        x_a[np.isnan(x_a)] = average
++        return(x_a)
++
++    if method == 'nearest':
++        near = scipy.ndimage.distance_transform_edt(gap, return_distances = False, return_indices = True)
++        return(x_a[tuple(near)])
++
++    if (water is None) or (water.shape != x_a.shape):
++        raise ValueError('radcor_nodata_fill=water_mask needs a water mask with the shape of the image')
++    for cl in (True, False):
++        cls = water == cl
++        source = (~gap) & cls
++        if inset > 0: ## a pixel at the shore, taken for water, would fill the water beyond with the value of land
++            core = source & scipy.ndimage.binary_erosion(cls, iterations = inset, border_value = 1)
++            if core.any(): source = core
++        target = gap & cls
++        if source.any() and target.any():
++            near = scipy.ndimage.distance_transform_edt(~source, return_distances = False, return_indices = True)
++            x_a[target] = x_a[tuple(near)][target]
++    left = np.isnan(x_a)
++    if left.any(): ## a class without any pixel in the data: nearest pixel of any class
++        near = scipy.ndimage.distance_transform_edt(left | gap, return_distances = False, return_indices = True)
++        x_a[left] = x_a[tuple(near)][left]
++    return(x_a)
++
++## def nodata_fill_mask
++## reads a water mask for nodata_fill at the positions lon, lat
++## the file is a GeoTIFF in geographic coordinates (EPSG:4326, north up) with 1 for water
++## 2026-11-20
++
++def nodata_fill_mask(file, lon, lat):
++    import numpy as np
++    from osgeo import gdal
++
++    ds = gdal.Open('{}'.format(file))
++    if ds is None: raise ValueError('could not open the water mask {}'.format(file))
++    gt = ds.GetGeoTransform()
++    mask = ds.ReadAsArray()
++    ds = None
++    col = np.clip(np.floor((lon - gt[0]) / gt[1]).astype(int), 0, mask.shape[1] - 1)
++    row = np.clip(np.floor((lat - gt[3]) / gt[5]).astype(int), 0, mask.shape[0] - 1)
++    return(mask[row, col] == 1)
+ 
+ def radcor(ncf, settings = None):
+     import os, json
+     import acolite as ac
+     import numpy as np
+     import scipy.optimize
++
++    ### fill_nodata
++    ## fill the pixels without data of a TOA array as set by radcor_nodata_fill, see nodata_fill
++    ## radcor_nodata_fill_inset is in metres: distance to pixels without data and to the other class of the water mask
++    ## radcor_nodata_fill_mask is the water mask file, see nodata_fill_mask
++    nodata_fill_cache = {}
++    def fill_nodata(x_a, average):
++        method = str(setu['radcor_nodata_fill']).lower() if 'radcor_nodata_fill' in setu else 'average'
++        if (method in ('average', 'none')) or (not np.isnan(x_a).any()):
++            return(nodata_fill(x_a, average))
++        inset = 100.0
++        if 'radcor_nodata_fill_inset' in setu:
++            if setu['radcor_nodata_fill_inset'] is not None: inset = float(setu['radcor_nodata_fill_inset'])
++        inset = int(round(inset / resolution))
++        water = None
++        if method == 'water_mask':
++            if 'water' not in nodata_fill_cache:
++                file = setu['radcor_nodata_fill_mask'] if 'radcor_nodata_fill_mask' in setu else None
++                if (file is None) or (not os.path.exists('{}'.format(file))):
++                    raise ValueError('radcor_nodata_fill=water_mask needs the file radcor_nodata_fill_mask, got {}'.format(file))
++                nodata_fill_cache['water'] = nodata_fill_mask(file, ac.shared.nc_data(ncf, 'lon'), ac.shared.nc_data(ncf, 'lat'))
++            water = nodata_fill_cache['water']
++        if 'printed' not in nodata_fill_cache:
++            gap = np.isnan(x_a)
++            text = 'RAdCor no data fill: {}, inset {} pixels, {} pixels without data'.format(method, inset, gap.sum())
++            if water is not None: text += ', {:.0f} % of them water'.format(100 * (gap & water).sum() / gap.sum())
++            print(text)
++            nodata_fill_cache['printed'] = True
++        return(nodata_fill(x_a, average, method = method, inset = inset, water = water))
+ 
+     ### correct_band
+     ## nested function to perform correction
+@@ -85,7 +181,7 @@
+         # Here we are already removing rho_a, so it should never get the previous values.
+         x_a = 1.0 * rho_toa - rho_a
+         ## fill nans
+-        x_a[np.isnan(x_a)] = rho_toa_av - rho_a
++        x_a = fill_nodata(x_a, rho_toa_av - rho_a)
+ 
+         ## Extend rhot array if requested to keep edges
+         if setu['radcor_edge_extend']:
+@@ -1016,7 +1112,7 @@
+                 x_a = 1.0 * rho_toa
+ 
+                 ## Fill NaNs
+-                x_a[np.isnan(x_a)] = rho_toa_av[bi]
++                x_a = fill_nodata(x_a, rho_toa_av[bi])
+ 
+                 ## Extend rhot array if requested to keep edges
+                 if setu['radcor_edge_extend']:

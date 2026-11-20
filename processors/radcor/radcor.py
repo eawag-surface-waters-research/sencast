@@ -26,10 +26,26 @@ Outputs or side effects:
 - For MSI runs at 20 m, writes adjacency corrected values into native band files
   using nearest resampling for B02, B03, B04, and B08, and average resampling
   for the remaining MSI bands to avoid inventing subpixel structure.
+- Pixels without data (beyond the swath edge): RAdCor needs a value for every pixel within its kernel radius.
+  ACOLITE fills pixels without data with the scene average. Where the average differs from what lies beyond the
+  edge (land and cloud in the average, water beyond the edge), the water within the kernel radius of a swath edge
+  is biased. With radcor_nodata_fill = water_mask (default for MSI) each such pixel takes the nearest pixel that
+  lies radcor_nodata_fill_inset metres (default 100) inside the data, water from water and land from land by a
+  static water mask (Global Surface Water occurrence of at least 50 per cent, read with the function of POLYMER,
+  kept as GeoTIFF under <GSW root>/radcor_water_mask). Pixels within the inset of the other class are not copied
+  from, since a pixel at the shore that the mask takes for water would fill the water beyond with the value of
+  land. nearest does the same without the mask, average is the behaviour of ACOLITE and turns the fill off. The
+  pixels within the inset (plus one pixel) of pixels without data hold copied values. They are set to no data in
+  all corrected MSI bands, on the same area for every band. This needs ACOLITE with
+  processors/radcor/acolite_radcor_nodata_fill.patch (applied in the Dockerfile). The fill is available for MSI
+  only. Cached RADCOR copies of earlier versions need recompute = true.
 
 Manual parameters or settings to review:
 - RADCOR section values such as radcor_max_vza, radcor_aot_estimate,
   radcor_kernel_radius, radcor_rhotc_tolerance_nm, recompute, and cache_per_area.
+- radcor_nodata_fill (average, nearest, water_mask), radcor_nodata_fill_inset (metres, distance to pixels without
+  data and to the other class of the water mask) and radcor_nodata_fill_mask (own water mask, GeoTIFF in EPSG:4326
+  with 1 for water).
 - ACOLITE settings template and LUT selection for the relevant sensor and resolution.
 
 Hardcoded input and output paths:
@@ -47,6 +63,7 @@ import time
 import netCDF4
 import shutil
 import hashlib
+import tempfile
 import importlib
 import numpy as np
 import xarray as xr
@@ -54,6 +71,7 @@ import contextlib
 from osgeo import gdal, osr
 from datetime import datetime
 from pyproj import Transformer
+from scipy import ndimage
 from scipy.spatial import cKDTree
 from scipy.interpolate import RegularGridInterpolator
 from utils.auxil import log
@@ -120,6 +138,26 @@ CACHE_KEY_LENGTH = 12
 CACHE_KEY_IGNORED_PARAMS = ("recompute", "cache_per_area")
 # Written beside a RADCOR copy after a successful correction. A cached copy without it is rebuilt.
 COMPLETION_MARKER_SUFFIX = ".radcor_done"
+# How RAdCor fills pixels without data (beyond the swath edge) before its convolution. ACOLITE fills them with the
+# scene average, which is mostly land and darkens the water within the kernel radius of a swath edge. The settings
+# below come with processors/radcor/acolite_radcor_nodata_fill.patch. Sensors that are not listed in
+# NODATA_FILL_DEFAULT keep the scene average: the fill is not tested for them.
+NODATA_FILL_KEY = "radcor_nodata_fill"
+NODATA_FILL_INSET_KEY = "radcor_nodata_fill_inset"
+NODATA_FILL_MASK_KEY = "radcor_nodata_fill_mask"
+NODATA_FILL_METHODS = ("average", "nearest", "water_mask")
+NODATA_FILL_DEFAULT = {"MSI": "water_mask"}
+# Sensors for which the pixels with copied values are set to no data after the correction
+NODATA_FILL_SENSORS = ("MSI",)
+NODATA_FILL_INSET_M = 100.0
+NODATA_FILL_PATCH = "processors/radcor/acolite_radcor_nodata_fill.patch"
+WATER_MASK_DIR = "radcor_water_mask"
+# Water where the Global Surface Water occurrence is at least this (per cent), as in the land mask of POLYMER.
+WATER_MASK_OCCURRENCE = 50.0
+# Grid of the water mask file in degrees, finer than the Global Surface Water grid (0.00025 degrees).
+WATER_MASK_STEP_DEG = 0.0002
+WATER_MASK_MARGIN_DEG = 0.05
+WATER_MASK_MAX_PIXELS = 4e8
 
 def _tile_id_from_product(product_id):
     match = re.search(r"_T\d{2}[A-Z]{3}_", product_id)
@@ -288,6 +326,179 @@ def _cache_key(wkt, resolution, parameters):
             inputs.append((key, str(parameters[key]).strip()))
     text = "\n".join("{}={}".format(key, value) for key, value in inputs)
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:CACHE_KEY_LENGTH], inputs
+
+
+def _acolite_has_nodata_fill(acolite_root):
+    """True if the ACOLITE under acolite_root has the no data fill of NODATA_FILL_PATCH."""
+    path = os.path.join(acolite_root, "acolite", "adjacency", "radcor", "radcor.py")
+    try:
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            return NODATA_FILL_KEY in f.read()
+    except OSError:
+        return False
+
+
+def _nodata_fill_method(sensor, parameters):
+    """Fill method for pixels without data, and whether the parameter file names it."""
+    explicit = NODATA_FILL_KEY in parameters and str(parameters[NODATA_FILL_KEY]).strip() != ""
+    method = str(parameters[NODATA_FILL_KEY]).strip().lower() if explicit else NODATA_FILL_DEFAULT.get(sensor, "average")
+    if method not in NODATA_FILL_METHODS:
+        raise ValueError("{}={} is not one of {}.".format(NODATA_FILL_KEY, method, ", ".join(NODATA_FILL_METHODS)))
+    return method, explicit
+
+
+def _product_bounds(sensor, l1product_path, wkt):
+    """West, south, east and north (degrees) of the area that RAdCor may read: the tile for MSI, else the job area."""
+    if sensor == "MSI":
+        ds = gdal.Open(find_s2_jp2(l1product_path, "B05"))
+        gt, width, height = ds.GetGeoTransform(), ds.RasterXSize, ds.RasterYSize
+        to_geographic = Transformer.from_crs(ds.GetProjection(), "EPSG:4326", always_xy=True)
+        ds = None
+        xs, ys = (gt[0], gt[0] + width * gt[1]), (gt[3], gt[3] + height * gt[5])
+        lons, lats = to_geographic.transform([xs[0], xs[1], xs[0], xs[1]], [ys[0], ys[0], ys[1], ys[1]])
+    else:
+        lons, lats = get_lons_lats(wkt)
+    return min(lons), min(lats), max(lons), max(lats)
+
+
+def _water_mask_file(gsw_dir, sensor, l1product_path, wkt, resolution, log_path=None):
+    """Water mask for the no data fill (GeoTIFF, EPSG:4326, 1 = water), built when missing. Returns its path.
+
+    Water is where the Global Surface Water occurrence is at least WATER_MASK_OCCURRENCE per cent. It is read with
+    the function that POLYMER uses for its land mask, which downloads the Global Surface Water file when missing.
+    The file is kept in <gsw_dir>/WATER_MASK_DIR, one per MSI tile or per job area.
+    """
+    from polymer.gsw import get_sw
+
+    west, south, east, north = _product_bounds(sensor, l1product_path, wkt)
+    west, south = west - WATER_MASK_MARGIN_DEG, south - WATER_MASK_MARGIN_DEG
+    east, north = east + WATER_MASK_MARGIN_DEG, north + WATER_MASK_MARGIN_DEG
+    step = max(WATER_MASK_STEP_DEG, float(resolution) / 111320.0 / 2.0)
+    name = _tile_id_from_product(os.path.basename(l1product_path)) if sensor == "MSI" else None
+    if not name:
+        text = "{:.4f}_{:.4f}_{:.4f}_{:.4f}_{:.6f}".format(west, south, east, north, step)
+        name = hashlib.sha256(text.encode("utf-8")).hexdigest()[:CACHE_KEY_LENGTH]
+    folder = os.path.join(gsw_dir, WATER_MASK_DIR)
+    path = os.path.join(folder, "water_{}_occurrence{:g}.tif".format(name, WATER_MASK_OCCURRENCE))
+    if os.path.isfile(path):
+        return path
+
+    os.makedirs(gsw_dir, exist_ok=True)  # get_sw needs the folder, the POLYMER processor creates it only later
+    lon = west + step * (np.arange(int(np.ceil((east - west) / step))) + 0.5)
+    lat = north - step * (np.arange(int(np.ceil((north - south) / step))) + 0.5)
+    if len(lon) * len(lat) > WATER_MASK_MAX_PIXELS:
+        raise ValueError("The area is too large for a water mask of {} degrees. Set {}.".format(step, NODATA_FILL_MASK_KEY))
+    water = np.zeros((len(lat), len(lon)), np.uint8)
+    rows = 2000
+    for start in range(0, len(lat), rows):
+        lat2, lon2 = np.meshgrid(lat[start:start + rows], lon, indexing="ij")
+        water[start:start + rows] = get_sw(lat2, lon2, directory=gsw_dir, agg=1) >= WATER_MASK_OCCURRENCE
+    os.makedirs(folder, exist_ok=True)
+    handle, tmp = tempfile.mkstemp(dir=folder, suffix=".tif")  # a file of its own for each thread and container
+    os.close(handle)
+    try:
+        ds = gdal.GetDriverByName("GTiff").Create(tmp, len(lon), len(lat), 1, gdal.GDT_Byte,
+                                                  options=["COMPRESS=DEFLATE", "TILED=YES"])
+        ds.SetGeoTransform((west, step, 0.0, north, 0.0, -step))
+        srs = osr.SpatialReference()
+        srs.ImportFromEPSG(4326)
+        ds.SetProjection(srs.ExportToWkt())
+        ds.GetRasterBand(1).WriteArray(water)
+        ds = None
+        os.replace(tmp, path)
+    finally:
+        _remove_file_if_exists(tmp)
+    if log_path:
+        log(log_path, "RADCOR: wrote water mask {} ({:.1f} % water)".format(path, 100.0 * water.mean()), indent=1)
+    return path
+
+
+def _nodata_fill_settings(env, sensor, parameters, l1product_path, wkt, resolution, log_path=None):
+    """ACOLITE settings for the fill of pixels without data, and the width (m) of the rim to set to no data.
+
+    The method is the one of the parameter file (NODATA_FILL_KEY), else NODATA_FILL_DEFAULT for the sensor, else
+    the scene average of ACOLITE. A method that the parameter file names fails loudly when it cannot be applied.
+    A default falls back with a log line: to the scene average when ACOLITE lacks the patch, to the nearest pixel
+    when the water mask cannot be built. The rim is the inset in pixels of RAdCor plus one pixel.
+    """
+    method, explicit = _nodata_fill_method(sensor, parameters)
+    if method == "average":
+        return {}, 0.0
+    if sensor not in NODATA_FILL_SENSORS:
+        raise ValueError("RADCOR: {}={} is available for {} only. For {} the pixels with copied values would stay "
+                         "in the output.".format(NODATA_FILL_KEY, method, ", ".join(NODATA_FILL_SENSORS), sensor))
+    if not _acolite_has_nodata_fill(env["ACOLITE"]["root_path"]):
+        message = "the ACOLITE in {} has no {} setting, apply {}".format(
+            env["ACOLITE"]["root_path"], NODATA_FILL_KEY, NODATA_FILL_PATCH)
+        if explicit:
+            raise RuntimeError("RADCOR: {}={} but {}.".format(NODATA_FILL_KEY, method, message))
+        if log_path:
+            log(log_path, "RADCOR: {}. Pixels without data keep the scene average.".format(message), indent=1)
+        return {}, 0.0
+    inset = max(0.0, _read_float_param(parameters, NODATA_FILL_INSET_KEY, NODATA_FILL_INSET_M, log_path=log_path))
+    settings = {NODATA_FILL_KEY: method, NODATA_FILL_INSET_KEY: "{:g}".format(inset)}
+    if method == "water_mask":
+        mask = str(parameters[NODATA_FILL_MASK_KEY]).strip() if NODATA_FILL_MASK_KEY in parameters else ""
+        if not mask:
+            try:
+                mask = _water_mask_file(env["GSW"]["root_path"], sensor, l1product_path, wkt, resolution, log_path)
+            except Exception as e:
+                if explicit:
+                    raise
+                if log_path:
+                    log(log_path, "RADCOR: no water mask ({}). Pixels without data take the nearest pixel.".format(e),
+                        indent=1)
+                settings[NODATA_FILL_KEY] = "nearest"
+        if mask:
+            settings[NODATA_FILL_MASK_KEY] = mask
+    if log_path:
+        log(log_path, "RADCOR: pixels without data are filled by {} from {:g} m inside the data ({}).".format(
+            settings[NODATA_FILL_KEY], inset, "parameter file" if explicit else "default for {}".format(sensor)),
+            indent=1)
+    # ACOLITE copies into round(inset / resolution) pixels next to pixels without data. One more pixel covers the
+    # bands that ACOLITE resamples to its grid.
+    pixels = int(round(inset / float(resolution)))
+    return settings, (pixels + 1) * float(resolution) if pixels > 0 else 0.0
+
+
+def _msi_nodata_zone(tmp_dir, bands, rim_m):
+    """Area to set to no data in every MSI band after the correction, on the finest band grid (True = no data).
+
+    It holds the pixels without data (DN 0) of any band and the pixels within rim_m metres of them. The swath edge
+    lies at slightly different places in the bands, and POLYMER takes the pixels without data from one band only,
+    thus all bands get the same area. The border of the tile is no edge. Returns None when rim_m is 0 or when no
+    band has pixels without data.
+    """
+    if rim_m <= 0:
+        return None
+    sizes, pixel = {}, None
+    for band in bands:
+        ds = gdal.Open(find_s2_jp2(tmp_dir, band), gdal.GA_ReadOnly)
+        if ds is None:
+            raise IOError("Could not open the band file of {}".format(band))
+        sizes[band] = (ds.RasterYSize, ds.RasterXSize)
+        pixel = abs(ds.GetGeoTransform()[1]) if pixel is None else min(pixel, abs(ds.GetGeoTransform()[1]))
+        ds = None
+    size = max(sizes.values())
+    zone = np.zeros(size, bool)
+    for band in bands:
+        fy, fx = size[0] // sizes[band][0], size[1] // sizes[band][1]
+        if (sizes[band][0] * fy, sizes[band][1] * fx) != size:
+            raise ValueError("RADCOR: the grid of {} does not nest in the finest band grid.".format(band))
+        ds = gdal.Open(find_s2_jp2(tmp_dir, band), gdal.GA_ReadOnly)
+        nodata = ds.GetRasterBand(1).ReadAsArray() == 0
+        ds = None
+        if nodata.any():
+            zone |= np.repeat(np.repeat(nodata, fy, axis=0), fx, axis=1)
+    if not zone.any() or zone.all():
+        return None
+    return ndimage.binary_dilation(zone, iterations=int(np.ceil(rim_m / pixel)))
+
+
+def _zone_on_band_grid(zone, shape):
+    """The area of _msi_nodata_zone on the grid of a band: True where any part of the pixel lies in the area."""
+    fy, fx = zone.shape[0] // shape[0], zone.shape[1] // shape[1]
+    return zone.reshape(shape[0], fy, shape[1], fx).any(axis=(1, 3))
 
 
 def _remove_tree_if_exists(path):
@@ -666,7 +877,7 @@ def _derive_expected_oli_bands(ds, tmp_dir, log_path):
     return inferred
 
 
-def _apply_msi_band_update(ds, tmp_dir, band, rhotc_var, src_gt, src_wkt, log_path):
+def _apply_msi_band_update(ds, tmp_dir, band, rhotc_var, src_gt, src_wkt, log_path, zone=None):
     jp2 = find_s2_jp2(tmp_dir, band)
     resamp = gdal.GRA_NearestNeighbour if band in MSI_BANDS_10M else gdal.GRA_Average
     resamp_name = "nearest" if band in MSI_BANDS_10M else "average"
@@ -680,6 +891,14 @@ def _apply_msi_band_update(ds, tmp_dir, band, rhotc_var, src_gt, src_wkt, log_pa
                 band, rhotc_var
             )
         )
+    if zone is not None:
+        # With the fill of pixels without data, the pixels next to them hold copied values: no data in every band.
+        rim = _zone_on_band_grid(zone, dn_sub.shape)
+        removed = int((rim & mask & (dn_sub != 0)).sum())
+        dn_sub[rim] = 0
+        mask = mask | rim
+        log(log_path, "RADCOR: {} has {} corrected pixels next to pixels without data, set to no data".format(
+            band, removed), indent=3)
     update_band(jp2, dn_sub, mask)
     return band
 
@@ -706,7 +925,7 @@ def _apply_oli_band_update(ds, tmp_dir, band, rhotc_var, src_gt, src_wkt, metada
     return band
 
 
-def _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix):
+def _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix, rim_m=0.0):
     ds = xr.open_dataset(acolite_file)
     try:
         rhotc_variables = _list_rhotc_variables(ds, toa_prefix)
@@ -748,10 +967,15 @@ def _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix):
         finally:
             template_ds = None
 
+        zone = _msi_nodata_zone(tmp_dir, bands_expected, rim_m)
+        if zone is not None:
+            log(env["General"]["log"], "RADCOR: all bands are set to no data within {:g} m of pixels without data of "
+                                       "any band.".format(rim_m), indent=1)
         processed_bands = []
         for band in bands_expected:
             processed_bands.append(
-                _apply_msi_band_update(ds, tmp_dir, band, band_to_var[band], src_gt, src_wkt, env["General"]["log"])
+                _apply_msi_band_update(ds, tmp_dir, band, band_to_var[band], src_gt, src_wkt, env["General"]["log"],
+                                       zone=zone)
             )
 
         if set(processed_bands) != set(bands_expected):
@@ -875,10 +1099,20 @@ def process(env, params, l1product_path, _, out_path):
         log_path=env["General"]["log"],
     )
 
+    # Fill of pixels without data (beyond the swath edge), see NODATA_FILL_DEFAULT. The settings go to ACOLITE and
+    # into the cache key, and the pixels next to pixels without data are set to no data after the correction.
+    nodata_fill, rim_m = _nodata_fill_settings(env, sensor, radcor_params, l1product_path, wkt, resolution,
+                                               log_path=env["General"]["log"])
+    radcor_settings = {key: radcor_params[key] for key in radcor_params}
+    radcor_settings.update(nodata_fill)
+
     radcor_folder = os.path.join(os.path.dirname(l1product_path), "RADCOR")
     cache_key = ""
     if cache_per_area:
-        cache_key, cache_inputs = _cache_key(wkt, resolution, radcor_params)
+        cache_settings = dict(radcor_settings)
+        if NODATA_FILL_MASK_KEY in cache_settings:  # the name of the mask, since its folder depends on the mount
+            cache_settings[NODATA_FILL_MASK_KEY] = os.path.basename(str(cache_settings[NODATA_FILL_MASK_KEY]))
+        cache_key, cache_inputs = _cache_key(wkt, resolution, cache_settings)
         log(env["General"]["log"], "RADCOR: cache_per_area=true, cache key {} from:".format(cache_key), indent=1)
         for key, value in cache_inputs:
             log(env["General"]["log"], "{} = {}".format(key, value), indent=2)
@@ -911,7 +1145,13 @@ def process(env, params, l1product_path, _, out_path):
 
         settings_file = os.path.join(out_path, REPROD_DIR, SETTINGS_FILENAME.format(sensor))
         if not os.path.isfile(settings_file):
-            rewrite_settings_file(settings_file, sensor, resolution, limit, radcor_params)
+            rewrite_settings_file(settings_file, sensor, resolution, limit, radcor_settings)
+        elif nodata_fill:
+            # A settings file of an earlier run is kept, but the fill has to match the rim that is masked below.
+            update_settings_file(settings_file, nodata_fill)
+        elif _settings_file_has_key(settings_file, NODATA_FILL_KEY):
+            # The earlier run had the fill and this one has not: turn it off in the kept file as well.
+            update_settings_file(settings_file, {NODATA_FILL_KEY: "average"})
 
         ac.acolite_run(settings_file, l1product_path, out_path)
 
@@ -1095,7 +1335,7 @@ def process(env, params, l1product_path, _, out_path):
             elif sensor == "MSI":
                 if int(resolution) != int(20):
                     raise ValueError("RADCOR for MSI only implemented for 20m")
-                band_to_var = _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix)
+                band_to_var = _process_msi_fail_fast(env, tmp_dir, acolite_file, toa_prefix, rim_m=rim_m)
             elif sensor == "OLI_TIRS":
                 _process_oli_fail_fast(env, radcor_params, tmp_dir, acolite_file, toa_prefix)
             else:
@@ -1121,6 +1361,11 @@ def rewrite_settings_file(settings_file, sensor, resolution, limit, parameters):
     with open(settings_file, "w") as f:
         f.write(text)
     update_settings_file(settings_file, parameters)
+
+
+def _settings_file_has_key(file_path, key):
+    with open(file_path, 'r') as file:
+        return any(line.split("=")[0].strip() == key for line in file)
 
 
 def update_settings_file(file_path, parameters):

@@ -1,0 +1,2 @@
+# patch files are applied with git apply in the Dockerfile and need unix line ends on every system
+*.patch text eol=lf
