@@ -1426,7 +1426,9 @@ def update_band(jp2, dn_sub, mask):
     temp_band = temp_ds.GetRasterBand(1)
     temp_band.WriteArray(modified_data)
     temp_path = jp2 + '.tmp.jp2'
-    gdal.Translate(temp_path, temp_ds, format='JP2OpenJPEG', creationOptions=['QUALITY=100'])
+    # Reversible, i.e. without loss: with the default wavelet a pixel without data (DN 0) next to data can come
+    # back as DN 1, which POLYMER reads as data.
+    gdal.Translate(temp_path, temp_ds, format='JP2OpenJPEG', creationOptions=['QUALITY=100', 'REVERSIBLE=YES'])
     temp_ds = None
     src_ds = None
     backup_path = jp2 + '.backup.jp2'
