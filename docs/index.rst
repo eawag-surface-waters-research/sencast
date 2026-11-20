@@ -235,6 +235,7 @@ Locally build container
    processors/oc3.rst
    processors/polymer.rst
    processors/primaryproduction.rst
+   processors/radcor.rst
    processors/secchidepth.rst
    processors/tmart.rst
    processors/whiting.rst
