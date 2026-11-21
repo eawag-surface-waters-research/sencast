@@ -13,6 +13,7 @@ import tmart
 import shutil
 import sysconfig
 import glob
+import inspect
 from utils.auxil import log
 
 
@@ -71,6 +72,72 @@ def _validate_msi_safe_input(l1product_path):
         )
 
 
+def _validate_landsat_input(l1product_path):
+    """
+    Validate that a Landsat 8/9 product directory contains the files TMART reads.
+    """
+    product_name = os.path.basename(l1product_path)
+    if not product_name.startswith(("LC08", "LC09")):
+        return
+
+    if not os.path.isdir(l1product_path):
+        raise RuntimeError(
+            "TMART input validation failed: Landsat product must be a directory: {}".format(l1product_path)
+        )
+
+    required_suffixes = [
+        "_MTL.txt",
+        "_QA_PIXEL.TIF",
+        "_B1.TIF",
+        "_B2.TIF",
+        "_B3.TIF",
+        "_B4.TIF",
+        "_B5.TIF",
+        "_B6.TIF",
+        "_B7.TIF",
+        "_B9.TIF",
+    ]
+    missing_entries = []
+    for suffix in required_suffixes:
+        expected = os.path.join(l1product_path, "{}{}".format(product_name, suffix))
+        if not os.path.isfile(expected):
+            missing_entries.append(os.path.basename(expected))
+
+    if len(missing_entries) > 0:
+        raise RuntimeError(
+            "TMART input validation failed: missing required Landsat content ({} entries missing). "
+            "Missing entries: {}".format(
+                len(missing_entries),
+                ", ".join(missing_entries),
+            )
+        )
+
+
+def _read_aot(value):
+    if str(value).upper() == "MERRA2":
+        return "MERRA2"
+    return float(value)
+
+
+def _remove_path(path):
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+    elif os.path.isfile(path):
+        os.remove(path)
+
+
+def _run_tmart_aec(aec_file, env, aot, n_photon, n_jobs, mask_swir_threshold):
+    kwargs = {
+        "overwrite": True,
+        "AOT": aot,
+        "n_photon": n_photon,
+        "n_jobs": n_jobs,
+    }
+    if "mask_SWIR_threshold" in inspect.signature(tmart.AEC.run).parameters:
+        kwargs["mask_SWIR_threshold"] = mask_swir_threshold
+    tmart.AEC.run(aec_file, env["EARTHDATA"]["username"], env["EARTHDATA"]["password"], **kwargs)
+
+
 def process(env, params, l1product_path, l2product_files, out_path):
     """
     T-Mart processor.
@@ -96,21 +163,24 @@ def process(env, params, l1product_path, l2product_files, out_path):
     aot = "MERRA2"
     n_photon = 100000
     n_jobs = 100
-    mask_swir_threshold=None
+    mask_swir_threshold = None
 
-    if "aot" in params[PARAMS_SECTION].keys(): aot = float(params[PARAMS_SECTION]["aot"])
+    if "aot" in params[PARAMS_SECTION].keys(): aot = _read_aot(params[PARAMS_SECTION]["aot"])
     if "n_photon" in params[PARAMS_SECTION].keys(): n_photon = int(params[PARAMS_SECTION]["n_photon"])
     if "n_jobs" in params[PARAMS_SECTION].keys(): n_jobs = int(params[PARAMS_SECTION]["n_jobs"])
-    if "mask_swir_threshold" in params[PARAMS_SECTION]: mask_swir_threshold=float(params[PARAMS_SECTION]["mask_swir_threshold"])
-    
+    if "mask_swir_threshold" in params[PARAMS_SECTION]: mask_swir_threshold = float(params[PARAMS_SECTION]["mask_swir_threshold"])
+
     aec_folder = os.path.join(os.path.dirname(l1product_path), "TMART")
     os.makedirs(aec_folder, exist_ok=True)
     aec_file = os.path.join(aec_folder, os.path.basename(l1product_path))
 
     if os.path.exists(aec_file):
-        if "synchronise" in params["General"].keys() and params['General']['synchronise'] == "false":
+        if (
+            ("synchronise" in params["General"].keys() and params['General']['synchronise'] == "false")
+            or ("overwrite" in params["General"].keys() and params['General']['overwrite'] == "true")
+        ):
             log(env["General"]["log"], "Removing file: ${}".format(aec_file))
-            shutil.rmtree(aec_file)
+            _remove_path(aec_file)
         else:
             log(env["General"]["log"], 'Skipping T-Mart, target already exists: {}'.format(aec_file), indent=1)
             return [aec_file]
@@ -136,15 +206,16 @@ def process(env, params, l1product_path, l2product_files, out_path):
 
     try:
         _validate_msi_safe_input(l1product_path)
+        _validate_landsat_input(l1product_path)
         if os.path.isfile(l1product_path):
             shutil.copy(l1product_path, aec_file)
         elif os.path.isdir(l1product_path):
             shutil.copytree(l1product_path, aec_file)
-        tmart.AEC.run(aec_file, env["EARTHDATA"]["username"], env["EARTHDATA"]["password"], overwrite=True, AOT=aot, n_photon=n_photon, n_jobs=n_jobs, mask_SWIR_threshold=mask_swir_threshold)
+        _run_tmart_aec(aec_file, env, aot, n_photon, n_jobs, mask_swir_threshold)
         shutil.copy(config_backup_path, config_path)
     except:
         shutil.copy(config_backup_path, config_path)
         if os.path.exists(aec_file):
-            shutil.rmtree(aec_file)
+            _remove_path(aec_file)
         raise
     return [aec_file]
