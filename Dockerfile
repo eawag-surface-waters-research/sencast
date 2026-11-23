@@ -41,6 +41,9 @@ RUN cp -avr /opt/POLYMER/polymer/polymer $CONDA_ENV_HOME/lib/python3.11/site-pac
 RUN cp -avr /opt/POLYMER/polymer/auxdata $CONDA_ENV_HOME/lib/python3.11/site-packages/auxdata
 
 RUN git clone --filter=blob:none --no-checkout https://github.com/acolite/acolite.git /opt/acolite && git -C /opt/acolite checkout fc3e0cce4f608cf998f7d83cb6d002bb32d43f1a
+# RAdCor fill of pixels without data (radcor_nodata_fill). The patch belongs to the commit above: the build fails if it no longer applies.
+COPY ./processors/radcor/acolite_radcor_nodata_fill.patch /tmp/acolite_radcor_nodata_fill.patch
+RUN git -C /opt/acolite apply --check /tmp/acolite_radcor_nodata_fill.patch && git -C /opt/acolite apply /tmp/acolite_radcor_nodata_fill.patch
 
 RUN cd /opt && git clone --depth 1 --branch sencast https://gitlab.eawag.ch/surf/remote-sensing/ocsmart.git && cd /
 
